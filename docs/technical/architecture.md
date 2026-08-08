@@ -26,3 +26,15 @@ Mengingat nama project `go-micro-simrs-one`, project ini direkomendasikan untuk 
   - Event `PatientExamFinished` dipublish oleh EMR Service, kemudian di-consume oleh Visit/Registration Service untuk mengkalkulasi ulang estimasi sisa waktu tunggu antrean pasien berikutnya.
   - Event `PrescriptionCreated` dikirim ke Pharmacy Service untuk mulai mengkalkulasi estimasi waktu penyiapan obat berdasarkan jenis resep.
 - **Komunikasi Real-Time ke Klien:** Menggunakan **WebSockets** atau **Server-Sent Events (SSE)**. Backend akan me-broadcast pembaruan estimasi waktu tunggu secara langsung ke Frontend/Layar Pasien, sehingga informasi sisa waktu selalu akurat tanpa perlu me-refresh halaman (polling).
+
+## 5. Arsitektur "AI-Ready" untuk Estimasi Waktu Tunggu
+Untuk memfasilitasi kalkulasi waktu tunggu cerdas (berbasis historis/Machine Learning) tanpa merombak sistem *core*, proyek ini menerapkan **Dependency Injection** dan **Open-Closed Principle (SOLID)**.
+
+Pada kode Golang (di service Registration & Pharmacy), dibuat sebuah *Interface* utama:
+`type QueueEstimator interface { Estimate(data EstimatorPayload) int }`
+
+Interface ini memiliki dua implementasi yang di-inject berdasarkan konfigurasi (*environment variable*):
+1. **`StaticQueueEstimator`**: Logika kalkulasi menggunakan *rule-based* biasa (contoh: `if pasien_baru { return 15 }`).
+2. **`MLQueueEstimator`**: Melakukan pemanggilan **HTTP/gRPC Call** ke *endpoint* external (ML Service).
+   - **Tahap Showcase / Development (Mock AI):** Endpoint eksternal diarahkan ke Mock Server (misalnya menggunakan Postman Mock API, atau server Python sederhana). Sistem seolah-olah berinteraksi dengan AI untuk mendapat prediksi angka.
+   - **Tahap Produksi (Real AI):** Saat model Machine Learning sesungguhnya telah ditraining oleh Data Scientist, model tersebut cukup di-deploy di URL endpoint yang sama. Sistem Golang akan otomatis mendapatkan prediksi nyata dari AI **tanpa merombak kode Backend sama sekali (Zero Code Change)**.
