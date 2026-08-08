@@ -20,6 +20,9 @@ Mengingat nama project `go-micro-simrs-one`, project ini direkomendasikan untuk 
 ## 3. Basis Data (Database)
 - Relational Database (PostgreSQL / MySQL) sangat direkomendasikan untuk integritas data (ACID compliance) pada transaksi RS.
 
-## 4. Integrasi Antar Layanan (Inter-Service Communication)
+## 4. Integrasi Antar Layanan & Arsitektur Event-Driven (EDA)
 - **Synchronous:** REST API / gRPC (contoh: Billing Service meminta rincian harga obat ke Pharmacy Service).
-- **Asynchronous:** Message Broker seperti RabbitMQ / Kafka (contoh: Saat dokter menyimpan resep, event dikirim ke Apotek agar petugas apotek mendapat notifikasi real-time tanpa refresh halaman).
+- **Asynchronous:** Message Broker (RabbitMQ / Kafka) digunakan secara ekstensif, terutama untuk fitur **Estimasi Waktu Tunggu**, contoh:
+  - Event `PatientExamFinished` dipublish oleh EMR Service, kemudian di-consume oleh Visit/Registration Service untuk mengkalkulasi ulang estimasi sisa waktu tunggu antrean pasien berikutnya.
+  - Event `PrescriptionCreated` dikirim ke Pharmacy Service untuk mulai mengkalkulasi estimasi waktu penyiapan obat berdasarkan jenis resep.
+- **Komunikasi Real-Time ke Klien:** Menggunakan **WebSockets** atau **Server-Sent Events (SSE)**. Backend akan me-broadcast pembaruan estimasi waktu tunggu secara langsung ke Frontend/Layar Pasien, sehingga informasi sisa waktu selalu akurat tanpa perlu me-refresh halaman (polling).

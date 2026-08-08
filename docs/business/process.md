@@ -40,3 +40,10 @@ Project ini juga ditujukan sebagai *showcase portfolio* pengembangan perangkat l
 2. **Penyerahan Obat:**
    - Petugas apotek menyiapkan obat berdasarkan resep.
    - Obat diserahkan kepada pasien dan keseluruhan proses rawat jalan dinyatakan selesai.
+
+### E. Estimasi Waktu Tunggu (Fitur Unggulan)
+Sistem memiliki fitur untuk memberikan estimasi waktu secara real-time kepada pasien:
+1. **Estimasi Waktu Poliklinik:** 
+   - Pasien dapat melihat berapa menit lagi giliran mereka akan dipanggil. Kalkulasi didasarkan pada Rata-Rata Waktu Pelayanan (AHT - Average Handling Time) dari masing-masing dokter dikalikan dengan jumlah antrean di depan pasien.
+2. **Estimasi Waktu Pengambilan Obat:** 
+   - Pasien mengetahui kapan obat siap diambil. Kalkulasi didasarkan pada jenis resep (Racikan atau Non-Racikan) dan jumlah antrean resep yang sedang diproses oleh Apoteker.
