@@ -25,18 +25,21 @@ Project ini juga ditujukan sebagai *showcase portfolio* pengembangan perangkat l
    - Dokter menginput **Diagnosa** (berdasarkan standar ICD-10).
    - Dokter menginput **Tindakan Medis** (beserta tarif).
    - Dokter membuat **Resep Obat** melalui sistem.
-   - Dokter mengarahkan pasien ke Apotek.
+   - Dokter mengarahkan pasien ke Kasir untuk melakukan pelunasan, kemudian ke Apotek.
 
-### C. Apotek (Pharmacy)
+### C. Pembayaran / Kasir
+1. **Kalkulasi Tagihan:**
+   - Sistem akan mengkalkulasi total tagihan secara otomatis, yang mencakup biaya tindakan medis di poliklinik dan harga obat dari resep.
+2. **Pelunasan Pembayaran:**
+   - Pasien melakukan pelunasan tagihan di Kasir.
+   - Setelah lunas, status pasien di-update sehingga obat dapat mulai diproses di Apotek.
+
+### D. Apotek (Pharmacy)
 1. **Penerimaan Resep:**
-   - Data pasien, diagnosa, tindakan medis, dan resep obat akan otomatis muncul di sistem Apotek.
+   - Data resep obat pasien akan muncul di sistem Apotek (diutamakan bagi pasien yang status pembayarannya sudah lunas).
 2. **Penyerahan Obat:**
    - Petugas apotek menyiapkan obat berdasarkan resep.
-   - Obat diserahkan kepada pasien dan status pelayanan selesai (atau dilanjutkan ke pembayaran).
-
-### D. Pembayaran / Kasir (Tambahan untuk Showcase)
-1. Setelah dari apotek, total tagihan (tindakan poliklinik + harga obat) dikalkulasikan.
-2. Pasien melakukan pembayaran dan transaksi dinyatakan selesai.
+   - Obat diserahkan kepada pasien dan keseluruhan proses rawat jalan dinyatakan selesai.
 
 ---
 
