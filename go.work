@@ -6,5 +6,7 @@ use (
 	./patient-service
 	./registration-service
 	./emr-service
+	./pharmacy-service
+	./billing-service
 	./shared
 )
