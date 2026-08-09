@@ -1,3 +1,8 @@
 go 1.26.3
 
-use ./shared
+use (
+	./api-gateway
+	./auth-service
+	./patient-service
+	./shared
+)

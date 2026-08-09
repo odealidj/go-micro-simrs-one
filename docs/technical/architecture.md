@@ -49,7 +49,7 @@ Pada Go (Service Registration & Pharmacy), terdapat *Interface* utama:
 2. **`MLQueueEstimator`**: Melakukan HTTP/gRPC Call ke *endpoint* external AI/Machine Learning. Sangat *plug-and-play* saat model cerdas siap digunakan.
 
 ## 7. Observability, Idempotency & Standarisasi API
-- **Distributed Tracing (`trace_id`)**: Setiap request yang masuk ke API Gateway akan diberikan `trace_id` unik. ID ini diteruskan (propagate) ke semua layer dan service internal via `context` gRPC, sehingga mempermudah proses melacak *log* lintas service (*Debugging* terpusat).
+- **Distributed Tracing (OpenTelemetry & Jaeger)**: Setiap request yang masuk ke API Gateway akan dicatat oleh OpenTelemetry dan diberikan `trace_id` unik. Trace ID ini diteruskan (propagate) ke semua service internal via `context` gRPC. Data *trace* (Span) ini kemudian akan di- *export* ke **Jaeger** untuk divisualisasikan dalam bentuk *Gantt Chart*, sehingga mempermudah deteksi *bottleneck* atau memantau waktu latensi lintas service secara profesional.
 - **Idempotency Key (`X-Request-ID`)**: Untuk mencegah ekseskusi ganda (misal user mengklik tombol submit 2 kali), klien disarankan mengirimkan Header `X-Request-ID`. Backend akan menyimpan ID ini di Redis sementara (TTL singkat). Jika ID yang sama diterima lagi, sistem akan langsung memblokir atau mengembalikan *cached response* tanpa memproses ulang operasi database (Mencegah transaksi tagihan/stok ganda).
 - **Standar API Response (Custom DTO)**: Semua service akan menggunakan struktur JSON yang sangat konsisten untuk 3 skenario utama:
 
