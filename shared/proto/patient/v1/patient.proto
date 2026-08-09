@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package patient.v1;
+
+option go_package = "github.com/aliube/go-micro-simrs-one/shared/proto/patient/v1;patientv1";
+
+service PatientService {
+  rpc RegisterPatient (RegisterPatientRequest) returns (RegisterPatientResponse);
+  rpc GetPatientByMRN (GetPatientByMRNRequest) returns (GetPatientByMRNResponse);
+}
+
+message RegisterPatientRequest {
+  string name = 1;
+  string nik = 2;
+  string dob = 3;
+}
+
+message RegisterPatientResponse {
+  bool success = 1;
+  string mrn = 2; // Formatted MRN: 10-XX-XX-XX
+  string message = 3;
+}
+
+message GetPatientByMRNRequest {
+  string mrn = 1;
+}
+
+message GetPatientByMRNResponse {
+  string mrn = 1;
+  string name = 2;
+  string nik = 3;
+  string dob = 4;
+}
