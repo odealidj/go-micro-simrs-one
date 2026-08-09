@@ -4,5 +4,6 @@ use (
 	./api-gateway
 	./auth-service
 	./patient-service
+	./registration-service
 	./shared
 )
