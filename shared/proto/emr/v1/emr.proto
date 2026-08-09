@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package emr.v1;
+
+option go_package = "github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1;emrv1";
+
+service EMRService {
+  rpc AddDiagnosis (AddDiagnosisRequest) returns (AddDiagnosisResponse);
+  rpc GetMedicalRecord (GetMedicalRecordRequest) returns (GetMedicalRecordResponse);
+}
+
+message AddDiagnosisRequest {
+  string encounter_no = 1;
+  string icd10_code = 2;
+  string notes = 3;
+}
+
+message AddDiagnosisResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetMedicalRecordRequest {
+  string encounter_no = 1;
+}
+
+message GetMedicalRecordResponse {
+  string encounter_no = 1;
+  string patient_mrn = 2;
+  repeated string icd10_codes = 3;
+  string notes = 4;
+}
