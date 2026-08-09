@@ -37,6 +37,10 @@ func main() {
 	// 3. Custom Telemetry (trace_id) Middleware
 	r.Use(simrsmiddleware.TraceIDMiddleware)
 
+	// 4. Swagger UI
+	fs := http.FileServer(http.Dir("./docs/swagger"))
+	r.Handle("/docs/*", http.StripPrefix("/docs/", fs))
+
 	// API Routes
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
