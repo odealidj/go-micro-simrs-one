@@ -1,40 +1,49 @@
 # Kebutuhan Teknis (Technical Requirements) - SIMRS Rawat Jalan
 
-## 1. Pembagian Hak Akses (RBAC)
-Sistem ini membutuhkan otentikasi (contoh: JWT) dan otorisasi untuk beberapa Role:
-- **Admin / Resepsionis:** Mengelola pendaftaran pasien baru dan lama.
-- **Perawat:** Mengisi data pemeriksaan awal di poliklinik.
-- **Dokter:** Mengisi diagnosa (ICD-10), tindakan, dan resep.
-- **Apoteker:** Memproses resep obat dan menyerahkan ke pasien.
-- **Kasir:** Melakukan proses konfirmasi pembayaran.
+## 1. Arsitektur Backend (Tech Stack)
+- **Bahasa Pemrograman**: Golang (Go)
+- **API Gateway**: Bertindak sebagai satu-satunya pintu masuk klien (Front-End/Mobile). Dibangun menggunakan `go-chi/chi` (REST/JSON) dan meneruskan *request* ke service internal.
+- **Komunikasi Internal**: Menggunakan **gRPC (Protobuf)** untuk komunikasi *synchronous* antar-service (dari API Gateway ke Service, atau antar Service). Sangat cepat dan latensi rendah.
+- **Arsitektur Internal**: Hexagonal Architecture (Ports and Adapters) untuk memisahkan *Business Logic* dari dependensi infrastruktur luar.
+- **Database Access Layer**: `sqlc` (Men-generate kode Go secara *type-safe* langsung dari *raw SQL*, tanpa *overhead* lambat dari ORM).
+- **Caching**: Redis Cache (Digunakan untuk menyimpan Master Data seperti ICD-10 yang jarang berubah agar mempercepat API).
+- **Message Broker**: Redis Streams (`XADD`, `XREADGROUP`) untuk menjamin *At-Least-Once Delivery* dan kapabilitas *Consumer Groups*.
+- **API Documentation**: Swagger UI (Setiap service WAJIB mengekspos endpoint `/swagger/*` untuk memudahkan testing API dan integrasi Frontend).
 
-## 2. Arsitektur Microservices (Saran Implementasi)
-Mengingat nama project `go-micro-simrs-one`, project ini direkomendasikan untuk dibangun dengan arsitektur microservices menggunakan Golang. Berikut adalah rancangan pembagian *service*:
-1. **User/Auth Service:** Mengelola login, registrasi staff, dan manajemen token JWT.
-2. **Patient Service:** Mengelola master data pasien dan pembuatan Nomor Rekam Medis (RM).
-3. **Visit/Registration Service:** Mengelola kunjungan pasien per hari (Pendaftaran Rawat Jalan) dan sistem nomor antrean.
-4. **EMR (Electronic Medical Record) Service:** Mencatat pemeriksaan perawat, diagnosa dokter, dan tindakan medis.
-5. **Pharmacy Service:** Mengelola master data obat, stok sederhana, dan memproses resep dari EMR.
-6. **Billing Service:** Mengkalkulasi total tagihan pasien dari layanan (EMR) dan obat (Pharmacy).
+## 2. Arsitektur Database & Distributed Transactions
+- **Database**: PostgreSQL (Satu DB fisik, namun dibagi ke dalam Multi-Schema untuk setiap service).
+- **Aturan Relasi**: Tidak boleh ada *JOIN* lintas schema. Integrasi data dikaitkan menggunakan *Business Key* seperti `mrn` dan `encounter_no`.
+- **Saga Pattern (Choreography)**: Digunakan untuk membatalkan (*rollback*) transaksi yang melintasi beberapa service melalui pengiriman *event kompensasi* (Misal: membatalkan tagihan kasir jika obat habis).
+- **Transactional Outbox Pattern**: Menggunakan tabel `outbox_messages` di database. *Event message* disimpan dalam transaksi SQL yang sama saat data di-save, menjamin 100% konsistensi pengiriman pesan ke Redis.
+- **Concurrency & Race Conditions**: Menggunakan `SELECT ... FOR UPDATE` (Pessimistic Locking) dan operasi *Atomic Update* SQL untuk menahan *Race Condition* pada pemotongan stok obat.
+- **Global Sequence Generation**: Nomor identitas seperti *MRN* dan *Encounter* dibuat menggunakan operasi *Atomic* dari Redis (`INCR`) untuk mencegah duplikasi nomor antrean saat beban tinggi.
 
-## 3. Basis Data (Database)
-- Relational Database (PostgreSQL / MySQL) sangat direkomendasikan untuk integritas data (ACID compliance) pada transaksi RS.
+## 3. Version Control & Development Strategy (Git)
+- **Branching per Service**: Setiap pengerjaan/pembuatan Microservice baru (atau fitur besar) WAJIB dilakukan di **Branch Baru** (contoh branch: `feature/patient-service`, `feature/emr-service`). 
+- Penggabungan kode ke branch utama (`main`) baru dilakukan setelah servis di branch terisolasi tersebut rampung. Hal ini mensimulasikan lingkungan *engineering* profesional.
 
-## 4. Integrasi Antar Layanan & Arsitektur Event-Driven (EDA)
-- **Synchronous:** REST API / gRPC (contoh: Billing Service meminta rincian harga obat ke Pharmacy Service).
-- **Asynchronous:** Message Broker (RabbitMQ / Kafka) digunakan secara ekstensif, terutama untuk fitur **Estimasi Waktu Tunggu**, contoh:
-  - Event `PatientExamFinished` dipublish oleh EMR Service, kemudian di-consume oleh Visit/Registration Service untuk mengkalkulasi ulang estimasi sisa waktu tunggu antrean pasien berikutnya.
-  - Event `PrescriptionCreated` dikirim ke Pharmacy Service untuk mulai mengkalkulasi estimasi waktu penyiapan obat berdasarkan jenis resep.
-- **Komunikasi Real-Time ke Klien:** Menggunakan **WebSockets** atau **Server-Sent Events (SSE)**. Backend akan me-broadcast pembaruan estimasi waktu tunggu secara langsung ke Frontend/Layar Pasien, sehingga informasi sisa waktu selalu akurat tanpa perlu me-refresh halaman (polling).
+## 4. Pembagian Hak Akses (RBAC)
+Sistem ini membutuhkan otentikasi **PASETO (Platform-Agnostic Security Tokens)**—alternatif modern dan lebih aman dari JWT—serta otorisasi untuk beberapa Role:
+- **Admin / Resepsionis:** Pendaftaran pasien baru dan lama.
+- **Perawat:** Mengisi data pemeriksaan awal (triage/vital signs).
+- **Dokter:** Mengisi diagnosa (ICD-10), tindakan, dan request resep.
+- **Apoteker:** Memproses resep obat dan *dispense* ke pasien.
+- **Kasir:** Proses konfirmasi pembayaran (*billing*).
 
-## 5. Arsitektur "AI-Ready" untuk Estimasi Waktu Tunggu
-Untuk memfasilitasi kalkulasi waktu tunggu cerdas (berbasis historis/Machine Learning) tanpa merombak sistem *core*, proyek ini menerapkan **Dependency Injection** dan **Open-Closed Principle (SOLID)**.
+## 5. Microservices Division
+1. **API Gateway**: Menerima request REST/JSON dari luar, meneruskan (proxy) request via gRPC ke service internal.
+2. **User/Auth Service:** Login, registrasi staff, dan penertiban token **PASETO**.
+3. **Patient Service:** Pengelolaan master pasien, generate MRN (Format `10-XX-XX-XX`).
+4. **Registration Service:** Kunjungan pasien (`encounter`) dan nomor antrean poliklinik.
+5. **EMR Service:** Pemeriksaan perawat, diagnosa (ICD), tindakan, resep, serta *Summary Tables* untuk perhitungan durasi.
+6. **Pharmacy Service:** Master data obat, pemotongan stok, proses resep (dispense).
+7. **Billing Service:** Pembuatan *invoice* (tagihan) dari EMR dan Apotek.
 
-Pada kode Golang (di service Registration & Pharmacy), dibuat sebuah *Interface* utama:
+## 6. Arsitektur "AI-Ready" untuk Estimasi Waktu Tunggu
+Untuk memfasilitasi kalkulasi waktu tunggu cerdas tanpa merombak sistem *core*, proyek ini menerapkan **Dependency Injection (SOLID)**.
+
+Pada Go (Service Registration & Pharmacy), terdapat *Interface* utama:
 `type QueueEstimator interface { Estimate(data EstimatorPayload) int }`
 
-Interface ini memiliki dua implementasi yang di-inject berdasarkan konfigurasi (*environment variable*):
-1. **`StatisticalQueueEstimator`**: Mengkalkulasi rata-rata (Moving Average) secara dinamis langsung dari Database. Sistem merekam *timestamps* (waktu mulai & selesai pelayanan). Estimasi dihitung dengan Query SQL. Untuk meningkatkan akurasi, filter query tidak hanya berdasarkan `diagnosis_id` (atau `jenis_racikan`), tetapi juga dikombinasikan dengan **Kategori Usia** (misal: Balita, Dewasa, Lansia) dan **Jenis Kelamin**. (Catatan: Menggunakan teknik *fallback query* jika data historis spesifik kurang dari threshold tertentu). Ini adalah solusi perantara yang sangat cerdas dan realistis sebelum AI sungguhan diterapkan.
-2. **`MLQueueEstimator`**: Melakukan pemanggilan **HTTP/gRPC Call** ke *endpoint* external (ML Service).
-   - **Tahap Showcase / Development (Mock AI):** Endpoint eksternal diarahkan ke Mock Server (misalnya menggunakan Postman Mock API, atau server Python sederhana). Sistem seolah-olah berinteraksi dengan AI untuk mendapat prediksi angka.
-   - **Tahap Produksi (Real AI):** Saat model Machine Learning sesungguhnya telah ditraining oleh Data Scientist, model tersebut cukup di-deploy di URL endpoint yang sama. Sistem Golang akan otomatis mendapatkan prediksi nyata dari AI **tanpa merombak kode Backend sama sekali (Zero Code Change)**.
+1. **`StatisticalQueueEstimator`**: Menghitung rata-rata waktu (Moving Average) secara konvensional namun sangat cepat menggunakan tabel agregasi (*Materialized View*) di Database. (Solusi awal sebelum AI diterapkan).
+2. **`MLQueueEstimator`**: Melakukan HTTP/gRPC Call ke *endpoint* external AI/Machine Learning. Sangat *plug-and-play* saat model cerdas siap digunakan.

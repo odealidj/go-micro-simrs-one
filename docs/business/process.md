@@ -10,7 +10,7 @@ Project ini juga ditujukan sebagai *showcase portfolio* pengembangan perangkat l
 1. **Pasien Baru:** Pasien yang belum memiliki catatan rekam medis (Nomor RM). 
    - Pasien harus mengisi data pribadi secara lengkap.
    - Petugas akan mencatat keluhan awal dan mengarahkan ke Poliklinik tujuan.
-   - Sistem akan men-generate Nomor Rekam Medis (RM) baru untuk pasien.
+   - Sistem akan men-generate Nomor Rekam Medis (RM / MRN) baru secara otomatis (Contoh Format: `10-00-00-01` di mana angka 1 menandakan Rawat Jalan).
 2. **Pasien Lama:** Pasien yang sudah pernah mendaftar dan memiliki Nomor RM.
    - Pasien hanya perlu memberikan Nomor RM atau identitas.
    - Pasien memilih Poliklinik tujuan untuk berobat.
