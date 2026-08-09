@@ -47,3 +47,48 @@ Pada Go (Service Registration & Pharmacy), terdapat *Interface* utama:
 
 1. **`StatisticalQueueEstimator`**: Menghitung rata-rata waktu (Moving Average) secara konvensional namun sangat cepat menggunakan tabel agregasi (*Materialized View*) di Database. (Solusi awal sebelum AI diterapkan).
 2. **`MLQueueEstimator`**: Melakukan HTTP/gRPC Call ke *endpoint* external AI/Machine Learning. Sangat *plug-and-play* saat model cerdas siap digunakan.
+
+## 7. Observability, Idempotency & Standarisasi API
+- **Distributed Tracing (`trace_id`)**: Setiap request yang masuk ke API Gateway akan diberikan `trace_id` unik. ID ini diteruskan (propagate) ke semua layer dan service internal via `context` gRPC, sehingga mempermudah proses melacak *log* lintas service (*Debugging* terpusat).
+- **Idempotency Key (`X-Request-ID`)**: Untuk mencegah ekseskusi ganda (misal user mengklik tombol submit 2 kali), klien disarankan mengirimkan Header `X-Request-ID`. Backend akan menyimpan ID ini di Redis sementara (TTL singkat). Jika ID yang sama diterima lagi, sistem akan langsung memblokir atau mengembalikan *cached response* tanpa memproses ulang operasi database (Mencegah transaksi tagihan/stok ganda).
+- **Standar API Response (Custom DTO)**: Semua service akan menggunakan struktur JSON yang sangat konsisten untuk 3 skenario utama:
+
+  **1. Response Sukses**
+  ```json
+  {
+    "request_id": "xxx",
+    "trace_id": "abc-123",
+    "success": true,
+    "message": "Data berhasil diambil",
+    "data": { "key": "value" }
+  }
+  ```
+
+  **2. Response Sukses (Pagination)**
+  ```json
+  {
+    "request_id": "xxx",
+    "trace_id": "abc-123",
+    "success": true,
+    "message": "Data berhasil diambil",
+    "data": [{ "key": "value" }],
+    "meta": {
+       "page": 1,
+       "page-size": 10,
+       "total_data": 50,
+       "total_pages": 5,
+       "prev_page": false,
+       "next_page": true
+    } 
+  }
+  ```
+
+  **3. Response Error** (Detail teknis hanya dicetak di Log Backend)
+  ```json
+  {
+    "request_id": "xxx",
+    "trace_id": "abc-123",
+    "success": false,
+    "message": "Pesan error untuk user"
+  }
+  ```
