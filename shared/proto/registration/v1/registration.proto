@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package registration.v1;
+
+option go_package = "github.com/aliube/go-micro-simrs-one/shared/proto/registration/v1;registrationv1";
+
+service RegistrationService {
+  rpc RegisterEncounter (RegisterEncounterRequest) returns (RegisterEncounterResponse);
+}
+
+message RegisterEncounterRequest {
+  string mrn = 1;
+  string department_code = 2; // e.g. "IGD", "P01"
+  string doctor_id = 3;
+}
+
+message RegisterEncounterResponse {
+  bool success = 1;
+  string encounter_no = 2; // Format: YYYYMM+dept_code+seq
+  string message = 3;
+}
