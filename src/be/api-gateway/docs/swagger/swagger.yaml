@@ -6,12 +6,17 @@ info:
 servers:
   - url: http://localhost:8080/api/v1
     description: Local API Gateway
+security:
+  - BearerAuth: []
 paths:
   /auth/login:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
     post:
       summary: Login to get PASETO token
       tags:
         - Auth
+      security: []
       requestBody:
         required: true
         content:
@@ -31,6 +36,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
   /patient/register:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
     post:
       summary: Register a new patient
       tags:
@@ -56,17 +63,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
   /patient/{mrn}:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - in: path
+        name: mrn
+        required: true
+        schema:
+          type: string
+        description: Medical Record Number
     get:
       summary: Get patient by MRN
       tags:
         - Patient
-      parameters:
-        - in: path
-          name: mrn
-          required: true
-          schema:
-            type: string
-          description: Medical Record Number
       responses:
         '200':
           description: Patient found
@@ -75,6 +83,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
   /emr/actions:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
     post:
       summary: Add medical action to EMR
       tags:
@@ -106,6 +116,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
   /pharmacy/dispense:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
     post:
       summary: Dispense a prescription
       tags:
@@ -127,16 +139,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
   /billing/invoice/{encounter_no}:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - in: path
+        name: encounter_no
+        required: true
+        schema:
+          type: string
     get:
       summary: Get or Generate invoice for an encounter
       tags:
         - Billing
-      parameters:
-        - in: path
-          name: encounter_no
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Invoice retrieved
@@ -145,6 +158,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
   /billing/pay:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
     post:
       summary: Pay an invoice
       tags:
@@ -168,6 +183,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: PASETO
+  parameters:
+    RequestIdHeader:
+      in: header
+      name: X-Request-ID
+      schema:
+        type: string
+        format: uuid
+      required: false
+      description: Unique request ID for idempotency and tracing (auto-generated if not provided)
   schemas:
     SuccessResponse:
       type: object
