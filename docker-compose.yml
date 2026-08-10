@@ -88,7 +88,8 @@ services:
     build:
       context: ./src/be
       dockerfile: Dockerfile
-    command: ["/app/pharmacy-service"]
+      args:
+        SERVICE_NAME: pharmacy-service
     ports:
       - "50055:50055"
     environment:
@@ -105,7 +106,8 @@ services:
     build:
       context: ./src/be
       dockerfile: Dockerfile
-    command: ["/app/billing-service"]
+      args:
+        SERVICE_NAME: billing-service
     ports:
       - "50056:50056"
     environment:
