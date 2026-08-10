@@ -5,11 +5,13 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 
 	grpcAdapter "github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/adapters/grpc"
+	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/adapters/consumer"
 	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/adapters/repository"
 	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/core/services"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/db"
@@ -56,12 +58,16 @@ func main() {
 
 	// 4. Init Outbox Relay Worker
 	if outboxRepo, ok := pharmacyRepo.(outbox.Repository); ok {
-		pharmacyRelay := outbox.NewRelay(outboxRepo, rdb, "pharmacy_stream")
+		pharmacyRelay := outbox.NewRelay(outboxRepo, rdb, "pharmacy_stream", 5*time.Second)
 		go pharmacyRelay.Start(context.Background())
 		log.Println("Pharmacy Outbox Relay started")
 	} else {
 		log.Fatalf("pharmacyRepo does not implement outbox.Repository")
 	}
+
+	// 5. Init Consumer
+	consumer.StartBillingConsumer(context.Background(), rdb, pharmacyRepo)
+	log.Println("Billing Consumer started in Pharmacy Service")
 	
 	// 5. Init gRPC Server
 	grpcServer := grpc.NewServer()

@@ -82,12 +82,13 @@ func (x *RegisterEncounterRequest) GetDoctorId() string {
 }
 
 type RegisterEncounterResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	EncounterNo   string                 `protobuf:"bytes,2,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"` // Format: YYYYMM+dept_code+seq
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Success              bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	EncounterNo          string                 `protobuf:"bytes,2,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"` // Format: YYYYMM+dept_code+seq
+	Message              string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	EstimatedWaitMinutes int32                  `protobuf:"varint,4,opt,name=estimated_wait_minutes,json=estimatedWaitMinutes,proto3" json:"estimated_wait_minutes,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *RegisterEncounterResponse) Reset() {
@@ -141,6 +142,13 @@ func (x *RegisterEncounterResponse) GetMessage() string {
 	return ""
 }
 
+func (x *RegisterEncounterResponse) GetEstimatedWaitMinutes() int32 {
+	if x != nil {
+		return x.EstimatedWaitMinutes
+	}
+	return 0
+}
+
 var File_shared_proto_registration_v1_registration_proto protoreflect.FileDescriptor
 
 const file_shared_proto_registration_v1_registration_proto_rawDesc = "" +
@@ -149,11 +157,12 @@ const file_shared_proto_registration_v1_registration_proto_rawDesc = "" +
 	"\x18RegisterEncounterRequest\x12\x10\n" +
 	"\x03mrn\x18\x01 \x01(\tR\x03mrn\x12'\n" +
 	"\x0fdepartment_code\x18\x02 \x01(\tR\x0edepartmentCode\x12\x1b\n" +
-	"\tdoctor_id\x18\x03 \x01(\tR\bdoctorId\"r\n" +
+	"\tdoctor_id\x18\x03 \x01(\tR\bdoctorId\"\xa8\x01\n" +
 	"\x19RegisterEncounterResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12!\n" +
 	"\fencounter_no\x18\x02 \x01(\tR\vencounterNo\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage2\x81\x01\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
+	"\x16estimated_wait_minutes\x18\x04 \x01(\x05R\x14estimatedWaitMinutes2\x81\x01\n" +
 	"\x13RegistrationService\x12j\n" +
 	"\x11RegisterEncounter\x12).registration.v1.RegisterEncounterRequest\x1a*.registration.v1.RegisterEncounterResponseBRZPgithub.com/aliube/go-micro-simrs-one/shared/proto/registration/v1;registrationv1b\x06proto3"
 

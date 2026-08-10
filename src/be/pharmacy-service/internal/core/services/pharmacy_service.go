@@ -60,6 +60,21 @@ func (s *pharmacyServiceImpl) DispensePrescription(ctx context.Context, prescrip
 	if s.repo == nil {
 		return fmt.Errorf("repository is not initialized")
 	}
+	
+	prescription, err := s.repo.GetPrescription(ctx, prescriptionID)
+	if err != nil {
+		return fmt.Errorf("failed to get prescription: %w", err)
+	}
+
+	paymentStatus, err := s.repo.GetEncounterPaymentStatus(ctx, prescription.EncounterNo)
+	if err != nil {
+		return fmt.Errorf("failed to get payment status: %w", err)
+	}
+
+	if paymentStatus != "PAID" {
+		return fmt.Errorf("cannot dispense prescription: invoice is not PAID yet (status: %s)", paymentStatus)
+	}
+
 	return s.repo.DispensePrescription(ctx, prescriptionID)
 }
 

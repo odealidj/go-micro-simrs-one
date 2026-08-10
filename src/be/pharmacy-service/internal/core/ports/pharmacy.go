@@ -13,6 +13,8 @@ type PharmacyRepository interface {
 	GetInventoryItemPrice(ctx context.Context, itemCode string) (float64, error)
 	DeductStock(ctx context.Context, itemCode string, quantity int32) error
 	DispensePrescription(ctx context.Context, prescriptionID string) error
+	UpsertEncounterPayment(ctx context.Context, encounterNo, status string) error
+	GetEncounterPaymentStatus(ctx context.Context, encounterNo string) (string, error)
 }
 
 type PharmacyService interface {

@@ -1,4 +1,2 @@
-2026/08/10 19:50:32 Jaeger (OTel) Tracer initialized for service: auth-service
-2026/08/10 19:50:32 failed to listen on port 50051: listen tcp :5signal: killed
-ress already in use
-exit status 1
+2026/08/10 21:00:40 Jaeger (OTel) Tracer initialized for service: auth-service
+2026/08/10 21:00:40 Auth Service (gRPC) is running on port 50051

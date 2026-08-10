@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
@@ -69,7 +70,7 @@ func main() {
 	// We can cast it or change how it's returned.
 	// Actually we should create a relay
 	if outboxRepo, ok := emrRepo.(outbox.Repository); ok {
-		emrRelay := outbox.NewRelay(outboxRepo, rdb, "emr_stream")
+		emrRelay := outbox.NewRelay(outboxRepo, rdb, "emr_stream", 5*time.Second)
 		go emrRelay.Start(context.Background())
 		log.Println("EMR Outbox Relay started")
 	} else {

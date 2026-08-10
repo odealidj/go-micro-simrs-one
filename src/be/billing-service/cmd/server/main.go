@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
@@ -56,7 +57,7 @@ func main() {
 	
 	// 4. Init Outbox Relay Worker (For outgoing events like InvoicePaid)
 	if outboxRepo, ok := billingRepo.(outbox.Repository); ok {
-		billingRelay := outbox.NewRelay(outboxRepo, rdb, "billing_stream")
+		billingRelay := outbox.NewRelay(outboxRepo, rdb, "billing_stream", 5*time.Second)
 		go billingRelay.Start(context.Background())
 		log.Println("Billing Outbox Relay started")
 	} else {

@@ -215,3 +215,21 @@ func (r *pharmacyRepoSqlc) MarkEventAsFailed(ctx context.Context, id string) err
 		Status: "FAILED",
 	})
 }
+
+func (r *pharmacyRepoSqlc) UpsertEncounterPayment(ctx context.Context, encounterNo, status string) error {
+	return r.q.UpsertEncounterPayment(ctx, db.UpsertEncounterPaymentParams{
+		EncounterNo: encounterNo,
+		Status:      status,
+	})
+}
+
+func (r *pharmacyRepoSqlc) GetEncounterPaymentStatus(ctx context.Context, encounterNo string) (string, error) {
+	status, err := r.q.GetEncounterPayment(ctx, encounterNo)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "UNPAID", nil // Assume unpaid if not found yet
+		}
+		return "", err
+	}
+	return status, nil
+}
