@@ -21,9 +21,8 @@ func IdempotencyMiddleware(redisClient *redis.Client, expiration time.Duration) 
 
 			requestID := r.Header.Get("X-Request-ID")
 			if requestID == "" {
-				// If no request_id is provided, proceed normally 
-				// (Or return Error if we want to enforce strict idempotency)
-				next.ServeHTTP(w, r)
+				// Strict idempotency: Enforce clients to always send X-Request-ID for state-changing operations
+				http.Error(w, `{"success":false,"message":"X-Request-ID header is required for this operation"}`, http.StatusBadRequest)
 				return
 			}
 
