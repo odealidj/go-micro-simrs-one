@@ -1,14 +1,16 @@
 package main
 
 import (
-	"context"
 	"log"
+	"log/slog"
 	"net"
 	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/aliube/go-micro-simrs-one/emr-service/internal/adapters/broker"
 	grpcAdapter "github.com/aliube/go-micro-simrs-one/emr-service/internal/adapters/grpc"
@@ -16,6 +18,7 @@ import (
 	"github.com/aliube/go-micro-simrs-one/emr-service/internal/core/services"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/db"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/outbox"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/shutdown"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/telemetry"
 	pb "github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1"
 )
@@ -26,27 +29,24 @@ func main() {
 	if jaegerEndpoint == "" {
 		jaegerEndpoint = "localhost:4318"
 	}
-	
 	tp, err := telemetry.InitJaegerTracer("emr-service", jaegerEndpoint)
 	if err != nil {
 		log.Fatalf("failed to init telemetry: %v", err)
 	}
 	defer func() {
 		if err := tp.Shutdown(nil); err != nil {
-			log.Printf("Error shutting down tracer provider: %v", err)
+			slog.Error("Error shutting down tracer provider", "error", err)
 		}
 	}()
 
-	// 2. Init Redis Client (for Event Subscriber)
+	// 2. Init Redis Client
 	redisHost := os.Getenv("REDIS_HOST")
 	if redisHost == "" {
 		redisHost = "localhost:6379"
 	}
-	rdb := redis.NewClient(&redis.Options{
-		Addr: redisHost,
-	})
+	rdb := redis.NewClient(&redis.Options{Addr: redisHost})
 
-	// 2. Init Database
+	// 3. Init Database
 	dbConn, err := db.ConnectPostgres("emr")
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
@@ -55,46 +55,53 @@ func main() {
 
 	emrRepo := repository.NewEMRRepository(dbConn)
 	emrService := services.NewEMRService(emrRepo)
-	
-	// 4. Init Event Subscriber
+
+	// 4. Graceful Shutdown context (used for background workers)
+	ctx, cancel := shutdown.WaitForSignal()
+	defer cancel()
+
+	// 5. Init Event Subscriber
 	subscriber := broker.NewRedisSubscriber(rdb, emrService)
-	// Start listening to the Registration Events topic
-	err = subscriber.StartListening(context.Background(), "registration.events")
-	if err != nil {
+	if err = subscriber.StartListening(ctx, "registration.events"); err != nil {
 		log.Fatalf("Failed to start subscriber: %v", err)
 	}
 
-	// 5. Init Outbox Relay Worker
-	// We need the concrete *repository.emrRepoSqlc type that implements outbox.Repository
-	// Luckily, emrRepo is returned as an interface, but we need it to implement outbox.Repository.
-	// We can cast it or change how it's returned.
-	// Actually we should create a relay
+	// 6. Init Outbox Relay Worker
 	if outboxRepo, ok := emrRepo.(outbox.Repository); ok {
 		emrRelay := outbox.NewRelay(outboxRepo, rdb, "emr_stream", 5*time.Second)
-		go emrRelay.Start(context.Background())
-		log.Println("EMR Outbox Relay started")
+		go emrRelay.Start(ctx)
+		slog.Info("EMR Outbox Relay started")
 	} else {
 		log.Fatalf("emrRepo does not implement outbox.Repository")
 	}
 
-	// 6. Init gRPC Server
+	// 7. Init gRPC Server
 	grpcServer := grpc.NewServer()
-	emrGrpcHandler := grpcAdapter.NewEMRGrpcServer(emrService)
-	
-	pb.RegisterEMRServiceServer(grpcServer, emrGrpcHandler)
+	pb.RegisterEMRServiceServer(grpcServer, grpcAdapter.NewEMRGrpcServer(emrService))
+
+	// 8. Register gRPC Health Check
+	healthSrv := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthSrv)
+	healthSrv.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "50054"
 	}
-
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatalf("failed to listen on port %s: %v", port, err)
 	}
 
-	log.Printf("EMR Service (gRPC) is running on port %s", port)
-	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("failed to serve gRPC: %v", err)
-	}
+	go func() {
+		slog.Info("EMR Service (gRPC) is running", "port", port)
+		if err := grpcServer.Serve(listener); err != nil {
+			log.Fatalf("failed to serve gRPC: %v", err)
+		}
+	}()
+
+	<-ctx.Done()
+	slog.Info("Gracefully stopping EMR Service...")
+	grpcServer.GracefulStop()
+	slog.Info("EMR Service stopped.")
 }

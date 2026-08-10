@@ -9,6 +9,7 @@ import (
 type RegistrationRepository interface {
 	SaveEncounter(ctx context.Context, encounter *domain.Encounter) error
 	SaveOutboxEvent(ctx context.Context, event *domain.OutboxEvent) error
+	CountActiveEncountersByDept(ctx context.Context, department string) (int64, error)
 }
 
 type EventPublisher interface {

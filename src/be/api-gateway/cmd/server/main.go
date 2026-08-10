@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -18,6 +20,8 @@ import (
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/auth"
 	simrsmiddleware "github.com/aliube/go-micro-simrs-one/shared/pkg/middleware"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/response"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/shutdown"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/validator"
 	authpb "github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1"
 	billingpb "github.com/aliube/go-micro-simrs-one/shared/proto/billing/v1"
 	emrpb "github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1"
@@ -48,6 +52,10 @@ func main() {
 
 	// 3. Custom Telemetry (trace_id) Middleware
 	r.Use(simrsmiddleware.TraceIDMiddleware)
+
+	// 4. Rate Limiter (60 req/s per IP, burst of 120)
+	rateLimiter := simrsmiddleware.NewRateLimiter(60, 120)
+	r.Use(rateLimiter.Middleware())
 
 	// Connect to Auth gRPC
 	authAddr := os.Getenv("AUTH_SERVICE_ADDR")
@@ -152,18 +160,20 @@ func main() {
 		r.Post("/auth/login", func(w http.ResponseWriter, r *http.Request) {
 			var req authpb.LoginRequest
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-				response.JSON(w, http.StatusBadRequest, response.ErrorResponse{
-					Success: false,
-					Message: err.Error(),
-				})
+				response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+				return
+			}
+			// Input validation
+			if err := validator.ValidateAll(map[string]func() error{
+				"username": validator.NotEmpty(req.Username),
+				"password": validator.MinLength(req.Password, 6),
+			}); err != nil {
+				response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 				return
 			}
 			res, err := authClient.Login(r.Context(), &req)
 			if err != nil {
-				response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{
-					Success: false,
-					Message: err.Error(),
-				})
+				response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
 				return
 			}
 			response.JSON(w, http.StatusOK, res)
@@ -362,9 +372,31 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("Starting API Gateway on port %s...", port)
-	err = http.ListenAndServe(":"+port, r)
-	if err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+	srv := &http.Server{
+		Addr:         ":" + port,
+		Handler:      r,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
+
+	// Graceful Shutdown
+	ctx, cancel := shutdown.WaitForSignal()
+	defer cancel()
+
+	go func() {
+		slog.Info("Starting API Gateway", "port", port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("API Gateway failed to start: %v", err)
+		}
+	}()
+
+	<-ctx.Done()
+	slog.Info("Gracefully stopping API Gateway...")
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdown.GracefulTimeout)
+	defer shutdownCancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("API Gateway forced to shutdown: %v", err)
+	}
+	slog.Info("API Gateway stopped.")
 }

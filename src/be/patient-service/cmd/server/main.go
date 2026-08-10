@@ -2,16 +2,20 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"net"
 	"os"
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 
 	grpcAdapter "github.com/aliube/go-micro-simrs-one/patient-service/internal/adapters/grpc"
 	"github.com/aliube/go-micro-simrs-one/patient-service/internal/adapters/repository"
 	"github.com/aliube/go-micro-simrs-one/patient-service/internal/core/services"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/db"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/shutdown"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/telemetry"
 	pb "github.com/aliube/go-micro-simrs-one/shared/proto/patient/v1"
 )
@@ -22,25 +26,22 @@ func main() {
 	if jaegerEndpoint == "" {
 		jaegerEndpoint = "localhost:4318"
 	}
-	
 	tp, err := telemetry.InitJaegerTracer("patient-service", jaegerEndpoint)
 	if err != nil {
 		log.Fatalf("failed to init telemetry: %v", err)
 	}
 	defer func() {
 		if err := tp.Shutdown(nil); err != nil {
-			log.Printf("Error shutting down tracer provider: %v", err)
+			slog.Error("Error shutting down tracer provider", "error", err)
 		}
 	}()
 
-	// 2. Init Redis Client (for MRN atomic increment)
+	// 2. Init Redis Client
 	redisHost := os.Getenv("REDIS_HOST")
 	if redisHost == "" {
 		redisHost = "localhost:6379"
 	}
-	rdb := redis.NewClient(&redis.Options{
-		Addr: redisHost,
-	})
+	rdb := redis.NewClient(&redis.Options{Addr: redisHost})
 
 	// 3. Init Database
 	dbConn, err := db.ConnectPostgres("patient")
@@ -51,25 +52,38 @@ func main() {
 
 	patientRepo := repository.NewPatientRepository(dbConn)
 	patientService := services.NewPatientService(patientRepo, rdb)
-	
+
 	// 4. Init gRPC Server
 	grpcServer := grpc.NewServer()
-	patientGrpcHandler := grpcAdapter.NewPatientGrpcServer(patientService)
-	
-	pb.RegisterPatientServiceServer(grpcServer, patientGrpcHandler)
+	pb.RegisterPatientServiceServer(grpcServer, grpcAdapter.NewPatientGrpcServer(patientService))
+
+	// 5. Register gRPC Health Check
+	healthSrv := health.NewServer()
+	grpc_health_v1.RegisterHealthServer(grpcServer, healthSrv)
+	healthSrv.SetServingStatus("", grpc_health_v1.HealthCheckResponse_SERVING)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "50052"
 	}
-
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatalf("failed to listen on port %s: %v", port, err)
 	}
 
-	log.Printf("Patient Service (gRPC) is running on port %s", port)
-	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatalf("failed to serve gRPC: %v", err)
-	}
+	// 6. Graceful Shutdown
+	ctx, cancel := shutdown.WaitForSignal()
+	defer cancel()
+
+	go func() {
+		slog.Info("Patient Service (gRPC) is running", "port", port)
+		if err := grpcServer.Serve(listener); err != nil {
+			log.Fatalf("failed to serve gRPC: %v", err)
+		}
+	}()
+
+	<-ctx.Done()
+	slog.Info("Gracefully stopping Patient Service...")
+	grpcServer.GracefulStop()
+	slog.Info("Patient Service stopped.")
 }

@@ -10,6 +10,20 @@ import (
 	"encoding/json"
 )
 
+const countActiveEncountersByDept = `-- name: CountActiveEncountersByDept :one
+SELECT COUNT(*) FROM encounters
+WHERE department = $1
+  AND status = 'REGISTERED'
+  AND DATE(created_at) = CURRENT_DATE
+`
+
+func (q *Queries) CountActiveEncountersByDept(ctx context.Context, department string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countActiveEncountersByDept, department)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createEncounter = `-- name: CreateEncounter :one
 INSERT INTO encounters (encounter_no, mrn, department, doctor_id, status)
 VALUES ($1, $2, $3, $4, $5)

@@ -18,3 +18,9 @@ ORDER BY created_at ASC;
 UPDATE outbox_events
 SET status = $2
 WHERE id = $1;
+
+-- name: CountActiveEncountersByDept :one
+SELECT COUNT(*) FROM encounters
+WHERE department = $1
+  AND status = 'REGISTERED'
+  AND DATE(created_at) = CURRENT_DATE;
