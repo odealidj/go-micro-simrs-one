@@ -1,6 +1,6 @@
 module github.com/aliube/go-micro-simrs-one/patient-service
 
-go 1.26.3
+go 1.24.0
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
