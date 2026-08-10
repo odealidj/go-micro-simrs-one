@@ -65,14 +65,18 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 		CreatedAt:   time.Now(),
 	}
 
-	// 1. Get current queue position (simple mock: we could query DB for count of REGISTERED patients for this dept)
-	// For now, let's use a dummy position 3 for testing or we can query it.
-	// Since we don't have a specific query for this right now, we will just use a hardcoded 3 or a Redis counter.
-	currentQueuePosition := 3
+	// Get real queue position from DB: count of REGISTERED encounters today for this dept
+	var currentQueuePosition int64 = 1
+	if s.repo != nil {
+		count, err := s.repo.CountActiveEncountersByDept(ctx, departmentCode)
+		if err == nil {
+			// +1 because the current patient being registered is not yet saved
+			currentQueuePosition = count + 1
+		}
+	}
 	var waitMinutes int32 = 0
-
 	if s.estimator != nil {
-		waitTime, err := s.estimator.EstimateWaitTime(ctx, departmentCode, currentQueuePosition)
+		waitTime, err := s.estimator.EstimateWaitTime(ctx, departmentCode, int(currentQueuePosition))
 		if err == nil {
 			waitMinutes = int32(waitTime.Minutes())
 		}

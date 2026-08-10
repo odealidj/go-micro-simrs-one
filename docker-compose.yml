@@ -130,6 +130,8 @@ services:
       - EMR_SERVICE_ADDR=emr-service:50054
       - PHARMACY_SERVICE_ADDR=pharmacy-service:50055
       - BILLING_SERVICE_ADDR=billing-service:50056
+      - REDIS_HOST=redis:6379
+      - JAEGER_ENDPOINT=jaeger:4318
       - PORT=8080
     ports:
       - "8080:8080"
@@ -142,6 +144,8 @@ services:
       - emr-service
       - pharmacy-service
       - billing-service
+      - redis
+      - jaeger
 
 volumes:
   postgres-data:

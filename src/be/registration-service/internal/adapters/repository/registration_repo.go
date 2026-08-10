@@ -41,3 +41,7 @@ func (r *registrationRepoSqlc) SaveOutboxEvent(ctx context.Context, event *domai
 	})
 	return err
 }
+
+func (r *registrationRepoSqlc) CountActiveEncountersByDept(ctx context.Context, department string) (int64, error) {
+	return r.q.CountActiveEncountersByDept(ctx, department)
+}

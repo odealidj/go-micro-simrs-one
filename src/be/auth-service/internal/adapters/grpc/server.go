@@ -3,6 +3,9 @@ package grpc
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/aliube/go-micro-simrs-one/auth-service/internal/core/ports"
 	pb "github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1"
 )
@@ -13,33 +16,27 @@ type AuthGrpcServer struct {
 }
 
 func NewAuthGrpcServer(service ports.AuthService) *AuthGrpcServer {
-	return &AuthGrpcServer{
-		authService: service,
-	}
+	return &AuthGrpcServer{authService: service}
 }
 
 func (s *AuthGrpcServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	if req.Username == "" || req.Password == "" {
+		return nil, status.Error(codes.InvalidArgument, "username and password are required")
+	}
 	token, role, userID, err := s.authService.Login(ctx, req.Username, req.Password)
 	if err != nil {
-		return &pb.LoginResponse{Success: false}, nil
+		return nil, status.Errorf(codes.Unauthenticated, "invalid credentials: %v", err)
 	}
-	return &pb.LoginResponse{
-		Success: true,
-		Token:   token,
-		Role:    role,
-		UserId:  userID,
-	}, nil
+	return &pb.LoginResponse{Success: true, Token: token, Role: role, UserId: userID}, nil
 }
 
 func (s *AuthGrpcServer) ValidateToken(ctx context.Context, req *pb.ValidateTokenRequest) (*pb.ValidateTokenResponse, error) {
-	isValid, role, userID, err := s.authService.ValidateToken(ctx, req.Token)
-	if err != nil {
-		return &pb.ValidateTokenResponse{Valid: false}, nil
+	if req.Token == "" {
+		return nil, status.Error(codes.InvalidArgument, "token is required")
 	}
-
-	return &pb.ValidateTokenResponse{
-		Valid:  isValid,
-		UserId: userID,
-		Role:   role,
-	}, nil
+	isValid, role, userID, err := s.authService.ValidateToken(ctx, req.Token)
+	if err != nil || !isValid {
+		return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
+	}
+	return &pb.ValidateTokenResponse{Valid: true, UserId: userID, Role: role}, nil
 }
