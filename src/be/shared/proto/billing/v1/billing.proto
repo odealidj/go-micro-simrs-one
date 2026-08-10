@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package billing.v1;
+
+option go_package = "github.com/aliube/go-micro-simrs-one/shared/proto/billing/v1;billingv1";
+
+service BillingService {
+  rpc GenerateInvoice (GenerateInvoiceRequest) returns (GenerateInvoiceResponse);
+  rpc PayInvoice (PayInvoiceRequest) returns (PayInvoiceResponse);
+}
+
+message InvoiceItem {
+  string item_type = 1; // "ACTION" or "MEDICINE"
+  string description = 2;
+  double amount = 3;
+}
+
+message GenerateInvoiceRequest {
+  string encounter_no = 1;
+}
+
+message GenerateInvoiceResponse {
+  bool success = 1;
+  string invoice_id = 2;
+  repeated InvoiceItem items = 3;
+  double total_amount = 4;
+  string message = 5;
+}
+
+message PayInvoiceRequest {
+  string invoice_id = 1;
+  double amount_paid = 2;
+}
+
+message PayInvoiceResponse {
+  bool success = 1;
+  string message = 2;
+}

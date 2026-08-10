@@ -1,0 +1,10 @@
+# github.com/aliube/go-micro-simrs-one/billing-service/internal/adapters/grpc
+internal/adapters/grpc/server.go:21:72: undefined: pb.CreateInvoiceRequesignal: killed
+pters/grpc/server.go:21:99: undefined: pb.CreateInvoiceResponse
+internal/adapters/grpc/server.go:22:35: s.billingService.CreateInvoice undefined (type ports.BillingService has no field or method CreateInvoice)
+internal/adapters/grpc/server.go:24:14: undefined: pb.CreateInvoiceResponse
+internal/adapters/grpc/server.go:30:13: undefined: pb.CreateInvoiceResponse
+# github.com/aliube/go-micro-simrs-one/shared/pkg/outbox
+../shared/pkg/outbox/models.go:17:29: undefined: context
+../shared/pkg/outbox/models.go:18:27: undefined: context
+../shared/pkg/outbox/models.go:19:24: undefined: context

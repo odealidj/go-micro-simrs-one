@@ -1,0 +1,74 @@
+package services
+
+import (
+	"context"
+	"encoding/json"
+	"log"
+
+	"github.com/aliube/go-micro-simrs-one/billing-service/internal/core/ports"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/outbox"
+	"github.com/redis/go-redis/v9"
+)
+
+type MedicalActionAddedPayload struct {
+	EncounterNo string  `json:"encounter_no"`
+	ActionCode  string  `json:"action_code"`
+	ActionName  string  `json:"action_name"`
+	Price       float64 `json:"price"`
+}
+
+type PrescriptionDispensedPayload struct {
+	EncounterNo    string  `json:"encounter_no"`
+	PrescriptionID string  `json:"prescription_id"`
+	Price          float64 `json:"price"`
+}
+
+func StartBillingConsumers(ctx context.Context, rdb *redis.Client, billingService ports.BillingService) {
+	// 1. Consumer for EMR Stream
+	emrHandler := func(ctx context.Context, msg redis.XMessage) error {
+		eventType, ok := msg.Values["event_type"].(string)
+		if !ok || eventType != "MedicalActionAdded" {
+			return nil // ignore other events
+		}
+
+		payloadStr, ok := msg.Values["payload"].(string)
+		if !ok {
+			return nil
+		}
+
+		var payload MedicalActionAddedPayload
+		if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
+			return err
+		}
+
+		return billingService.AddActionItem(ctx, payload.EncounterNo, payload.ActionCode, payload.ActionName, payload.Price)
+	}
+
+	emrConsumer := outbox.NewConsumer(rdb, "emr_stream", "billing_group", "billing_worker_1", emrHandler)
+	go emrConsumer.Start(ctx)
+
+	// 2. Consumer for Pharmacy Stream
+	pharmacyHandler := func(ctx context.Context, msg redis.XMessage) error {
+		eventType, ok := msg.Values["event_type"].(string)
+		if !ok || eventType != "PrescriptionDispensed" {
+			return nil
+		}
+
+		payloadStr, ok := msg.Values["payload"].(string)
+		if !ok {
+			return nil
+		}
+
+		var payload PrescriptionDispensedPayload
+		if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
+			return err
+		}
+
+		return billingService.AddMedicineItem(ctx, payload.EncounterNo, payload.PrescriptionID, payload.Price)
+	}
+
+	pharmacyConsumer := outbox.NewConsumer(rdb, "pharmacy_stream", "billing_group", "billing_worker_1", pharmacyHandler)
+	go pharmacyConsumer.Start(ctx)
+	
+	log.Println("[Billing Consumers] Started listening to emr_stream and pharmacy_stream")
+}

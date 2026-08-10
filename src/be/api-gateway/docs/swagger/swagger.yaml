@@ -1,0 +1,184 @@
+openapi: 3.0.0
+info:
+  title: SIMRS Microservices API
+  description: API Gateway endpoints for SIMRS backend services.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local API Gateway
+paths:
+  /auth/login:
+    post:
+      summary: Login to get PASETO token
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /patient/register:
+    post:
+      summary: Register a new patient
+      tags:
+        - Patient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                nik:
+                  type: string
+                dob:
+                  type: string
+      responses:
+        '200':
+          description: Patient registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /patient/{mrn}:
+    get:
+      summary: Get patient by MRN
+      tags:
+        - Patient
+      parameters:
+        - in: path
+          name: mrn
+          required: true
+          schema:
+            type: string
+          description: Medical Record Number
+      responses:
+        '200':
+          description: Patient found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /emr/actions:
+    post:
+      summary: Add medical action to EMR
+      tags:
+        - EMR
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                encounter_no:
+                  type: string
+                record_id:
+                  type: string
+                action_code:
+                  type: string
+                action_name:
+                  type: string
+                price:
+                  type: number
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Action added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /pharmacy/dispense:
+    post:
+      summary: Dispense a prescription
+      tags:
+        - Pharmacy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                prescription_id:
+                  type: string
+      responses:
+        '200':
+          description: Prescription dispensed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /billing/invoice/{encounter_no}:
+    get:
+      summary: Get or Generate invoice for an encounter
+      tags:
+        - Billing
+      parameters:
+        - in: path
+          name: encounter_no
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Invoice retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /billing/pay:
+    post:
+      summary: Pay an invoice
+      tags:
+        - Billing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invoice_id:
+                  type: string
+                amount:
+                  type: number
+      responses:
+        '200':
+          description: Invoice paid successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+components:
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
