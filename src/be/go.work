@@ -1,0 +1,12 @@
+go 1.26.3
+
+use (
+	./api-gateway
+	./auth-service
+	./billing-service
+	./emr-service
+	./patient-service
+	./pharmacy-service
+	./registration-service
+	./shared
+)

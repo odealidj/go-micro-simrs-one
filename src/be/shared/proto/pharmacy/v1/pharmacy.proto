@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package pharmacy.v1;
+
+option go_package = "github.com/aliube/go-micro-simrs-one/shared/proto/pharmacy/v1;pharmacyv1";
+
+service PharmacyService {
+  // Initiates prescription. Reserves stock (Lock).
+  rpc CreatePrescription (CreatePrescriptionRequest) returns (CreatePrescriptionResponse);
+  
+  // Dispenses the prescription (after payment)
+  rpc DispensePrescription (DispensePrescriptionRequest) returns (DispensePrescriptionResponse);
+
+  // Saga Compensation: Release reserved stock
+  rpc RollbackPrescription (RollbackPrescriptionRequest) returns (RollbackPrescriptionResponse);
+}
+
+message PrescriptionItem {
+  string item_code = 1;
+  string item_name = 2;
+  int32 quantity = 3;
+  string dosage = 4;
+}
+
+message CreatePrescriptionRequest {
+  string encounter_no = 1;
+  bool is_compounded = 2;
+  repeated PrescriptionItem items = 3;
+  string notes = 4;
+}
+
+message CreatePrescriptionResponse {
+  bool success = 1;
+  string prescription_id = 2;
+  double amount_to_bill = 3;
+  string message = 4;
+}
+
+message DispensePrescriptionRequest {
+  string prescription_id = 1;
+}
+
+message DispensePrescriptionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message RollbackPrescriptionRequest {
+  string prescription_id = 1;
+}
+
+message RollbackPrescriptionResponse {
+  bool success = 1;
+  string message = 2;
+}

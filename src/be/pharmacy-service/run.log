@@ -1,0 +1,5 @@
+# github.com/aliube/go-micro-simrs-one/shared/pkg/outbox
+../shared/pkg/outbox/models.go:17:29: undefined: context
+../shared/pkg/outbox/models.go:18:27: signal: killed
+ext
+../shared/pkg/outbox/models.go:19:24: undefined: context

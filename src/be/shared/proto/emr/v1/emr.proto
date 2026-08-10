@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package emr.v1;
+
+option go_package = "github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1;emrv1";
+
+service EMRService {
+  rpc SubmitTriage (SubmitTriageRequest) returns (SubmitTriageResponse);
+  rpc AddDiagnosis (AddDiagnosisRequest) returns (AddDiagnosisResponse);
+  rpc AddMedicalAction (AddMedicalActionRequest) returns (AddMedicalActionResponse);
+  rpc GetMedicalRecord (GetMedicalRecordRequest) returns (GetMedicalRecordResponse);
+}
+
+// 1. Triage (Perawat)
+message SubmitTriageRequest {
+  string encounter_no = 1;
+  int32 blood_pressure_systolic = 2;
+  int32 blood_pressure_diastolic = 3;
+  double temperature = 4;
+  int32 heart_rate = 5;
+  string notes = 6;
+}
+
+message SubmitTriageResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 2. Diagnosis (Dokter)
+message AddDiagnosisRequest {
+  string encounter_no = 1;
+  string icd10_code = 2;
+  string notes = 3;
+}
+
+message AddDiagnosisResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 3. Medical Action (Dokter)
+message AddMedicalActionRequest {
+  string encounter_no = 1;
+  string action_code = 2;
+  string action_name = 3;
+  double price = 4;
+  string notes = 5;
+}
+
+message AddMedicalActionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// 4. Get Record
+message GetMedicalRecordRequest {
+  string encounter_no = 1;
+}
+
+message MedicalAction {
+  string action_code = 1;
+  string action_name = 2;
+  double price = 3;
+}
+
+message TriageData {
+  int32 blood_pressure_systolic = 1;
+  int32 blood_pressure_diastolic = 2;
+  double temperature = 3;
+  int32 heart_rate = 4;
+  string notes = 5;
+}
+
+message GetMedicalRecordResponse {
+  string encounter_no = 1;
+  string patient_mrn = 2;
+  TriageData triage = 3;
+  repeated string icd10_codes = 4;
+  repeated MedicalAction actions = 5;
+  string notes = 6;
+}

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15-alpine
+    image: docker.io/library/postgres:15-alpine
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: secretpassword
@@ -13,18 +13,127 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   redis:
-    image: redis:7-alpine
+    image: docker.io/library/redis:7-alpine
     ports:
       - "6379:6379"
 
   jaeger:
-    image: jaegertracing/all-in-one:latest
+    image: docker.io/jaegertracing/all-in-one:latest
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     ports:
       - "16686:16686" # UI
       - "4317:4317"   # OTLP gRPC
       - "4318:4318"   # OTLP HTTP
+
+  auth-service:
+    build:
+      context: ./src/be
+      args:
+        SERVICE_NAME: auth-service
+    environment:
+      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
+      - JAEGER_ENDPOINT=jaeger:4318
+      - PORT=50051
+    depends_on:
+      - postgres
+      - jaeger
+
+  patient-service:
+    build:
+      context: ./src/be
+      args:
+        SERVICE_NAME: patient-service
+    environment:
+      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
+      - JAEGER_ENDPOINT=jaeger:4318
+      - REDIS_HOST=redis:6379
+      - PORT=50052
+    depends_on:
+      - postgres
+      - redis
+      - jaeger
+
+  registration-service:
+    build:
+      context: ./src/be
+      args:
+        SERVICE_NAME: registration-service
+    environment:
+      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
+      - JAEGER_ENDPOINT=jaeger:4318
+      - REDIS_HOST=redis:6379
+      - PORT=50053
+    depends_on:
+      - postgres
+      - redis
+      - jaeger
+
+  emr-service:
+    build:
+      context: ./src/be
+      args:
+        SERVICE_NAME: emr-service
+    environment:
+      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
+      - JAEGER_ENDPOINT=jaeger:4318
+      - REDIS_HOST=redis:6379
+      - PORT=50054
+    depends_on:
+      - postgres
+      - redis
+      - jaeger
+
+  pharmacy-service:
+    build:
+      context: ./src/be
+      args:
+        SERVICE_NAME: pharmacy-service
+    environment:
+      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
+      - JAEGER_ENDPOINT=jaeger:4318
+      - PORT=50055
+    depends_on:
+      - postgres
+      - jaeger
+
+  billing-service:
+    build:
+      context: ./src/be
+      args:
+        SERVICE_NAME: billing-service
+    environment:
+      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
+      - JAEGER_ENDPOINT=jaeger:4318
+      - PORT=50056
+    depends_on:
+      - postgres
+      - jaeger
+
+  api-gateway:
+    build:
+      context: ./src/be
+      args:
+        SERVICE_NAME: api-gateway
+    environment:
+      - AUTH_SERVICE_ADDR=auth-service:50051
+      - PATIENT_SERVICE_ADDR=patient-service:50052
+      - REGISTRATION_SERVICE_ADDR=registration-service:50053
+      - EMR_SERVICE_ADDR=emr-service:50054
+      - PHARMACY_SERVICE_ADDR=pharmacy-service:50055
+      - BILLING_SERVICE_ADDR=billing-service:50056
+      - PORT=8080
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src/be/api-gateway/docs:/app/docs
+    depends_on:
+      - auth-service
+      - patient-service
+      - registration-service
+      - emr-service
+      - pharmacy-service
+      - billing-service
 
 volumes:
   postgres-data:

@@ -1,0 +1,4 @@
+2026/08/10 19:50:32 Jaeger (OTel) Tracer initialized for service: registration-service
+2026/08/10 19:50:32 failed to listen on port 50053: listen tcp :50053: bisignal: killed
+eady in use
+exit status 1
