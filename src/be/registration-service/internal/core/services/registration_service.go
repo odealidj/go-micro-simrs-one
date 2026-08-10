@@ -7,18 +7,21 @@ import (
 
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/core/domain"
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/core/ports"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/queue"
 	"github.com/redis/go-redis/v9"
 )
 
 type registrationServiceImpl struct {
 	repo        ports.RegistrationRepository
 	redisClient *redis.Client
+	estimator   queue.QueueEstimator
 }
 
-func NewRegistrationService(repo ports.RegistrationRepository, rdb *redis.Client) ports.RegistrationService {
+func NewRegistrationService(repo ports.RegistrationRepository, rdb *redis.Client, estimator queue.QueueEstimator) ports.RegistrationService {
 	return &registrationServiceImpl{
 		repo:        repo,
 		redisClient: rdb,
+		estimator:   estimator,
 	}
 }
 
@@ -47,10 +50,10 @@ func (s *registrationServiceImpl) generateEncounterNo(ctx context.Context, deptC
 	return encounterNo, nil
 }
 
-func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID string) (string, error) {
+func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID string) (string, int32, error) {
 	encounterNo, err := s.generateEncounterNo(ctx, departmentCode)
 	if err != nil {
-		return "", err
+		return "", 0, err
 	}
 
 	encounter := &domain.Encounter{
@@ -60,6 +63,19 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 		DoctorID:    doctorID,
 		Status:      "REGISTERED",
 		CreatedAt:   time.Now(),
+	}
+
+	// 1. Get current queue position (simple mock: we could query DB for count of REGISTERED patients for this dept)
+	// For now, let's use a dummy position 3 for testing or we can query it.
+	// Since we don't have a specific query for this right now, we will just use a hardcoded 3 or a Redis counter.
+	currentQueuePosition := 3
+	var waitMinutes int32 = 0
+
+	if s.estimator != nil {
+		waitTime, err := s.estimator.EstimateWaitTime(ctx, departmentCode, currentQueuePosition)
+		if err == nil {
+			waitMinutes = int32(waitTime.Minutes())
+		}
 	}
 
 	// Create Outbox Event to be processed by a background Relay worker
@@ -77,14 +93,14 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 	if s.repo != nil {
 		err = s.repo.SaveEncounter(ctx, encounter)
 		if err != nil {
-			return "", err
+			return "", 0, err
 		}
 
 		err = s.repo.SaveOutboxEvent(ctx, outboxEvent)
 		if err != nil {
-			return "", err
+			return "", 0, err
 		}
 	}
 
-	return encounterNo, nil
+	return encounterNo, waitMinutes, nil
 }

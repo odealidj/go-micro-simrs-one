@@ -1,4 +1,2 @@
-2026/08/10 19:50:32 Jaeger (OTel) Tracer initialized for service: patient-service
-2026/08/10 19:50:32 failed to listen on port 50052: listen tcp :5005signal: killed
-s already in use
-exit status 1
+2026/08/10 21:00:40 Jaeger (OTel) Tracer initialized for service: patient-service
+2026/08/10 21:00:40 Patient Service (gRPC) is running on port 50052

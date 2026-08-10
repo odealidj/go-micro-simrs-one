@@ -7,7 +7,14 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"time"
 )
+
+type EncounterPayment struct {
+	EncounterNo string
+	Status      string
+	UpdatedAt   time.Time
+}
 
 type Inventory struct {
 	ItemCode      string

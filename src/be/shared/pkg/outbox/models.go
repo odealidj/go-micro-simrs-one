@@ -1,7 +1,9 @@
 package outbox
 
-import "time"
-
+import (
+	"context"
+	"time"
+)
 // Event represents a standardized Outbox Event structure
 type Event struct {
 	ID            string

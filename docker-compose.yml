@@ -87,27 +87,35 @@ services:
   pharmacy-service:
     build:
       context: ./src/be
-      args:
-        SERVICE_NAME: pharmacy-service
+      dockerfile: Dockerfile
+    command: ["/app/pharmacy-service"]
+    ports:
+      - "50055:50055"
     environment:
       - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
       - JAEGER_ENDPOINT=jaeger:4318
+      - REDIS_HOST=redis:6379
       - PORT=50055
     depends_on:
       - postgres
+      - redis
       - jaeger
 
   billing-service:
     build:
       context: ./src/be
-      args:
-        SERVICE_NAME: billing-service
+      dockerfile: Dockerfile
+    command: ["/app/billing-service"]
+    ports:
+      - "50056:50056"
     environment:
       - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
       - JAEGER_ENDPOINT=jaeger:4318
+      - REDIS_HOST=redis:6379
       - PORT=50056
     depends_on:
       - postgres
+      - redis
       - jaeger
 
   api-gateway:

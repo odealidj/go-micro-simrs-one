@@ -113,6 +113,19 @@ func (q *Queries) CreatePrescriptionItem(ctx context.Context, arg CreatePrescrip
 	return i, err
 }
 
+const getEncounterPayment = `-- name: GetEncounterPayment :one
+SELECT status
+FROM encounter_payments
+WHERE encounter_no = $1 LIMIT 1
+`
+
+func (q *Queries) GetEncounterPayment(ctx context.Context, encounterNo string) (string, error) {
+	row := q.db.QueryRowContext(ctx, getEncounterPayment, encounterNo)
+	var status string
+	err := row.Scan(&status)
+	return status, err
+}
+
 const getInventoryItem = `-- name: GetInventoryItem :one
 SELECT item_code, name, stock_quantity, price
 FROM inventory
@@ -189,6 +202,41 @@ func (q *Queries) GetPrescription(ctx context.Context, id string) (Prescription,
 	return i, err
 }
 
+const getPrescriptionItems = `-- name: GetPrescriptionItems :many
+SELECT id, prescription_id, item_code, quantity, price
+FROM prescription_items
+WHERE prescription_id = $1
+`
+
+func (q *Queries) GetPrescriptionItems(ctx context.Context, prescriptionID string) ([]PrescriptionItem, error) {
+	rows, err := q.db.QueryContext(ctx, getPrescriptionItems, prescriptionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PrescriptionItem
+	for rows.Next() {
+		var i PrescriptionItem
+		if err := rows.Scan(
+			&i.ID,
+			&i.PrescriptionID,
+			&i.ItemCode,
+			&i.Quantity,
+			&i.Price,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateOutboxEventStatus = `-- name: UpdateOutboxEventStatus :exec
 UPDATE outbox_events
 SET status = $2
@@ -245,5 +293,22 @@ type UpdateStockParams struct {
 
 func (q *Queries) UpdateStock(ctx context.Context, arg UpdateStockParams) error {
 	_, err := q.db.ExecContext(ctx, updateStock, arg.ItemCode, arg.StockQuantity)
+	return err
+}
+
+const upsertEncounterPayment = `-- name: UpsertEncounterPayment :exec
+INSERT INTO encounter_payments (encounter_no, status, updated_at)
+VALUES ($1, $2, CURRENT_TIMESTAMP)
+ON CONFLICT (encounter_no)
+DO UPDATE SET status = EXCLUDED.status, updated_at = CURRENT_TIMESTAMP
+`
+
+type UpsertEncounterPaymentParams struct {
+	EncounterNo string
+	Status      string
+}
+
+func (q *Queries) UpsertEncounterPayment(ctx context.Context, arg UpsertEncounterPaymentParams) error {
+	_, err := q.db.ExecContext(ctx, upsertEncounterPayment, arg.EncounterNo, arg.Status)
 	return err
 }

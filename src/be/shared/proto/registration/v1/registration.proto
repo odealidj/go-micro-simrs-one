@@ -18,4 +18,5 @@ message RegisterEncounterResponse {
   bool success = 1;
   string encounter_no = 2; // Format: YYYYMM+dept_code+seq
   string message = 3;
+  int32 estimated_wait_minutes = 4;
 }

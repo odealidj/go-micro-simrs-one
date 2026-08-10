@@ -1,5 +1,0 @@
-2026/08/10 19:50:33 Starting API Gateway on port 8080...
-2026/08/10 19:50:38 [aliube/C0GyQLHj3y-000001] "GET http://localhost:8080/swagger/ HTTP/1.1" from 127.0.0.1:37100 - 304 0B in 147.505µs
-2026/08/10 19:50:40 [aliube/C0GyQLHj3y-000002] "GET http://localhost:8080/swagger/ HTTP/1.1" from 127.0.0.1:37100 - 200 623B in 9.818427ms
-2026/08/10 19:58:17 [aliube/C0GyQLHj3y-000003] "GET http://localhost:8080/swagger/swagger.yaml HTTP/1.1" from [::1]:58560 - 200 4567B in 314.847µs
-signal: killed

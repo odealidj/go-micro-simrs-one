@@ -29,6 +29,7 @@ SELECT *
 FROM prescriptions
 WHERE id = $1 LIMIT 1;
 
+-- name: GetPrescriptionItems :many
 SELECT *
 FROM prescription_items
 WHERE prescription_id = $1;
@@ -48,3 +49,14 @@ ORDER BY created_at ASC LIMIT 100;
 UPDATE outbox_events
 SET status = $2
 WHERE id = $1;
+
+-- name: UpsertEncounterPayment :exec
+INSERT INTO encounter_payments (encounter_no, status, updated_at)
+VALUES ($1, $2, CURRENT_TIMESTAMP)
+ON CONFLICT (encounter_no)
+DO UPDATE SET status = EXCLUDED.status, updated_at = CURRENT_TIMESTAMP;
+
+-- name: GetEncounterPayment :one
+SELECT status
+FROM encounter_payments
+WHERE encounter_no = $1 LIMIT 1;

@@ -19,7 +19,7 @@ func NewRegistrationGrpcServer(service ports.RegistrationService) *RegistrationG
 }
 
 func (s *RegistrationGrpcServer) RegisterEncounter(ctx context.Context, req *pb.RegisterEncounterRequest) (*pb.RegisterEncounterResponse, error) {
-	encounterNo, err := s.registrationService.RegisterEncounter(ctx, req.Mrn, req.DepartmentCode, req.DoctorId)
+	encounterNo, waitMinutes, err := s.registrationService.RegisterEncounter(ctx, req.Mrn, req.DepartmentCode, req.DoctorId)
 	if err != nil {
 		return &pb.RegisterEncounterResponse{
 			Success: false,
@@ -28,8 +28,9 @@ func (s *RegistrationGrpcServer) RegisterEncounter(ctx context.Context, req *pb.
 	}
 
 	return &pb.RegisterEncounterResponse{
-		Success:      true,
-		EncounterNo:  encounterNo,
-		Message:      "Encounter registered successfully",
+		Success:              true,
+		EncounterNo:          encounterNo,
+		Message:              "Encounter registered successfully",
+		EstimatedWaitMinutes: waitMinutes,
 	}, nil
 }

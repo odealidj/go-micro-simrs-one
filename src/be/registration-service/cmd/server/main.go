@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
@@ -12,6 +13,7 @@ import (
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/adapters/repository"
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/core/services"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/db"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/queue"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/telemetry"
 	pb "github.com/aliube/go-micro-simrs-one/shared/proto/registration/v1"
 )
@@ -50,7 +52,8 @@ func main() {
 	defer dbConn.Close()
 
 	registrationRepo := repository.NewRegistrationRepository(dbConn)
-	registrationService := services.NewRegistrationService(registrationRepo, rdb)
+	estimator := queue.NewStatisticalQueueEstimator(15 * time.Minute)
+	registrationService := services.NewRegistrationService(registrationRepo, rdb, estimator)
 	
 	// 4. Init gRPC Server
 	grpcServer := grpc.NewServer()

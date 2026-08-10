@@ -16,5 +16,5 @@ type EventPublisher interface {
 }
 
 type RegistrationService interface {
-	RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID string) (encounterNo string, err error)
+	RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID string) (string, int32, error)
 }
