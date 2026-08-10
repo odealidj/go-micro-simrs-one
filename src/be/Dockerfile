@@ -1,7 +1,7 @@
 # SERVICE_NAME must be passed as build-arg (e.g., --build-arg SERVICE_NAME=auth-service)
 ARG SERVICE_NAME
 
-FROM golang:1.24-alpine AS builder
+FROM golang:alpine AS builder
 WORKDIR /app
 
 # Re-declare ARG after FROM so it's available in this stage
