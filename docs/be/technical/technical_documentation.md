@@ -227,7 +227,10 @@ Module   : patient-service
 Protocol : gRPC
 Port     : 50052 (Docker: 60052)
 Database : simrs_db (table: patients)
+Peran    : Data Master Pasien
 ```
+
+> Menyimpan **identitas pasien** (NIK, nama, tanggal lahir) dan menerbitkan **Nomor Rekam Medis (MRN)** yang unik. Berbeda dengan EMR Service, Patient Service hanya mengelola data demografis dan identitas — bukan data klinis.
 
 **gRPC Methods:**
 
@@ -269,8 +272,11 @@ Protocol : gRPC
 Port     : 50054 (Docker: 60054)
 Database : simrs_db (tables: medical_records, medical_actions,
            clinic_wait_time_aggregates, outbox_events)
+Peran    : Modul Poliklinik
 Workers  : aggregator_cron.go (update wait time aggregates)
 ```
+
+> Berfungsi sebagai **modul Poliklinik** — area kerja dokter dan perawat di dalam poli. Mencakup pencatatan pemeriksaan awal (triage/vital signs), input diagnosa ICD-10, pencatatan tindakan medis beserta tarif, dan kalkulasi estimasi waktu tunggu antrean poli berdasarkan data historis multidimensi.
 
 **gRPC Methods:**
 

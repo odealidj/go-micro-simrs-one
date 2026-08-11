@@ -5,13 +5,13 @@ Sistem Informasi Manajemen Rumah Sakit (SIMRS) Backend berbasis arsitektur **Mic
 ## 🏗 Arsitektur
 
 Sistem ini terdiri dari satu API Gateway dan beberapa microservices yang berkomunikasi menggunakan protokol gRPC:
-- **API Gateway**: Menangani routing HTTP, otentikasi (PASETO), Rate Limiting, dan Swagger UI.
-- **Auth Service**: Mengelola manajemen pengguna, otentikasi, dan otorisasi (RBAC).
-- **Patient Service**: Mengelola data rekam medis pasien.
-- **Registration Service**: Menangani pendaftaran dan antrean pasien (estimasi antrean real-time).
-- **EMR Service**: Mengelola rekam medis elektronik (tindakan, diagnosis).
-- **Pharmacy Service**: Mengelola inventaris dan penebusan resep (dengan perlindungan *idempotency*).
-- **Billing Service**: Menangani penagihan dan pembayaran (dengan pola *Outbox* dan Redis Streams).
+- **API Gateway**: Menangani routing HTTP, otentikasi (PASETO), Rate Limiting, Circuit Breaker, Idempotency, SSE, dan Swagger UI.
+- **Auth Service**: Mengelola manajemen pengguna, otentikasi, dan otorisasi berbasis peran (RBAC).
+- **Patient Service**: Mengelola **data master pasien** — identitas (NIK, nama, tanggal lahir) dan penerbitan nomor rekam medis (MRN).
+- **Registration Service**: Menangani **pendaftaran kunjungan (encounter)** pasien ke poli tertentu, alokasi dokter, dan estimasi antrean real-time via SSE.
+- **EMR Service**: Berfungsi sebagai **modul Poliklinik** — tempat dokter dan perawat mencatat pemeriksaan awal (triage/vital signs), input diagnosa ICD-10, tindakan medis beserta tarifnya, serta kalkulasi estimasi waktu tunggu antrean poli.
+- **Pharmacy Service**: Mengelola **inventaris obat** dan penebusan resep — termasuk validasi stok, pencatatan resep racikan/non-racikan, dan sinkronisasi status pembayaran sebelum obat dikeluarkan.
+- **Billing Service**: Menangani **penagihan dan pembayaran** — generate invoice otomatis dari akumulasi tindakan medis dan resep, serta notifikasi pembayaran via event (Outbox Pattern + Redis Streams).
 
 ### Infrastruktur Pendukung
 - **PostgreSQL**: Database utama relasional.
