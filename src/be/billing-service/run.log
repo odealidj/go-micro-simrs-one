@@ -1,7 +1,0 @@
-2026/08/10 21:00:42 Jaeger (OTel) Tracer initialized for service: billing-service
-2026/08/10 21:00:42 Billing Outbox Relay started
-2026/08/10 21:00:42 [Billing Consumers] Started listening to emr_stream and pharmacy_stream
-2026/08/10 21:00:42 [Outbox Relay] Started for stream: billing_stream, interval: 5s
-2026/08/10 21:00:42 Billing Service (gRPC) is running on port 50056
-2026/08/10 21:00:42 [Redis Consumer] Started listening to stream: pharmacy_stream, group: billing_group, consumer: billing_worker_1
-2026/08/10 21:00:42 [Redis Consumer] Started listening to stream: emr_stream, group: billing_group, consumer: billing_worker_1
