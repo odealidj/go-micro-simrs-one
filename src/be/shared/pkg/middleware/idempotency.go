@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/response"
 )
 
 // IdempotencyMiddleware ensures that requests with the same X-Request-ID are not processed multiple times.
@@ -19,10 +21,28 @@ func IdempotencyMiddleware(redisClient *redis.Client, expiration time.Duration) 
 				return
 			}
 
+			traceID := r.Header.Get("X-Trace-ID")
 			requestID := r.Header.Get("X-Request-ID")
+
 			if requestID == "" {
 				// Strict idempotency: Enforce clients to always send X-Request-ID for state-changing operations
-				http.Error(w, `{"success":false,"message":"X-Request-ID header is required for this operation"}`, http.StatusBadRequest)
+				response.JSON(w, http.StatusBadRequest, response.ErrorResponse{
+					RequestID: requestID,
+					TraceID:   traceID,
+					Success:   false,
+					Message:   "X-Request-ID header is required for this operation",
+				})
+				return
+			}
+
+			// Validate if requestID is a valid GUID (UUID)
+			if err := uuid.Validate(requestID); err != nil {
+				response.JSON(w, http.StatusBadRequest, response.ErrorResponse{
+					RequestID: requestID,
+					TraceID:   traceID,
+					Success:   false,
+					Message:   "X-Request-ID must be a valid GUID/UUID",
+				})
 				return
 			}
 
@@ -35,13 +55,23 @@ func IdempotencyMiddleware(redisClient *redis.Client, expiration time.Duration) 
 			// SETNX (Set if Not eXists) ensures atomicity across concurrent duplicate requests
 			success, err := redisClient.SetNX(ctx, cacheKey, "PROCESSING", expiration).Result()
 			if err != nil {
-				http.Error(w, `{"success":false,"message":"Internal idempotency error"}`, http.StatusInternalServerError)
+				response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{
+					RequestID: requestID,
+					TraceID:   traceID,
+					Success:   false,
+					Message:   "Internal idempotency error",
+				})
 				return
 			}
 
 			if !success {
 				// Request already processed or currently in progress
-				http.Error(w, `{"success":false,"message":"Duplicate request detected"}`, http.StatusConflict)
+				response.JSON(w, http.StatusConflict, response.ErrorResponse{
+					RequestID: requestID,
+					TraceID:   traceID,
+					Success:   false,
+					Message:   "Duplicate request detected",
+				})
 				return
 			}
 
