@@ -418,57 +418,56 @@ erDiagram
 ```mermaid
 erDiagram
     medical_records {
-        VARCHAR_255 id PK
-        VARCHAR_255 encounter_no UK "FK to encounters"
-        VARCHAR_255 mrn "FK to patients"
-        TEXT_ARRAY icd10_codes "e.g. {A09, J06}"
-        TEXT notes
-        VARCHAR_20 status "DRAFT|ACTIVE|COMPLETED"
-        INT blood_pressure_systolic
-        INT blood_pressure_diastolic
-        NUMERIC_5_2 temperature "Celsius"
-        INT heart_rate "BPM"
-        VARCHAR_255 doctor_id "dokter penanggung jawab"
-        VARCHAR_50 department_code "kode poli"
-        VARCHAR_100 diagnosis "diagnosa utama ICD-10"
-        VARCHAR_10 gender "M|F"
-        VARCHAR_20 age_bracket "0-5|6-17|18-60|60+"
-        TIMESTAMP started_at
-        TIMESTAMP completed_at
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        string id PK
+        string encounter_no UK "FK to encounters"
+        string mrn "FK to patients"
+        string icd10_codes "TEXT[] e.g. A09,J06"
+        string notes
+        string status "DRAFT|ACTIVE|COMPLETED"
+        int blood_pressure_systolic
+        int blood_pressure_diastolic
+        float temperature "NUMERIC 5,2 Celsius"
+        int heart_rate "BPM"
+        string doctor_id "dokter penanggung jawab"
+        string department_code "kode poli"
+        string diagnosis "diagnosa utama ICD-10"
+        string gender "M atau F"
+        string age_bracket "0-5,6-17,18-60,60+"
+        timestamp started_at
+        timestamp completed_at
+        timestamp created_at
+        timestamp updated_at
     }
 
     medical_actions {
-        VARCHAR_255 id PK
-        VARCHAR_255 medical_record_id FK
-        VARCHAR_100 action_code "e.g. ACT-001"
-        VARCHAR_255 action_name
-        NUMERIC_15_2 price
-        TEXT notes
-        TIMESTAMP created_at
+        string id PK
+        string medical_record_id FK
+        string action_code "e.g. ACT-001"
+        string action_name
+        decimal price "NUMERIC 15,2"
+        string notes
+        timestamp created_at
     }
 
     clinic_wait_time_aggregates {
-        INT id PK "SERIAL"
-        VARCHAR_100 diagnosis "NOT NULL"
-        VARCHAR_255 doctor_id "NOT NULL"
-        VARCHAR_50 department_code "NOT NULL"
-        VARCHAR_10 gender "NOT NULL"
-        VARCHAR_20 age_bracket "NOT NULL"
-        INT average_wait_minutes
-        INT sample_count
-        TIMESTAMP updated_at
-        UNIQUE "diagnosis+doctor_id+dept_code+gender+age_bracket"
+        int id PK "SERIAL AUTO"
+        string diagnosis "NOT NULL"
+        string doctor_id "NOT NULL"
+        string department_code "NOT NULL"
+        string gender "NOT NULL"
+        string age_bracket "NOT NULL"
+        int average_wait_minutes
+        int sample_count
+        timestamp updated_at
     }
 
     outbox_events_emr {
-        VARCHAR_255 id PK
-        VARCHAR_100 aggregate_type
-        VARCHAR_100 event_type "MedicalActionAdded"
-        JSONB payload
-        VARCHAR_50 status
-        TIMESTAMP created_at
+        string id PK
+        string aggregate_type
+        string event_type "MedicalActionAdded"
+        string payload "JSONB"
+        string status "PENDING|PUBLISHED|FAILED"
+        timestamp created_at
     }
 
     medical_records ||--o{ medical_actions : "has"
@@ -482,63 +481,62 @@ erDiagram
 ```mermaid
 erDiagram
     inventory {
-        VARCHAR_100 item_code PK "e.g. MED-001"
-        VARCHAR_255 name
-        INT stock_quantity "CHECK >= 0"
-        DECIMAL_10_2 price
+        string item_code PK "e.g. MED-001"
+        string name
+        int stock_quantity "CHECK >= 0"
+        decimal price "DECIMAL 10,2"
     }
 
     prescriptions {
-        VARCHAR_255 id PK "e.g. RX-123"
-        VARCHAR_255 encounter_no "FK to encounters"
-        VARCHAR_50 status "CREATED|DISPENSED|CANCELLED|ROLLBACKED"
-        BOOLEAN is_compounded "apakah resep racikan"
-        TEXT notes
-        VARCHAR_100 diagnosis "ICD-10 dari dokter"
-        VARCHAR_10 gender "M|F"
-        VARCHAR_20 age_bracket
-        VARCHAR_255 doctor_id
-        VARCHAR_50 department_code
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        string id PK "e.g. RX-123"
+        string encounter_no "FK to encounters"
+        string status "CREATED|DISPENSED|CANCELLED|ROLLBACKED"
+        boolean is_compounded "apakah resep racikan"
+        string notes
+        string diagnosis "ICD-10 dari dokter"
+        string gender "M atau F"
+        string age_bracket
+        string doctor_id
+        string department_code
+        timestamp created_at
+        timestamp updated_at
     }
 
     prescription_items {
-        VARCHAR_255 id PK
-        VARCHAR_255 prescription_id FK
-        VARCHAR_100 item_code FK
-        INT quantity
-        DECIMAL_10_2 price "harga saat resep dibuat"
+        string id PK
+        string prescription_id FK
+        string item_code FK
+        int quantity
+        decimal price "harga saat resep dibuat"
     }
 
     encounter_payments {
-        VARCHAR_50 encounter_no PK
-        VARCHAR_20 status "PAID|UNPAID"
-        TIMESTAMP paid_at
-        TIMESTAMP updated_at
+        string encounter_no PK
+        string status "PAID|UNPAID"
+        timestamp paid_at
+        timestamp updated_at
     }
 
     pharmacy_wait_time_aggregates {
-        INT id PK "SERIAL"
-        VARCHAR_100 diagnosis "NOT NULL"
-        VARCHAR_255 doctor_id "NOT NULL"
-        VARCHAR_50 department_code "NOT NULL"
-        VARCHAR_10 gender "NOT NULL"
-        VARCHAR_20 age_bracket "NOT NULL"
-        BOOLEAN is_compounded "NOT NULL"
-        INT average_wait_minutes
-        INT sample_count
-        TIMESTAMP updated_at
-        UNIQUE "diagnosis+doctor_id+dept+gender+age+is_compounded"
+        int id PK "SERIAL AUTO"
+        string diagnosis "NOT NULL"
+        string doctor_id "NOT NULL"
+        string department_code "NOT NULL"
+        string gender "NOT NULL"
+        string age_bracket "NOT NULL"
+        boolean is_compounded "NOT NULL"
+        int average_wait_minutes
+        int sample_count
+        timestamp updated_at
     }
 
     outbox_events_pharma {
-        VARCHAR_255 id PK
-        VARCHAR_100 aggregate_type
-        VARCHAR_100 event_type "PrescriptionDispensed"
-        JSONB payload
-        VARCHAR_50 status
-        TIMESTAMP created_at
+        string id PK
+        string aggregate_type
+        string event_type "PrescriptionDispensed"
+        string payload "JSONB"
+        string status "PENDING|PUBLISHED|FAILED"
+        timestamp created_at
     }
 
     prescriptions ||--o{ prescription_items : "contains"
