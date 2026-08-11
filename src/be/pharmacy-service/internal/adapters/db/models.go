@@ -14,6 +14,7 @@ type EncounterPayment struct {
 	EncounterNo string
 	Status      string
 	UpdatedAt   time.Time
+	PaidAt      sql.NullTime
 }
 
 type Inventory struct {
@@ -32,14 +33,32 @@ type OutboxEvent struct {
 	CreatedAt     sql.NullTime
 }
 
+type PharmacyWaitTimeAggregate struct {
+	ID                 int32
+	Diagnosis          string
+	DoctorID           string
+	DepartmentCode     string
+	Gender             string
+	AgeBracket         string
+	IsCompounded       bool
+	AverageWaitMinutes int32
+	SampleCount        int32
+	UpdatedAt          sql.NullTime
+}
+
 type Prescription struct {
-	ID           string
-	EncounterNo  string
-	Status       string
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
-	IsCompounded sql.NullBool
-	Notes        sql.NullString
+	ID             string
+	EncounterNo    string
+	Status         string
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+	IsCompounded   sql.NullBool
+	Notes          sql.NullString
+	Diagnosis      sql.NullString
+	Gender         sql.NullString
+	AgeBracket     sql.NullString
+	DoctorID       sql.NullString
+	DepartmentCode sql.NullString
 }
 
 type PrescriptionItem struct {

@@ -15,19 +15,40 @@ import (
 
 const addDiagnosis = `-- name: AddDiagnosis :one
 UPDATE medical_records
-SET icd10_codes = array_append(COALESCE(icd10_codes, ARRAY[]::TEXT[]), $2), notes = $3, updated_at = CURRENT_TIMESTAMP
+SET icd10_codes = array_append(COALESCE(icd10_codes, ARRAY[]::TEXT[]), $2),
+    notes = $3,
+    status = 'COMPLETED',
+    completed_at = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP,
+    diagnosis = $2,
+    doctor_id = $4,
+    department_code = $5,
+    gender = $6,
+    age_bracket = $7
 WHERE encounter_no = $1
-RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate
+RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket
 `
 
 type AddDiagnosisParams struct {
-	EncounterNo string
-	ArrayAppend interface{}
-	Notes       sql.NullString
+	EncounterNo    string
+	Diagnosis      sql.NullString
+	Notes          sql.NullString
+	DoctorID       sql.NullString
+	DepartmentCode sql.NullString
+	Gender         sql.NullString
+	AgeBracket     sql.NullString
 }
 
 func (q *Queries) AddDiagnosis(ctx context.Context, arg AddDiagnosisParams) (MedicalRecord, error) {
-	row := q.db.QueryRowContext(ctx, addDiagnosis, arg.EncounterNo, arg.ArrayAppend, arg.Notes)
+	row := q.db.QueryRowContext(ctx, addDiagnosis,
+		arg.EncounterNo,
+		arg.Diagnosis,
+		arg.Notes,
+		arg.DoctorID,
+		arg.DepartmentCode,
+		arg.Gender,
+		arg.AgeBracket,
+	)
 	var i MedicalRecord
 	err := row.Scan(
 		&i.ID,
@@ -41,6 +62,14 @@ func (q *Queries) AddDiagnosis(ctx context.Context, arg AddDiagnosisParams) (Med
 		&i.BloodPressureDiastolic,
 		&i.Temperature,
 		&i.HeartRate,
+		&i.Status,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.DoctorID,
+		&i.DepartmentCode,
+		&i.Diagnosis,
+		&i.Gender,
+		&i.AgeBracket,
 	)
 	return i, err
 }
@@ -85,7 +114,7 @@ func (q *Queries) AddMedicalAction(ctx context.Context, arg AddMedicalActionPara
 const createDraftMR = `-- name: CreateDraftMR :one
 INSERT INTO medical_records (id, encounter_no, mrn)
 VALUES ($1, $2, $3)
-RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate
+RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket
 `
 
 type CreateDraftMRParams struct {
@@ -109,6 +138,14 @@ func (q *Queries) CreateDraftMR(ctx context.Context, arg CreateDraftMRParams) (M
 		&i.BloodPressureDiastolic,
 		&i.Temperature,
 		&i.HeartRate,
+		&i.Status,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.DoctorID,
+		&i.DepartmentCode,
+		&i.Diagnosis,
+		&i.Gender,
+		&i.AgeBracket,
 	)
 	return i, err
 }
@@ -147,8 +184,65 @@ func (q *Queries) CreateOutboxEvent(ctx context.Context, arg CreateOutboxEventPa
 	return i, err
 }
 
+const getClinicWaitAggregate = `-- name: GetClinicWaitAggregate :one
+SELECT average_wait_minutes, sample_count
+FROM clinic_wait_time_aggregates
+WHERE diagnosis = $1 AND doctor_id = $2 AND department_code = $3 AND gender = $4 AND age_bracket = $5
+`
+
+type GetClinicWaitAggregateParams struct {
+	Diagnosis      string
+	DoctorID       string
+	DepartmentCode string
+	Gender         string
+	AgeBracket     string
+}
+
+type GetClinicWaitAggregateRow struct {
+	AverageWaitMinutes int32
+	SampleCount        int32
+}
+
+func (q *Queries) GetClinicWaitAggregate(ctx context.Context, arg GetClinicWaitAggregateParams) (GetClinicWaitAggregateRow, error) {
+	row := q.db.QueryRowContext(ctx, getClinicWaitAggregate,
+		arg.Diagnosis,
+		arg.DoctorID,
+		arg.DepartmentCode,
+		arg.Gender,
+		arg.AgeBracket,
+	)
+	var i GetClinicWaitAggregateRow
+	err := row.Scan(&i.AverageWaitMinutes, &i.SampleCount)
+	return i, err
+}
+
+const getClinicWaitAggregateWithoutDiagnosis = `-- name: GetClinicWaitAggregateWithoutDiagnosis :one
+SELECT COALESCE(AVG(average_wait_minutes), 0)::float8 AS avg_wait_minutes
+FROM clinic_wait_time_aggregates
+WHERE doctor_id = $1 AND department_code = $2 AND gender = $3 AND age_bracket = $4
+`
+
+type GetClinicWaitAggregateWithoutDiagnosisParams struct {
+	DoctorID       string
+	DepartmentCode string
+	Gender         string
+	AgeBracket     string
+}
+
+func (q *Queries) GetClinicWaitAggregateWithoutDiagnosis(ctx context.Context, arg GetClinicWaitAggregateWithoutDiagnosisParams) (float64, error) {
+	row := q.db.QueryRowContext(ctx, getClinicWaitAggregateWithoutDiagnosis,
+		arg.DoctorID,
+		arg.DepartmentCode,
+		arg.Gender,
+		arg.AgeBracket,
+	)
+	var avg_wait_minutes float64
+	err := row.Scan(&avg_wait_minutes)
+	return avg_wait_minutes, err
+}
+
 const getMRByEncounterNo = `-- name: GetMRByEncounterNo :one
-SELECT id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate
+SELECT id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket
 FROM medical_records
 WHERE encounter_no = $1 LIMIT 1
 `
@@ -168,6 +262,14 @@ func (q *Queries) GetMRByEncounterNo(ctx context.Context, encounterNo string) (M
 		&i.BloodPressureDiastolic,
 		&i.Temperature,
 		&i.HeartRate,
+		&i.Status,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.DoctorID,
+		&i.DepartmentCode,
+		&i.Diagnosis,
+		&i.Gender,
+		&i.AgeBracket,
 	)
 	return i, err
 }
@@ -247,6 +349,17 @@ func (q *Queries) GetPendingOutboxEvents(ctx context.Context) ([]OutboxEvent, er
 	return items, nil
 }
 
+const startEncounter = `-- name: StartEncounter :exec
+UPDATE medical_records
+SET status = 'IN_PROGRESS', started_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+WHERE encounter_no = $1
+`
+
+func (q *Queries) StartEncounter(ctx context.Context, encounterNo string) error {
+	_, err := q.db.ExecContext(ctx, startEncounter, encounterNo)
+	return err
+}
+
 const updateOutboxEventStatus = `-- name: UpdateOutboxEventStatus :exec
 UPDATE outbox_events
 SET status = $2
@@ -267,7 +380,7 @@ const updateTriage = `-- name: UpdateTriage :one
 UPDATE medical_records
 SET blood_pressure_systolic = $2, blood_pressure_diastolic = $3, temperature = $4, heart_rate = $5, notes = $6, updated_at = CURRENT_TIMESTAMP
 WHERE encounter_no = $1
-RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate
+RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket
 `
 
 type UpdateTriageParams struct {
@@ -301,6 +414,47 @@ func (q *Queries) UpdateTriage(ctx context.Context, arg UpdateTriageParams) (Med
 		&i.BloodPressureDiastolic,
 		&i.Temperature,
 		&i.HeartRate,
+		&i.Status,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.DoctorID,
+		&i.DepartmentCode,
+		&i.Diagnosis,
+		&i.Gender,
+		&i.AgeBracket,
 	)
 	return i, err
+}
+
+const upsertClinicWaitAggregate = `-- name: UpsertClinicWaitAggregate :exec
+INSERT INTO clinic_wait_time_aggregates (diagnosis, doctor_id, department_code, gender, age_bracket, average_wait_minutes, sample_count)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (diagnosis, doctor_id, department_code, gender, age_bracket) 
+DO UPDATE SET 
+    average_wait_minutes = EXCLUDED.average_wait_minutes,
+    sample_count = EXCLUDED.sample_count,
+    updated_at = CURRENT_TIMESTAMP
+`
+
+type UpsertClinicWaitAggregateParams struct {
+	Diagnosis          string
+	DoctorID           string
+	DepartmentCode     string
+	Gender             string
+	AgeBracket         string
+	AverageWaitMinutes int32
+	SampleCount        int32
+}
+
+func (q *Queries) UpsertClinicWaitAggregate(ctx context.Context, arg UpsertClinicWaitAggregateParams) error {
+	_, err := q.db.ExecContext(ctx, upsertClinicWaitAggregate,
+		arg.Diagnosis,
+		arg.DoctorID,
+		arg.DepartmentCode,
+		arg.Gender,
+		arg.AgeBracket,
+		arg.AverageWaitMinutes,
+		arg.SampleCount,
+	)
+	return err
 }

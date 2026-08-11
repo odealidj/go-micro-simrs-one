@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/aliube/go-micro-simrs-one/billing-service/internal/core/domain"
@@ -115,7 +115,7 @@ func (s *billingServiceImpl) PayInvoice(ctx context.Context, invoiceID string, a
 	payload := fmt.Sprintf(`{"invoice_id":"%s","encounter_no":"%s","amount_paid":%f}`, invoiceID, inv.EncounterNo, amountPaid)
 	err = s.repo.CreateOutboxEvent(ctx, uuid.New().String(), "Invoice", "InvoicePaid", payload)
 	if err != nil {
-		log.Printf("Warning: Failed to create outbox event for InvoicePaid: %v", err)
+		slog.Warn("Failed to create outbox event for InvoicePaid", "error", err)
 	}
 
 	return nil

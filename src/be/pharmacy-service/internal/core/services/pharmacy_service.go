@@ -7,17 +7,22 @@ import (
 
 	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/core/domain"
 	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/core/ports"
+	"github.com/redis/go-redis/v9"
 )
 
 type pharmacyServiceImpl struct {
-	repo ports.PharmacyRepository
+	repo        ports.PharmacyRepository
+	redisClient *redis.Client
 }
 
-func NewPharmacyService(repo ports.PharmacyRepository) ports.PharmacyService {
-	return &pharmacyServiceImpl{repo: repo}
+func NewPharmacyService(repo ports.PharmacyRepository, rdb *redis.Client) ports.PharmacyService {
+	return &pharmacyServiceImpl{
+		repo:        repo,
+		redisClient: rdb,
+	}
 }
 
-func (s *pharmacyServiceImpl) CreatePrescription(ctx context.Context, encounterNo string, isCompounded bool, notes string, items []domain.PrescriptionItem) (string, error) {
+func (s *pharmacyServiceImpl) CreatePrescription(ctx context.Context, encounterNo string, isCompounded bool, notes string, diagnosis, gender, ageBracket, doctorID, departmentCode string, items []domain.PrescriptionItem) (string, error) {
 	if s.repo == nil {
 		return "", fmt.Errorf("repository is not initialized")
 	}
@@ -40,12 +45,17 @@ func (s *pharmacyServiceImpl) CreatePrescription(ctx context.Context, encounterN
 	}
 
 	prescription := &domain.Prescription{
-		ID:           prescriptionID,
-		EncounterNo:  encounterNo,
-		Status:       "CREATED",
-		IsCompounded: isCompounded,
-		Notes:        notes,
-		Items:        domainItems,
+		ID:             prescriptionID,
+		EncounterNo:    encounterNo,
+		Status:         "CREATED",
+		IsCompounded:   isCompounded,
+		Notes:          notes,
+		Diagnosis:      diagnosis,
+		Gender:         gender,
+		AgeBracket:     ageBracket,
+		DoctorID:       doctorID,
+		DepartmentCode: departmentCode,
+		Items:          domainItems,
 	}
 
 	err := s.repo.CreatePrescription(ctx, prescription)
@@ -75,7 +85,18 @@ func (s *pharmacyServiceImpl) DispensePrescription(ctx context.Context, prescrip
 		return fmt.Errorf("cannot dispense prescription: invoice is not PAID yet (status: %s)", paymentStatus)
 	}
 
-	return s.repo.DispensePrescription(ctx, prescriptionID)
+	err = s.repo.DispensePrescription(ctx, prescriptionID)
+	if err != nil {
+		return err
+	}
+
+	// Publish event to Redis for SSE Queue updates
+	if s.redisClient != nil {
+		payload := `{"prescription_id":"` + prescriptionID + `", "encounter_no":"` + prescription.EncounterNo + `", "status":"DISPENSED", "type":"PHARMACY"}`
+		s.redisClient.Publish(ctx, "queue:pharmacy:stream", payload)
+	}
+
+	return nil
 }
 
 func (s *pharmacyServiceImpl) RollbackPrescription(ctx context.Context, prescriptionID string) error {
@@ -103,4 +124,11 @@ func (s *pharmacyServiceImpl) RollbackPrescription(ctx context.Context, prescrip
 	}
 
 	return s.repo.UpdatePrescriptionStatus(ctx, prescriptionID, "ROLLBACKED")
+}
+
+func (s *pharmacyServiceImpl) EstimateWaitTime(ctx context.Context, doctorID, departmentCode, gender, ageBracket string, isCompounded bool) (int64, error) {
+	if s.repo != nil {
+		return s.repo.EstimateWaitTime(ctx, doctorID, departmentCode, gender, ageBracket, isCompounded)
+	}
+	return 10, nil
 }

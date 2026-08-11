@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.26.1
-// source: shared/proto/registration/v1/registration.proto
+// source: registration/v1/registration.proto
 
 package registrationv1
 
@@ -32,7 +32,7 @@ type RegisterEncounterRequest struct {
 
 func (x *RegisterEncounterRequest) Reset() {
 	*x = RegisterEncounterRequest{}
-	mi := &file_shared_proto_registration_v1_registration_proto_msgTypes[0]
+	mi := &file_registration_v1_registration_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *RegisterEncounterRequest) String() string {
 func (*RegisterEncounterRequest) ProtoMessage() {}
 
 func (x *RegisterEncounterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_registration_v1_registration_proto_msgTypes[0]
+	mi := &file_registration_v1_registration_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *RegisterEncounterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterEncounterRequest.ProtoReflect.Descriptor instead.
 func (*RegisterEncounterRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_registration_v1_registration_proto_rawDescGZIP(), []int{0}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *RegisterEncounterRequest) GetMrn() string {
@@ -82,18 +82,17 @@ func (x *RegisterEncounterRequest) GetDoctorId() string {
 }
 
 type RegisterEncounterResponse struct {
-	state                protoimpl.MessageState `protogen:"open.v1"`
-	Success              bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
-	EncounterNo          string                 `protobuf:"bytes,2,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"` // Format: YYYYMM+dept_code+seq
-	Message              string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
-	EstimatedWaitMinutes int32                  `protobuf:"varint,4,opt,name=estimated_wait_minutes,json=estimatedWaitMinutes,proto3" json:"estimated_wait_minutes,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	EncounterNo   string                 `protobuf:"bytes,2,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"` // Format: YYYYMM+dept_code+seq
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegisterEncounterResponse) Reset() {
 	*x = RegisterEncounterResponse{}
-	mi := &file_shared_proto_registration_v1_registration_proto_msgTypes[1]
+	mi := &file_registration_v1_registration_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -105,7 +104,7 @@ func (x *RegisterEncounterResponse) String() string {
 func (*RegisterEncounterResponse) ProtoMessage() {}
 
 func (x *RegisterEncounterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_registration_v1_registration_proto_msgTypes[1]
+	mi := &file_registration_v1_registration_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -118,7 +117,7 @@ func (x *RegisterEncounterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterEncounterResponse.ProtoReflect.Descriptor instead.
 func (*RegisterEncounterResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_registration_v1_registration_proto_rawDescGZIP(), []int{1}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RegisterEncounterResponse) GetSuccess() bool {
@@ -142,48 +141,40 @@ func (x *RegisterEncounterResponse) GetMessage() string {
 	return ""
 }
 
-func (x *RegisterEncounterResponse) GetEstimatedWaitMinutes() int32 {
-	if x != nil {
-		return x.EstimatedWaitMinutes
-	}
-	return 0
-}
+var File_registration_v1_registration_proto protoreflect.FileDescriptor
 
-var File_shared_proto_registration_v1_registration_proto protoreflect.FileDescriptor
-
-const file_shared_proto_registration_v1_registration_proto_rawDesc = "" +
+const file_registration_v1_registration_proto_rawDesc = "" +
 	"\n" +
-	"/shared/proto/registration/v1/registration.proto\x12\x0fregistration.v1\"r\n" +
+	"\"registration/v1/registration.proto\x12\x0fregistration.v1\"r\n" +
 	"\x18RegisterEncounterRequest\x12\x10\n" +
 	"\x03mrn\x18\x01 \x01(\tR\x03mrn\x12'\n" +
 	"\x0fdepartment_code\x18\x02 \x01(\tR\x0edepartmentCode\x12\x1b\n" +
-	"\tdoctor_id\x18\x03 \x01(\tR\bdoctorId\"\xa8\x01\n" +
+	"\tdoctor_id\x18\x03 \x01(\tR\bdoctorId\"r\n" +
 	"\x19RegisterEncounterResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12!\n" +
 	"\fencounter_no\x18\x02 \x01(\tR\vencounterNo\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\x124\n" +
-	"\x16estimated_wait_minutes\x18\x04 \x01(\x05R\x14estimatedWaitMinutes2\x81\x01\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage2\x81\x01\n" +
 	"\x13RegistrationService\x12j\n" +
 	"\x11RegisterEncounter\x12).registration.v1.RegisterEncounterRequest\x1a*.registration.v1.RegisterEncounterResponseBRZPgithub.com/aliube/go-micro-simrs-one/shared/proto/registration/v1;registrationv1b\x06proto3"
 
 var (
-	file_shared_proto_registration_v1_registration_proto_rawDescOnce sync.Once
-	file_shared_proto_registration_v1_registration_proto_rawDescData []byte
+	file_registration_v1_registration_proto_rawDescOnce sync.Once
+	file_registration_v1_registration_proto_rawDescData []byte
 )
 
-func file_shared_proto_registration_v1_registration_proto_rawDescGZIP() []byte {
-	file_shared_proto_registration_v1_registration_proto_rawDescOnce.Do(func() {
-		file_shared_proto_registration_v1_registration_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_shared_proto_registration_v1_registration_proto_rawDesc), len(file_shared_proto_registration_v1_registration_proto_rawDesc)))
+func file_registration_v1_registration_proto_rawDescGZIP() []byte {
+	file_registration_v1_registration_proto_rawDescOnce.Do(func() {
+		file_registration_v1_registration_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_registration_v1_registration_proto_rawDesc), len(file_registration_v1_registration_proto_rawDesc)))
 	})
-	return file_shared_proto_registration_v1_registration_proto_rawDescData
+	return file_registration_v1_registration_proto_rawDescData
 }
 
-var file_shared_proto_registration_v1_registration_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_shared_proto_registration_v1_registration_proto_goTypes = []any{
+var file_registration_v1_registration_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_registration_v1_registration_proto_goTypes = []any{
 	(*RegisterEncounterRequest)(nil),  // 0: registration.v1.RegisterEncounterRequest
 	(*RegisterEncounterResponse)(nil), // 1: registration.v1.RegisterEncounterResponse
 }
-var file_shared_proto_registration_v1_registration_proto_depIdxs = []int32{
+var file_registration_v1_registration_proto_depIdxs = []int32{
 	0, // 0: registration.v1.RegistrationService.RegisterEncounter:input_type -> registration.v1.RegisterEncounterRequest
 	1, // 1: registration.v1.RegistrationService.RegisterEncounter:output_type -> registration.v1.RegisterEncounterResponse
 	1, // [1:2] is the sub-list for method output_type
@@ -193,26 +184,26 @@ var file_shared_proto_registration_v1_registration_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_shared_proto_registration_v1_registration_proto_init() }
-func file_shared_proto_registration_v1_registration_proto_init() {
-	if File_shared_proto_registration_v1_registration_proto != nil {
+func init() { file_registration_v1_registration_proto_init() }
+func file_registration_v1_registration_proto_init() {
+	if File_registration_v1_registration_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_shared_proto_registration_v1_registration_proto_rawDesc), len(file_shared_proto_registration_v1_registration_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_registration_v1_registration_proto_rawDesc), len(file_registration_v1_registration_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_shared_proto_registration_v1_registration_proto_goTypes,
-		DependencyIndexes: file_shared_proto_registration_v1_registration_proto_depIdxs,
-		MessageInfos:      file_shared_proto_registration_v1_registration_proto_msgTypes,
+		GoTypes:           file_registration_v1_registration_proto_goTypes,
+		DependencyIndexes: file_registration_v1_registration_proto_depIdxs,
+		MessageInfos:      file_registration_v1_registration_proto_msgTypes,
 	}.Build()
-	File_shared_proto_registration_v1_registration_proto = out.File
-	file_shared_proto_registration_v1_registration_proto_goTypes = nil
-	file_shared_proto_registration_v1_registration_proto_depIdxs = nil
+	File_registration_v1_registration_proto = out.File
+	file_registration_v1_registration_proto_goTypes = nil
+	file_registration_v1_registration_proto_depIdxs = nil
 }

@@ -4,12 +4,17 @@ import (
 	"context"
 
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/core/domain"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/outbox"
 )
 
 type RegistrationRepository interface {
 	SaveEncounter(ctx context.Context, encounter *domain.Encounter) error
 	SaveOutboxEvent(ctx context.Context, event *domain.OutboxEvent) error
 	CountActiveEncountersByDept(ctx context.Context, department string) (int64, error)
+	// Implements outbox.Repository so this repo can be passed directly to outbox.NewRelay
+	GetPendingOutboxEvents(ctx context.Context) ([]outbox.Event, error)
+	MarkEventAsPublished(ctx context.Context, id string) error
+	MarkEventAsFailed(ctx context.Context, id string) error
 }
 
 type EventPublisher interface {
@@ -17,5 +22,5 @@ type EventPublisher interface {
 }
 
 type RegistrationService interface {
-	RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID string) (string, int32, error)
+	RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID string) (string, error)
 }

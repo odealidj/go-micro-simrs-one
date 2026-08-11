@@ -3,6 +3,9 @@ package grpc
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/core/domain"
 	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/core/ports"
 	pb "github.com/aliube/go-micro-simrs-one/shared/proto/pharmacy/v1"
@@ -28,12 +31,9 @@ func (s *PharmacyGrpcServer) CreatePrescription(ctx context.Context, req *pb.Cre
 		})
 	}
 
-	prescriptionID, err := s.pharmacyService.CreatePrescription(ctx, req.EncounterNo, req.IsCompounded, req.Notes, domainItems)
+	prescriptionID, err := s.pharmacyService.CreatePrescription(ctx, req.EncounterNo, req.IsCompounded, req.Notes, req.Diagnosis, req.Gender, req.AgeBracket, req.DoctorId, req.DepartmentCode, domainItems)
 	if err != nil {
-		return &pb.CreatePrescriptionResponse{
-			Success: false,
-			Message: err.Error(),
-		}, nil
+		return nil, status.Errorf(codes.Internal, "failed to create prescription: %v", err)
 	}
 
 	return &pb.CreatePrescriptionResponse{
@@ -46,10 +46,7 @@ func (s *PharmacyGrpcServer) CreatePrescription(ctx context.Context, req *pb.Cre
 func (s *PharmacyGrpcServer) DispensePrescription(ctx context.Context, req *pb.DispensePrescriptionRequest) (*pb.DispensePrescriptionResponse, error) {
 	err := s.pharmacyService.DispensePrescription(ctx, req.PrescriptionId)
 	if err != nil {
-		return &pb.DispensePrescriptionResponse{
-			Success: false,
-			Message: err.Error(),
-		}, nil
+		return nil, status.Errorf(codes.Internal, "failed to dispense prescription: %v", err)
 	}
 
 	return &pb.DispensePrescriptionResponse{
@@ -61,14 +58,21 @@ func (s *PharmacyGrpcServer) DispensePrescription(ctx context.Context, req *pb.D
 func (s *PharmacyGrpcServer) RollbackPrescription(ctx context.Context, req *pb.RollbackPrescriptionRequest) (*pb.RollbackPrescriptionResponse, error) {
 	err := s.pharmacyService.RollbackPrescription(ctx, req.PrescriptionId)
 	if err != nil {
-		return &pb.RollbackPrescriptionResponse{
-			Success: false,
-			Message: err.Error(),
-		}, nil
+		return nil, status.Errorf(codes.Internal, "failed to rollback prescription: %v", err)
 	}
 
 	return &pb.RollbackPrescriptionResponse{
 		Success: true,
-		Message: "Prescription rollbacked successfully",
+		Message: "Prescription rolled back successfully",
+	}, nil
+}
+
+func (s *PharmacyGrpcServer) GetEstimatedWaitTime(ctx context.Context, req *pb.GetEstimatedWaitTimeRequest) (*pb.GetEstimatedWaitTimeResponse, error) {
+	est, err := s.pharmacyService.EstimateWaitTime(ctx, req.DoctorId, req.DepartmentCode, req.Gender, req.AgeBracket, req.IsCompounded)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to estimate wait time: %v", err)
+	}
+	return &pb.GetEstimatedWaitTimeResponse{
+		EstimatedMinutes: est,
 	}, nil
 }

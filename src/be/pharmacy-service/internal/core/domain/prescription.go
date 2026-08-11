@@ -14,9 +14,14 @@ type Prescription struct {
 	ID           string
 	EncounterNo  string
 	Status       string // "CREATED", "DISPENSED"
-	IsCompounded bool
-	Notes        string
-	Items        []PrescriptionItem
+	IsCompounded   bool
+	Notes          string
+	Diagnosis      string
+	Gender         string
+	AgeBracket     string
+	DoctorID       string
+	DepartmentCode string
+	Items          []PrescriptionItem
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }

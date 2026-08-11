@@ -15,7 +15,7 @@ require (
 	aidanwoods.dev/go-result v0.3.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
+	github.com/sony/gobreaker v1.0.0 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.45.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect

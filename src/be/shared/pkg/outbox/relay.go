@@ -2,7 +2,7 @@ package outbox
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -31,12 +31,12 @@ func (r *Relay) Start(ctx context.Context) {
 	ticker := time.NewTicker(r.interval)
 	defer ticker.Stop()
 
-	log.Printf("[Outbox Relay] Started for stream: %s, interval: %s", r.streamName, r.interval)
+	slog.Info("[Outbox Relay] Started", "stream", r.streamName, "interval", r.interval)
 
 	for {
 		select {
 		case <-ctx.Done():
-			log.Printf("[Outbox Relay] Stopped for stream: %s", r.streamName)
+			slog.Info("[Outbox Relay] Stopped", "stream", r.streamName)
 			return
 		case <-ticker.C:
 			r.processEvents(ctx)
@@ -48,7 +48,7 @@ func (r *Relay) processEvents(ctx context.Context) {
 	// 1. Get pending events
 	events, err := r.repo.GetPendingOutboxEvents(ctx)
 	if err != nil {
-		log.Printf("[Outbox Relay] Error fetching pending events: %v", err)
+		slog.Error("[Outbox Relay] Error fetching pending events", "error", err)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (r *Relay) processEvents(ctx context.Context) {
 		// Push to Redis Stream
 		_, err := r.redisClient.XAdd(ctx, args).Result()
 		if err != nil {
-			log.Printf("[Outbox Relay] Failed to publish event %s: %v", event.ID, err)
+			slog.Error("[Outbox Relay] Failed to publish event", "event_id", event.ID, "error", err)
 			_ = r.repo.MarkEventAsFailed(ctx, event.ID)
 			continue
 		}
@@ -81,9 +81,9 @@ func (r *Relay) processEvents(ctx context.Context) {
 		// Mark as published in DB
 		err = r.repo.MarkEventAsPublished(ctx, event.ID)
 		if err != nil {
-			log.Printf("[Outbox Relay] Published event %s but failed to update status in DB: %v", event.ID, err)
+			slog.Error("[Outbox Relay] Published event but failed to update status in DB", "event_id", event.ID, "error", err)
 		} else {
-			log.Printf("[Outbox Relay] Successfully published event %s (Type: %s) to %s", event.ID, event.EventType, r.streamName)
+			slog.Info("[Outbox Relay] Successfully published event", "event_id", event.ID, "event_type", event.EventType, "stream", r.streamName)
 		}
 	}
 }

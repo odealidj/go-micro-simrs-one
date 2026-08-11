@@ -34,12 +34,34 @@ func (r *pharmacyRepoSqlc) CreatePrescription(ctx context.Context, prescription 
 	var isC sql.NullBool
 	isC = sql.NullBool{Bool: prescription.IsCompounded, Valid: true}
 
+	var diagnosis, gender, ageBracket, docId, deptCode sql.NullString
+	if prescription.Diagnosis != "" {
+		diagnosis = sql.NullString{String: prescription.Diagnosis, Valid: true}
+	}
+	if prescription.Gender != "" {
+		gender = sql.NullString{String: prescription.Gender, Valid: true}
+	}
+	if prescription.AgeBracket != "" {
+		ageBracket = sql.NullString{String: prescription.AgeBracket, Valid: true}
+	}
+	if prescription.DoctorID != "" {
+		docId = sql.NullString{String: prescription.DoctorID, Valid: true}
+	}
+	if prescription.DepartmentCode != "" {
+		deptCode = sql.NullString{String: prescription.DepartmentCode, Valid: true}
+	}
+
 	_, err := r.q.CreatePrescription(ctx, db.CreatePrescriptionParams{
-		ID:           prescription.ID,
-		EncounterNo:  prescription.EncounterNo,
-		Status:       prescription.Status,
-		IsCompounded: isC,
-		Notes:        n,
+		ID:             prescription.ID,
+		EncounterNo:    prescription.EncounterNo,
+		Status:         prescription.Status,
+		IsCompounded:   isC,
+		Notes:          n,
+		Diagnosis:      diagnosis,
+		Gender:         gender,
+		AgeBracket:     ageBracket,
+		DoctorID:       docId,
+		DepartmentCode: deptCode,
 	})
 	if err != nil {
 		return err
@@ -139,8 +161,18 @@ func (r *pharmacyRepoSqlc) DispensePrescription(ctx context.Context, prescriptio
 
 	qtx := r.q.WithTx(tx)
 
-	// 1. Deduct Stock
+	// 1. Check and Deduct Stock
 	for _, item := range prescription.Items {
+		// Pessimistic Locking: Lock the row so concurrent dispenses wait
+		invItem, err := qtx.GetInventoryItemForUpdate(ctx, item.ItemCode)
+		if err != nil {
+			return fmt.Errorf("failed to get inventory item %s: %w", item.ItemCode, err)
+		}
+
+		if invItem.StockQuantity < item.Quantity {
+			return fmt.Errorf("insufficient stock for item %s. Requested: %d, Available: %d", item.ItemCode, item.Quantity, invItem.StockQuantity)
+		}
+
 		err = qtx.UpdateStock(ctx, db.UpdateStockParams{
 			ItemCode:      item.ItemCode,
 			StockQuantity: item.Quantity,
@@ -216,10 +248,16 @@ func (r *pharmacyRepoSqlc) MarkEventAsFailed(ctx context.Context, id string) err
 	})
 }
 
-func (r *pharmacyRepoSqlc) UpsertEncounterPayment(ctx context.Context, encounterNo, status string) error {
+func (r *pharmacyRepoSqlc) UpsertEncounterPayment(ctx context.Context, encounterNo, status string, paidAt *time.Time) error {
+	var paidAtSql sql.NullTime
+	if paidAt != nil {
+		paidAtSql = sql.NullTime{Time: *paidAt, Valid: true}
+	}
+	
 	return r.q.UpsertEncounterPayment(ctx, db.UpsertEncounterPaymentParams{
 		EncounterNo: encounterNo,
 		Status:      status,
+		PaidAt:      paidAtSql,
 	})
 }
 
@@ -233,3 +271,24 @@ func (r *pharmacyRepoSqlc) GetEncounterPaymentStatus(ctx context.Context, encoun
 	}
 	return status, nil
 }
+
+func (r *pharmacyRepoSqlc) EstimateWaitTime(ctx context.Context, doctorID, deptCode, gender, ageBracket string, isCompounded bool) (int64, error) {
+	avg, err := r.q.GetPharmacyWaitAggregateWithoutDiagnosis(ctx, db.GetPharmacyWaitAggregateWithoutDiagnosisParams{
+		DoctorID:       doctorID,
+		DepartmentCode: deptCode,
+		Gender:         gender,
+		AgeBracket:     ageBracket,
+		IsCompounded:   isCompounded,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 10, nil // Default
+		}
+		return 10, err
+	}
+	if avg == 0 {
+		return 10, nil
+	}
+	return int64(avg), nil
+}
+

@@ -3,14 +3,19 @@ SELECT item_code, name, stock_quantity, price
 FROM inventory
 WHERE item_code = $1 LIMIT 1;
 
+-- name: GetInventoryItemForUpdate :one
+SELECT item_code, name, stock_quantity, price
+FROM inventory
+WHERE item_code = $1 LIMIT 1 FOR UPDATE;
+
 -- name: UpdateStock :exec
 UPDATE inventory
 SET stock_quantity = stock_quantity - $2
 WHERE item_code = $1;
 
 -- name: CreatePrescription :one
-INSERT INTO prescriptions (id, encounter_no, status, is_compounded, notes)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO prescriptions (id, encounter_no, status, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING *;
 
 -- name: CreatePrescriptionItem :one
@@ -51,12 +56,32 @@ SET status = $2
 WHERE id = $1;
 
 -- name: UpsertEncounterPayment :exec
-INSERT INTO encounter_payments (encounter_no, status, updated_at)
-VALUES ($1, $2, CURRENT_TIMESTAMP)
+INSERT INTO encounter_payments (encounter_no, status, paid_at, updated_at)
+VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
 ON CONFLICT (encounter_no)
-DO UPDATE SET status = EXCLUDED.status, updated_at = CURRENT_TIMESTAMP;
+DO UPDATE SET status = EXCLUDED.status, paid_at = EXCLUDED.paid_at, updated_at = CURRENT_TIMESTAMP;
 
 -- name: GetEncounterPayment :one
 SELECT status
 FROM encounter_payments
 WHERE encounter_no = $1 LIMIT 1;
+
+-- name: UpsertPharmacyWaitAggregate :exec
+INSERT INTO pharmacy_wait_time_aggregates (diagnosis, doctor_id, department_code, gender, age_bracket, is_compounded, average_wait_minutes, sample_count)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT (diagnosis, doctor_id, department_code, gender, age_bracket, is_compounded) 
+DO UPDATE SET 
+    average_wait_minutes = EXCLUDED.average_wait_minutes,
+    sample_count = EXCLUDED.sample_count,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- name: GetPharmacyWaitAggregate :one
+SELECT average_wait_minutes, sample_count
+FROM pharmacy_wait_time_aggregates
+WHERE diagnosis = $1 AND doctor_id = $2 AND department_code = $3 AND gender = $4 AND age_bracket = $5 AND is_compounded = $6;
+
+-- name: GetPharmacyWaitAggregateWithoutDiagnosis :one
+SELECT COALESCE(AVG(average_wait_minutes), 0)::float8 AS avg_wait_minutes
+FROM pharmacy_wait_time_aggregates
+WHERE doctor_id = $1 AND department_code = $2 AND gender = $3 AND age_bracket = $4 AND is_compounded = $5;
+

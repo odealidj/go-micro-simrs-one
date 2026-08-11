@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"log/slog"
 
 	"github.com/aliube/go-micro-simrs-one/billing-service/internal/core/ports"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/outbox"
@@ -70,5 +70,7 @@ func StartBillingConsumers(ctx context.Context, rdb *redis.Client, billingServic
 	pharmacyConsumer := outbox.NewConsumer(rdb, "pharmacy_stream", "billing_group", "billing_worker_1", pharmacyHandler)
 	go pharmacyConsumer.Start(ctx)
 	
-	log.Println("[Billing Consumers] Started listening to emr_stream and pharmacy_stream")
+	slog.Info("[Billing Consumers] Started listening to emr_stream and pharmacy_stream")
+	<-ctx.Done()
+	slog.Info("[Billing Consumers] Shutting down...")
 }
