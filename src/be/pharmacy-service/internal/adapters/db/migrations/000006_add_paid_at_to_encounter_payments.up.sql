@@ -1,0 +1,1 @@
+ALTER TABLE encounter_payments ADD COLUMN paid_at TIMESTAMP WITH TIME ZONE;

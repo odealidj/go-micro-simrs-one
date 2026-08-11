@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.26.1
-// source: proto/emr/v1/emr.proto
+// source: shared/proto/emr/v1/emr.proto
 
 package emrv1
 
@@ -21,6 +21,215 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type GetEstimatedWaitTimeRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	DoctorId       string                 `protobuf:"bytes,1,opt,name=doctor_id,json=doctorId,proto3" json:"doctor_id,omitempty"`
+	DepartmentCode string                 `protobuf:"bytes,2,opt,name=department_code,json=departmentCode,proto3" json:"department_code,omitempty"`
+	Gender         string                 `protobuf:"bytes,3,opt,name=gender,proto3" json:"gender,omitempty"`
+	AgeBracket     string                 `protobuf:"bytes,4,opt,name=age_bracket,json=ageBracket,proto3" json:"age_bracket,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetEstimatedWaitTimeRequest) Reset() {
+	*x = GetEstimatedWaitTimeRequest{}
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEstimatedWaitTimeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEstimatedWaitTimeRequest) ProtoMessage() {}
+
+func (x *GetEstimatedWaitTimeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEstimatedWaitTimeRequest.ProtoReflect.Descriptor instead.
+func (*GetEstimatedWaitTimeRequest) Descriptor() ([]byte, []int) {
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *GetEstimatedWaitTimeRequest) GetDoctorId() string {
+	if x != nil {
+		return x.DoctorId
+	}
+	return ""
+}
+
+func (x *GetEstimatedWaitTimeRequest) GetDepartmentCode() string {
+	if x != nil {
+		return x.DepartmentCode
+	}
+	return ""
+}
+
+func (x *GetEstimatedWaitTimeRequest) GetGender() string {
+	if x != nil {
+		return x.Gender
+	}
+	return ""
+}
+
+func (x *GetEstimatedWaitTimeRequest) GetAgeBracket() string {
+	if x != nil {
+		return x.AgeBracket
+	}
+	return ""
+}
+
+type GetEstimatedWaitTimeResponse struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	EstimatedMinutes int64                  `protobuf:"varint,1,opt,name=estimated_minutes,json=estimatedMinutes,proto3" json:"estimated_minutes,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *GetEstimatedWaitTimeResponse) Reset() {
+	*x = GetEstimatedWaitTimeResponse{}
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetEstimatedWaitTimeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetEstimatedWaitTimeResponse) ProtoMessage() {}
+
+func (x *GetEstimatedWaitTimeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetEstimatedWaitTimeResponse.ProtoReflect.Descriptor instead.
+func (*GetEstimatedWaitTimeResponse) Descriptor() ([]byte, []int) {
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GetEstimatedWaitTimeResponse) GetEstimatedMinutes() int64 {
+	if x != nil {
+		return x.EstimatedMinutes
+	}
+	return 0
+}
+
+// 0. Start Encounter (Perawat/Dokter)
+type StartEncounterRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EncounterNo   string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartEncounterRequest) Reset() {
+	*x = StartEncounterRequest{}
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartEncounterRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartEncounterRequest) ProtoMessage() {}
+
+func (x *StartEncounterRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartEncounterRequest.ProtoReflect.Descriptor instead.
+func (*StartEncounterRequest) Descriptor() ([]byte, []int) {
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *StartEncounterRequest) GetEncounterNo() string {
+	if x != nil {
+		return x.EncounterNo
+	}
+	return ""
+}
+
+type StartEncounterResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartEncounterResponse) Reset() {
+	*x = StartEncounterResponse{}
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartEncounterResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartEncounterResponse) ProtoMessage() {}
+
+func (x *StartEncounterResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartEncounterResponse.ProtoReflect.Descriptor instead.
+func (*StartEncounterResponse) Descriptor() ([]byte, []int) {
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *StartEncounterResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *StartEncounterResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 // 1. Triage (Perawat)
 type SubmitTriageRequest struct {
 	state                  protoimpl.MessageState `protogen:"open.v1"`
@@ -36,7 +245,7 @@ type SubmitTriageRequest struct {
 
 func (x *SubmitTriageRequest) Reset() {
 	*x = SubmitTriageRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[0]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -48,7 +257,7 @@ func (x *SubmitTriageRequest) String() string {
 func (*SubmitTriageRequest) ProtoMessage() {}
 
 func (x *SubmitTriageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[0]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -61,7 +270,7 @@ func (x *SubmitTriageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitTriageRequest.ProtoReflect.Descriptor instead.
 func (*SubmitTriageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{0}
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SubmitTriageRequest) GetEncounterNo() string {
@@ -116,7 +325,7 @@ type SubmitTriageResponse struct {
 
 func (x *SubmitTriageResponse) Reset() {
 	*x = SubmitTriageResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[1]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -128,7 +337,7 @@ func (x *SubmitTriageResponse) String() string {
 func (*SubmitTriageResponse) ProtoMessage() {}
 
 func (x *SubmitTriageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[1]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -141,7 +350,7 @@ func (x *SubmitTriageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitTriageResponse.ProtoReflect.Descriptor instead.
 func (*SubmitTriageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{1}
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SubmitTriageResponse) GetSuccess() bool {
@@ -160,17 +369,21 @@ func (x *SubmitTriageResponse) GetMessage() string {
 
 // 2. Diagnosis (Dokter)
 type AddDiagnosisRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EncounterNo   string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
-	Icd10Code     string                 `protobuf:"bytes,2,opt,name=icd10_code,json=icd10Code,proto3" json:"icd10_code,omitempty"`
-	Notes         string                 `protobuf:"bytes,3,opt,name=notes,proto3" json:"notes,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EncounterNo    string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
+	Icd10Code      string                 `protobuf:"bytes,2,opt,name=icd10_code,json=icd10Code,proto3" json:"icd10_code,omitempty"`
+	Notes          string                 `protobuf:"bytes,3,opt,name=notes,proto3" json:"notes,omitempty"`
+	DoctorId       string                 `protobuf:"bytes,4,opt,name=doctor_id,json=doctorId,proto3" json:"doctor_id,omitempty"`
+	DepartmentCode string                 `protobuf:"bytes,5,opt,name=department_code,json=departmentCode,proto3" json:"department_code,omitempty"`
+	Gender         string                 `protobuf:"bytes,6,opt,name=gender,proto3" json:"gender,omitempty"`
+	AgeBracket     string                 `protobuf:"bytes,7,opt,name=age_bracket,json=ageBracket,proto3" json:"age_bracket,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *AddDiagnosisRequest) Reset() {
 	*x = AddDiagnosisRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[2]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -182,7 +395,7 @@ func (x *AddDiagnosisRequest) String() string {
 func (*AddDiagnosisRequest) ProtoMessage() {}
 
 func (x *AddDiagnosisRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[2]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -195,7 +408,7 @@ func (x *AddDiagnosisRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddDiagnosisRequest.ProtoReflect.Descriptor instead.
 func (*AddDiagnosisRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{2}
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *AddDiagnosisRequest) GetEncounterNo() string {
@@ -219,6 +432,34 @@ func (x *AddDiagnosisRequest) GetNotes() string {
 	return ""
 }
 
+func (x *AddDiagnosisRequest) GetDoctorId() string {
+	if x != nil {
+		return x.DoctorId
+	}
+	return ""
+}
+
+func (x *AddDiagnosisRequest) GetDepartmentCode() string {
+	if x != nil {
+		return x.DepartmentCode
+	}
+	return ""
+}
+
+func (x *AddDiagnosisRequest) GetGender() string {
+	if x != nil {
+		return x.Gender
+	}
+	return ""
+}
+
+func (x *AddDiagnosisRequest) GetAgeBracket() string {
+	if x != nil {
+		return x.AgeBracket
+	}
+	return ""
+}
+
 type AddDiagnosisResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -229,7 +470,7 @@ type AddDiagnosisResponse struct {
 
 func (x *AddDiagnosisResponse) Reset() {
 	*x = AddDiagnosisResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[3]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -241,7 +482,7 @@ func (x *AddDiagnosisResponse) String() string {
 func (*AddDiagnosisResponse) ProtoMessage() {}
 
 func (x *AddDiagnosisResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[3]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -254,7 +495,7 @@ func (x *AddDiagnosisResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddDiagnosisResponse.ProtoReflect.Descriptor instead.
 func (*AddDiagnosisResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{3}
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *AddDiagnosisResponse) GetSuccess() bool {
@@ -285,7 +526,7 @@ type AddMedicalActionRequest struct {
 
 func (x *AddMedicalActionRequest) Reset() {
 	*x = AddMedicalActionRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[4]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -297,7 +538,7 @@ func (x *AddMedicalActionRequest) String() string {
 func (*AddMedicalActionRequest) ProtoMessage() {}
 
 func (x *AddMedicalActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[4]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -310,7 +551,7 @@ func (x *AddMedicalActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddMedicalActionRequest.ProtoReflect.Descriptor instead.
 func (*AddMedicalActionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{4}
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *AddMedicalActionRequest) GetEncounterNo() string {
@@ -358,7 +599,7 @@ type AddMedicalActionResponse struct {
 
 func (x *AddMedicalActionResponse) Reset() {
 	*x = AddMedicalActionResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[5]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -370,7 +611,7 @@ func (x *AddMedicalActionResponse) String() string {
 func (*AddMedicalActionResponse) ProtoMessage() {}
 
 func (x *AddMedicalActionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[5]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -383,7 +624,7 @@ func (x *AddMedicalActionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddMedicalActionResponse.ProtoReflect.Descriptor instead.
 func (*AddMedicalActionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{5}
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *AddMedicalActionResponse) GetSuccess() bool {
@@ -410,7 +651,7 @@ type GetMedicalRecordRequest struct {
 
 func (x *GetMedicalRecordRequest) Reset() {
 	*x = GetMedicalRecordRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[6]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -422,7 +663,7 @@ func (x *GetMedicalRecordRequest) String() string {
 func (*GetMedicalRecordRequest) ProtoMessage() {}
 
 func (x *GetMedicalRecordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[6]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -435,7 +676,7 @@ func (x *GetMedicalRecordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMedicalRecordRequest.ProtoReflect.Descriptor instead.
 func (*GetMedicalRecordRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{6}
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetMedicalRecordRequest) GetEncounterNo() string {
@@ -456,7 +697,7 @@ type MedicalAction struct {
 
 func (x *MedicalAction) Reset() {
 	*x = MedicalAction{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[7]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -468,7 +709,7 @@ func (x *MedicalAction) String() string {
 func (*MedicalAction) ProtoMessage() {}
 
 func (x *MedicalAction) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[7]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -481,7 +722,7 @@ func (x *MedicalAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MedicalAction.ProtoReflect.Descriptor instead.
 func (*MedicalAction) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{7}
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *MedicalAction) GetActionCode() string {
@@ -518,7 +759,7 @@ type TriageData struct {
 
 func (x *TriageData) Reset() {
 	*x = TriageData{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[8]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -530,7 +771,7 @@ func (x *TriageData) String() string {
 func (*TriageData) ProtoMessage() {}
 
 func (x *TriageData) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[8]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -543,7 +784,7 @@ func (x *TriageData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriageData.ProtoReflect.Descriptor instead.
 func (*TriageData) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{8}
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *TriageData) GetBloodPressureSystolic() int32 {
@@ -595,7 +836,7 @@ type GetMedicalRecordResponse struct {
 
 func (x *GetMedicalRecordResponse) Reset() {
 	*x = GetMedicalRecordResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[9]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -607,7 +848,7 @@ func (x *GetMedicalRecordResponse) String() string {
 func (*GetMedicalRecordResponse) ProtoMessage() {}
 
 func (x *GetMedicalRecordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[9]
+	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -620,7 +861,7 @@ func (x *GetMedicalRecordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMedicalRecordResponse.ProtoReflect.Descriptor instead.
 func (*GetMedicalRecordResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{9}
+	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetMedicalRecordResponse) GetEncounterNo() string {
@@ -665,11 +906,24 @@ func (x *GetMedicalRecordResponse) GetNotes() string {
 	return ""
 }
 
-var File_proto_emr_v1_emr_proto protoreflect.FileDescriptor
+var File_shared_proto_emr_v1_emr_proto protoreflect.FileDescriptor
 
-const file_proto_emr_v1_emr_proto_rawDesc = "" +
+const file_shared_proto_emr_v1_emr_proto_rawDesc = "" +
 	"\n" +
-	"\x16proto/emr/v1/emr.proto\x12\x06emr.v1\"\x81\x02\n" +
+	"\x1dshared/proto/emr/v1/emr.proto\x12\x06emr.v1\"\x9c\x01\n" +
+	"\x1bGetEstimatedWaitTimeRequest\x12\x1b\n" +
+	"\tdoctor_id\x18\x01 \x01(\tR\bdoctorId\x12'\n" +
+	"\x0fdepartment_code\x18\x02 \x01(\tR\x0edepartmentCode\x12\x16\n" +
+	"\x06gender\x18\x03 \x01(\tR\x06gender\x12\x1f\n" +
+	"\vage_bracket\x18\x04 \x01(\tR\n" +
+	"ageBracket\"K\n" +
+	"\x1cGetEstimatedWaitTimeResponse\x12+\n" +
+	"\x11estimated_minutes\x18\x01 \x01(\x03R\x10estimatedMinutes\":\n" +
+	"\x15StartEncounterRequest\x12!\n" +
+	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\"L\n" +
+	"\x16StartEncounterResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\x81\x02\n" +
 	"\x13SubmitTriageRequest\x12!\n" +
 	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x126\n" +
 	"\x17blood_pressure_systolic\x18\x02 \x01(\x05R\x15bloodPressureSystolic\x128\n" +
@@ -680,12 +934,17 @@ const file_proto_emr_v1_emr_proto_rawDesc = "" +
 	"\x05notes\x18\x06 \x01(\tR\x05notes\"J\n" +
 	"\x14SubmitTriageResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"m\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xec\x01\n" +
 	"\x13AddDiagnosisRequest\x12!\n" +
 	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x1d\n" +
 	"\n" +
 	"icd10_code\x18\x02 \x01(\tR\ticd10Code\x12\x14\n" +
-	"\x05notes\x18\x03 \x01(\tR\x05notes\"J\n" +
+	"\x05notes\x18\x03 \x01(\tR\x05notes\x12\x1b\n" +
+	"\tdoctor_id\x18\x04 \x01(\tR\bdoctorId\x12'\n" +
+	"\x0fdepartment_code\x18\x05 \x01(\tR\x0edepartmentCode\x12\x16\n" +
+	"\x06gender\x18\x06 \x01(\tR\x06gender\x12\x1f\n" +
+	"\vage_bracket\x18\a \x01(\tR\n" +
+	"ageBracket\"J\n" +
 	"\x14AddDiagnosisResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"\xaa\x01\n" +
@@ -724,77 +983,87 @@ const file_proto_emr_v1_emr_proto_rawDesc = "" +
 	"\vicd10_codes\x18\x04 \x03(\tR\n" +
 	"icd10Codes\x12/\n" +
 	"\aactions\x18\x05 \x03(\v2\x15.emr.v1.MedicalActionR\aactions\x12\x14\n" +
-	"\x05notes\x18\x06 \x01(\tR\x05notes2\xd0\x02\n" +
+	"\x05notes\x18\x06 \x01(\tR\x05notes2\x84\x04\n" +
 	"\n" +
 	"EMRService\x12I\n" +
 	"\fSubmitTriage\x12\x1b.emr.v1.SubmitTriageRequest\x1a\x1c.emr.v1.SubmitTriageResponse\x12I\n" +
 	"\fAddDiagnosis\x12\x1b.emr.v1.AddDiagnosisRequest\x1a\x1c.emr.v1.AddDiagnosisResponse\x12U\n" +
 	"\x10AddMedicalAction\x12\x1f.emr.v1.AddMedicalActionRequest\x1a .emr.v1.AddMedicalActionResponse\x12U\n" +
-	"\x10GetMedicalRecord\x12\x1f.emr.v1.GetMedicalRecordRequest\x1a .emr.v1.GetMedicalRecordResponseB@Z>github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1;emrv1b\x06proto3"
+	"\x10GetMedicalRecord\x12\x1f.emr.v1.GetMedicalRecordRequest\x1a .emr.v1.GetMedicalRecordResponse\x12O\n" +
+	"\x0eStartEncounter\x12\x1d.emr.v1.StartEncounterRequest\x1a\x1e.emr.v1.StartEncounterResponse\x12a\n" +
+	"\x14GetEstimatedWaitTime\x12#.emr.v1.GetEstimatedWaitTimeRequest\x1a$.emr.v1.GetEstimatedWaitTimeResponseB@Z>github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1;emrv1b\x06proto3"
 
 var (
-	file_proto_emr_v1_emr_proto_rawDescOnce sync.Once
-	file_proto_emr_v1_emr_proto_rawDescData []byte
+	file_shared_proto_emr_v1_emr_proto_rawDescOnce sync.Once
+	file_shared_proto_emr_v1_emr_proto_rawDescData []byte
 )
 
-func file_proto_emr_v1_emr_proto_rawDescGZIP() []byte {
-	file_proto_emr_v1_emr_proto_rawDescOnce.Do(func() {
-		file_proto_emr_v1_emr_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_emr_v1_emr_proto_rawDesc), len(file_proto_emr_v1_emr_proto_rawDesc)))
+func file_shared_proto_emr_v1_emr_proto_rawDescGZIP() []byte {
+	file_shared_proto_emr_v1_emr_proto_rawDescOnce.Do(func() {
+		file_shared_proto_emr_v1_emr_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_shared_proto_emr_v1_emr_proto_rawDesc), len(file_shared_proto_emr_v1_emr_proto_rawDesc)))
 	})
-	return file_proto_emr_v1_emr_proto_rawDescData
+	return file_shared_proto_emr_v1_emr_proto_rawDescData
 }
 
-var file_proto_emr_v1_emr_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
-var file_proto_emr_v1_emr_proto_goTypes = []any{
-	(*SubmitTriageRequest)(nil),      // 0: emr.v1.SubmitTriageRequest
-	(*SubmitTriageResponse)(nil),     // 1: emr.v1.SubmitTriageResponse
-	(*AddDiagnosisRequest)(nil),      // 2: emr.v1.AddDiagnosisRequest
-	(*AddDiagnosisResponse)(nil),     // 3: emr.v1.AddDiagnosisResponse
-	(*AddMedicalActionRequest)(nil),  // 4: emr.v1.AddMedicalActionRequest
-	(*AddMedicalActionResponse)(nil), // 5: emr.v1.AddMedicalActionResponse
-	(*GetMedicalRecordRequest)(nil),  // 6: emr.v1.GetMedicalRecordRequest
-	(*MedicalAction)(nil),            // 7: emr.v1.MedicalAction
-	(*TriageData)(nil),               // 8: emr.v1.TriageData
-	(*GetMedicalRecordResponse)(nil), // 9: emr.v1.GetMedicalRecordResponse
+var file_shared_proto_emr_v1_emr_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_shared_proto_emr_v1_emr_proto_goTypes = []any{
+	(*GetEstimatedWaitTimeRequest)(nil),  // 0: emr.v1.GetEstimatedWaitTimeRequest
+	(*GetEstimatedWaitTimeResponse)(nil), // 1: emr.v1.GetEstimatedWaitTimeResponse
+	(*StartEncounterRequest)(nil),        // 2: emr.v1.StartEncounterRequest
+	(*StartEncounterResponse)(nil),       // 3: emr.v1.StartEncounterResponse
+	(*SubmitTriageRequest)(nil),          // 4: emr.v1.SubmitTriageRequest
+	(*SubmitTriageResponse)(nil),         // 5: emr.v1.SubmitTriageResponse
+	(*AddDiagnosisRequest)(nil),          // 6: emr.v1.AddDiagnosisRequest
+	(*AddDiagnosisResponse)(nil),         // 7: emr.v1.AddDiagnosisResponse
+	(*AddMedicalActionRequest)(nil),      // 8: emr.v1.AddMedicalActionRequest
+	(*AddMedicalActionResponse)(nil),     // 9: emr.v1.AddMedicalActionResponse
+	(*GetMedicalRecordRequest)(nil),      // 10: emr.v1.GetMedicalRecordRequest
+	(*MedicalAction)(nil),                // 11: emr.v1.MedicalAction
+	(*TriageData)(nil),                   // 12: emr.v1.TriageData
+	(*GetMedicalRecordResponse)(nil),     // 13: emr.v1.GetMedicalRecordResponse
 }
-var file_proto_emr_v1_emr_proto_depIdxs = []int32{
-	8, // 0: emr.v1.GetMedicalRecordResponse.triage:type_name -> emr.v1.TriageData
-	7, // 1: emr.v1.GetMedicalRecordResponse.actions:type_name -> emr.v1.MedicalAction
-	0, // 2: emr.v1.EMRService.SubmitTriage:input_type -> emr.v1.SubmitTriageRequest
-	2, // 3: emr.v1.EMRService.AddDiagnosis:input_type -> emr.v1.AddDiagnosisRequest
-	4, // 4: emr.v1.EMRService.AddMedicalAction:input_type -> emr.v1.AddMedicalActionRequest
-	6, // 5: emr.v1.EMRService.GetMedicalRecord:input_type -> emr.v1.GetMedicalRecordRequest
-	1, // 6: emr.v1.EMRService.SubmitTriage:output_type -> emr.v1.SubmitTriageResponse
-	3, // 7: emr.v1.EMRService.AddDiagnosis:output_type -> emr.v1.AddDiagnosisResponse
-	5, // 8: emr.v1.EMRService.AddMedicalAction:output_type -> emr.v1.AddMedicalActionResponse
-	9, // 9: emr.v1.EMRService.GetMedicalRecord:output_type -> emr.v1.GetMedicalRecordResponse
-	6, // [6:10] is the sub-list for method output_type
-	2, // [2:6] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+var file_shared_proto_emr_v1_emr_proto_depIdxs = []int32{
+	12, // 0: emr.v1.GetMedicalRecordResponse.triage:type_name -> emr.v1.TriageData
+	11, // 1: emr.v1.GetMedicalRecordResponse.actions:type_name -> emr.v1.MedicalAction
+	4,  // 2: emr.v1.EMRService.SubmitTriage:input_type -> emr.v1.SubmitTriageRequest
+	6,  // 3: emr.v1.EMRService.AddDiagnosis:input_type -> emr.v1.AddDiagnosisRequest
+	8,  // 4: emr.v1.EMRService.AddMedicalAction:input_type -> emr.v1.AddMedicalActionRequest
+	10, // 5: emr.v1.EMRService.GetMedicalRecord:input_type -> emr.v1.GetMedicalRecordRequest
+	2,  // 6: emr.v1.EMRService.StartEncounter:input_type -> emr.v1.StartEncounterRequest
+	0,  // 7: emr.v1.EMRService.GetEstimatedWaitTime:input_type -> emr.v1.GetEstimatedWaitTimeRequest
+	5,  // 8: emr.v1.EMRService.SubmitTriage:output_type -> emr.v1.SubmitTriageResponse
+	7,  // 9: emr.v1.EMRService.AddDiagnosis:output_type -> emr.v1.AddDiagnosisResponse
+	9,  // 10: emr.v1.EMRService.AddMedicalAction:output_type -> emr.v1.AddMedicalActionResponse
+	13, // 11: emr.v1.EMRService.GetMedicalRecord:output_type -> emr.v1.GetMedicalRecordResponse
+	3,  // 12: emr.v1.EMRService.StartEncounter:output_type -> emr.v1.StartEncounterResponse
+	1,  // 13: emr.v1.EMRService.GetEstimatedWaitTime:output_type -> emr.v1.GetEstimatedWaitTimeResponse
+	8,  // [8:14] is the sub-list for method output_type
+	2,  // [2:8] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_proto_emr_v1_emr_proto_init() }
-func file_proto_emr_v1_emr_proto_init() {
-	if File_proto_emr_v1_emr_proto != nil {
+func init() { file_shared_proto_emr_v1_emr_proto_init() }
+func file_shared_proto_emr_v1_emr_proto_init() {
+	if File_shared_proto_emr_v1_emr_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_emr_v1_emr_proto_rawDesc), len(file_proto_emr_v1_emr_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_shared_proto_emr_v1_emr_proto_rawDesc), len(file_shared_proto_emr_v1_emr_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_emr_v1_emr_proto_goTypes,
-		DependencyIndexes: file_proto_emr_v1_emr_proto_depIdxs,
-		MessageInfos:      file_proto_emr_v1_emr_proto_msgTypes,
+		GoTypes:           file_shared_proto_emr_v1_emr_proto_goTypes,
+		DependencyIndexes: file_shared_proto_emr_v1_emr_proto_depIdxs,
+		MessageInfos:      file_shared_proto_emr_v1_emr_proto_msgTypes,
 	}.Build()
-	File_proto_emr_v1_emr_proto = out.File
-	file_proto_emr_v1_emr_proto_goTypes = nil
-	file_proto_emr_v1_emr_proto_depIdxs = nil
+	File_shared_proto_emr_v1_emr_proto = out.File
+	file_shared_proto_emr_v1_emr_proto_goTypes = nil
+	file_shared_proto_emr_v1_emr_proto_depIdxs = nil
 }

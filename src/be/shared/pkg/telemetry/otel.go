@@ -2,7 +2,7 @@ package telemetry
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -52,6 +52,6 @@ func InitJaegerTracer(serviceName string, jaegerEndpoint string) (*sdktrace.Trac
 	// For standard trace propagation, we should set up W3C TraceContext and Baggage.
 	// We'll keep it simple here.
 
-	log.Printf("Jaeger (OTel) Tracer initialized for service: %s", serviceName)
+	slog.Info("Jaeger (OTel) Tracer initialized", "service", serviceName)
 	return tp, nil
 }

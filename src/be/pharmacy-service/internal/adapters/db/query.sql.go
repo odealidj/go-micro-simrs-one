@@ -46,17 +46,22 @@ func (q *Queries) CreateOutboxEvent(ctx context.Context, arg CreateOutboxEventPa
 }
 
 const createPrescription = `-- name: CreatePrescription :one
-INSERT INTO prescriptions (id, encounter_no, status, is_compounded, notes)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, encounter_no, status, created_at, updated_at, is_compounded, notes
+INSERT INTO prescriptions (id, encounter_no, status, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, encounter_no, status, created_at, updated_at, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code
 `
 
 type CreatePrescriptionParams struct {
-	ID           string
-	EncounterNo  string
-	Status       string
-	IsCompounded sql.NullBool
-	Notes        sql.NullString
+	ID             string
+	EncounterNo    string
+	Status         string
+	IsCompounded   sql.NullBool
+	Notes          sql.NullString
+	Diagnosis      sql.NullString
+	Gender         sql.NullString
+	AgeBracket     sql.NullString
+	DoctorID       sql.NullString
+	DepartmentCode sql.NullString
 }
 
 func (q *Queries) CreatePrescription(ctx context.Context, arg CreatePrescriptionParams) (Prescription, error) {
@@ -66,6 +71,11 @@ func (q *Queries) CreatePrescription(ctx context.Context, arg CreatePrescription
 		arg.Status,
 		arg.IsCompounded,
 		arg.Notes,
+		arg.Diagnosis,
+		arg.Gender,
+		arg.AgeBracket,
+		arg.DoctorID,
+		arg.DepartmentCode,
 	)
 	var i Prescription
 	err := row.Scan(
@@ -76,6 +86,11 @@ func (q *Queries) CreatePrescription(ctx context.Context, arg CreatePrescription
 		&i.UpdatedAt,
 		&i.IsCompounded,
 		&i.Notes,
+		&i.Diagnosis,
+		&i.Gender,
+		&i.AgeBracket,
+		&i.DoctorID,
+		&i.DepartmentCode,
 	)
 	return i, err
 }
@@ -144,6 +159,24 @@ func (q *Queries) GetInventoryItem(ctx context.Context, itemCode string) (Invent
 	return i, err
 }
 
+const getInventoryItemForUpdate = `-- name: GetInventoryItemForUpdate :one
+SELECT item_code, name, stock_quantity, price
+FROM inventory
+WHERE item_code = $1 LIMIT 1 FOR UPDATE
+`
+
+func (q *Queries) GetInventoryItemForUpdate(ctx context.Context, itemCode string) (Inventory, error) {
+	row := q.db.QueryRowContext(ctx, getInventoryItemForUpdate, itemCode)
+	var i Inventory
+	err := row.Scan(
+		&i.ItemCode,
+		&i.Name,
+		&i.StockQuantity,
+		&i.Price,
+	)
+	return i, err
+}
+
 const getPendingOutboxEvents = `-- name: GetPendingOutboxEvents :many
 SELECT id, aggregate_type, event_type, payload, status, created_at
 FROM outbox_events
@@ -181,8 +214,69 @@ func (q *Queries) GetPendingOutboxEvents(ctx context.Context) ([]OutboxEvent, er
 	return items, nil
 }
 
+const getPharmacyWaitAggregate = `-- name: GetPharmacyWaitAggregate :one
+SELECT average_wait_minutes, sample_count
+FROM pharmacy_wait_time_aggregates
+WHERE diagnosis = $1 AND doctor_id = $2 AND department_code = $3 AND gender = $4 AND age_bracket = $5 AND is_compounded = $6
+`
+
+type GetPharmacyWaitAggregateParams struct {
+	Diagnosis      string
+	DoctorID       string
+	DepartmentCode string
+	Gender         string
+	AgeBracket     string
+	IsCompounded   bool
+}
+
+type GetPharmacyWaitAggregateRow struct {
+	AverageWaitMinutes int32
+	SampleCount        int32
+}
+
+func (q *Queries) GetPharmacyWaitAggregate(ctx context.Context, arg GetPharmacyWaitAggregateParams) (GetPharmacyWaitAggregateRow, error) {
+	row := q.db.QueryRowContext(ctx, getPharmacyWaitAggregate,
+		arg.Diagnosis,
+		arg.DoctorID,
+		arg.DepartmentCode,
+		arg.Gender,
+		arg.AgeBracket,
+		arg.IsCompounded,
+	)
+	var i GetPharmacyWaitAggregateRow
+	err := row.Scan(&i.AverageWaitMinutes, &i.SampleCount)
+	return i, err
+}
+
+const getPharmacyWaitAggregateWithoutDiagnosis = `-- name: GetPharmacyWaitAggregateWithoutDiagnosis :one
+SELECT COALESCE(AVG(average_wait_minutes), 0)::float8 AS avg_wait_minutes
+FROM pharmacy_wait_time_aggregates
+WHERE doctor_id = $1 AND department_code = $2 AND gender = $3 AND age_bracket = $4 AND is_compounded = $5
+`
+
+type GetPharmacyWaitAggregateWithoutDiagnosisParams struct {
+	DoctorID       string
+	DepartmentCode string
+	Gender         string
+	AgeBracket     string
+	IsCompounded   bool
+}
+
+func (q *Queries) GetPharmacyWaitAggregateWithoutDiagnosis(ctx context.Context, arg GetPharmacyWaitAggregateWithoutDiagnosisParams) (float64, error) {
+	row := q.db.QueryRowContext(ctx, getPharmacyWaitAggregateWithoutDiagnosis,
+		arg.DoctorID,
+		arg.DepartmentCode,
+		arg.Gender,
+		arg.AgeBracket,
+		arg.IsCompounded,
+	)
+	var avg_wait_minutes float64
+	err := row.Scan(&avg_wait_minutes)
+	return avg_wait_minutes, err
+}
+
 const getPrescription = `-- name: GetPrescription :one
-SELECT id, encounter_no, status, created_at, updated_at, is_compounded, notes
+SELECT id, encounter_no, status, created_at, updated_at, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code
 FROM prescriptions
 WHERE id = $1 LIMIT 1
 `
@@ -198,6 +292,11 @@ func (q *Queries) GetPrescription(ctx context.Context, id string) (Prescription,
 		&i.UpdatedAt,
 		&i.IsCompounded,
 		&i.Notes,
+		&i.Diagnosis,
+		&i.Gender,
+		&i.AgeBracket,
+		&i.DoctorID,
+		&i.DepartmentCode,
 	)
 	return i, err
 }
@@ -257,7 +356,7 @@ const updatePrescriptionStatus = `-- name: UpdatePrescriptionStatus :one
 UPDATE prescriptions
 SET status = $2, updated_at = CURRENT_TIMESTAMP
 WHERE id = $1
-RETURNING id, encounter_no, status, created_at, updated_at, is_compounded, notes
+RETURNING id, encounter_no, status, created_at, updated_at, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code
 `
 
 type UpdatePrescriptionStatusParams struct {
@@ -276,6 +375,11 @@ func (q *Queries) UpdatePrescriptionStatus(ctx context.Context, arg UpdatePrescr
 		&i.UpdatedAt,
 		&i.IsCompounded,
 		&i.Notes,
+		&i.Diagnosis,
+		&i.Gender,
+		&i.AgeBracket,
+		&i.DoctorID,
+		&i.DepartmentCode,
 	)
 	return i, err
 }
@@ -297,18 +401,54 @@ func (q *Queries) UpdateStock(ctx context.Context, arg UpdateStockParams) error 
 }
 
 const upsertEncounterPayment = `-- name: UpsertEncounterPayment :exec
-INSERT INTO encounter_payments (encounter_no, status, updated_at)
-VALUES ($1, $2, CURRENT_TIMESTAMP)
+INSERT INTO encounter_payments (encounter_no, status, paid_at, updated_at)
+VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
 ON CONFLICT (encounter_no)
-DO UPDATE SET status = EXCLUDED.status, updated_at = CURRENT_TIMESTAMP
+DO UPDATE SET status = EXCLUDED.status, paid_at = EXCLUDED.paid_at, updated_at = CURRENT_TIMESTAMP
 `
 
 type UpsertEncounterPaymentParams struct {
 	EncounterNo string
 	Status      string
+	PaidAt      sql.NullTime
 }
 
 func (q *Queries) UpsertEncounterPayment(ctx context.Context, arg UpsertEncounterPaymentParams) error {
-	_, err := q.db.ExecContext(ctx, upsertEncounterPayment, arg.EncounterNo, arg.Status)
+	_, err := q.db.ExecContext(ctx, upsertEncounterPayment, arg.EncounterNo, arg.Status, arg.PaidAt)
+	return err
+}
+
+const upsertPharmacyWaitAggregate = `-- name: UpsertPharmacyWaitAggregate :exec
+INSERT INTO pharmacy_wait_time_aggregates (diagnosis, doctor_id, department_code, gender, age_bracket, is_compounded, average_wait_minutes, sample_count)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT (diagnosis, doctor_id, department_code, gender, age_bracket, is_compounded) 
+DO UPDATE SET 
+    average_wait_minutes = EXCLUDED.average_wait_minutes,
+    sample_count = EXCLUDED.sample_count,
+    updated_at = CURRENT_TIMESTAMP
+`
+
+type UpsertPharmacyWaitAggregateParams struct {
+	Diagnosis          string
+	DoctorID           string
+	DepartmentCode     string
+	Gender             string
+	AgeBracket         string
+	IsCompounded       bool
+	AverageWaitMinutes int32
+	SampleCount        int32
+}
+
+func (q *Queries) UpsertPharmacyWaitAggregate(ctx context.Context, arg UpsertPharmacyWaitAggregateParams) error {
+	_, err := q.db.ExecContext(ctx, upsertPharmacyWaitAggregate,
+		arg.Diagnosis,
+		arg.DoctorID,
+		arg.DepartmentCode,
+		arg.Gender,
+		arg.AgeBracket,
+		arg.IsCompounded,
+		arg.AverageWaitMinutes,
+		arg.SampleCount,
+	)
 	return err
 }

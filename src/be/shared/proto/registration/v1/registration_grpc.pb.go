@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: shared/proto/registration/v1/registration.proto
+// source: registration/v1/registration.proto
 
 package registrationv1
 
@@ -117,5 +117,5 @@ var RegistrationService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "shared/proto/registration/v1/registration.proto",
+	Metadata: "registration/v1/registration.proto",
 }

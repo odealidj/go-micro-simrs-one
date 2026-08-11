@@ -95,6 +95,7 @@ paths:
           application/json:
             schema:
               type: object
+              required: [encounter_no, action_code, action_name, price]
               properties:
                 encounter_no:
                   type: string
@@ -115,11 +116,196 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-  /pharmacy/dispense:
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /health:
+    get:
+      summary: Health check
+      tags:
+        - System
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /registrations:
     parameters:
       - $ref: '#/components/parameters/RequestIdHeader'
     post:
-      summary: Dispense a prescription
+      summary: Register a new patient encounter (add to queue)
+      tags:
+        - Registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mrn, department_code, doctor_id]
+              properties:
+                mrn:
+                  type: string
+                department_code:
+                  type: string
+                  example: IGD
+                doctor_id:
+                  type: string
+      responses:
+        '200':
+          description: Encounter registered and queued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /emr/triage:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+    post:
+      summary: Submit triage data for an encounter
+      tags:
+        - EMR
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [encounter_no]
+              properties:
+                encounter_no:
+                  type: string
+                systolic:
+                  type: integer
+                diastolic:
+                  type: integer
+                temperature:
+                  type: number
+                heart_rate:
+                  type: integer
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Triage submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /emr/start:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+    post:
+      summary: Start encounter - Poli staff clicks Mulai button
+      description: Changes encounter status to IN_PROGRESS and records started_at. Triggers SSE event.
+      tags:
+        - EMR
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [encounter_no]
+              properties:
+                encounter_no:
+                  type: string
+      responses:
+        '200':
+          description: Encounter started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          description: encounter_no is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /emr/diagnosis:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+    post:
+      summary: Add diagnosis to medical record
+      description: Saves ICD-10 diagnosis. Also updates multi-dimensional wait time aggregates.
+      tags:
+        - EMR
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [encounter_no, icd10_code]
+              properties:
+                encounter_no:
+                  type: string
+                icd10_code:
+                  type: string
+                  example: J06
+                notes:
+                  type: string
+                doctor_id:
+                  type: string
+                department_code:
+                  type: string
+                gender:
+                  type: string
+                  enum: [M, F]
+                age_bracket:
+                  type: string
+                  example: 0-5
+      responses:
+        '200':
+          description: Diagnosis saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          description: encounter_no or icd10_code is missing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /emr/record/{encounter_no}:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - in: path
+        name: encounter_no
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get medical record by encounter number
+      tags:
+        - EMR
+      responses:
+        '200':
+          description: Medical record retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /pharmacy/prescriptions:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+    post:
+      summary: Create a new prescription
+      description: Creates a prescription for an encounter. Patient must have paid before pharmacist can dispense.
       tags:
         - Pharmacy
       requestBody:
@@ -128,6 +314,65 @@ paths:
           application/json:
             schema:
               type: object
+              required: [encounter_no, items]
+              properties:
+                encounter_no:
+                  type: string
+                is_compounded:
+                  type: boolean
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      item_code:
+                        type: string
+                      item_name:
+                        type: string
+                      quantity:
+                        type: integer
+                      dosage:
+                        type: string
+                notes:
+                  type: string
+                diagnosis:
+                  type: string
+                gender:
+                  type: string
+                age_bracket:
+                  type: string
+                doctor_id:
+                  type: string
+                department_code:
+                  type: string
+      responses:
+        '200':
+          description: Prescription created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          description: encounter_no is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /pharmacy/dispense:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+    post:
+      summary: Dispense a prescription - Apoteker klik Selesai
+      description: Marks prescription as DISPENSED. Requires invoice to be PAID. Records completed_at.
+      tags:
+        - Pharmacy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prescription_id]
               properties:
                 prescription_id:
                   type: string
@@ -147,7 +392,7 @@ paths:
         schema:
           type: string
     get:
-      summary: Get or Generate invoice for an encounter
+      summary: Get or generate invoice for an encounter
       tags:
         - Billing
       responses:
@@ -161,7 +406,8 @@ paths:
     parameters:
       - $ref: '#/components/parameters/RequestIdHeader'
     post:
-      summary: Pay an invoice
+      summary: Pay an invoice - Kasir proses pembayaran
+      description: Processes payment. Records paid_at. Publishes InvoicePaid event so pharmacy can dispense.
       tags:
         - Billing
       requestBody:
@@ -170,10 +416,11 @@ paths:
           application/json:
             schema:
               type: object
+              required: [invoice_id]
               properties:
                 invoice_id:
                   type: string
-                amount:
+                amount_paid:
                   type: number
       responses:
         '200':
@@ -182,6 +429,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          description: invoice_id is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /queue/clinic/stream:
+    get:
+      summary: SSE stream for clinic queue updates
+      description: |
+        Server-Sent Events. Emits JSON with encounter_no, status, and estimated_wait_minutes.
+      tags:
+        - Queue
+      security: []
+      responses:
+        '200':
+          description: SSE stream connected
+          content:
+            text/event-stream:
+              schema:
+                type: string
+  /queue/pharmacy/stream:
+    get:
+      summary: SSE stream for pharmacy queue updates
+      description: Server-Sent Events with estimated_wait_minutes for pharmacy queue.
+      tags:
+        - Queue
+      security: []
+      responses:
+        '200':
+          description: SSE stream connected
+          content:
+            text/event-stream:
+              schema:
+                type: string
 components:
   securitySchemes:
     BearerAuth:
@@ -196,6 +478,7 @@ components:
         type: string
         format: uuid
         default: "123e4567-e89b-12d3-a456-426614174000"
+      example: "123e4567-e89b-12d3-a456-426614174000"
       required: false
       description: Unique request ID for idempotency and tracing (auto-generated if not provided)
   schemas:
@@ -212,3 +495,12 @@ components:
           type: string
         data:
           type: object
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "validation failed: encounter_no: cannot be empty"

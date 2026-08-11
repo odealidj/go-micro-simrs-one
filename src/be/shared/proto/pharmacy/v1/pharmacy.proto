@@ -13,6 +13,22 @@ service PharmacyService {
 
   // Saga Compensation: Release reserved stock
   rpc RollbackPrescription (RollbackPrescriptionRequest) returns (RollbackPrescriptionResponse);
+
+  // Queue Estimation
+  rpc GetEstimatedWaitTime (GetEstimatedWaitTimeRequest) returns (GetEstimatedWaitTimeResponse);
+}
+
+message GetEstimatedWaitTimeRequest {
+  bool is_compounded = 1;
+  string diagnosis = 2;
+  string doctor_id = 3;
+  string department_code = 4;
+  string gender = 5;
+  string age_bracket = 6;
+}
+
+message GetEstimatedWaitTimeResponse {
+  int64 estimated_minutes = 1;
 }
 
 message PrescriptionItem {
@@ -27,6 +43,11 @@ message CreatePrescriptionRequest {
   bool is_compounded = 2;
   repeated PrescriptionItem items = 3;
   string notes = 4;
+  string diagnosis = 5;
+  string gender = 6;
+  string age_bracket = 7;
+  string doctor_id = 8;
+  string department_code = 9;
 }
 
 message CreatePrescriptionResponse {

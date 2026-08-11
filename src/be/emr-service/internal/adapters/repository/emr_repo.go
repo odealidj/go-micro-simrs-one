@@ -36,15 +36,46 @@ func (r *emrRepoSqlc) CreateDraft(ctx context.Context, encounterNo, mrn string) 
 	return err
 }
 
-func (r *emrRepoSqlc) AddDiagnosis(ctx context.Context, encounterNo, icd10Code, notes string) error {
+func (r *emrRepoSqlc) StartEncounter(ctx context.Context, encounterNo string) error {
+	return r.q.StartEncounter(ctx, encounterNo)
+}
+
+func (r *emrRepoSqlc) AddDiagnosis(ctx context.Context, encounterNo, icd10Code, notes, doctorId, deptCode, gender, ageBracket string) error {
 	var n sql.NullString
 	if notes != "" {
 		n = sql.NullString{String: notes, Valid: true}
 	}
+	
+	var doc sql.NullString
+	if doctorId != "" {
+		doc = sql.NullString{String: doctorId, Valid: true}
+	}
+	var dept sql.NullString
+	if deptCode != "" {
+		dept = sql.NullString{String: deptCode, Valid: true}
+	}
+	var gen sql.NullString
+	if gender != "" {
+		gen = sql.NullString{String: gender, Valid: true}
+	}
+	var age sql.NullString
+	if ageBracket != "" {
+		age = sql.NullString{String: ageBracket, Valid: true}
+	}
+
+	var diag sql.NullString
+	if icd10Code != "" {
+		diag = sql.NullString{String: icd10Code, Valid: true}
+	}
+
 	_, err := r.q.AddDiagnosis(ctx, db.AddDiagnosisParams{
-		EncounterNo: encounterNo,
-		ArrayAppend: icd10Code, 
-		Notes:       n,
+		EncounterNo:    encounterNo,
+		Diagnosis:      diag,
+		Notes:          n,
+		DoctorID:       doc,
+		DepartmentCode: dept,
+		Gender:         gen,
+		AgeBracket:     age,
 	})
 	return err
 }
@@ -213,5 +244,27 @@ func (r *emrRepoSqlc) MarkEventAsFailed(ctx context.Context, id string) error {
 		Status: "FAILED",
 	})
 }
+
+func (r *emrRepoSqlc) EstimateWaitTime(ctx context.Context, doctorID, deptCode, gender, ageBracket string) (int64, error) {
+	// Use Option A: without diagnosis
+	avg, err := r.q.GetClinicWaitAggregateWithoutDiagnosis(ctx, db.GetClinicWaitAggregateWithoutDiagnosisParams{
+		DoctorID:       doctorID,
+		DepartmentCode: deptCode,
+		Gender:         gender,
+		AgeBracket:     ageBracket,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 15, nil // Default fallback wait time
+		}
+		return 15, err
+	}
+	
+	if avg == 0 {
+		return 15, nil
+	}
+	return int64(avg), nil
+}
+
 
 

@@ -8,6 +8,7 @@ import (
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/adapters/db"
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/core/domain"
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/core/ports"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/outbox"
 )
 
 type registrationRepoSqlc struct {
@@ -44,4 +45,39 @@ func (r *registrationRepoSqlc) SaveOutboxEvent(ctx context.Context, event *domai
 
 func (r *registrationRepoSqlc) CountActiveEncountersByDept(ctx context.Context, department string) (int64, error) {
 	return r.q.CountActiveEncountersByDept(ctx, department)
+}
+
+// --- outbox.Repository implementation (used by outbox.NewRelay) ---
+
+func (r *registrationRepoSqlc) GetPendingOutboxEvents(ctx context.Context) ([]outbox.Event, error) {
+	dbEvents, err := r.q.GetPendingOutboxEvents(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var events []outbox.Event
+	for _, e := range dbEvents {
+		events = append(events, outbox.Event{
+			ID:            e.ID,
+			AggregateType: e.AggregateType,
+			EventType:     e.EventType,
+			Payload:       e.Payload,
+			Status:        e.Status,
+			CreatedAt:     e.CreatedAt.Time,
+		})
+	}
+	return events, nil
+}
+
+func (r *registrationRepoSqlc) MarkEventAsPublished(ctx context.Context, id string) error {
+	return r.q.UpdateOutboxEventStatus(ctx, db.UpdateOutboxEventStatusParams{
+		ID:     id,
+		Status: "PUBLISHED",
+	})
+}
+
+func (r *registrationRepoSqlc) MarkEventAsFailed(ctx context.Context, id string) error {
+	return r.q.UpdateOutboxEventStatus(ctx, db.UpdateOutboxEventStatusParams{
+		ID:     id,
+		Status: "FAILED",
+	})
 }

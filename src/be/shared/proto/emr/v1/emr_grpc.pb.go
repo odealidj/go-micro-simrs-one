@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: proto/emr/v1/emr.proto
+// source: shared/proto/emr/v1/emr.proto
 
 package emrv1
 
@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	EMRService_SubmitTriage_FullMethodName     = "/emr.v1.EMRService/SubmitTriage"
-	EMRService_AddDiagnosis_FullMethodName     = "/emr.v1.EMRService/AddDiagnosis"
-	EMRService_AddMedicalAction_FullMethodName = "/emr.v1.EMRService/AddMedicalAction"
-	EMRService_GetMedicalRecord_FullMethodName = "/emr.v1.EMRService/GetMedicalRecord"
+	EMRService_SubmitTriage_FullMethodName         = "/emr.v1.EMRService/SubmitTriage"
+	EMRService_AddDiagnosis_FullMethodName         = "/emr.v1.EMRService/AddDiagnosis"
+	EMRService_AddMedicalAction_FullMethodName     = "/emr.v1.EMRService/AddMedicalAction"
+	EMRService_GetMedicalRecord_FullMethodName     = "/emr.v1.EMRService/GetMedicalRecord"
+	EMRService_StartEncounter_FullMethodName       = "/emr.v1.EMRService/StartEncounter"
+	EMRService_GetEstimatedWaitTime_FullMethodName = "/emr.v1.EMRService/GetEstimatedWaitTime"
 )
 
 // EMRServiceClient is the client API for EMRService service.
@@ -33,6 +35,8 @@ type EMRServiceClient interface {
 	AddDiagnosis(ctx context.Context, in *AddDiagnosisRequest, opts ...grpc.CallOption) (*AddDiagnosisResponse, error)
 	AddMedicalAction(ctx context.Context, in *AddMedicalActionRequest, opts ...grpc.CallOption) (*AddMedicalActionResponse, error)
 	GetMedicalRecord(ctx context.Context, in *GetMedicalRecordRequest, opts ...grpc.CallOption) (*GetMedicalRecordResponse, error)
+	StartEncounter(ctx context.Context, in *StartEncounterRequest, opts ...grpc.CallOption) (*StartEncounterResponse, error)
+	GetEstimatedWaitTime(ctx context.Context, in *GetEstimatedWaitTimeRequest, opts ...grpc.CallOption) (*GetEstimatedWaitTimeResponse, error)
 }
 
 type eMRServiceClient struct {
@@ -83,6 +87,26 @@ func (c *eMRServiceClient) GetMedicalRecord(ctx context.Context, in *GetMedicalR
 	return out, nil
 }
 
+func (c *eMRServiceClient) StartEncounter(ctx context.Context, in *StartEncounterRequest, opts ...grpc.CallOption) (*StartEncounterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartEncounterResponse)
+	err := c.cc.Invoke(ctx, EMRService_StartEncounter_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetEstimatedWaitTime(ctx context.Context, in *GetEstimatedWaitTimeRequest, opts ...grpc.CallOption) (*GetEstimatedWaitTimeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetEstimatedWaitTimeResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetEstimatedWaitTime_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EMRServiceServer is the server API for EMRService service.
 // All implementations must embed UnimplementedEMRServiceServer
 // for forward compatibility.
@@ -91,6 +115,8 @@ type EMRServiceServer interface {
 	AddDiagnosis(context.Context, *AddDiagnosisRequest) (*AddDiagnosisResponse, error)
 	AddMedicalAction(context.Context, *AddMedicalActionRequest) (*AddMedicalActionResponse, error)
 	GetMedicalRecord(context.Context, *GetMedicalRecordRequest) (*GetMedicalRecordResponse, error)
+	StartEncounter(context.Context, *StartEncounterRequest) (*StartEncounterResponse, error)
+	GetEstimatedWaitTime(context.Context, *GetEstimatedWaitTimeRequest) (*GetEstimatedWaitTimeResponse, error)
 	mustEmbedUnimplementedEMRServiceServer()
 }
 
@@ -112,6 +138,12 @@ func (UnimplementedEMRServiceServer) AddMedicalAction(context.Context, *AddMedic
 }
 func (UnimplementedEMRServiceServer) GetMedicalRecord(context.Context, *GetMedicalRecordRequest) (*GetMedicalRecordResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMedicalRecord not implemented")
+}
+func (UnimplementedEMRServiceServer) StartEncounter(context.Context, *StartEncounterRequest) (*StartEncounterResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartEncounter not implemented")
+}
+func (UnimplementedEMRServiceServer) GetEstimatedWaitTime(context.Context, *GetEstimatedWaitTimeRequest) (*GetEstimatedWaitTimeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetEstimatedWaitTime not implemented")
 }
 func (UnimplementedEMRServiceServer) mustEmbedUnimplementedEMRServiceServer() {}
 func (UnimplementedEMRServiceServer) testEmbeddedByValue()                    {}
@@ -206,6 +238,42 @@ func _EMRService_GetMedicalRecord_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EMRService_StartEncounter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartEncounterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).StartEncounter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_StartEncounter_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).StartEncounter(ctx, req.(*StartEncounterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetEstimatedWaitTime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEstimatedWaitTimeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetEstimatedWaitTime(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetEstimatedWaitTime_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetEstimatedWaitTime(ctx, req.(*GetEstimatedWaitTimeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EMRService_ServiceDesc is the grpc.ServiceDesc for EMRService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -229,7 +297,15 @@ var EMRService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetMedicalRecord",
 			Handler:    _EMRService_GetMedicalRecord_Handler,
 		},
+		{
+			MethodName: "StartEncounter",
+			Handler:    _EMRService_StartEncounter_Handler,
+		},
+		{
+			MethodName: "GetEstimatedWaitTime",
+			Handler:    _EMRService_GetEstimatedWaitTime_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/emr/v1/emr.proto",
+	Metadata: "shared/proto/emr/v1/emr.proto",
 }

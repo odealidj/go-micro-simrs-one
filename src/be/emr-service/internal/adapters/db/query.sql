@@ -5,9 +5,23 @@ RETURNING *;
 
 -- name: AddDiagnosis :one
 UPDATE medical_records
-SET icd10_codes = array_append(COALESCE(icd10_codes, ARRAY[]::TEXT[]), $2), notes = $3, updated_at = CURRENT_TIMESTAMP
+SET icd10_codes = array_append(COALESCE(icd10_codes, ARRAY[]::TEXT[]), $2),
+    notes = $3,
+    status = 'COMPLETED',
+    completed_at = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP,
+    diagnosis = $2,
+    doctor_id = $4,
+    department_code = $5,
+    gender = $6,
+    age_bracket = $7
 WHERE encounter_no = $1
 RETURNING *;
+
+-- name: StartEncounter :exec
+UPDATE medical_records
+SET status = 'IN_PROGRESS', started_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+WHERE encounter_no = $1;
 
 -- name: GetMRByEncounterNo :one
 SELECT *
@@ -46,3 +60,23 @@ ORDER BY created_at ASC LIMIT 100;
 UPDATE outbox_events
 SET status = $2
 WHERE id = $1;
+
+-- name: UpsertClinicWaitAggregate :exec
+INSERT INTO clinic_wait_time_aggregates (diagnosis, doctor_id, department_code, gender, age_bracket, average_wait_minutes, sample_count)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (diagnosis, doctor_id, department_code, gender, age_bracket) 
+DO UPDATE SET 
+    average_wait_minutes = EXCLUDED.average_wait_minutes,
+    sample_count = EXCLUDED.sample_count,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- name: GetClinicWaitAggregate :one
+SELECT average_wait_minutes, sample_count
+FROM clinic_wait_time_aggregates
+WHERE diagnosis = $1 AND doctor_id = $2 AND department_code = $3 AND gender = $4 AND age_bracket = $5;
+
+-- name: GetClinicWaitAggregateWithoutDiagnosis :one
+SELECT COALESCE(AVG(average_wait_minutes), 0)::float8 AS avg_wait_minutes
+FROM clinic_wait_time_aggregates
+WHERE doctor_id = $1 AND department_code = $2 AND gender = $3 AND age_bracket = $4;
+

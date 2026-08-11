@@ -13,8 +13,10 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/aliube/go-micro-simrs-one/emr-service/internal/adapters/broker"
+	adapterDB "github.com/aliube/go-micro-simrs-one/emr-service/internal/adapters/db"
 	grpcAdapter "github.com/aliube/go-micro-simrs-one/emr-service/internal/adapters/grpc"
 	"github.com/aliube/go-micro-simrs-one/emr-service/internal/adapters/repository"
+	"github.com/aliube/go-micro-simrs-one/emr-service/internal/adapters/worker"
 	"github.com/aliube/go-micro-simrs-one/emr-service/internal/core/services"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/db"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/outbox"
@@ -54,17 +56,16 @@ func main() {
 	defer dbConn.Close()
 
 	emrRepo := repository.NewEMRRepository(dbConn)
-	emrService := services.NewEMRService(emrRepo)
+	emrService := services.NewEMRService(emrRepo, rdb)
 
 	// 4. Graceful Shutdown context (used for background workers)
 	ctx, cancel := shutdown.WaitForSignal()
 	defer cancel()
 
-	// 5. Init Event Subscriber
-	subscriber := broker.NewRedisSubscriber(rdb, emrService)
-	if err = subscriber.StartListening(ctx, "registration.events"); err != nil {
-		log.Fatalf("Failed to start subscriber: %v", err)
-	}
+	// 5. Start Registration Event Consumer (Consumer Group — safe on restart)
+	registrationConsumer := broker.NewRegistrationEventConsumer(rdb, emrService)
+	go registrationConsumer.Start(ctx)
+	slog.Info("EMR Registration Event Consumer started", "stream", "registration.events", "group", "emr-service")
 
 	// 6. Init Outbox Relay Worker
 	if outboxRepo, ok := emrRepo.(outbox.Repository); ok {
@@ -74,6 +75,11 @@ func main() {
 	} else {
 		log.Fatalf("emrRepo does not implement outbox.Repository")
 	}
+
+	// 6.5 Init Aggregator Worker
+	queriesRepo := adapterDB.New(dbConn)
+	worker.StartAggregatorWorker(queriesRepo)
+	slog.Info("EMR Aggregator Worker started")
 
 	// 7. Init gRPC Server
 	grpcServer := grpc.NewServer()

@@ -13,8 +13,10 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/adapters/consumer"
+	adapterDB "github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/adapters/db"
 	grpcAdapter "github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/adapters/grpc"
 	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/adapters/repository"
+	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/adapters/worker"
 	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/core/services"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/db"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/outbox"
@@ -54,7 +56,7 @@ func main() {
 	defer dbConn.Close()
 
 	pharmacyRepo := repository.NewPharmacyRepository(dbConn)
-	pharmacyService := services.NewPharmacyService(pharmacyRepo)
+	pharmacyService := services.NewPharmacyService(pharmacyRepo, rdb)
 
 	// 4. Graceful Shutdown context (used for background workers)
 	ctx, cancel := shutdown.WaitForSignal()
@@ -72,6 +74,11 @@ func main() {
 	// 6. Init Billing Consumer
 	consumer.StartBillingConsumer(ctx, rdb, pharmacyRepo)
 	slog.Info("Billing Consumer started in Pharmacy Service")
+
+	// 6.5 Init Aggregator Worker
+	queriesRepo := adapterDB.New(dbConn)
+	worker.StartAggregatorWorker(queriesRepo)
+	slog.Info("Pharmacy Aggregator Worker started")
 
 	// 7. Init gRPC Server
 	grpcServer := grpc.NewServer()

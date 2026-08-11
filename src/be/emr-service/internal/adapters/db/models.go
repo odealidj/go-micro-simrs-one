@@ -9,6 +9,18 @@ import (
 	"encoding/json"
 )
 
+type ClinicWaitTimeAggregate struct {
+	ID                 int32
+	Diagnosis          string
+	DoctorID           string
+	DepartmentCode     string
+	Gender             string
+	AgeBracket         string
+	AverageWaitMinutes int32
+	SampleCount        int32
+	UpdatedAt          sql.NullTime
+}
+
 type MedicalAction struct {
 	ID              string
 	MedicalRecordID string
@@ -31,6 +43,14 @@ type MedicalRecord struct {
 	BloodPressureDiastolic sql.NullInt32
 	Temperature            sql.NullString
 	HeartRate              sql.NullInt32
+	Status                 sql.NullString
+	StartedAt              sql.NullTime
+	CompletedAt            sql.NullTime
+	DoctorID               sql.NullString
+	DepartmentCode         sql.NullString
+	Diagnosis              sql.NullString
+	Gender                 sql.NullString
+	AgeBracket             sql.NullString
 }
 
 type OutboxEvent struct {

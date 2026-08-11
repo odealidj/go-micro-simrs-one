@@ -7,21 +7,18 @@ import (
 
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/core/domain"
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/core/ports"
-	"github.com/aliube/go-micro-simrs-one/shared/pkg/queue"
 	"github.com/redis/go-redis/v9"
 )
 
 type registrationServiceImpl struct {
 	repo        ports.RegistrationRepository
 	redisClient *redis.Client
-	estimator   queue.QueueEstimator
 }
 
-func NewRegistrationService(repo ports.RegistrationRepository, rdb *redis.Client, estimator queue.QueueEstimator) ports.RegistrationService {
+func NewRegistrationService(repo ports.RegistrationRepository, rdb *redis.Client, _ interface{}) ports.RegistrationService {
 	return &registrationServiceImpl{
 		repo:        repo,
 		redisClient: rdb,
-		estimator:   estimator,
 	}
 }
 
@@ -50,10 +47,10 @@ func (s *registrationServiceImpl) generateEncounterNo(ctx context.Context, deptC
 	return encounterNo, nil
 }
 
-func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID string) (string, int32, error) {
+func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID string) (string, error) {
 	encounterNo, err := s.generateEncounterNo(ctx, departmentCode)
 	if err != nil {
-		return "", 0, err
+		return "", err
 	}
 
 	encounter := &domain.Encounter{
@@ -63,23 +60,6 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 		DoctorID:    doctorID,
 		Status:      "REGISTERED",
 		CreatedAt:   time.Now(),
-	}
-
-	// Get real queue position from DB: count of REGISTERED encounters today for this dept
-	var currentQueuePosition int64 = 1
-	if s.repo != nil {
-		count, err := s.repo.CountActiveEncountersByDept(ctx, departmentCode)
-		if err == nil {
-			// +1 because the current patient being registered is not yet saved
-			currentQueuePosition = count + 1
-		}
-	}
-	var waitMinutes int32 = 0
-	if s.estimator != nil {
-		waitTime, err := s.estimator.EstimateWaitTime(ctx, departmentCode, int(currentQueuePosition))
-		if err == nil {
-			waitMinutes = int32(waitTime.Minutes())
-		}
 	}
 
 	// Create Outbox Event to be processed by a background Relay worker
@@ -97,14 +77,14 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 	if s.repo != nil {
 		err = s.repo.SaveEncounter(ctx, encounter)
 		if err != nil {
-			return "", 0, err
+			return "", err
 		}
 
 		err = s.repo.SaveOutboxEvent(ctx, outboxEvent)
 		if err != nil {
-			return "", 0, err
+			return "", err
 		}
 	}
 
-	return encounterNo, waitMinutes, nil
+	return encounterNo, nil
 }

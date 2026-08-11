@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: proto/pharmacy/v1/pharmacy.proto
+// source: shared/proto/pharmacy/v1/pharmacy.proto
 
 package pharmacyv1
 
@@ -22,6 +22,7 @@ const (
 	PharmacyService_CreatePrescription_FullMethodName   = "/pharmacy.v1.PharmacyService/CreatePrescription"
 	PharmacyService_DispensePrescription_FullMethodName = "/pharmacy.v1.PharmacyService/DispensePrescription"
 	PharmacyService_RollbackPrescription_FullMethodName = "/pharmacy.v1.PharmacyService/RollbackPrescription"
+	PharmacyService_GetEstimatedWaitTime_FullMethodName = "/pharmacy.v1.PharmacyService/GetEstimatedWaitTime"
 )
 
 // PharmacyServiceClient is the client API for PharmacyService service.
@@ -34,6 +35,8 @@ type PharmacyServiceClient interface {
 	DispensePrescription(ctx context.Context, in *DispensePrescriptionRequest, opts ...grpc.CallOption) (*DispensePrescriptionResponse, error)
 	// Saga Compensation: Release reserved stock
 	RollbackPrescription(ctx context.Context, in *RollbackPrescriptionRequest, opts ...grpc.CallOption) (*RollbackPrescriptionResponse, error)
+	// Queue Estimation
+	GetEstimatedWaitTime(ctx context.Context, in *GetEstimatedWaitTimeRequest, opts ...grpc.CallOption) (*GetEstimatedWaitTimeResponse, error)
 }
 
 type pharmacyServiceClient struct {
@@ -74,6 +77,16 @@ func (c *pharmacyServiceClient) RollbackPrescription(ctx context.Context, in *Ro
 	return out, nil
 }
 
+func (c *pharmacyServiceClient) GetEstimatedWaitTime(ctx context.Context, in *GetEstimatedWaitTimeRequest, opts ...grpc.CallOption) (*GetEstimatedWaitTimeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetEstimatedWaitTimeResponse)
+	err := c.cc.Invoke(ctx, PharmacyService_GetEstimatedWaitTime_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PharmacyServiceServer is the server API for PharmacyService service.
 // All implementations must embed UnimplementedPharmacyServiceServer
 // for forward compatibility.
@@ -84,6 +97,8 @@ type PharmacyServiceServer interface {
 	DispensePrescription(context.Context, *DispensePrescriptionRequest) (*DispensePrescriptionResponse, error)
 	// Saga Compensation: Release reserved stock
 	RollbackPrescription(context.Context, *RollbackPrescriptionRequest) (*RollbackPrescriptionResponse, error)
+	// Queue Estimation
+	GetEstimatedWaitTime(context.Context, *GetEstimatedWaitTimeRequest) (*GetEstimatedWaitTimeResponse, error)
 	mustEmbedUnimplementedPharmacyServiceServer()
 }
 
@@ -102,6 +117,9 @@ func (UnimplementedPharmacyServiceServer) DispensePrescription(context.Context, 
 }
 func (UnimplementedPharmacyServiceServer) RollbackPrescription(context.Context, *RollbackPrescriptionRequest) (*RollbackPrescriptionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RollbackPrescription not implemented")
+}
+func (UnimplementedPharmacyServiceServer) GetEstimatedWaitTime(context.Context, *GetEstimatedWaitTimeRequest) (*GetEstimatedWaitTimeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetEstimatedWaitTime not implemented")
 }
 func (UnimplementedPharmacyServiceServer) mustEmbedUnimplementedPharmacyServiceServer() {}
 func (UnimplementedPharmacyServiceServer) testEmbeddedByValue()                         {}
@@ -178,6 +196,24 @@ func _PharmacyService_RollbackPrescription_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PharmacyService_GetEstimatedWaitTime_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetEstimatedWaitTimeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PharmacyServiceServer).GetEstimatedWaitTime(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PharmacyService_GetEstimatedWaitTime_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PharmacyServiceServer).GetEstimatedWaitTime(ctx, req.(*GetEstimatedWaitTimeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PharmacyService_ServiceDesc is the grpc.ServiceDesc for PharmacyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -197,7 +233,11 @@ var PharmacyService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "RollbackPrescription",
 			Handler:    _PharmacyService_RollbackPrescription_Handler,
 		},
+		{
+			MethodName: "GetEstimatedWaitTime",
+			Handler:    _PharmacyService_GetEstimatedWaitTime_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/pharmacy/v1/pharmacy.proto",
+	Metadata: "shared/proto/pharmacy/v1/pharmacy.proto",
 }
