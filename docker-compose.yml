@@ -35,6 +35,8 @@ services:
       - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
       - JAEGER_ENDPOINT=jaeger:4318
       - PORT=50051
+    ports:
+      - "60051:50051"
     depends_on:
       - postgres
       - jaeger
@@ -49,6 +51,8 @@ services:
       - JAEGER_ENDPOINT=jaeger:4318
       - REDIS_HOST=redis:6379
       - PORT=50052
+    ports:
+      - "60052:50052"
     depends_on:
       - postgres
       - redis
@@ -64,6 +68,8 @@ services:
       - JAEGER_ENDPOINT=jaeger:4318
       - REDIS_HOST=redis:6379
       - PORT=50053
+    ports:
+      - "60053:50053"
     depends_on:
       - postgres
       - redis
@@ -79,6 +85,8 @@ services:
       - JAEGER_ENDPOINT=jaeger:4318
       - REDIS_HOST=redis:6379
       - PORT=50054
+    ports:
+      - "60054:50054"
     depends_on:
       - postgres
       - redis
@@ -91,7 +99,7 @@ services:
       args:
         SERVICE_NAME: pharmacy-service
     ports:
-      - "50055:50055"
+      - "60055:50055"
     environment:
       - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
       - JAEGER_ENDPOINT=jaeger:4318
@@ -109,7 +117,7 @@ services:
       args:
         SERVICE_NAME: billing-service
     ports:
-      - "50056:50056"
+      - "60056:50056"
     environment:
       - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
       - JAEGER_ENDPOINT=jaeger:4318
@@ -136,7 +144,7 @@ services:
       - JAEGER_ENDPOINT=jaeger:4318
       - PORT=8080
     ports:
-      - "8080:8080"
+      - "60080:8080"
     volumes:
       - ./src/be/api-gateway/docs:/app/docs
     depends_on:
