@@ -365,7 +365,7 @@ func main() {
 
 	// Swagger UI (serving static files from docs/swagger)
 	fs := http.FileServer(http.Dir("./docs/swagger"))
-	r.Handle("/swagger/*", http.StripPrefix("/swagger/", fs))
+	r.Handle("/api/v1/swagger/*", http.StripPrefix("/api/v1/swagger/", fs))
 
 	port := os.Getenv("PORT")
 	if port == "" {
