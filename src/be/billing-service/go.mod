@@ -1,6 +1,6 @@
 module github.com/aliube/go-micro-simrs-one/billing-service
 
-go 1.24.0
+go 1.25.0
 
 replace github.com/aliube/go-micro-simrs-one/shared => ../shared
 
@@ -17,6 +17,7 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0 // indirect
+	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/lib/pq v1.12.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.45.0 // indirect
