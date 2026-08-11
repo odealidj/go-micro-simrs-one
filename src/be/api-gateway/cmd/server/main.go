@@ -157,6 +157,10 @@ func main() {
 			})
 		})
 
+		// Swagger UI (serving static files from docs/swagger)
+		fs := http.FileServer(http.Dir("./docs/swagger"))
+		r.Handle("/swagger/*", http.StripPrefix("/api/v1/swagger/", fs))
+
 		r.Post("/auth/login", func(w http.ResponseWriter, r *http.Request) {
 			var req authpb.LoginRequest
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -362,11 +366,6 @@ func main() {
 			})
 		})
 	})
-
-	// Swagger UI (serving static files from docs/swagger)
-	fs := http.FileServer(http.Dir("./docs/swagger"))
-	r.Handle("/api/v1/swagger/*", http.StripPrefix("/api/v1/swagger/", fs))
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

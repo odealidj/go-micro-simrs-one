@@ -1,5 +1,0 @@
-2026/08/10 21:00:40 Jaeger (OTel) Tracer initialized for service: emr-service
-2026/08/10 21:00:40 Starting Redis Subscriber on topic: registration.events
-2026/08/10 21:00:40 EMR Outbox Relay started
-2026/08/10 21:00:40 [Outbox Relay] Started for stream: emr_stream, interval: 5s
-2026/08/10 21:00:40 EMR Service (gRPC) is running on port 50054
