@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.26.1
-// source: shared/proto/emr/v1/emr.proto
+// source: src/be/shared/proto/emr/v1/emr.proto
 
 package emrv1
 
@@ -33,7 +33,7 @@ type GetEstimatedWaitTimeRequest struct {
 
 func (x *GetEstimatedWaitTimeRequest) Reset() {
 	*x = GetEstimatedWaitTimeRequest{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[0]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *GetEstimatedWaitTimeRequest) String() string {
 func (*GetEstimatedWaitTimeRequest) ProtoMessage() {}
 
 func (x *GetEstimatedWaitTimeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[0]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +58,7 @@ func (x *GetEstimatedWaitTimeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEstimatedWaitTimeRequest.ProtoReflect.Descriptor instead.
 func (*GetEstimatedWaitTimeRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{0}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetEstimatedWaitTimeRequest) GetDoctorId() string {
@@ -98,7 +98,7 @@ type GetEstimatedWaitTimeResponse struct {
 
 func (x *GetEstimatedWaitTimeResponse) Reset() {
 	*x = GetEstimatedWaitTimeResponse{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[1]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -110,7 +110,7 @@ func (x *GetEstimatedWaitTimeResponse) String() string {
 func (*GetEstimatedWaitTimeResponse) ProtoMessage() {}
 
 func (x *GetEstimatedWaitTimeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[1]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -123,7 +123,7 @@ func (x *GetEstimatedWaitTimeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEstimatedWaitTimeResponse.ProtoReflect.Descriptor instead.
 func (*GetEstimatedWaitTimeResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{1}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetEstimatedWaitTimeResponse) GetEstimatedMinutes() int64 {
@@ -143,7 +143,7 @@ type StartEncounterRequest struct {
 
 func (x *StartEncounterRequest) Reset() {
 	*x = StartEncounterRequest{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[2]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -155,7 +155,7 @@ func (x *StartEncounterRequest) String() string {
 func (*StartEncounterRequest) ProtoMessage() {}
 
 func (x *StartEncounterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[2]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -168,7 +168,7 @@ func (x *StartEncounterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartEncounterRequest.ProtoReflect.Descriptor instead.
 func (*StartEncounterRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{2}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *StartEncounterRequest) GetEncounterNo() string {
@@ -188,7 +188,7 @@ type StartEncounterResponse struct {
 
 func (x *StartEncounterResponse) Reset() {
 	*x = StartEncounterResponse{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[3]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -200,7 +200,7 @@ func (x *StartEncounterResponse) String() string {
 func (*StartEncounterResponse) ProtoMessage() {}
 
 func (x *StartEncounterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[3]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -213,7 +213,7 @@ func (x *StartEncounterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartEncounterResponse.ProtoReflect.Descriptor instead.
 func (*StartEncounterResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{3}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *StartEncounterResponse) GetSuccess() bool {
@@ -245,7 +245,7 @@ type SubmitTriageRequest struct {
 
 func (x *SubmitTriageRequest) Reset() {
 	*x = SubmitTriageRequest{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[4]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -257,7 +257,7 @@ func (x *SubmitTriageRequest) String() string {
 func (*SubmitTriageRequest) ProtoMessage() {}
 
 func (x *SubmitTriageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[4]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -270,7 +270,7 @@ func (x *SubmitTriageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitTriageRequest.ProtoReflect.Descriptor instead.
 func (*SubmitTriageRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{4}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SubmitTriageRequest) GetEncounterNo() string {
@@ -325,7 +325,7 @@ type SubmitTriageResponse struct {
 
 func (x *SubmitTriageResponse) Reset() {
 	*x = SubmitTriageResponse{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[5]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -337,7 +337,7 @@ func (x *SubmitTriageResponse) String() string {
 func (*SubmitTriageResponse) ProtoMessage() {}
 
 func (x *SubmitTriageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[5]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -350,7 +350,7 @@ func (x *SubmitTriageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitTriageResponse.ProtoReflect.Descriptor instead.
 func (*SubmitTriageResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{5}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SubmitTriageResponse) GetSuccess() bool {
@@ -367,11 +367,428 @@ func (x *SubmitTriageResponse) GetMessage() string {
 	return ""
 }
 
-// 2. Diagnosis (Dokter)
-type AddDiagnosisRequest struct {
+// -- KBM Master --
+type SearchKBMRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Query         string                 `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	BodySystem    string                 `protobuf:"bytes,2,opt,name=body_system,json=bodySystem,proto3" json:"body_system,omitempty"`
+	Limit         int32                  `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchKBMRequest) Reset() {
+	*x = SearchKBMRequest{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchKBMRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchKBMRequest) ProtoMessage() {}
+
+func (x *SearchKBMRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchKBMRequest.ProtoReflect.Descriptor instead.
+func (*SearchKBMRequest) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SearchKBMRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+func (x *SearchKBMRequest) GetBodySystem() string {
+	if x != nil {
+		return x.BodySystem
+	}
+	return ""
+}
+
+func (x *SearchKBMRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *SearchKBMRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+type KBMItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	KbmCode       string                 `protobuf:"bytes,1,opt,name=kbm_code,json=kbmCode,proto3" json:"kbm_code,omitempty"`
+	KbmName       string                 `protobuf:"bytes,2,opt,name=kbm_name,json=kbmName,proto3" json:"kbm_name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	BodySystem    string                 `protobuf:"bytes,4,opt,name=body_system,json=bodySystem,proto3" json:"body_system,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *KBMItem) Reset() {
+	*x = KBMItem{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KBMItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KBMItem) ProtoMessage() {}
+
+func (x *KBMItem) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KBMItem.ProtoReflect.Descriptor instead.
+func (*KBMItem) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *KBMItem) GetKbmCode() string {
+	if x != nil {
+		return x.KbmCode
+	}
+	return ""
+}
+
+func (x *KBMItem) GetKbmName() string {
+	if x != nil {
+		return x.KbmName
+	}
+	return ""
+}
+
+func (x *KBMItem) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *KBMItem) GetBodySystem() string {
+	if x != nil {
+		return x.BodySystem
+	}
+	return ""
+}
+
+type SearchKBMResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Items         []*KBMItem             `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchKBMResponse) Reset() {
+	*x = SearchKBMResponse{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchKBMResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchKBMResponse) ProtoMessage() {}
+
+func (x *SearchKBMResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchKBMResponse.ProtoReflect.Descriptor instead.
+func (*SearchKBMResponse) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SearchKBMResponse) GetItems() []*KBMItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *SearchKBMResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type GetKBMDetailRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	KbmCode       string                 `protobuf:"bytes,1,opt,name=kbm_code,json=kbmCode,proto3" json:"kbm_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetKBMDetailRequest) Reset() {
+	*x = GetKBMDetailRequest{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetKBMDetailRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetKBMDetailRequest) ProtoMessage() {}
+
+func (x *GetKBMDetailRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetKBMDetailRequest.ProtoReflect.Descriptor instead.
+func (*GetKBMDetailRequest) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetKBMDetailRequest) GetKbmCode() string {
+	if x != nil {
+		return x.KbmCode
+	}
+	return ""
+}
+
+type GetKBMDetailResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Item          *KBMItem               `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetKBMDetailResponse) Reset() {
+	*x = GetKBMDetailResponse{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetKBMDetailResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetKBMDetailResponse) ProtoMessage() {}
+
+func (x *GetKBMDetailResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetKBMDetailResponse.ProtoReflect.Descriptor instead.
+func (*GetKBMDetailResponse) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetKBMDetailResponse) GetItem() *KBMItem {
+	if x != nil {
+		return x.Item
+	}
+	return nil
+}
+
+type GetICD10SuggestionsForKBMRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	KbmCode       string                 `protobuf:"bytes,1,opt,name=kbm_code,json=kbmCode,proto3" json:"kbm_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetICD10SuggestionsForKBMRequest) Reset() {
+	*x = GetICD10SuggestionsForKBMRequest{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetICD10SuggestionsForKBMRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetICD10SuggestionsForKBMRequest) ProtoMessage() {}
+
+func (x *GetICD10SuggestionsForKBMRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetICD10SuggestionsForKBMRequest.ProtoReflect.Descriptor instead.
+func (*GetICD10SuggestionsForKBMRequest) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetICD10SuggestionsForKBMRequest) GetKbmCode() string {
+	if x != nil {
+		return x.KbmCode
+	}
+	return ""
+}
+
+type ICD10Suggestion struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Icd10Code     string                 `protobuf:"bytes,1,opt,name=icd10_code,json=icd10Code,proto3" json:"icd10_code,omitempty"`
+	IsPrimary     bool                   `protobuf:"varint,2,opt,name=is_primary,json=isPrimary,proto3" json:"is_primary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ICD10Suggestion) Reset() {
+	*x = ICD10Suggestion{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ICD10Suggestion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ICD10Suggestion) ProtoMessage() {}
+
+func (x *ICD10Suggestion) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ICD10Suggestion.ProtoReflect.Descriptor instead.
+func (*ICD10Suggestion) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ICD10Suggestion) GetIcd10Code() string {
+	if x != nil {
+		return x.Icd10Code
+	}
+	return ""
+}
+
+func (x *ICD10Suggestion) GetIsPrimary() bool {
+	if x != nil {
+		return x.IsPrimary
+	}
+	return false
+}
+
+type GetICD10SuggestionsForKBMResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Suggestions   []*ICD10Suggestion     `protobuf:"bytes,1,rep,name=suggestions,proto3" json:"suggestions,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetICD10SuggestionsForKBMResponse) Reset() {
+	*x = GetICD10SuggestionsForKBMResponse{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetICD10SuggestionsForKBMResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetICD10SuggestionsForKBMResponse) ProtoMessage() {}
+
+func (x *GetICD10SuggestionsForKBMResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetICD10SuggestionsForKBMResponse.ProtoReflect.Descriptor instead.
+func (*GetICD10SuggestionsForKBMResponse) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetICD10SuggestionsForKBMResponse) GetSuggestions() []*ICD10Suggestion {
+	if x != nil {
+		return x.Suggestions
+	}
+	return nil
+}
+
+// -- Diagnosis KBM (Dokter) --
+type AddDiagnosisKBMRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	EncounterNo    string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
-	Icd10Code      string                 `protobuf:"bytes,2,opt,name=icd10_code,json=icd10Code,proto3" json:"icd10_code,omitempty"`
+	KbmCode        string                 `protobuf:"bytes,2,opt,name=kbm_code,json=kbmCode,proto3" json:"kbm_code,omitempty"`
 	Notes          string                 `protobuf:"bytes,3,opt,name=notes,proto3" json:"notes,omitempty"`
 	DoctorId       string                 `protobuf:"bytes,4,opt,name=doctor_id,json=doctorId,proto3" json:"doctor_id,omitempty"`
 	DepartmentCode string                 `protobuf:"bytes,5,opt,name=department_code,json=departmentCode,proto3" json:"department_code,omitempty"`
@@ -381,21 +798,21 @@ type AddDiagnosisRequest struct {
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *AddDiagnosisRequest) Reset() {
-	*x = AddDiagnosisRequest{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[6]
+func (x *AddDiagnosisKBMRequest) Reset() {
+	*x = AddDiagnosisKBMRequest{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AddDiagnosisRequest) String() string {
+func (x *AddDiagnosisKBMRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AddDiagnosisRequest) ProtoMessage() {}
+func (*AddDiagnosisKBMRequest) ProtoMessage() {}
 
-func (x *AddDiagnosisRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[6]
+func (x *AddDiagnosisKBMRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,61 +823,61 @@ func (x *AddDiagnosisRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AddDiagnosisRequest.ProtoReflect.Descriptor instead.
-func (*AddDiagnosisRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{6}
+// Deprecated: Use AddDiagnosisKBMRequest.ProtoReflect.Descriptor instead.
+func (*AddDiagnosisKBMRequest) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{14}
 }
 
-func (x *AddDiagnosisRequest) GetEncounterNo() string {
+func (x *AddDiagnosisKBMRequest) GetEncounterNo() string {
 	if x != nil {
 		return x.EncounterNo
 	}
 	return ""
 }
 
-func (x *AddDiagnosisRequest) GetIcd10Code() string {
+func (x *AddDiagnosisKBMRequest) GetKbmCode() string {
 	if x != nil {
-		return x.Icd10Code
+		return x.KbmCode
 	}
 	return ""
 }
 
-func (x *AddDiagnosisRequest) GetNotes() string {
+func (x *AddDiagnosisKBMRequest) GetNotes() string {
 	if x != nil {
 		return x.Notes
 	}
 	return ""
 }
 
-func (x *AddDiagnosisRequest) GetDoctorId() string {
+func (x *AddDiagnosisKBMRequest) GetDoctorId() string {
 	if x != nil {
 		return x.DoctorId
 	}
 	return ""
 }
 
-func (x *AddDiagnosisRequest) GetDepartmentCode() string {
+func (x *AddDiagnosisKBMRequest) GetDepartmentCode() string {
 	if x != nil {
 		return x.DepartmentCode
 	}
 	return ""
 }
 
-func (x *AddDiagnosisRequest) GetGender() string {
+func (x *AddDiagnosisKBMRequest) GetGender() string {
 	if x != nil {
 		return x.Gender
 	}
 	return ""
 }
 
-func (x *AddDiagnosisRequest) GetAgeBracket() string {
+func (x *AddDiagnosisKBMRequest) GetAgeBracket() string {
 	if x != nil {
 		return x.AgeBracket
 	}
 	return ""
 }
 
-type AddDiagnosisResponse struct {
+type AddDiagnosisKBMResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
 	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
@@ -468,21 +885,21 @@ type AddDiagnosisResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *AddDiagnosisResponse) Reset() {
-	*x = AddDiagnosisResponse{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[7]
+func (x *AddDiagnosisKBMResponse) Reset() {
+	*x = AddDiagnosisKBMResponse{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *AddDiagnosisResponse) String() string {
+func (x *AddDiagnosisKBMResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*AddDiagnosisResponse) ProtoMessage() {}
+func (*AddDiagnosisKBMResponse) ProtoMessage() {}
 
-func (x *AddDiagnosisResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[7]
+func (x *AddDiagnosisKBMResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -493,23 +910,324 @@ func (x *AddDiagnosisResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use AddDiagnosisResponse.ProtoReflect.Descriptor instead.
-func (*AddDiagnosisResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use AddDiagnosisKBMResponse.ProtoReflect.Descriptor instead.
+func (*AddDiagnosisKBMResponse) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *AddDiagnosisResponse) GetSuccess() bool {
+func (x *AddDiagnosisKBMResponse) GetSuccess() bool {
 	if x != nil {
 		return x.Success
 	}
 	return false
 }
 
-func (x *AddDiagnosisResponse) GetMessage() string {
+func (x *AddDiagnosisKBMResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
+}
+
+// -- Verifikasi ICD-10 (Rekam Medis) --
+type VerifyICD10MappingRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EncounterNo   string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
+	Icd10Codes    []string               `protobuf:"bytes,2,rep,name=icd10_codes,json=icd10Codes,proto3" json:"icd10_codes,omitempty"`
+	Notes         string                 `protobuf:"bytes,3,opt,name=notes,proto3" json:"notes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VerifyICD10MappingRequest) Reset() {
+	*x = VerifyICD10MappingRequest{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VerifyICD10MappingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VerifyICD10MappingRequest) ProtoMessage() {}
+
+func (x *VerifyICD10MappingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VerifyICD10MappingRequest.ProtoReflect.Descriptor instead.
+func (*VerifyICD10MappingRequest) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *VerifyICD10MappingRequest) GetEncounterNo() string {
+	if x != nil {
+		return x.EncounterNo
+	}
+	return ""
+}
+
+func (x *VerifyICD10MappingRequest) GetIcd10Codes() []string {
+	if x != nil {
+		return x.Icd10Codes
+	}
+	return nil
+}
+
+func (x *VerifyICD10MappingRequest) GetNotes() string {
+	if x != nil {
+		return x.Notes
+	}
+	return ""
+}
+
+type VerifyICD10MappingResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VerifyICD10MappingResponse) Reset() {
+	*x = VerifyICD10MappingResponse{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VerifyICD10MappingResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VerifyICD10MappingResponse) ProtoMessage() {}
+
+func (x *VerifyICD10MappingResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VerifyICD10MappingResponse.ProtoReflect.Descriptor instead.
+func (*VerifyICD10MappingResponse) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *VerifyICD10MappingResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *VerifyICD10MappingResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type ListPendingICD10VerificationsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	Offset        int32                  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPendingICD10VerificationsRequest) Reset() {
+	*x = ListPendingICD10VerificationsRequest{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPendingICD10VerificationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPendingICD10VerificationsRequest) ProtoMessage() {}
+
+func (x *ListPendingICD10VerificationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPendingICD10VerificationsRequest.ProtoReflect.Descriptor instead.
+func (*ListPendingICD10VerificationsRequest) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *ListPendingICD10VerificationsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+func (x *ListPendingICD10VerificationsRequest) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+type PendingVerificationItem struct {
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	EncounterNo        string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
+	Mrn                string                 `protobuf:"bytes,2,opt,name=mrn,proto3" json:"mrn,omitempty"`
+	KbmCode            string                 `protobuf:"bytes,3,opt,name=kbm_code,json=kbmCode,proto3" json:"kbm_code,omitempty"`
+	KbmName            string                 `protobuf:"bytes,4,opt,name=kbm_name,json=kbmName,proto3" json:"kbm_name,omitempty"`
+	Icd10MappingStatus string                 `protobuf:"bytes,5,opt,name=icd10_mapping_status,json=icd10MappingStatus,proto3" json:"icd10_mapping_status,omitempty"`
+	CreatedAt          string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *PendingVerificationItem) Reset() {
+	*x = PendingVerificationItem{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PendingVerificationItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PendingVerificationItem) ProtoMessage() {}
+
+func (x *PendingVerificationItem) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PendingVerificationItem.ProtoReflect.Descriptor instead.
+func (*PendingVerificationItem) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *PendingVerificationItem) GetEncounterNo() string {
+	if x != nil {
+		return x.EncounterNo
+	}
+	return ""
+}
+
+func (x *PendingVerificationItem) GetMrn() string {
+	if x != nil {
+		return x.Mrn
+	}
+	return ""
+}
+
+func (x *PendingVerificationItem) GetKbmCode() string {
+	if x != nil {
+		return x.KbmCode
+	}
+	return ""
+}
+
+func (x *PendingVerificationItem) GetKbmName() string {
+	if x != nil {
+		return x.KbmName
+	}
+	return ""
+}
+
+func (x *PendingVerificationItem) GetIcd10MappingStatus() string {
+	if x != nil {
+		return x.Icd10MappingStatus
+	}
+	return ""
+}
+
+func (x *PendingVerificationItem) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+type ListPendingICD10VerificationsResponse struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Items         []*PendingVerificationItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	Total         int32                      `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListPendingICD10VerificationsResponse) Reset() {
+	*x = ListPendingICD10VerificationsResponse{}
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListPendingICD10VerificationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListPendingICD10VerificationsResponse) ProtoMessage() {}
+
+func (x *ListPendingICD10VerificationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListPendingICD10VerificationsResponse.ProtoReflect.Descriptor instead.
+func (*ListPendingICD10VerificationsResponse) Descriptor() ([]byte, []int) {
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *ListPendingICD10VerificationsResponse) GetItems() []*PendingVerificationItem {
+	if x != nil {
+		return x.Items
+	}
+	return nil
+}
+
+func (x *ListPendingICD10VerificationsResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
 }
 
 // 3. Medical Action (Dokter)
@@ -526,7 +1244,7 @@ type AddMedicalActionRequest struct {
 
 func (x *AddMedicalActionRequest) Reset() {
 	*x = AddMedicalActionRequest{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[8]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -538,7 +1256,7 @@ func (x *AddMedicalActionRequest) String() string {
 func (*AddMedicalActionRequest) ProtoMessage() {}
 
 func (x *AddMedicalActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[8]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -551,7 +1269,7 @@ func (x *AddMedicalActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddMedicalActionRequest.ProtoReflect.Descriptor instead.
 func (*AddMedicalActionRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{8}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *AddMedicalActionRequest) GetEncounterNo() string {
@@ -599,7 +1317,7 @@ type AddMedicalActionResponse struct {
 
 func (x *AddMedicalActionResponse) Reset() {
 	*x = AddMedicalActionResponse{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[9]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -611,7 +1329,7 @@ func (x *AddMedicalActionResponse) String() string {
 func (*AddMedicalActionResponse) ProtoMessage() {}
 
 func (x *AddMedicalActionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[9]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -624,7 +1342,7 @@ func (x *AddMedicalActionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddMedicalActionResponse.ProtoReflect.Descriptor instead.
 func (*AddMedicalActionResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{9}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *AddMedicalActionResponse) GetSuccess() bool {
@@ -651,7 +1369,7 @@ type GetMedicalRecordRequest struct {
 
 func (x *GetMedicalRecordRequest) Reset() {
 	*x = GetMedicalRecordRequest{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[10]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -663,7 +1381,7 @@ func (x *GetMedicalRecordRequest) String() string {
 func (*GetMedicalRecordRequest) ProtoMessage() {}
 
 func (x *GetMedicalRecordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[10]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -676,7 +1394,7 @@ func (x *GetMedicalRecordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMedicalRecordRequest.ProtoReflect.Descriptor instead.
 func (*GetMedicalRecordRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{10}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetMedicalRecordRequest) GetEncounterNo() string {
@@ -697,7 +1415,7 @@ type MedicalAction struct {
 
 func (x *MedicalAction) Reset() {
 	*x = MedicalAction{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[11]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -709,7 +1427,7 @@ func (x *MedicalAction) String() string {
 func (*MedicalAction) ProtoMessage() {}
 
 func (x *MedicalAction) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[11]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -722,7 +1440,7 @@ func (x *MedicalAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MedicalAction.ProtoReflect.Descriptor instead.
 func (*MedicalAction) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{11}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *MedicalAction) GetActionCode() string {
@@ -759,7 +1477,7 @@ type TriageData struct {
 
 func (x *TriageData) Reset() {
 	*x = TriageData{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[12]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -771,7 +1489,7 @@ func (x *TriageData) String() string {
 func (*TriageData) ProtoMessage() {}
 
 func (x *TriageData) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[12]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -784,7 +1502,7 @@ func (x *TriageData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriageData.ProtoReflect.Descriptor instead.
 func (*TriageData) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{12}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *TriageData) GetBloodPressureSystolic() int32 {
@@ -823,20 +1541,23 @@ func (x *TriageData) GetNotes() string {
 }
 
 type GetMedicalRecordResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EncounterNo   string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
-	PatientMrn    string                 `protobuf:"bytes,2,opt,name=patient_mrn,json=patientMrn,proto3" json:"patient_mrn,omitempty"`
-	Triage        *TriageData            `protobuf:"bytes,3,opt,name=triage,proto3" json:"triage,omitempty"`
-	Icd10Codes    []string               `protobuf:"bytes,4,rep,name=icd10_codes,json=icd10Codes,proto3" json:"icd10_codes,omitempty"`
-	Actions       []*MedicalAction       `protobuf:"bytes,5,rep,name=actions,proto3" json:"actions,omitempty"`
-	Notes         string                 `protobuf:"bytes,6,opt,name=notes,proto3" json:"notes,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	EncounterNo        string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
+	PatientMrn         string                 `protobuf:"bytes,2,opt,name=patient_mrn,json=patientMrn,proto3" json:"patient_mrn,omitempty"`
+	Triage             *TriageData            `protobuf:"bytes,3,opt,name=triage,proto3" json:"triage,omitempty"`
+	Icd10Codes         []string               `protobuf:"bytes,4,rep,name=icd10_codes,json=icd10Codes,proto3" json:"icd10_codes,omitempty"`
+	KbmCode            string                 `protobuf:"bytes,5,opt,name=kbm_code,json=kbmCode,proto3" json:"kbm_code,omitempty"`
+	KbmName            string                 `protobuf:"bytes,6,opt,name=kbm_name,json=kbmName,proto3" json:"kbm_name,omitempty"`
+	Icd10MappingStatus string                 `protobuf:"bytes,7,opt,name=icd10_mapping_status,json=icd10MappingStatus,proto3" json:"icd10_mapping_status,omitempty"`
+	Actions            []*MedicalAction       `protobuf:"bytes,8,rep,name=actions,proto3" json:"actions,omitempty"`
+	Notes              string                 `protobuf:"bytes,9,opt,name=notes,proto3" json:"notes,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *GetMedicalRecordResponse) Reset() {
 	*x = GetMedicalRecordResponse{}
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[13]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -848,7 +1569,7 @@ func (x *GetMedicalRecordResponse) String() string {
 func (*GetMedicalRecordResponse) ProtoMessage() {}
 
 func (x *GetMedicalRecordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_emr_v1_emr_proto_msgTypes[13]
+	mi := &file_src_be_shared_proto_emr_v1_emr_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -861,7 +1582,7 @@ func (x *GetMedicalRecordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMedicalRecordResponse.ProtoReflect.Descriptor instead.
 func (*GetMedicalRecordResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{13}
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GetMedicalRecordResponse) GetEncounterNo() string {
@@ -892,6 +1613,27 @@ func (x *GetMedicalRecordResponse) GetIcd10Codes() []string {
 	return nil
 }
 
+func (x *GetMedicalRecordResponse) GetKbmCode() string {
+	if x != nil {
+		return x.KbmCode
+	}
+	return ""
+}
+
+func (x *GetMedicalRecordResponse) GetKbmName() string {
+	if x != nil {
+		return x.KbmName
+	}
+	return ""
+}
+
+func (x *GetMedicalRecordResponse) GetIcd10MappingStatus() string {
+	if x != nil {
+		return x.Icd10MappingStatus
+	}
+	return ""
+}
+
 func (x *GetMedicalRecordResponse) GetActions() []*MedicalAction {
 	if x != nil {
 		return x.Actions
@@ -906,11 +1648,11 @@ func (x *GetMedicalRecordResponse) GetNotes() string {
 	return ""
 }
 
-var File_shared_proto_emr_v1_emr_proto protoreflect.FileDescriptor
+var File_src_be_shared_proto_emr_v1_emr_proto protoreflect.FileDescriptor
 
-const file_shared_proto_emr_v1_emr_proto_rawDesc = "" +
+const file_src_be_shared_proto_emr_v1_emr_proto_rawDesc = "" +
 	"\n" +
-	"\x1dshared/proto/emr/v1/emr.proto\x12\x06emr.v1\"\x9c\x01\n" +
+	"$src/be/shared/proto/emr/v1/emr.proto\x12\x06emr.v1\"\x9c\x01\n" +
 	"\x1bGetEstimatedWaitTimeRequest\x12\x1b\n" +
 	"\tdoctor_id\x18\x01 \x01(\tR\bdoctorId\x12'\n" +
 	"\x0fdepartment_code\x18\x02 \x01(\tR\x0edepartmentCode\x12\x16\n" +
@@ -934,20 +1676,69 @@ const file_shared_proto_emr_v1_emr_proto_rawDesc = "" +
 	"\x05notes\x18\x06 \x01(\tR\x05notes\"J\n" +
 	"\x14SubmitTriageResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xec\x01\n" +
-	"\x13AddDiagnosisRequest\x12!\n" +
-	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x1d\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"w\n" +
+	"\x10SearchKBMRequest\x12\x14\n" +
+	"\x05query\x18\x01 \x01(\tR\x05query\x12\x1f\n" +
+	"\vbody_system\x18\x02 \x01(\tR\n" +
+	"bodySystem\x12\x14\n" +
+	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x04 \x01(\x05R\x06offset\"\x82\x01\n" +
+	"\aKBMItem\x12\x19\n" +
+	"\bkbm_code\x18\x01 \x01(\tR\akbmCode\x12\x19\n" +
+	"\bkbm_name\x18\x02 \x01(\tR\akbmName\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1f\n" +
+	"\vbody_system\x18\x04 \x01(\tR\n" +
+	"bodySystem\"P\n" +
+	"\x11SearchKBMResponse\x12%\n" +
+	"\x05items\x18\x01 \x03(\v2\x0f.emr.v1.KBMItemR\x05items\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\"0\n" +
+	"\x13GetKBMDetailRequest\x12\x19\n" +
+	"\bkbm_code\x18\x01 \x01(\tR\akbmCode\";\n" +
+	"\x14GetKBMDetailResponse\x12#\n" +
+	"\x04item\x18\x01 \x01(\v2\x0f.emr.v1.KBMItemR\x04item\"=\n" +
+	" GetICD10SuggestionsForKBMRequest\x12\x19\n" +
+	"\bkbm_code\x18\x01 \x01(\tR\akbmCode\"O\n" +
+	"\x0fICD10Suggestion\x12\x1d\n" +
 	"\n" +
-	"icd10_code\x18\x02 \x01(\tR\ticd10Code\x12\x14\n" +
+	"icd10_code\x18\x01 \x01(\tR\ticd10Code\x12\x1d\n" +
+	"\n" +
+	"is_primary\x18\x02 \x01(\bR\tisPrimary\"^\n" +
+	"!GetICD10SuggestionsForKBMResponse\x129\n" +
+	"\vsuggestions\x18\x01 \x03(\v2\x17.emr.v1.ICD10SuggestionR\vsuggestions\"\xeb\x01\n" +
+	"\x16AddDiagnosisKBMRequest\x12!\n" +
+	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x19\n" +
+	"\bkbm_code\x18\x02 \x01(\tR\akbmCode\x12\x14\n" +
 	"\x05notes\x18\x03 \x01(\tR\x05notes\x12\x1b\n" +
 	"\tdoctor_id\x18\x04 \x01(\tR\bdoctorId\x12'\n" +
 	"\x0fdepartment_code\x18\x05 \x01(\tR\x0edepartmentCode\x12\x16\n" +
 	"\x06gender\x18\x06 \x01(\tR\x06gender\x12\x1f\n" +
 	"\vage_bracket\x18\a \x01(\tR\n" +
-	"ageBracket\"J\n" +
-	"\x14AddDiagnosisResponse\x12\x18\n" +
+	"ageBracket\"M\n" +
+	"\x17AddDiagnosisKBMResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xaa\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"u\n" +
+	"\x19VerifyICD10MappingRequest\x12!\n" +
+	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x1f\n" +
+	"\vicd10_codes\x18\x02 \x03(\tR\n" +
+	"icd10Codes\x12\x14\n" +
+	"\x05notes\x18\x03 \x01(\tR\x05notes\"P\n" +
+	"\x1aVerifyICD10MappingResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"T\n" +
+	"$ListPendingICD10VerificationsRequest\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset\"\xd5\x01\n" +
+	"\x17PendingVerificationItem\x12!\n" +
+	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x10\n" +
+	"\x03mrn\x18\x02 \x01(\tR\x03mrn\x12\x19\n" +
+	"\bkbm_code\x18\x03 \x01(\tR\akbmCode\x12\x19\n" +
+	"\bkbm_name\x18\x04 \x01(\tR\akbmName\x120\n" +
+	"\x14icd10_mapping_status\x18\x05 \x01(\tR\x12icd10MappingStatus\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\tR\tcreatedAt\"t\n" +
+	"%ListPendingICD10VerificationsResponse\x125\n" +
+	"\x05items\x18\x01 \x03(\v2\x1f.emr.v1.PendingVerificationItemR\x05items\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\"\xaa\x01\n" +
 	"\x17AddMedicalActionRequest\x12!\n" +
 	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x1f\n" +
 	"\vaction_code\x18\x02 \x01(\tR\n" +
@@ -974,96 +1765,131 @@ const file_shared_proto_emr_v1_emr_proto_rawDesc = "" +
 	"\vtemperature\x18\x03 \x01(\x01R\vtemperature\x12\x1d\n" +
 	"\n" +
 	"heart_rate\x18\x04 \x01(\x05R\theartRate\x12\x14\n" +
-	"\x05notes\x18\x05 \x01(\tR\x05notes\"\xf2\x01\n" +
+	"\x05notes\x18\x05 \x01(\tR\x05notes\"\xda\x02\n" +
 	"\x18GetMedicalRecordResponse\x12!\n" +
 	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x1f\n" +
 	"\vpatient_mrn\x18\x02 \x01(\tR\n" +
 	"patientMrn\x12*\n" +
 	"\x06triage\x18\x03 \x01(\v2\x12.emr.v1.TriageDataR\x06triage\x12\x1f\n" +
 	"\vicd10_codes\x18\x04 \x03(\tR\n" +
-	"icd10Codes\x12/\n" +
-	"\aactions\x18\x05 \x03(\v2\x15.emr.v1.MedicalActionR\aactions\x12\x14\n" +
-	"\x05notes\x18\x06 \x01(\tR\x05notes2\x84\x04\n" +
+	"icd10Codes\x12\x19\n" +
+	"\bkbm_code\x18\x05 \x01(\tR\akbmCode\x12\x19\n" +
+	"\bkbm_name\x18\x06 \x01(\tR\akbmName\x120\n" +
+	"\x14icd10_mapping_status\x18\a \x01(\tR\x12icd10MappingStatus\x12/\n" +
+	"\aactions\x18\b \x03(\v2\x15.emr.v1.MedicalActionR\aactions\x12\x14\n" +
+	"\x05notes\x18\t \x01(\tR\x05notes2\xe7\a\n" +
 	"\n" +
 	"EMRService\x12I\n" +
-	"\fSubmitTriage\x12\x1b.emr.v1.SubmitTriageRequest\x1a\x1c.emr.v1.SubmitTriageResponse\x12I\n" +
-	"\fAddDiagnosis\x12\x1b.emr.v1.AddDiagnosisRequest\x1a\x1c.emr.v1.AddDiagnosisResponse\x12U\n" +
+	"\fSubmitTriage\x12\x1b.emr.v1.SubmitTriageRequest\x1a\x1c.emr.v1.SubmitTriageResponse\x12U\n" +
 	"\x10AddMedicalAction\x12\x1f.emr.v1.AddMedicalActionRequest\x1a .emr.v1.AddMedicalActionResponse\x12U\n" +
 	"\x10GetMedicalRecord\x12\x1f.emr.v1.GetMedicalRecordRequest\x1a .emr.v1.GetMedicalRecordResponse\x12O\n" +
 	"\x0eStartEncounter\x12\x1d.emr.v1.StartEncounterRequest\x1a\x1e.emr.v1.StartEncounterResponse\x12a\n" +
-	"\x14GetEstimatedWaitTime\x12#.emr.v1.GetEstimatedWaitTimeRequest\x1a$.emr.v1.GetEstimatedWaitTimeResponseB@Z>github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1;emrv1b\x06proto3"
+	"\x14GetEstimatedWaitTime\x12#.emr.v1.GetEstimatedWaitTimeRequest\x1a$.emr.v1.GetEstimatedWaitTimeResponse\x12@\n" +
+	"\tSearchKBM\x12\x18.emr.v1.SearchKBMRequest\x1a\x19.emr.v1.SearchKBMResponse\x12I\n" +
+	"\fGetKBMDetail\x12\x1b.emr.v1.GetKBMDetailRequest\x1a\x1c.emr.v1.GetKBMDetailResponse\x12p\n" +
+	"\x19GetICD10SuggestionsForKBM\x12(.emr.v1.GetICD10SuggestionsForKBMRequest\x1a).emr.v1.GetICD10SuggestionsForKBMResponse\x12R\n" +
+	"\x0fAddDiagnosisKBM\x12\x1e.emr.v1.AddDiagnosisKBMRequest\x1a\x1f.emr.v1.AddDiagnosisKBMResponse\x12[\n" +
+	"\x12VerifyICD10Mapping\x12!.emr.v1.VerifyICD10MappingRequest\x1a\".emr.v1.VerifyICD10MappingResponse\x12|\n" +
+	"\x1dListPendingICD10Verifications\x12,.emr.v1.ListPendingICD10VerificationsRequest\x1a-.emr.v1.ListPendingICD10VerificationsResponseB@Z>github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1;emrv1b\x06proto3"
 
 var (
-	file_shared_proto_emr_v1_emr_proto_rawDescOnce sync.Once
-	file_shared_proto_emr_v1_emr_proto_rawDescData []byte
+	file_src_be_shared_proto_emr_v1_emr_proto_rawDescOnce sync.Once
+	file_src_be_shared_proto_emr_v1_emr_proto_rawDescData []byte
 )
 
-func file_shared_proto_emr_v1_emr_proto_rawDescGZIP() []byte {
-	file_shared_proto_emr_v1_emr_proto_rawDescOnce.Do(func() {
-		file_shared_proto_emr_v1_emr_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_shared_proto_emr_v1_emr_proto_rawDesc), len(file_shared_proto_emr_v1_emr_proto_rawDesc)))
+func file_src_be_shared_proto_emr_v1_emr_proto_rawDescGZIP() []byte {
+	file_src_be_shared_proto_emr_v1_emr_proto_rawDescOnce.Do(func() {
+		file_src_be_shared_proto_emr_v1_emr_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_src_be_shared_proto_emr_v1_emr_proto_rawDesc), len(file_src_be_shared_proto_emr_v1_emr_proto_rawDesc)))
 	})
-	return file_shared_proto_emr_v1_emr_proto_rawDescData
+	return file_src_be_shared_proto_emr_v1_emr_proto_rawDescData
 }
 
-var file_shared_proto_emr_v1_emr_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
-var file_shared_proto_emr_v1_emr_proto_goTypes = []any{
-	(*GetEstimatedWaitTimeRequest)(nil),  // 0: emr.v1.GetEstimatedWaitTimeRequest
-	(*GetEstimatedWaitTimeResponse)(nil), // 1: emr.v1.GetEstimatedWaitTimeResponse
-	(*StartEncounterRequest)(nil),        // 2: emr.v1.StartEncounterRequest
-	(*StartEncounterResponse)(nil),       // 3: emr.v1.StartEncounterResponse
-	(*SubmitTriageRequest)(nil),          // 4: emr.v1.SubmitTriageRequest
-	(*SubmitTriageResponse)(nil),         // 5: emr.v1.SubmitTriageResponse
-	(*AddDiagnosisRequest)(nil),          // 6: emr.v1.AddDiagnosisRequest
-	(*AddDiagnosisResponse)(nil),         // 7: emr.v1.AddDiagnosisResponse
-	(*AddMedicalActionRequest)(nil),      // 8: emr.v1.AddMedicalActionRequest
-	(*AddMedicalActionResponse)(nil),     // 9: emr.v1.AddMedicalActionResponse
-	(*GetMedicalRecordRequest)(nil),      // 10: emr.v1.GetMedicalRecordRequest
-	(*MedicalAction)(nil),                // 11: emr.v1.MedicalAction
-	(*TriageData)(nil),                   // 12: emr.v1.TriageData
-	(*GetMedicalRecordResponse)(nil),     // 13: emr.v1.GetMedicalRecordResponse
+var file_src_be_shared_proto_emr_v1_emr_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_src_be_shared_proto_emr_v1_emr_proto_goTypes = []any{
+	(*GetEstimatedWaitTimeRequest)(nil),           // 0: emr.v1.GetEstimatedWaitTimeRequest
+	(*GetEstimatedWaitTimeResponse)(nil),          // 1: emr.v1.GetEstimatedWaitTimeResponse
+	(*StartEncounterRequest)(nil),                 // 2: emr.v1.StartEncounterRequest
+	(*StartEncounterResponse)(nil),                // 3: emr.v1.StartEncounterResponse
+	(*SubmitTriageRequest)(nil),                   // 4: emr.v1.SubmitTriageRequest
+	(*SubmitTriageResponse)(nil),                  // 5: emr.v1.SubmitTriageResponse
+	(*SearchKBMRequest)(nil),                      // 6: emr.v1.SearchKBMRequest
+	(*KBMItem)(nil),                               // 7: emr.v1.KBMItem
+	(*SearchKBMResponse)(nil),                     // 8: emr.v1.SearchKBMResponse
+	(*GetKBMDetailRequest)(nil),                   // 9: emr.v1.GetKBMDetailRequest
+	(*GetKBMDetailResponse)(nil),                  // 10: emr.v1.GetKBMDetailResponse
+	(*GetICD10SuggestionsForKBMRequest)(nil),      // 11: emr.v1.GetICD10SuggestionsForKBMRequest
+	(*ICD10Suggestion)(nil),                       // 12: emr.v1.ICD10Suggestion
+	(*GetICD10SuggestionsForKBMResponse)(nil),     // 13: emr.v1.GetICD10SuggestionsForKBMResponse
+	(*AddDiagnosisKBMRequest)(nil),                // 14: emr.v1.AddDiagnosisKBMRequest
+	(*AddDiagnosisKBMResponse)(nil),               // 15: emr.v1.AddDiagnosisKBMResponse
+	(*VerifyICD10MappingRequest)(nil),             // 16: emr.v1.VerifyICD10MappingRequest
+	(*VerifyICD10MappingResponse)(nil),            // 17: emr.v1.VerifyICD10MappingResponse
+	(*ListPendingICD10VerificationsRequest)(nil),  // 18: emr.v1.ListPendingICD10VerificationsRequest
+	(*PendingVerificationItem)(nil),               // 19: emr.v1.PendingVerificationItem
+	(*ListPendingICD10VerificationsResponse)(nil), // 20: emr.v1.ListPendingICD10VerificationsResponse
+	(*AddMedicalActionRequest)(nil),               // 21: emr.v1.AddMedicalActionRequest
+	(*AddMedicalActionResponse)(nil),              // 22: emr.v1.AddMedicalActionResponse
+	(*GetMedicalRecordRequest)(nil),               // 23: emr.v1.GetMedicalRecordRequest
+	(*MedicalAction)(nil),                         // 24: emr.v1.MedicalAction
+	(*TriageData)(nil),                            // 25: emr.v1.TriageData
+	(*GetMedicalRecordResponse)(nil),              // 26: emr.v1.GetMedicalRecordResponse
 }
-var file_shared_proto_emr_v1_emr_proto_depIdxs = []int32{
-	12, // 0: emr.v1.GetMedicalRecordResponse.triage:type_name -> emr.v1.TriageData
-	11, // 1: emr.v1.GetMedicalRecordResponse.actions:type_name -> emr.v1.MedicalAction
-	4,  // 2: emr.v1.EMRService.SubmitTriage:input_type -> emr.v1.SubmitTriageRequest
-	6,  // 3: emr.v1.EMRService.AddDiagnosis:input_type -> emr.v1.AddDiagnosisRequest
-	8,  // 4: emr.v1.EMRService.AddMedicalAction:input_type -> emr.v1.AddMedicalActionRequest
-	10, // 5: emr.v1.EMRService.GetMedicalRecord:input_type -> emr.v1.GetMedicalRecordRequest
-	2,  // 6: emr.v1.EMRService.StartEncounter:input_type -> emr.v1.StartEncounterRequest
-	0,  // 7: emr.v1.EMRService.GetEstimatedWaitTime:input_type -> emr.v1.GetEstimatedWaitTimeRequest
-	5,  // 8: emr.v1.EMRService.SubmitTriage:output_type -> emr.v1.SubmitTriageResponse
-	7,  // 9: emr.v1.EMRService.AddDiagnosis:output_type -> emr.v1.AddDiagnosisResponse
-	9,  // 10: emr.v1.EMRService.AddMedicalAction:output_type -> emr.v1.AddMedicalActionResponse
-	13, // 11: emr.v1.EMRService.GetMedicalRecord:output_type -> emr.v1.GetMedicalRecordResponse
-	3,  // 12: emr.v1.EMRService.StartEncounter:output_type -> emr.v1.StartEncounterResponse
-	1,  // 13: emr.v1.EMRService.GetEstimatedWaitTime:output_type -> emr.v1.GetEstimatedWaitTimeResponse
-	8,  // [8:14] is the sub-list for method output_type
-	2,  // [2:8] is the sub-list for method input_type
-	2,  // [2:2] is the sub-list for extension type_name
-	2,  // [2:2] is the sub-list for extension extendee
-	0,  // [0:2] is the sub-list for field type_name
+var file_src_be_shared_proto_emr_v1_emr_proto_depIdxs = []int32{
+	7,  // 0: emr.v1.SearchKBMResponse.items:type_name -> emr.v1.KBMItem
+	7,  // 1: emr.v1.GetKBMDetailResponse.item:type_name -> emr.v1.KBMItem
+	12, // 2: emr.v1.GetICD10SuggestionsForKBMResponse.suggestions:type_name -> emr.v1.ICD10Suggestion
+	19, // 3: emr.v1.ListPendingICD10VerificationsResponse.items:type_name -> emr.v1.PendingVerificationItem
+	25, // 4: emr.v1.GetMedicalRecordResponse.triage:type_name -> emr.v1.TriageData
+	24, // 5: emr.v1.GetMedicalRecordResponse.actions:type_name -> emr.v1.MedicalAction
+	4,  // 6: emr.v1.EMRService.SubmitTriage:input_type -> emr.v1.SubmitTriageRequest
+	21, // 7: emr.v1.EMRService.AddMedicalAction:input_type -> emr.v1.AddMedicalActionRequest
+	23, // 8: emr.v1.EMRService.GetMedicalRecord:input_type -> emr.v1.GetMedicalRecordRequest
+	2,  // 9: emr.v1.EMRService.StartEncounter:input_type -> emr.v1.StartEncounterRequest
+	0,  // 10: emr.v1.EMRService.GetEstimatedWaitTime:input_type -> emr.v1.GetEstimatedWaitTimeRequest
+	6,  // 11: emr.v1.EMRService.SearchKBM:input_type -> emr.v1.SearchKBMRequest
+	9,  // 12: emr.v1.EMRService.GetKBMDetail:input_type -> emr.v1.GetKBMDetailRequest
+	11, // 13: emr.v1.EMRService.GetICD10SuggestionsForKBM:input_type -> emr.v1.GetICD10SuggestionsForKBMRequest
+	14, // 14: emr.v1.EMRService.AddDiagnosisKBM:input_type -> emr.v1.AddDiagnosisKBMRequest
+	16, // 15: emr.v1.EMRService.VerifyICD10Mapping:input_type -> emr.v1.VerifyICD10MappingRequest
+	18, // 16: emr.v1.EMRService.ListPendingICD10Verifications:input_type -> emr.v1.ListPendingICD10VerificationsRequest
+	5,  // 17: emr.v1.EMRService.SubmitTriage:output_type -> emr.v1.SubmitTriageResponse
+	22, // 18: emr.v1.EMRService.AddMedicalAction:output_type -> emr.v1.AddMedicalActionResponse
+	26, // 19: emr.v1.EMRService.GetMedicalRecord:output_type -> emr.v1.GetMedicalRecordResponse
+	3,  // 20: emr.v1.EMRService.StartEncounter:output_type -> emr.v1.StartEncounterResponse
+	1,  // 21: emr.v1.EMRService.GetEstimatedWaitTime:output_type -> emr.v1.GetEstimatedWaitTimeResponse
+	8,  // 22: emr.v1.EMRService.SearchKBM:output_type -> emr.v1.SearchKBMResponse
+	10, // 23: emr.v1.EMRService.GetKBMDetail:output_type -> emr.v1.GetKBMDetailResponse
+	13, // 24: emr.v1.EMRService.GetICD10SuggestionsForKBM:output_type -> emr.v1.GetICD10SuggestionsForKBMResponse
+	15, // 25: emr.v1.EMRService.AddDiagnosisKBM:output_type -> emr.v1.AddDiagnosisKBMResponse
+	17, // 26: emr.v1.EMRService.VerifyICD10Mapping:output_type -> emr.v1.VerifyICD10MappingResponse
+	20, // 27: emr.v1.EMRService.ListPendingICD10Verifications:output_type -> emr.v1.ListPendingICD10VerificationsResponse
+	17, // [17:28] is the sub-list for method output_type
+	6,  // [6:17] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_shared_proto_emr_v1_emr_proto_init() }
-func file_shared_proto_emr_v1_emr_proto_init() {
-	if File_shared_proto_emr_v1_emr_proto != nil {
+func init() { file_src_be_shared_proto_emr_v1_emr_proto_init() }
+func file_src_be_shared_proto_emr_v1_emr_proto_init() {
+	if File_src_be_shared_proto_emr_v1_emr_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_shared_proto_emr_v1_emr_proto_rawDesc), len(file_shared_proto_emr_v1_emr_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_src_be_shared_proto_emr_v1_emr_proto_rawDesc), len(file_src_be_shared_proto_emr_v1_emr_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_shared_proto_emr_v1_emr_proto_goTypes,
-		DependencyIndexes: file_shared_proto_emr_v1_emr_proto_depIdxs,
-		MessageInfos:      file_shared_proto_emr_v1_emr_proto_msgTypes,
+		GoTypes:           file_src_be_shared_proto_emr_v1_emr_proto_goTypes,
+		DependencyIndexes: file_src_be_shared_proto_emr_v1_emr_proto_depIdxs,
+		MessageInfos:      file_src_be_shared_proto_emr_v1_emr_proto_msgTypes,
 	}.Build()
-	File_shared_proto_emr_v1_emr_proto = out.File
-	file_shared_proto_emr_v1_emr_proto_goTypes = nil
-	file_shared_proto_emr_v1_emr_proto_depIdxs = nil
+	File_src_be_shared_proto_emr_v1_emr_proto = out.File
+	file_src_be_shared_proto_emr_v1_emr_proto_goTypes = nil
+	file_src_be_shared_proto_emr_v1_emr_proto_depIdxs = nil
 }

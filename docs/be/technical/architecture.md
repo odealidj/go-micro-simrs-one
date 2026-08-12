@@ -26,7 +26,8 @@
 Sistem ini membutuhkan otentikasi **PASETO (Platform-Agnostic Security Tokens)**—alternatif modern dan lebih aman dari JWT—serta otorisasi untuk beberapa Role:
 - **Admin / Resepsionis:** Pendaftaran pasien baru dan lama.
 - **Perawat:** Mengisi data pemeriksaan awal (triage/vital signs).
-- **Dokter:** Mengisi diagnosa (ICD-10), tindakan, dan request resep.
+- **Dokter:** Mengisi diagnosa (KBM), tindakan, dan request resep.
+- **Rekam Medis:** Melakukan verifikasi dan pemetaan (mapping) dari KBM ke standar ICD-10.
 - **Apoteker:** Memproses resep obat dan *dispense* ke pasien.
 - **Kasir:** Proses konfirmasi pembayaran (*billing*).
 
@@ -35,7 +36,7 @@ Sistem ini membutuhkan otentikasi **PASETO (Platform-Agnostic Security Tokens)**
 2. **User/Auth Service:** Login, registrasi staff, dan penertiban token **PASETO**.
 3. **Patient Service:** Pengelolaan master pasien, generate MRN (Format `10-XX-XX-XX`).
 4. **Registration Service:** Kunjungan pasien (`encounter`) dan nomor antrean poliklinik.
-5. **EMR Service:** Pemeriksaan perawat, diagnosa (ICD), tindakan, resep, serta *Summary Tables* untuk perhitungan durasi.
+5. **EMR Service:** Pemeriksaan perawat, diagnosa (KBM) beserta mapping ICD-10, tindakan, resep, serta *Summary Tables* untuk perhitungan durasi.
 6. **Pharmacy Service:** Master data obat, pemotongan stok, proses resep (dispense).
 7. **Billing Service:** Pembuatan *invoice* (tagihan) dari EMR dan Apotek.
 

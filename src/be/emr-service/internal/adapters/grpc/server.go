@@ -44,15 +44,110 @@ func (s *EMRGrpcServer) SubmitTriage(ctx context.Context, req *pb.SubmitTriageRe
 	}, nil
 }
 
-func (s *EMRGrpcServer) AddDiagnosis(ctx context.Context, req *pb.AddDiagnosisRequest) (*pb.AddDiagnosisResponse, error) {
-	err := s.emrService.AddDiagnosis(ctx, req.EncounterNo, req.Icd10Code, req.Notes, req.DoctorId, req.DepartmentCode, req.Gender, req.AgeBracket)
+func (s *EMRGrpcServer) SearchKBM(ctx context.Context, req *pb.SearchKBMRequest) (*pb.SearchKBMResponse, error) {
+	limit := req.Limit
+	if limit == 0 {
+		limit = 20
+	}
+	items, total, err := s.emrService.SearchKBM(ctx, req.Query, limit, req.Offset)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add diagnosis: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to search kbm: %v", err)
 	}
 
-	return &pb.AddDiagnosisResponse{
+	var pbItems []*pb.KBMItem
+	for _, i := range items {
+		pbItems = append(pbItems, &pb.KBMItem{
+			KbmCode:     i.KBMCode,
+			KbmName:     i.KBMName,
+			Description: i.Description,
+			BodySystem:  i.BodySystem,
+		})
+	}
+	return &pb.SearchKBMResponse{
+		Items: pbItems,
+		Total: total,
+	}, nil
+}
+
+func (s *EMRGrpcServer) GetKBMDetail(ctx context.Context, req *pb.GetKBMDetailRequest) (*pb.GetKBMDetailResponse, error) {
+	i, err := s.emrService.GetKBMDetail(ctx, req.KbmCode)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "kbm not found: %v", err)
+	}
+	return &pb.GetKBMDetailResponse{
+		Item: &pb.KBMItem{
+			KbmCode:     i.KBMCode,
+			KbmName:     i.KBMName,
+			Description: i.Description,
+			BodySystem:  i.BodySystem,
+		},
+	}, nil
+}
+
+func (s *EMRGrpcServer) GetICD10SuggestionsForKBM(ctx context.Context, req *pb.GetICD10SuggestionsForKBMRequest) (*pb.GetICD10SuggestionsForKBMResponse, error) {
+	suggestions, err := s.emrService.GetICD10SuggestionsForKBM(ctx, req.KbmCode)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get icd10 suggestions: %v", err)
+	}
+	var pbSuggestions []*pb.ICD10Suggestion
+	for _, s := range suggestions {
+		pbSuggestions = append(pbSuggestions, &pb.ICD10Suggestion{
+			Icd10Code: s.ICD10Code,
+			IsPrimary: s.IsPrimary,
+		})
+	}
+	return &pb.GetICD10SuggestionsForKBMResponse{
+		Suggestions: pbSuggestions,
+	}, nil
+}
+
+func (s *EMRGrpcServer) AddDiagnosisKBM(ctx context.Context, req *pb.AddDiagnosisKBMRequest) (*pb.AddDiagnosisKBMResponse, error) {
+	err := s.emrService.AddDiagnosisKBM(ctx, req.EncounterNo, req.KbmCode, req.Notes, req.DoctorId, req.DepartmentCode, req.Gender, req.AgeBracket)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to add kbm diagnosis: %v", err)
+	}
+
+	return &pb.AddDiagnosisKBMResponse{
 		Success: true,
 		Message: "Diagnosis added successfully",
+	}, nil
+}
+
+func (s *EMRGrpcServer) VerifyICD10Mapping(ctx context.Context, req *pb.VerifyICD10MappingRequest) (*pb.VerifyICD10MappingResponse, error) {
+	err := s.emrService.VerifyICD10Mapping(ctx, req.EncounterNo, req.Icd10Codes, req.Notes)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to verify icd10 mapping: %v", err)
+	}
+	return &pb.VerifyICD10MappingResponse{
+		Success: true,
+		Message: "ICD-10 mapping verified",
+	}, nil
+}
+
+func (s *EMRGrpcServer) ListPendingICD10Verifications(ctx context.Context, req *pb.ListPendingICD10VerificationsRequest) (*pb.ListPendingICD10VerificationsResponse, error) {
+	limit := req.Limit
+	if limit == 0 {
+		limit = 20
+	}
+	items, total, err := s.emrService.ListPendingICD10Verifications(ctx, limit, req.Offset)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list pending verifications: %v", err)
+	}
+
+	var pbItems []*pb.PendingVerificationItem
+	for _, i := range items {
+		pbItems = append(pbItems, &pb.PendingVerificationItem{
+			EncounterNo:        i.EncounterNo,
+			Mrn:                i.MRN,
+			KbmCode:            i.KBMCode,
+			KbmName:            i.KBMName,
+			Icd10MappingStatus: i.ICD10MappingStatus,
+			CreatedAt:          i.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		})
+	}
+	return &pb.ListPendingICD10VerificationsResponse{
+		Items: pbItems,
+		Total: total,
 	}, nil
 }
 
@@ -107,12 +202,15 @@ func (s *EMRGrpcServer) GetMedicalRecord(ctx context.Context, req *pb.GetMedical
 	}
 
 	return &pb.GetMedicalRecordResponse{
-		EncounterNo: mr.EncounterNo,
-		PatientMrn:  mr.MRN,
-		Icd10Codes:  mr.ICD10Codes,
-		Notes:       mr.Notes,
-		Triage:      triage,
-		Actions:     actions,
+		EncounterNo:        mr.EncounterNo,
+		PatientMrn:         mr.MRN,
+		Icd10Codes:         mr.ICD10Codes,
+		KbmCode:            mr.KBMCode,
+		KbmName:            mr.KBMName,
+		Icd10MappingStatus: mr.ICD10MappingStatus,
+		Notes:              mr.Notes,
+		Triage:             triage,
+		Actions:            actions,
 	}, nil
 }
 

@@ -22,26 +22,32 @@ Project ini juga ditujukan sebagai *showcase portfolio* pengembangan perangkat l
 2. **Pemeriksaan Dokter:**
    - Dokter melihat hasil pemeriksaan awal perawat.
    - Dokter melakukan pemeriksaan medis.
-   - Dokter menginput **Diagnosa** (berdasarkan standar ICD-10).
+   - Dokter menginput **Diagnosa** berdasarkan **Kamus Bahasa Medis (KBM)**.
    - Dokter menginput **Tindakan Medis** (beserta tarif).
    - Dokter membuat **Resep Obat** melalui sistem.
    - Dokter mengarahkan pasien ke Kasir untuk melakukan pelunasan, kemudian ke Apotek.
 
-### C. Pembayaran / Kasir
+### C. Rekam Medis (Medical Records)
+1. **Verifikasi Diagnosa:**
+   - Bagian rekam medis menerima data KBM yang diinput oleh dokter.
+   - Sistem memberikan rekomendasi (suggestions) kode **ICD-10** berdasarkan master data mapping (many-to-many) dari KBM tersebut.
+   - Bagian rekam medis melakukan verifikasi dan menetapkan kode ICD-10 final (bisa lebih dari satu) untuk kepentingan pelaporan dan asuransi.
+
+### D. Pembayaran / Kasir
 1. **Kalkulasi Tagihan:**
    - Sistem akan mengkalkulasi total tagihan secara otomatis, yang mencakup biaya tindakan medis di poliklinik dan harga obat dari resep.
 2. **Pelunasan Pembayaran:**
    - Pasien melakukan pelunasan tagihan di Kasir.
    - Setelah lunas, status pasien di-update sehingga obat dapat mulai diproses di Apotek.
 
-### D. Apotek (Pharmacy)
+### E. Apotek (Pharmacy)
 1. **Penerimaan Resep:**
    - Data resep obat pasien akan muncul di sistem Apotek (diutamakan bagi pasien yang status pembayarannya sudah lunas).
 2. **Penyerahan Obat:**
    - Petugas apotek menyiapkan obat berdasarkan resep.
    - Obat diserahkan kepada pasien dan keseluruhan proses rawat jalan dinyatakan selesai.
 
-### E. Estimasi Waktu Tunggu (Fitur Unggulan)
+### F. Estimasi Waktu Tunggu (Fitur Unggulan)
 Sistem memiliki fitur untuk memberikan estimasi waktu secara real-time kepada pasien:
 1. **Estimasi Waktu Poliklinik:** 
    - Pasien dapat melihat berapa menit lagi giliran mereka akan dipanggil. Kalkulasi didasarkan pada Rata-Rata Waktu Pelayanan (AHT - Average Handling Time) dari masing-masing dokter dikalikan dengan jumlah antrean di depan pasien.

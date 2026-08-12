@@ -35,13 +35,13 @@ func RunAggregation(repo *db.Queries) {
 	// For the scope of this implementation, we will simulate the aggregation output
 	// to ensure the AI Queue Estimator has reliable historical data to fall back on.
 
-	diagnoses := []string{"J00", "J01", "E11", "I10"}
+	kbmCodes := []string{"KBM-101", "KBM-102", "KBM-201", "KBM-999"}
 	doctors := []string{"DOC-001", "DOC-002"}
 	departments := []string{"IGD", "P01", "P02"}
 	ageBrackets := []string{"Balita", "Anak-Anak", "Dewasa", "Lansia"}
 	genders := []string{"L", "P"}
 
-	for _, diag := range diagnoses {
+	for _, kbm := range kbmCodes {
 		for _, doc := range doctors {
 			for _, dept := range departments {
 				for _, age := range ageBrackets {
@@ -52,7 +52,7 @@ func RunAggregation(repo *db.Queries) {
 						sampleCount := int32(rand.Intn(45) + 5)
 
 						err := repo.UpsertClinicWaitAggregate(ctx, db.UpsertClinicWaitAggregateParams{
-							Diagnosis:          diag,
+							KbmCode:            kbm,
 							DoctorID:           doc,
 							DepartmentCode:     dept,
 							AgeBracket:         age,
@@ -61,7 +61,7 @@ func RunAggregation(repo *db.Queries) {
 							SampleCount:        sampleCount,
 						})
 						if err != nil {
-							slog.Error("Failed to upsert clinic wait aggregate", "error", err, "diag", diag, "doc", doc, "dept", dept, "age", age, "gender", gender)
+							slog.Error("Failed to upsert clinic wait aggregate", "error", err, "kbm", kbm, "doc", doc, "dept", dept, "age", age, "gender", gender)
 						}
 					}
 				}

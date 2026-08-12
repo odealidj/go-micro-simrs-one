@@ -11,7 +11,7 @@ import (
 
 type ClinicWaitTimeAggregate struct {
 	ID                 int32
-	Diagnosis          string
+	KbmCode            string
 	DoctorID           string
 	DepartmentCode     string
 	Gender             string
@@ -19,6 +19,23 @@ type ClinicWaitTimeAggregate struct {
 	AverageWaitMinutes int32
 	SampleCount        int32
 	UpdatedAt          sql.NullTime
+}
+
+type KbmCatalog struct {
+	KbmCode     string
+	KbmName     string
+	Description sql.NullString
+	BodySystem  sql.NullString
+	IsActive    bool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+type KbmIcd10Mapping struct {
+	KbmCode   string
+	Icd10Code string
+	IsPrimary sql.NullBool
+	CreatedAt sql.NullTime
 }
 
 type MedicalAction struct {
@@ -51,6 +68,9 @@ type MedicalRecord struct {
 	Diagnosis              sql.NullString
 	Gender                 sql.NullString
 	AgeBracket             sql.NullString
+	KbmCode                sql.NullString
+	KbmName                sql.NullString
+	Icd10MappingStatus     sql.NullString
 }
 
 type OutboxEvent struct {

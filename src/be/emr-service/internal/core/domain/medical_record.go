@@ -20,13 +20,37 @@ type TriageData struct {
 }
 
 type MedicalRecord struct {
-	ID          string
-	EncounterNo string
-	MRN         string
-	ICD10Codes  []string
-	Notes       string
-	Triage      TriageData
-	Actions     []MedicalAction
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID                 string
+	EncounterNo        string
+	MRN                string
+	ICD10Codes         []string
+	KBMCode            string
+	KBMName            string
+	ICD10MappingStatus string
+	Notes              string
+	Triage             TriageData
+	Actions            []MedicalAction
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
+type KBMItem struct {
+	KBMCode     string
+	KBMName     string
+	Description string
+	BodySystem  string
+}
+
+type ICD10Suggestion struct {
+	ICD10Code string
+	IsPrimary bool
+}
+
+type PendingVerification struct {
+	EncounterNo        string
+	MRN                string
+	KBMCode            string
+	KBMName            string
+	ICD10MappingStatus string
+	CreatedAt          time.Time
 }

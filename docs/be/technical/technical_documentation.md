@@ -436,13 +436,30 @@ erDiagram
         int heart_rate "BPM"
         string doctor_id "dokter penanggung jawab"
         string department_code "kode poli"
-        string diagnosis "diagnosa utama ICD-10"
+        string kbm_code "kode KBM"
+        string kbm_name "nama KBM"
+        string icd10_mapping_status "PENDING|VERIFIED"
         string gender "M atau F"
         string age_bracket "0-5,6-17,18-60,60+"
         timestamp started_at
         timestamp completed_at
         timestamp created_at
         timestamp updated_at
+    }
+
+    kbm_catalog {
+        string kbm_code PK
+        string kbm_name
+        string description
+        string body_system
+        timestamp created_at
+    }
+
+    kbm_icd10_mappings {
+        string kbm_code PK, FK
+        string icd10_code PK
+        boolean is_primary
+        timestamp created_at
     }
 
     medical_actions {
@@ -478,6 +495,7 @@ erDiagram
 
     medical_records ||--o{ medical_actions : "has"
     medical_records ||--o{ outbox_events_emr : "generates"
+    kbm_catalog ||--o{ kbm_icd10_mappings : "has"
 ```
 
 ---
@@ -499,7 +517,8 @@ erDiagram
         string status "CREATED|DISPENSED|CANCELLED|ROLLBACKED"
         boolean is_compounded "apakah resep racikan"
         string notes
-        string diagnosis "ICD-10 dari dokter"
+        string kbm_code "KBM dari dokter"
+        string kbm_name "Nama KBM"
         string gender "M atau F"
         string age_bracket
         string doctor_id
@@ -611,7 +630,7 @@ erDiagram
     medical_records {
         VARCHAR id PK
         VARCHAR encounter_no FK
-        VARCHAR diagnosis
+        VARCHAR kbm_code
         VARCHAR doctor_id
         VARCHAR gender
         VARCHAR age_bracket
@@ -622,7 +641,7 @@ erDiagram
         VARCHAR id PK
         VARCHAR encounter_no FK
         VARCHAR status
-        VARCHAR diagnosis
+        VARCHAR kbm_code
         VARCHAR doctor_id
     }
 
@@ -718,7 +737,12 @@ doctor_id, department_code, gender, age_bracket, is_compounded
 |---|---|---|---|---|
 | `POST` | `/emr/triage` | 🔐 | 👤 doctor, nurse | Input data triage (vital signs) |
 | `POST` | `/emr/start` | 🔐 | 👤 doctor, nurse | Mulai encounter (DRAFT → ACTIVE) |
-| `POST` | `/emr/diagnosis` | 🔐 | 👤 doctor, nurse | Tambah diagnosa ICD-10 |
+| `POST` | `/emr/diagnosis-kbm` | 🔐 | 👤 doctor, nurse | Tambah diagnosa KBM |
+| `GET` | `/emr/kbm/search` | 🔐 | 👤 doctor, nurse, medical_records, admin | Pencarian KBM |
+| `GET` | `/emr/kbm/{code}` | 🔐 | 👤 doctor, nurse, medical_records, admin | Detail KBM |
+| `GET` | `/emr/kbm/{code}/icd10-suggestions` | 🔐 | 👤 medical_records, admin | Rekomendasi ICD-10 dari KBM |
+| `GET` | `/emr/pending-icd10` | 🔐 | 👤 medical_records, admin | Daftar RM yang menunggu verifikasi ICD-10 |
+| `POST` | `/emr/verify-icd10` | 🔐 | 👤 medical_records, admin | Verifikasi & simpan mapping ICD-10 |
 | `POST` | `/emr/actions` | 🔐 | 👤 doctor, nurse | Tambah tindakan medis |
 | `GET` | `/emr/record/{encounter_no}` | 🔐 | 👤 doctor, nurse | Ambil rekam medis lengkap |
 
@@ -947,7 +971,9 @@ flowchart TD
 
     F["👨‍⚕️ Doctor\nMulai Konsultasi\nPOST /emr/start"] --> G
 
-    G["👨‍⚕️ Doctor\nInput Diagnosa\nPOST /emr/diagnosis"] --> H
+    G["👨‍⚕️ Doctor\nInput Diagnosa KBM\nPOST /emr/diagnosis-kbm"] --> G2
+
+    G2["👨‍⚕️ Medical Records\nVerifikasi ICD-10\nPOST /emr/verify-icd10"] --> H
 
     H["👨‍⚕️ Doctor\nTambah Tindakan\nPOST /emr/actions"] -->|"Event: MedicalActionAdded"| I
 
