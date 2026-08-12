@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -40,7 +41,14 @@ func (s *patientServiceImpl) generateMRN(ctx context.Context) (string, error) {
 	return formattedMRN, nil
 }
 
-func (s *patientServiceImpl) RegisterPatient(ctx context.Context, name, nik, dob string) (string, error) {
+func (s *patientServiceImpl) RegisterPatient(ctx context.Context, name, nik, dob, userID string) (string, error) {
+	if s.repo != nil {
+		existingPatient, err := s.repo.FindByNIK(ctx, nik)
+		if err == nil && existingPatient != nil {
+			return "", errors.New("patient already exists")
+		}
+	}
+
 	mrn, err := s.generateMRN(ctx)
 	if err != nil {
 		return "", err
@@ -51,6 +59,7 @@ func (s *patientServiceImpl) RegisterPatient(ctx context.Context, name, nik, dob
 		Name:      name,
 		NIK:       nik,
 		DOB:       dob,
+		UserID:    userID,
 		CreatedAt: time.Now(),
 	}
 

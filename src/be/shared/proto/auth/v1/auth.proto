@@ -13,6 +13,9 @@ service AuthService {
   
   // ValidateToken verifies a PASETO token and returns the user's role/id
   rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+  
+  // RefreshToken exchanges a valid refresh token for a new pair of access and refresh tokens
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
 }
 
 message LoginRequest {
@@ -22,9 +25,12 @@ message LoginRequest {
 
 message LoginResponse {
   bool success = 1;
-  string token = 2;
-  string role = 3;
-  string user_id = 4;
+  string access_token = 2;
+  string refresh_token = 3;
+  string access_token_expires_at = 4;
+  string refresh_token_expires_at = 5;
+  string role = 6;
+  string user_id = 7;
 }
 
 message SignupRequest {
@@ -47,4 +53,16 @@ message ValidateTokenResponse {
   bool valid = 1;
   string user_id = 2;
   string role = 3;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  bool success = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+  string access_token_expires_at = 4;
+  string refresh_token_expires_at = 5;
 }

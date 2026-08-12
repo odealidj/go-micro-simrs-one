@@ -7,5 +7,6 @@ type Patient struct {
 	Name      string
 	NIK       string
 	DOB       string
+	UserID    string
 	CreatedAt time.Time
 }

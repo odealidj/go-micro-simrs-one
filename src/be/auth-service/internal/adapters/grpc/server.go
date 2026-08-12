@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,15 +24,35 @@ func (s *AuthGrpcServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.L
 	if req.Username == "" || req.Password == "" {
 		return nil, status.Error(codes.InvalidArgument, "username and password are required")
 	}
-	token, role, userID, err := s.authService.Login(ctx, req.Username, req.Password)
+	tokenPair, role, userID, err := s.authService.Login(ctx, req.Username, req.Password)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "invalid credentials: %v", err)
+		return nil, status.Errorf(codes.Unauthenticated, "%v", err)
 	}
 	return &pb.LoginResponse{
 		Success: true,
-		Token:   token,
+		AccessToken: tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		AccessTokenExpiresAt: tokenPair.AccessTokenExpiresAt.Format(time.RFC3339),
+		RefreshTokenExpiresAt: tokenPair.RefreshTokenExpiresAt.Format(time.RFC3339),
 		Role:    role,
 		UserId:  userID,
+	}, nil
+}
+
+func (s *AuthGrpcServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
+	if req.RefreshToken == "" {
+		return nil, status.Error(codes.InvalidArgument, "refresh token is required")
+	}
+	tokenPair, err := s.authService.RefreshToken(ctx, req.RefreshToken)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "%v", err)
+	}
+	return &pb.RefreshTokenResponse{
+		Success: true,
+		AccessToken: tokenPair.AccessToken,
+		RefreshToken: tokenPair.RefreshToken,
+		AccessTokenExpiresAt: tokenPair.AccessTokenExpiresAt.Format(time.RFC3339),
+		RefreshTokenExpiresAt: tokenPair.RefreshTokenExpiresAt.Format(time.RFC3339),
 	}, nil
 }
 

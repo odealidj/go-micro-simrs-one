@@ -6,6 +6,8 @@ package db
 
 import (
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 type Patient struct {
@@ -14,4 +16,5 @@ type Patient struct {
 	Nik       string
 	Dob       string
 	CreatedAt sql.NullTime
+	UserID    uuid.NullUUID
 }

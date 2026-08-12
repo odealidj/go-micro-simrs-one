@@ -7,54 +7,124 @@ package db
 
 import (
 	"context"
+	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createPatient = `-- name: CreatePatient :one
-INSERT INTO patients (mrn, name, nik, dob)
-VALUES ($1, $2, $3, $4)
-RETURNING mrn, name, nik, dob, created_at
+INSERT INTO patients (mrn, name, nik, dob, user_id)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING mrn, name, nik, dob, user_id, created_at
 `
 
 type CreatePatientParams struct {
-	Mrn  string
-	Name string
-	Nik  string
-	Dob  string
+	Mrn    string
+	Name   string
+	Nik    string
+	Dob    string
+	UserID uuid.NullUUID
 }
 
-func (q *Queries) CreatePatient(ctx context.Context, arg CreatePatientParams) (Patient, error) {
+type CreatePatientRow struct {
+	Mrn       string
+	Name      string
+	Nik       string
+	Dob       string
+	UserID    uuid.NullUUID
+	CreatedAt sql.NullTime
+}
+
+func (q *Queries) CreatePatient(ctx context.Context, arg CreatePatientParams) (CreatePatientRow, error) {
 	row := q.db.QueryRowContext(ctx, createPatient,
 		arg.Mrn,
 		arg.Name,
 		arg.Nik,
 		arg.Dob,
+		arg.UserID,
 	)
-	var i Patient
+	var i CreatePatientRow
 	err := row.Scan(
 		&i.Mrn,
 		&i.Name,
 		&i.Nik,
 		&i.Dob,
+		&i.UserID,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getPatientByMRN = `-- name: GetPatientByMRN :one
-SELECT mrn, name, nik, dob, created_at
+SELECT mrn, name, nik, dob, user_id, created_at
 FROM patients
 WHERE mrn = $1 LIMIT 1
 `
 
-func (q *Queries) GetPatientByMRN(ctx context.Context, mrn string) (Patient, error) {
+type GetPatientByMRNRow struct {
+	Mrn       string
+	Name      string
+	Nik       string
+	Dob       string
+	UserID    uuid.NullUUID
+	CreatedAt sql.NullTime
+}
+
+func (q *Queries) GetPatientByMRN(ctx context.Context, mrn string) (GetPatientByMRNRow, error) {
 	row := q.db.QueryRowContext(ctx, getPatientByMRN, mrn)
-	var i Patient
+	var i GetPatientByMRNRow
 	err := row.Scan(
 		&i.Mrn,
 		&i.Name,
 		&i.Nik,
 		&i.Dob,
+		&i.UserID,
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const getPatientByNIK = `-- name: GetPatientByNIK :one
+SELECT mrn, name, nik, dob, user_id, created_at
+FROM patients
+WHERE nik = $1 LIMIT 1
+`
+
+type GetPatientByNIKRow struct {
+	Mrn       string
+	Name      string
+	Nik       string
+	Dob       string
+	UserID    uuid.NullUUID
+	CreatedAt sql.NullTime
+}
+
+func (q *Queries) GetPatientByNIK(ctx context.Context, nik string) (GetPatientByNIKRow, error) {
+	row := q.db.QueryRowContext(ctx, getPatientByNIK, nik)
+	var i GetPatientByNIKRow
+	err := row.Scan(
+		&i.Mrn,
+		&i.Name,
+		&i.Nik,
+		&i.Dob,
+		&i.UserID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updatePatientUserID = `-- name: UpdatePatientUserID :exec
+UPDATE patients
+SET user_id = $2
+WHERE mrn = $1
+`
+
+type UpdatePatientUserIDParams struct {
+	Mrn    string
+	UserID uuid.NullUUID
+}
+
+func (q *Queries) UpdatePatientUserID(ctx context.Context, arg UpdatePatientUserIDParams) error {
+	_, err := q.db.ExecContext(ctx, updatePatientUserID, arg.Mrn, arg.UserID)
+	return err
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"log/slog"
 	"net"
@@ -56,6 +57,28 @@ func main() {
 
 	authRepo := repository.NewUserRepository(dbConn)
 	authService := services.NewAuthService(authRepo, tokenManager)
+
+	// --- Bootstrapping Initial Admin ---
+	initAdminUser := os.Getenv("INITIAL_ADMIN_USERNAME")
+	initAdminPass := os.Getenv("INITIAL_ADMIN_PASSWORD")
+	if initAdminUser == "" {
+		initAdminUser = "admin"
+	}
+	if initAdminPass == "" {
+		initAdminPass = "admin123"
+	}
+
+	_, err = authService.Signup(context.Background(), initAdminUser, initAdminPass, "admin")
+	if err != nil {
+		if err.Error() == "username already exists" {
+			slog.Info("Initial admin user already exists", "username", initAdminUser)
+		} else {
+			slog.Error("Failed to bootstrap initial admin user", "error", err)
+		}
+	} else {
+		slog.Info("Initial admin user created successfully", "username", initAdminUser)
+	}
+	// -----------------------------------
 
 	// 4. Init gRPC Server
 	grpcServer := grpc.NewServer()

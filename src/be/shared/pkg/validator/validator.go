@@ -4,6 +4,7 @@ package validator
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 // ValidationError holds a map of field -> error message.
@@ -14,15 +15,15 @@ type ValidationError struct {
 func (e *ValidationError) Error() string {
 	msgs := make([]string, 0, len(e.Fields))
 	for field, msg := range e.Fields {
-		msgs = append(msgs, fmt.Sprintf("%s: %s", field, msg))
+		msgs = append(msgs, fmt.Sprintf("%s %s", field, msg))
 	}
-	return "validation failed: " + strings.Join(msgs, "; ")
+	return "Validasi gagal: " + strings.Join(msgs, ", ")
 }
 
 // RequiredString returns an error if the value is empty.
 func RequiredString(field, value string) error {
 	if strings.TrimSpace(value) == "" {
-		return &ValidationError{Fields: map[string]string{field: "is required and cannot be empty"}}
+		return &ValidationError{Fields: map[string]string{field: "tidak boleh kosong"}}
 	}
 	return nil
 }
@@ -46,7 +47,7 @@ func ValidateAll(checks map[string]func() error) error {
 func NotEmpty(value string) func() error {
 	return func() error {
 		if strings.TrimSpace(value) == "" {
-			return fmt.Errorf("cannot be empty")
+			return fmt.Errorf("tidak boleh kosong")
 		}
 		return nil
 	}
@@ -56,8 +57,22 @@ func NotEmpty(value string) func() error {
 func MinLength(value string, min int) func() error {
 	return func() error {
 		if len(strings.TrimSpace(value)) < min {
-			return fmt.Errorf("must be at least %d characters", min)
+			return fmt.Errorf("harus minimal %d karakter", min)
 		}
 		return nil
 	}
 }
+
+// IsDate is a helper to check if a string matches the YYYY-MM-DD format.
+func IsDate(value string) func() error {
+	return func() error {
+		if strings.TrimSpace(value) == "" {
+			return nil // Use NotEmpty if it's required
+		}
+		if _, err := time.Parse("2006-01-02", value); err != nil {
+			return fmt.Errorf("format tanggal tidak valid, harus berformat YYYY-MM-DD")
+		}
+		return nil
+	}
+}
+

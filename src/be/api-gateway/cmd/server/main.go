@@ -37,6 +37,12 @@ func main() {
 
 	// 1. Basic Middlewares
 	r.Use(chimiddleware.RequestID)
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Request-Id", chimiddleware.GetReqID(r.Context()))
+			next.ServeHTTP(w, r)
+		})
+	})
 	r.Use(chimiddleware.RealIP)
 	r.Use(chimiddleware.Logger)
 	r.Use(chimiddleware.Recoverer)
@@ -200,10 +206,105 @@ func main() {
 				return authClient.Login(r.Context(), &req)
 			})
 			if err != nil {
-				response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+				response.HandleGRPCError(w, err)
 				return
 			}
-			response.JSON(w, http.StatusOK, res)
+			response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
+		})
+
+		r.Post("/auth/refresh", func(w http.ResponseWriter, req *http.Request) {
+			var payload struct {
+				RefreshToken string `json:"refresh_token"`
+			}
+			if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+				response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+				return
+			}
+			if err := validator.ValidateAll(map[string]func() error{
+				"refresh_token": validator.NotEmpty(payload.RefreshToken),
+			}); err != nil {
+				response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+				return
+			}
+			res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.RefreshTokenResponse, error) {
+				return authClient.RefreshToken(req.Context(), &authpb.RefreshTokenRequest{
+					RefreshToken: payload.RefreshToken,
+				})
+			})
+			if err != nil {
+				response.HandleGRPCError(w, err)
+				return
+			}
+			response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Token refreshed successfully",
+				Data:    res,
+			})
+		})
+
+		r.Post("/auth/signup/patient", func(w http.ResponseWriter, req *http.Request) {
+			var payload struct {
+				Username string `json:"username"`
+				Password string `json:"password"`
+				Name     string `json:"name"`
+				Nik      string `json:"nik"`
+				Dob      string `json:"dob"`
+			}
+			if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+				response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+				return
+			}
+			if err := validator.ValidateAll(map[string]func() error{
+				"username": validator.NotEmpty(payload.Username),
+				"password": validator.MinLength(payload.Password, 6),
+				"name":     validator.NotEmpty(payload.Name),
+				"nik":      validator.NotEmpty(payload.Nik),
+				"dob":      validator.IsDate(payload.Dob),
+			}); err != nil {
+				response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+				return
+			}
+
+			// 1. Create Auth User
+			authRes, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.SignupResponse, error) {
+				return authClient.Signup(req.Context(), &authpb.SignupRequest{
+					Username: payload.Username,
+					Password: payload.Password,
+					Role:     "patient", // Hardcoded role
+				})
+			})
+			if err != nil {
+				response.HandleGRPCError(w, err)
+				return
+			}
+
+			// 2. Register Patient
+			patientRes, err := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.RegisterPatientResponse, error) {
+				return patientClient.RegisterPatient(req.Context(), &patientpb.RegisterPatientRequest{
+					Name:   payload.Name,
+					Nik:    payload.Nik,
+					Dob:    payload.Dob,
+					UserId: authRes.UserId,
+				})
+			})
+			if err != nil {
+				// Note: in a real system we would rollback the auth user creation here using Saga/Outbox.
+				response.HandleGRPCError(w, err)
+				return
+			}
+
+			response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Patient registered successfully",
+				Data: map[string]interface{}{
+					"user_id": authRes.UserId,
+					"mrn":     patientRes.Mrn,
+				},
+			})
 		})
 
 		// Protected routes
@@ -214,7 +315,7 @@ func main() {
 			// Auth (Admin only)
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireRole("admin"))
-				r.Post("/auth/signup", func(w http.ResponseWriter, req *http.Request) {
+				r.Post("/auth/signup/staff", func(w http.ResponseWriter, req *http.Request) {
 					var payload authpb.SignupRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
@@ -232,10 +333,14 @@ func main() {
 						return authClient.Signup(req.Context(), &payload)
 					})
 					if err != nil {
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						response.HandleGRPCError(w, err)
 						return
 					}
-					response.JSON(w, http.StatusOK, res)
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 				})
 			})
 			
@@ -251,7 +356,7 @@ func main() {
 					if err := validator.ValidateAll(map[string]func() error{
 						"name": validator.NotEmpty(payload.Name),
 						"nik":  validator.NotEmpty(payload.Nik),
-						"dob":  validator.NotEmpty(payload.Dob),
+						"dob":  validator.IsDate(payload.Dob),
 					}); err != nil {
 						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
@@ -260,10 +365,14 @@ func main() {
 					return patientClient.RegisterPatient(req.Context(), &payload)
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 
 				r.Get("/patient/{mrn}", func(w http.ResponseWriter, req *http.Request) {
@@ -278,7 +387,11 @@ func main() {
 					})
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 			})
 
@@ -303,10 +416,14 @@ func main() {
 					return regClient.RegisterEncounter(req.Context(), &payload)
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 			})
 
@@ -323,10 +440,14 @@ func main() {
 					return emrClient.SubmitTriage(req.Context(), &payload)
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 
 				r.Post("/emr/start", func(w http.ResponseWriter, req *http.Request) {
@@ -345,10 +466,14 @@ func main() {
 					return emrClient.StartEncounter(req.Context(), &payload)
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 
 				r.Post("/emr/diagnosis-kbm", func(w http.ResponseWriter, req *http.Request) {
@@ -368,10 +493,14 @@ func main() {
 					return emrClient.AddDiagnosisKBM(req.Context(), &payload)
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 
 				r.Post("/emr/actions", func(w http.ResponseWriter, req *http.Request) {
@@ -384,10 +513,14 @@ func main() {
 					return emrClient.AddMedicalAction(req.Context(), &payload)
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 
 				r.Get("/emr/record/{encounter_no}", func(w http.ResponseWriter, req *http.Request) {
@@ -396,10 +529,14 @@ func main() {
 					return emrClient.GetMedicalRecord(req.Context(), &emrpb.GetMedicalRecordRequest{EncounterNo: encounterNo})
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 			})
 
@@ -415,10 +552,14 @@ func main() {
 						})
 					})
 					if err != nil {
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						response.HandleGRPCError(w, err)
 						return
 					}
-					response.JSON(w, http.StatusOK, res)
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 				})
 
 				r.Get("/emr/kbm/{code}", func(w http.ResponseWriter, req *http.Request) {
@@ -427,10 +568,14 @@ func main() {
 						return emrClient.GetKBMDetail(req.Context(), &emrpb.GetKBMDetailRequest{KbmCode: code})
 					})
 					if err != nil {
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						response.HandleGRPCError(w, err)
 						return
 					}
-					response.JSON(w, http.StatusOK, res)
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 				})
 			})
 
@@ -447,10 +592,14 @@ func main() {
 						return emrClient.VerifyICD10Mapping(req.Context(), &payload)
 					})
 					if err != nil {
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						response.HandleGRPCError(w, err)
 						return
 					}
-					response.JSON(w, http.StatusOK, res)
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 				})
 
 				r.Get("/emr/pending-icd10", func(w http.ResponseWriter, req *http.Request) {
@@ -458,10 +607,14 @@ func main() {
 						return emrClient.ListPendingICD10Verifications(req.Context(), &emrpb.ListPendingICD10VerificationsRequest{Limit: 50})
 					})
 					if err != nil {
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						response.HandleGRPCError(w, err)
 						return
 					}
-					response.JSON(w, http.StatusOK, res)
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 				})
 
 				r.Get("/emr/kbm/{code}/icd10-suggestions", func(w http.ResponseWriter, req *http.Request) {
@@ -470,10 +623,14 @@ func main() {
 						return emrClient.GetICD10SuggestionsForKBM(req.Context(), &emrpb.GetICD10SuggestionsForKBMRequest{KbmCode: code})
 					})
 					if err != nil {
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						response.HandleGRPCError(w, err)
 						return
 					}
-					response.JSON(w, http.StatusOK, res)
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 				})
 			})
 
@@ -496,10 +653,14 @@ func main() {
 					return pharmacyClient.CreatePrescription(req.Context(), &payload)
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 
 				r.Post("/pharmacy/dispense", func(w http.ResponseWriter, req *http.Request) {
@@ -512,10 +673,14 @@ func main() {
 					return pharmacyClient.DispensePrescription(req.Context(), &payload)
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 			})
 
@@ -528,10 +693,14 @@ func main() {
 					return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: encounterNo})
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 
 				r.Post("/billing/pay", func(w http.ResponseWriter, req *http.Request) {
@@ -550,10 +719,14 @@ func main() {
 					return billingClient.PayInvoice(req.Context(), &payload)
 				})
 				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+					response.HandleGRPCError(w, err)
 					return
 				}
-				response.JSON(w, http.StatusOK, res)
+				response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
 			})
 			})
 		})

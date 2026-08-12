@@ -26,6 +26,7 @@ type RegisterPatientRequest struct {
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Nik           string                 `protobuf:"bytes,2,opt,name=nik,proto3" json:"nik,omitempty"`
 	Dob           string                 `protobuf:"bytes,3,opt,name=dob,proto3" json:"dob,omitempty"`
+	UserId        string                 `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -77,6 +78,13 @@ func (x *RegisterPatientRequest) GetNik() string {
 func (x *RegisterPatientRequest) GetDob() string {
 	if x != nil {
 		return x.Dob
+	}
+	return ""
+}
+
+func (x *RegisterPatientRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
 	}
 	return ""
 }
@@ -258,11 +266,12 @@ var File_shared_proto_patient_v1_patient_proto protoreflect.FileDescriptor
 const file_shared_proto_patient_v1_patient_proto_rawDesc = "" +
 	"\n" +
 	"%shared/proto/patient/v1/patient.proto\x12\n" +
-	"patient.v1\"P\n" +
+	"patient.v1\"i\n" +
 	"\x16RegisterPatientRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x10\n" +
 	"\x03nik\x18\x02 \x01(\tR\x03nik\x12\x10\n" +
-	"\x03dob\x18\x03 \x01(\tR\x03dob\"_\n" +
+	"\x03dob\x18\x03 \x01(\tR\x03dob\x12\x17\n" +
+	"\auser_id\x18\x04 \x01(\tR\x06userId\"_\n" +
 	"\x17RegisterPatientResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x10\n" +
 	"\x03mrn\x18\x02 \x01(\tR\x03mrn\x12\x18\n" +

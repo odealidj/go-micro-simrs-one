@@ -9,3 +9,10 @@ type User struct {
 	Role         string
 	CreatedAt    time.Time
 }
+
+type RefreshToken struct {
+	ID        string
+	UserID    string
+	TokenHash string
+	ExpiresAt time.Time
+}

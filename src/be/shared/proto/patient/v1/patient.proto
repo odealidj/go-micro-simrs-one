@@ -13,6 +13,7 @@ message RegisterPatientRequest {
   string name = 1;
   string nik = 2;
   string dob = 3;
+  string user_id = 4;
 }
 
 message RegisterPatientResponse {

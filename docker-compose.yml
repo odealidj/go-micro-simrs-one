@@ -11,6 +11,12 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d simrs_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   redis:
     image: docker.io/library/redis:7-alpine
@@ -34,12 +40,16 @@ services:
     environment:
       - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
       - JAEGER_ENDPOINT=jaeger:4318
+      - INITIAL_ADMIN_USERNAME=admin
+      - INITIAL_ADMIN_PASSWORD=admin123
       - PORT=50051
     ports:
       - "60051:50051"
     depends_on:
-      - postgres
-      - jaeger
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
 
   patient-service:
     build:
@@ -54,9 +64,12 @@ services:
     ports:
       - "60052:50052"
     depends_on:
-      - postgres
-      - redis
-      - jaeger
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      jaeger:
+        condition: service_started
 
   registration-service:
     build:
@@ -71,9 +84,12 @@ services:
     ports:
       - "60053:50053"
     depends_on:
-      - postgres
-      - redis
-      - jaeger
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      jaeger:
+        condition: service_started
 
   emr-service:
     build:
@@ -88,9 +104,12 @@ services:
     ports:
       - "60054:50054"
     depends_on:
-      - postgres
-      - redis
-      - jaeger
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      jaeger:
+        condition: service_started
 
   pharmacy-service:
     build:
@@ -106,9 +125,12 @@ services:
       - REDIS_HOST=redis:6379
       - PORT=50055
     depends_on:
-      - postgres
-      - redis
-      - jaeger
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      jaeger:
+        condition: service_started
 
   billing-service:
     build:
@@ -124,9 +146,12 @@ services:
       - REDIS_HOST=redis:6379
       - PORT=50056
     depends_on:
-      - postgres
-      - redis
-      - jaeger
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      jaeger:
+        condition: service_started
 
   api-gateway:
     build:
