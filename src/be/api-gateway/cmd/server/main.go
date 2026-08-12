@@ -545,10 +545,12 @@ func main() {
 				r.Use(middleware.RequireRole("doctor", "nurse", "medical_records", "admin"))
 				r.Get("/emr/kbm/search", func(w http.ResponseWriter, req *http.Request) {
 					query := req.URL.Query().Get("q")
+					deptCode := req.URL.Query().Get("dept_code")
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.SearchKBMResponse, error) {
 						return emrClient.SearchKBM(req.Context(), &emrpb.SearchKBMRequest{
-							Query: query,
-							Limit: 20,
+							Query:          query,
+							DepartmentCode: deptCode,
+							Limit:          20,
 						})
 					})
 					if err != nil {

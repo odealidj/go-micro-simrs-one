@@ -23,7 +23,7 @@ Proses pendaftaran terbagi menjadi dua konsep utama: **Pendaftaran Master Data P
 2. **Pemeriksaan Dokter:**
    - Dokter melihat hasil pemeriksaan awal perawat.
    - Dokter melakukan pemeriksaan medis.
-   - Dokter menginput **Diagnosa** berdasarkan **Kamus Bahasa Medis (KBM)**.
+   - Dokter menginput **Diagnosa** berdasarkan **Kamus Bahasa Medis (KBM)**. Sistem akan menampilkan KBM yang relevan dan sudah dipetakan khusus untuk Poliklinik tempat dokter bertugas (many-to-many mapping).
    - Dokter menginput **Tindakan Medis** (beserta tarif).
    - Dokter membuat **Resep Obat** melalui sistem.
    - Dokter mengarahkan pasien ke Kasir untuk melakukan pelunasan, kemudian ke Apotek.

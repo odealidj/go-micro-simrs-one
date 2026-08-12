@@ -513,6 +513,60 @@ func (q *Queries) SearchKBM(ctx context.Context, arg SearchKBMParams) ([]KbmCata
 	return items, nil
 }
 
+const searchKBMByPolyclinic = `-- name: SearchKBMByPolyclinic :many
+SELECT c.kbm_code, c.kbm_name, c.description, c.body_system, c.is_active, c.created_at, c.updated_at 
+FROM kbm_catalog c
+JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
+WHERE c.is_active = true 
+  AND m.polyclinic_code = $1
+  AND c.kbm_name ILIKE '%' || $2 || '%'
+ORDER BY c.kbm_name ASC
+LIMIT $3 OFFSET $4
+`
+
+type SearchKBMByPolyclinicParams struct {
+	PolyclinicCode string
+	Column2        sql.NullString
+	Limit          int32
+	Offset         int32
+}
+
+func (q *Queries) SearchKBMByPolyclinic(ctx context.Context, arg SearchKBMByPolyclinicParams) ([]KbmCatalog, error) {
+	rows, err := q.db.QueryContext(ctx, searchKBMByPolyclinic,
+		arg.PolyclinicCode,
+		arg.Column2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []KbmCatalog
+	for rows.Next() {
+		var i KbmCatalog
+		if err := rows.Scan(
+			&i.KbmCode,
+			&i.KbmName,
+			&i.Description,
+			&i.BodySystem,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const startEncounter = `-- name: StartEncounter :exec
 UPDATE medical_records
 SET status = 'IN_PROGRESS', started_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP

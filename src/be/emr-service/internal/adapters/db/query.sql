@@ -26,6 +26,16 @@ WHERE is_active = true
 ORDER BY kbm_name ASC
 LIMIT $2 OFFSET $3;
 
+-- name: SearchKBMByPolyclinic :many
+SELECT c.* 
+FROM kbm_catalog c
+JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
+WHERE c.is_active = true 
+  AND m.polyclinic_code = $1
+  AND c.kbm_name ILIKE '%' || $2 || '%'
+ORDER BY c.kbm_name ASC
+LIMIT $3 OFFSET $4;
+
 -- name: GetKBMByCode :one
 SELECT * FROM kbm_catalog
 WHERE kbm_code = $1 LIMIT 1;

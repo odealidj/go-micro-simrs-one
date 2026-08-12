@@ -2,7 +2,10 @@ package services
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/aliube/go-micro-simrs-one/emr-service/internal/core/domain"
 	"github.com/aliube/go-micro-simrs-one/emr-service/internal/core/ports"
@@ -74,9 +77,44 @@ func (s *emrServiceImpl) AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCo
 	return nil
 }
 
-func (s *emrServiceImpl) SearchKBM(ctx context.Context, query string, limit, offset int32) ([]*domain.KBMItem, int32, error) {
+func (s *emrServiceImpl) SearchKBM(ctx context.Context, deptCode, query string, limit, offset int32) ([]*domain.KBMItem, int32, error) {
 	if s.repo != nil {
-		return s.repo.SearchKBM(ctx, query, limit, offset)
+		cacheKey := fmt.Sprintf("cache:kbm:poly:%s:q:%s:limit:%d:offset:%d", deptCode, query, limit, offset)
+		if deptCode == "" {
+			cacheKey = fmt.Sprintf("cache:kbm:global:q:%s:limit:%d:offset:%d", query, limit, offset)
+		}
+
+		if s.redisClient != nil {
+			cachedData, err := s.redisClient.Get(ctx, cacheKey).Result()
+			if err == nil && cachedData != "" {
+				var result struct {
+					Items []*domain.KBMItem `json:"items"`
+					Total int32             `json:"total"`
+				}
+				if jsonErr := json.Unmarshal([]byte(cachedData), &result); jsonErr == nil {
+					return result.Items, result.Total, nil
+				}
+			}
+		}
+
+		items, total, err := s.repo.SearchKBM(ctx, deptCode, query, limit, offset)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		if s.redisClient != nil && err == nil {
+			result := struct {
+				Items []*domain.KBMItem `json:"items"`
+				Total int32             `json:"total"`
+			}{Items: items, Total: total}
+			
+			if jsonData, err := json.Marshal(result); err == nil {
+				// Cache for 24 hours since KBM rarely changes
+				s.redisClient.Set(ctx, cacheKey, string(jsonData), 24*time.Hour)
+			}
+		}
+
+		return items, total, nil
 	}
 	return nil, 0, nil
 }

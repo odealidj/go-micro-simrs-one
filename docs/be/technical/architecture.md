@@ -6,7 +6,7 @@
 - **Komunikasi Internal**: Menggunakan **gRPC (Protobuf)** untuk komunikasi *synchronous* antar-service (dari API Gateway ke Service, atau antar Service). Sangat cepat dan latensi rendah.
 - **Arsitektur Internal**: Hexagonal Architecture (Ports and Adapters) untuk memisahkan *Business Logic* dari dependensi infrastruktur luar.
 - **Database Access Layer**: `sqlc` (Men-generate kode Go secara *type-safe* langsung dari *raw SQL*, tanpa *overhead* lambat dari ORM).
-- **Caching**: Redis Cache (Digunakan untuk menyimpan Master Data seperti ICD-10 yang jarang berubah agar mempercepat API).
+- **Caching**: Redis Cache (Digunakan untuk menyimpan list KBM per-poliklinik agar mempercepat API). Pencarian ICD-10 kini mengandalkan ekstensi `pg_trgm` PostgreSQL untuk optimasi pencarian teks tanpa menggunakan Redis Cache.
 - **Message Broker**: Redis Streams (`XADD`, `XREADGROUP`) untuk menjamin *At-Least-Once Delivery* dan kapabilitas *Consumer Groups*.
 - **API Documentation**: Swagger UI (Setiap service WAJIB mengekspos endpoint `/swagger/*` untuk memudahkan testing API dan integrasi Frontend).
 
