@@ -6,8 +6,8 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, ScanLine } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScanLine, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const signupSchema = z.object({
@@ -23,7 +23,7 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 
 export function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -50,117 +50,125 @@ export function SignupPage() {
   };
 
   return (
-    <Card className="border-0 shadow-none sm:border sm:shadow-sm">
-      <CardHeader className="space-y-1">
-        <div className="flex items-center justify-center mb-4 sm:hidden">
-          <Activity className="mr-2 h-6 w-6 text-primary" />
-          <span className="font-bold text-xl">Codina SIMRS</span>
-        </div>
-        <CardTitle className="text-2xl text-center">Registrasi Pasien</CardTitle>
-        <CardDescription className="text-center">
-          Buat akun untuk memudahkan layanan antrean dan rekam medis Anda
+    <Card className="border border-white/50 bg-white/40 backdrop-blur-md shadow-2xl rounded-3xl overflow-hidden max-w-lg w-full mx-auto">
+      <CardHeader className="space-y-4 pt-8 pb-4">
+        <CardTitle className="text-3xl text-center font-bold text-blue-700 tracking-tight leading-tight uppercase">
+          PATIENT<br/>REGISTRATION
+        </CardTitle>
+        <CardDescription className="text-center text-slate-700 font-medium px-4">
+          Buat akun untuk memudahkan layanan antrean<br/>dan rekam medis Anda.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-8 pb-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 col-span-2 sm:col-span-1">
-              <Label htmlFor="nik" className={cn(errors.nik && "text-destructive")}>
+            <div className="space-y-1 col-span-2 sm:col-span-1">
+              <Label htmlFor="nik" className="text-slate-800 font-medium text-sm">
                 NIK KTP <span className="text-red-500">*</span>
               </Label>
               <div className="flex gap-2">
                 <Input
                   id="nik"
                   placeholder="317..."
-                  className={cn(errors.nik && "border-destructive")}
+                  className={cn("bg-white/60 border-white/60 focus-visible:ring-blue-500 rounded-xl placeholder:text-slate-500", errors.nik && "border-red-500 focus-visible:ring-red-500")}
                   {...register("nik")}
                 />
-                <Button type="button" variant="outline" size="icon" title="Scan KTP">
-                  <ScanLine className="h-4 w-4" />
+                <Button type="button" variant="outline" size="icon" title="Scan KTP" className="bg-white/60 border-white/60 rounded-xl hover:bg-white/80">
+                  <ScanLine className="h-4 w-4 text-blue-700" />
                 </Button>
               </div>
-              {errors.nik && <p className="text-sm text-destructive">{errors.nik.message}</p>}
+              {errors.nik && <p className="text-xs text-red-600">{errors.nik.message}</p>}
             </div>
-            <div className="space-y-2 col-span-2 sm:col-span-1">
-              <Label htmlFor="bpjs" className={cn(errors.bpjs && "text-destructive")}>
+            <div className="space-y-1 col-span-2 sm:col-span-1">
+              <Label htmlFor="bpjs" className="text-slate-800 font-medium text-sm">
                 Nomor BPJS (Opsional)
               </Label>
               <Input
                 id="bpjs"
                 placeholder="000..."
-                className={cn(errors.bpjs && "border-destructive")}
+                className={cn("bg-white/60 border-white/60 focus-visible:ring-blue-500 rounded-xl placeholder:text-slate-500", errors.bpjs && "border-red-500 focus-visible:ring-red-500")}
                 {...register("bpjs")}
               />
-              {errors.bpjs && <p className="text-sm text-destructive">{errors.bpjs.message}</p>}
+              {errors.bpjs && <p className="text-xs text-red-600">{errors.bpjs.message}</p>}
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="name" className={cn(errors.name && "text-destructive")}>
-              Nama Lengkap Sesuai KTP <span className="text-red-500">*</span>
+          <div className="space-y-1">
+            <Label htmlFor="name" className="text-slate-800 font-medium text-sm">
+              Nama Lengkap <span className="text-red-500">*</span>
             </Label>
             <Input
               id="name"
-              className={cn(errors.name && "border-destructive")}
+              placeholder="Nama sesuai KTP"
+              className={cn("bg-white/60 border-white/60 focus-visible:ring-blue-500 rounded-xl placeholder:text-slate-500", errors.name && "border-red-500 focus-visible:ring-red-500")}
               {...register("name")}
             />
-            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+            {errors.name && <p className="text-xs text-red-600">{errors.name.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 col-span-2 sm:col-span-1">
-              <Label htmlFor="dob" className={cn(errors.dob && "text-destructive")}>
+            <div className="space-y-1 col-span-2 sm:col-span-1">
+              <Label htmlFor="dob" className="text-slate-800 font-medium text-sm">
                 Tanggal Lahir <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="dob"
                 type="date"
-                className={cn(errors.dob && "border-destructive")}
+                className={cn("bg-white/60 border-white/60 focus-visible:ring-blue-500 rounded-xl text-slate-700", errors.dob && "border-red-500 focus-visible:ring-red-500")}
                 {...register("dob")}
               />
-              {errors.dob && <p className="text-sm text-destructive">{errors.dob.message}</p>}
+              {errors.dob && <p className="text-xs text-red-600">{errors.dob.message}</p>}
             </div>
-            <div className="space-y-2 col-span-2 sm:col-span-1">
-              <Label htmlFor="phone" className={cn(errors.phone && "text-destructive")}>
+            <div className="space-y-1 col-span-2 sm:col-span-1">
+              <Label htmlFor="phone" className="text-slate-800 font-medium text-sm">
                 Nomor HP/WA <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="phone"
                 type="tel"
                 placeholder="08..."
-                className={cn(errors.phone && "border-destructive")}
+                className={cn("bg-white/60 border-white/60 focus-visible:ring-blue-500 rounded-xl placeholder:text-slate-500", errors.phone && "border-red-500 focus-visible:ring-red-500")}
                 {...register("phone")}
               />
-              {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
+              {errors.phone && <p className="text-xs text-red-600">{errors.phone.message}</p>}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className={cn(errors.password && "text-destructive")}>
+          <div className="space-y-1">
+            <Label htmlFor="password" className="text-slate-800 font-medium text-sm">
               Password <span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="password"
-              type="password"
-              className={cn(errors.password && "border-destructive")}
-              {...register("password")}
-            />
-            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                className={cn("pr-10 bg-white/60 border-white/60 focus-visible:ring-blue-500 rounded-xl placeholder:text-slate-500 tracking-widest", errors.password && "border-red-500 focus-visible:ring-red-500")}
+                {...register("password")}
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-700 focus:outline-none"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {errors.password && <p className="text-xs text-red-600">{errors.password.message}</p>}
           </div>
 
-          <Button type="submit" className="w-full mt-2" disabled={isLoading}>
-            {isLoading ? "Memproses..." : "Daftar Akun"}
+          <Button type="submit" className="w-full mt-6 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg" disabled={isLoading}>
+            {isLoading ? "Memproses..." : "DAFTAR AKUN"}
           </Button>
+          
+          <div className="text-center text-sm text-slate-700 mt-4 font-medium">
+            Sudah memiliki akun?{" "}
+            <Link to="/login" className="text-blue-700 hover:underline font-bold">
+              Masuk di sini
+            </Link>
+          </div>
         </form>
       </CardContent>
-      <CardFooter className="flex flex-col space-y-4 border-t px-6 py-4">
-        <div className="text-center text-sm text-muted-foreground w-full">
-          Sudah memiliki akun?{" "}
-          <Link to="/login" className="text-primary hover:underline font-medium">
-            Masuk di sini
-          </Link>
-        </div>
-      </CardFooter>
     </Card>
   );
 }
