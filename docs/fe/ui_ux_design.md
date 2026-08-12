@@ -8,7 +8,7 @@ Dokumen ini memetakan alur antarmuka pengguna (UI/UX) beserta **struktur form** 
 
 Modul ini adalah pintu masuk sistem. Desain difokuskan pada kebersihan antarmuka, validasi instan, dan penanganan error secara *graceful*.
 
-![Login Page Mockup](./assets/login_page_mockup.png)
+![Login Page Mockup](./assets/login_wireframe.png)
 
 ### 📋 Form: Login Karyawan (`POST /api/v1/auth/login`)
 | Field | UI Component | Tipe Data | Validasi Frontend | Keterangan |
@@ -16,7 +16,7 @@ Modul ini adalah pintu masuk sistem. Desain difokuskan pada kebersihan antarmuka
 | **Username** | Text Input | `string` | Wajib diisi, min 4 karakter | |
 | **Password** | Password Input (Togle Eye) | `string` | Wajib diisi | Menyembunyikan karakter default |
 
-![Signup Page Mockup](./assets/signup_ocr_mockup_glassmorphism.png)
+![Signup Page Mockup](./assets/signup_wireframe.png)
 
 ### 📋 Form: Registrasi Pasien Mandiri (`POST /api/v1/auth/signup/patient`)
 > [!TIP]  
@@ -48,7 +48,7 @@ Modul ini adalah pintu masuk sistem. Desain difokuskan pada kebersihan antarmuka
 
 Modul Electronic Medical Record (EMR) memegang peranan sangat penting. Sistem menerapkan *Split-Screen* untuk mengoptimalkan ruang kerja dokter.
 
-![EMR Dashboard Mockup](./assets/emr_dashboard_mockup.png)
+![EMR Dashboard Mockup](./assets/emr_wireframe.png)
 
 ### 📋 Form: Triage / Pemeriksaan Perawat (`POST /api/v1/emr/triage`)
 | Field | UI Component | Tipe Data | Validasi Frontend | Keterangan |
@@ -71,7 +71,7 @@ Modul Electronic Medical Record (EMR) memegang peranan sangat penting. Sistem me
 
 Apotek berjalan dengan alur *Kanban Board*. Setiap kartu resep obat merepresentasikan data dari `GET /queue/pharmacy/stream`. Apoteker tidak diperkenankan memproses resep yang belum dibayar di kasir.
 
-![Pharmacy Kanban Mockup](./assets/pharmacy_kanban_mockup.png)
+![Pharmacy Kanban Mockup](./assets/pharmacy_wireframe.png)
 
 ### 📋 Form: Konfirmasi Dispense Obat (`POST /api/v1/pharmacy/dispense`)
 Form ini dimunculkan di dalam sebuah *Modal Dialog* saat apoteker mengklik "Selesai" pada sebuah kartu resep.
