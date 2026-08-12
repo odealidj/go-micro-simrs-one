@@ -2,7 +2,11 @@ package response
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Meta represents pagination metadata.
@@ -42,11 +46,87 @@ type ErrorResponse struct {
 	Message   string `json:"message"`
 }
 
+// ErrorMessages maps gRPC status codes to user-friendly Indonesian messages.
+var ErrorMessages = map[codes.Code]string{
+	codes.InvalidArgument:  "Data yang diberikan tidak valid. Silakan periksa kembali input Anda.",
+	codes.Unauthenticated:  "Sesi Anda telah berakhir atau token tidak valid. Silakan login kembali.",
+	codes.PermissionDenied: "Anda tidak memiliki akses untuk melakukan tindakan ini.",
+	codes.NotFound:         "Data yang Anda cari tidak ditemukan.",
+	codes.AlreadyExists:    "Data sudah terdaftar di sistem. Silakan gunakan data lain.",
+	codes.Unavailable:      "Layanan sedang tidak tersedia sementara waktu. Silakan coba lagi nanti.",
+	codes.Internal:         "Terjadi kesalahan pada server. Tim kami sedang menanganinya.",
+}
+
 // JSON is a utility to write an HTTP JSON response.
 func JSON(w http.ResponseWriter, status int, payload interface{}) {
+	reqID := w.Header().Get("X-Request-Id")
+	traceID := w.Header().Get("X-Trace-ID")
+
+	switch p := payload.(type) {
+	case SuccessResponse:
+		p.RequestID = reqID
+		p.TraceID = traceID
+		payload = p
+	case SuccessPaginatedResponse:
+		p.RequestID = reqID
+		p.TraceID = traceID
+		payload = p
+	case ErrorResponse:
+		p.RequestID = reqID
+		p.TraceID = traceID
+		payload = p
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		// Just log in a real scenario
 	}
+}
+
+// HandleGRPCError maps a gRPC error to an HTTP error response.
+func HandleGRPCError(w http.ResponseWriter, err error) {
+	st, ok := status.FromError(err)
+	if !ok {
+		slog.Error("Non-gRPC error encountered", "error", err.Error())
+		JSON(w, http.StatusInternalServerError, ErrorResponse{
+			Success: false,
+			Message: "Terjadi kesalahan yang tidak terduga pada server.",
+		})
+		return
+	}
+
+	// Log the original error for debugging purposes
+	slog.Error("gRPC Error", "code", st.Code().String(), "details", st.Message())
+
+	var httpStatus int
+	switch st.Code() {
+	case codes.InvalidArgument:
+		httpStatus = http.StatusBadRequest
+	case codes.Unauthenticated:
+		httpStatus = http.StatusUnauthorized
+	case codes.PermissionDenied:
+		httpStatus = http.StatusForbidden
+	case codes.NotFound:
+		httpStatus = http.StatusNotFound
+	case codes.AlreadyExists:
+		httpStatus = http.StatusConflict
+	case codes.Unimplemented:
+		httpStatus = http.StatusNotImplemented
+	case codes.Unavailable:
+		httpStatus = http.StatusServiceUnavailable
+	default:
+		httpStatus = http.StatusInternalServerError
+	}
+
+	// Use generic message if available, else fallback to internal error
+	userMsg, exists := ErrorMessages[st.Code()]
+	if !exists {
+		userMsg = ErrorMessages[codes.Internal]
+	}
+
+	JSON(w, httpStatus, ErrorResponse{
+		Success: false,
+		Message: userMsg,
+	})
 }

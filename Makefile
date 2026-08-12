@@ -41,7 +41,7 @@ migrate-down:
 # --- New Commands ---
 
 .PHONY: be-run-demo-data be-stop-demo-data
-.PHONY: up down be-infra-up be-infra-down be-run-all be-stop-all be-run-local-all be-stop-local-all
+.PHONY: up down be-infra-up be-infra-down be-infra-clean be-run-all be-stop-all be-run-local-all be-stop-local-all
 .PHONY: be-run-local-auth-service be-stop-local-auth-service be-run-local-patient-service be-stop-local-patient-service
 .PHONY: be-run-local-registration-service be-stop-local-registration-service be-run-local-emr-service be-stop-local-emr-service
 .PHONY: be-run-local-pharmacy-service be-stop-local-pharmacy-service be-run-local-billing-service be-stop-local-billing-service
@@ -59,9 +59,25 @@ down:
 
 be-infra-up:
 	podman compose up -d postgres redis jaeger
+	@echo "Waiting for postgres to be ready..."
+	@for i in 1 2 3 4 5 6 7 8 9 10; do \
+		if podman exec go-micro-simrs-one_postgres_1 pg_isready -U root -d simrs_db > /dev/null 2>&1; then \
+			echo "  Postgres is ready."; break; \
+		fi; \
+		echo "  Waiting for postgres... ($$i/10)"; sleep 2; \
+	done
 
 be-infra-down:
-	podman compose stop postgres redis jaeger
+	@echo "Stopping application containers first (they depend on infra)..."
+	-podman compose stop auth-service patient-service registration-service emr-service pharmacy-service billing-service api-gateway 2>/dev/null || true
+	@echo "Removing infra containers (data is preserved in named volumes)..."
+	podman compose down postgres redis jaeger
+	@echo "Infra stopped. Run 'make be-infra-up' to restart."
+
+be-infra-clean:
+	@echo "Force removing ALL simrs containers (emergency cleanup)..."
+	-podman ps -a --format "{{.Names}}" | grep "go-micro-simrs-one" | xargs -r podman rm -f 2>/dev/null || true
+	@echo "Done. All simrs containers removed. Data volumes are preserved."
 
 be-run-all:
 	podman compose up -d --build auth-service patient-service registration-service emr-service pharmacy-service billing-service api-gateway
@@ -121,15 +137,45 @@ be-stop-api-gateway:
 	podman compose stop api-gateway
 
 
+# ============================================================
 # Local Host Services (Debugger)
+# FIXED: Use port-based kill to reliably stop processes.
+#        The old PID-file approach was fragile because:
+#          1. 'make' runs each line in a separate subshell,
+#             so $! might capture the wrapper shell's PID.
+#          2. If run.pid is missing or stale, kill does nothing.
+# ============================================================
 LOCAL_DB_URL="postgres://root:secretpassword@localhost:5432/simrs_db?sslmode=disable"
 LOCAL_REDIS_HOST="localhost:6379"
 LOCAL_JAEGER_ENDPOINT="localhost:4318"
 
+# --- Helper macro: kill ONLY the process LISTENING on a port (not browser clients) ---
+define kill_port
+	@PORT_PID=$$(lsof -t -i :$(1) -sTCP:LISTEN 2>/dev/null); \
+	if [ -n "$$PORT_PID" ]; then \
+		echo "  Killing PID $$PORT_PID on port $(1)..."; \
+		kill -9 $$PORT_PID 2>/dev/null || true; \
+		sleep 0.5; \
+	else \
+		echo "  Port $(1) is already free."; \
+	fi
+endef
+
+# --- Helper macro: wait for port to be free then start a service ---
+define wait_port_free
+	@for i in 1 2 3 4 5; do \
+		if ! lsof -i :$(1) > /dev/null 2>&1; then break; fi; \
+		echo "  Waiting for port $(1) to be free... ($$i/5)"; \
+		sleep 1; \
+	done
+endef
+
 be-run-local-all: be-run-local-auth-service be-run-local-patient-service be-run-local-registration-service be-run-local-emr-service be-run-local-pharmacy-service be-run-local-billing-service be-run-local-api-gateway
 
-be-stop-local-all: be-stop-local-auth-service be-stop-local-patient-service be-stop-local-registration-service be-stop-local-emr-service be-stop-local-pharmacy-service be-stop-local-billing-service be-stop-local-api-gateway
+be-stop-local-all: be-stop-local-api-gateway be-stop-local-billing-service be-stop-local-pharmacy-service be-stop-local-emr-service be-stop-local-registration-service be-stop-local-patient-service be-stop-local-auth-service
+	@echo "All local services stopped."
 
+# ---- auth-service (port 50051) ----
 be-run-local-auth-service:
 	@echo "Starting local auth-service..."
 	@cd src/be/auth-service && go build -o tmp-main cmd/server/main.go
@@ -137,8 +183,10 @@ be-run-local-auth-service:
 
 be-stop-local-auth-service:
 	@echo "Stopping local auth-service..."
-	@cd src/be/auth-service && if [ -f run.pid ]; then kill `cat run.pid` || true; rm -f run.pid tmp-main; fi
+	$(call kill_port,50051)
+	@rm -f src/be/auth-service/run.pid src/be/auth-service/tmp-main
 
+# ---- patient-service (port 50052) ----
 be-run-local-patient-service:
 	@echo "Starting local patient-service..."
 	@cd src/be/patient-service && go build -o tmp-main cmd/server/main.go
@@ -146,8 +194,10 @@ be-run-local-patient-service:
 
 be-stop-local-patient-service:
 	@echo "Stopping local patient-service..."
-	@cd src/be/patient-service && if [ -f run.pid ]; then kill `cat run.pid` || true; rm -f run.pid tmp-main; fi
+	$(call kill_port,50052)
+	@rm -f src/be/patient-service/run.pid src/be/patient-service/tmp-main
 
+# ---- registration-service (port 50053) ----
 be-run-local-registration-service:
 	@echo "Starting local registration-service..."
 	@cd src/be/registration-service && go build -o tmp-main cmd/server/main.go
@@ -155,8 +205,10 @@ be-run-local-registration-service:
 
 be-stop-local-registration-service:
 	@echo "Stopping local registration-service..."
-	@cd src/be/registration-service && if [ -f run.pid ]; then kill `cat run.pid` || true; rm -f run.pid tmp-main; fi
+	$(call kill_port,50053)
+	@rm -f src/be/registration-service/run.pid src/be/registration-service/tmp-main
 
+# ---- emr-service (port 50054) ----
 be-run-local-emr-service:
 	@echo "Starting local emr-service..."
 	@cd src/be/emr-service && go build -o tmp-main cmd/server/main.go
@@ -164,8 +216,10 @@ be-run-local-emr-service:
 
 be-stop-local-emr-service:
 	@echo "Stopping local emr-service..."
-	@cd src/be/emr-service && if [ -f run.pid ]; then kill `cat run.pid` || true; rm -f run.pid tmp-main; fi
+	$(call kill_port,50054)
+	@rm -f src/be/emr-service/run.pid src/be/emr-service/tmp-main
 
+# ---- pharmacy-service (port 50055) ----
 be-run-local-pharmacy-service:
 	@echo "Starting local pharmacy-service..."
 	@cd src/be/pharmacy-service && go build -o tmp-main cmd/server/main.go
@@ -173,8 +227,10 @@ be-run-local-pharmacy-service:
 
 be-stop-local-pharmacy-service:
 	@echo "Stopping local pharmacy-service..."
-	@cd src/be/pharmacy-service && if [ -f run.pid ]; then kill `cat run.pid` || true; rm -f run.pid tmp-main; fi
+	$(call kill_port,50055)
+	@rm -f src/be/pharmacy-service/run.pid src/be/pharmacy-service/tmp-main
 
+# ---- billing-service (port 50056) ----
 be-run-local-billing-service:
 	@echo "Starting local billing-service..."
 	@cd src/be/billing-service && go build -o tmp-main cmd/server/main.go
@@ -182,13 +238,16 @@ be-run-local-billing-service:
 
 be-stop-local-billing-service:
 	@echo "Stopping local billing-service..."
-	@cd src/be/billing-service && if [ -f run.pid ]; then kill `cat run.pid` || true; rm -f run.pid tmp-main; fi
+	$(call kill_port,50056)
+	@rm -f src/be/billing-service/run.pid src/be/billing-service/tmp-main
 
+# ---- api-gateway (port 8080) ----
 be-run-local-api-gateway:
 	@echo "Starting local api-gateway..."
 	@cd src/be/api-gateway && go build -o tmp-main cmd/server/main.go
-	@cd src/be/api-gateway && AUTH_SERVICE_ADDR=localhost:50051 REGISTRATION_SERVICE_ADDR=localhost:50053 PORT=8080 ./tmp-main > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/api-gateway && AUTH_SERVICE_ADDR=localhost:50051 PATIENT_SERVICE_ADDR=localhost:50052 REGISTRATION_SERVICE_ADDR=localhost:50053 EMR_SERVICE_ADDR=localhost:50054 PHARMACY_SERVICE_ADDR=localhost:50055 BILLING_SERVICE_ADDR=localhost:50056 PORT=8080 ./tmp-main > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-api-gateway:
 	@echo "Stopping local api-gateway..."
-	@cd src/be/api-gateway && if [ -f run.pid ]; then kill `cat run.pid` || true; rm -f run.pid tmp-main; fi
+	$(call kill_port,8080)
+	@rm -f src/be/api-gateway/run.pid src/be/api-gateway/tmp-main

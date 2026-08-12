@@ -7,13 +7,14 @@ Project ini juga ditujukan sebagai *showcase portfolio* pengembangan perangkat l
 ## 2. Alur Proses Bisnis (Business Process Flow)
 
 ### A. Pendaftaran (Registration)
-1. **Pasien Baru:** Pasien yang belum memiliki catatan rekam medis (Nomor RM). 
-   - Pasien harus mengisi data pribadi secara lengkap.
-   - Petugas akan mencatat keluhan awal dan mengarahkan ke Poliklinik tujuan.
-   - Sistem akan men-generate Nomor Rekam Medis (RM / MRN) baru secara otomatis (Contoh Format: `10-00-00-01` di mana angka 1 menandakan Rawat Jalan).
+Proses pendaftaran terbagi menjadi dua konsep utama: **Pendaftaran Master Data Pasien** (mendapatkan MRN) dan **Pendaftaran Pelayanan/Kunjungan** (mendapatkan antrean poliklinik).
+
+1. **Pasien Baru:** Pasien yang belum memiliki catatan rekam medis (Nomor RM).
+   - **Mandiri (via Aplikasi):** Pasien mendaftar dengan membuat akun pengguna sekaligus mengisi data demografi (`POST /api/v1/auth/signup/patient`). Sistem akan men-generate Nomor Rekam Medis (RM / MRN) baru secara otomatis (Contoh Format: `10-00-00-01`). Setelah mendapatkan MRN, pasien dapat mendaftar antrean kunjungan poliklinik (`POST /api/v1/registrations`).
+   - **Offline (via Petugas):** Petugas (Admin) mendaftarkan data pasien di sistem pendaftaran tanpa harus membuat akun *login* untuk pasien (`POST /api/v1/patient/register`). Setelah mendapat MRN, petugas mendaftarkan pasien ke poliklinik tujuan.
+
 2. **Pasien Lama:** Pasien yang sudah pernah mendaftar dan memiliki Nomor RM.
-   - Pasien hanya perlu memberikan Nomor RM atau identitas.
-   - Pasien memilih Poliklinik tujuan untuk berobat.
+   - Karena master data sudah ada, pasien atau petugas hanya perlu memasukkan Nomor RM (MRN) dan memilih Poliklinik serta Dokter tujuan untuk berobat. Endpoint yang dipanggil langsung mengarah ke layanan pendaftaran kunjungan (`POST /api/v1/registrations`).
 
 ### B. Poliklinik (Polyclinic / Examination)
 1. **Pemeriksaan Awal (Perawat):**

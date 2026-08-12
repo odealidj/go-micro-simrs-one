@@ -11,7 +11,7 @@
 - **API Documentation**: Swagger UI (Setiap service WAJIB mengekspos endpoint `/swagger/*` untuk memudahkan testing API dan integrasi Frontend).
 
 ## 2. Arsitektur Database & Distributed Transactions
-- **Database**: PostgreSQL (Satu DB fisik, namun dibagi ke dalam Multi-Schema untuk setiap service).
+- **Database**: PostgreSQL (Satu DB fisik, namun dibagi ke dalam Multi-Schema untuk setiap service). Terdapat juga tabel sentral seperti `refresh_tokens` di skema `auth` untuk mengelola sesi berumur panjang.
 - **Aturan Relasi**: Tidak boleh ada *JOIN* lintas schema. Integrasi data dikaitkan menggunakan *Business Key* seperti `mrn` dan `encounter_no`.
 - **Saga Pattern (Choreography)**: Digunakan untuk membatalkan (*rollback*) transaksi yang melintasi beberapa service melalui pengiriman *event kompensasi* (Misal: membatalkan tagihan kasir jika obat habis).
 - **Transactional Outbox Pattern**: Menggunakan tabel `outbox_messages` di database. *Event message* disimpan dalam transaksi SQL yang sama saat data di-save, menjamin 100% konsistensi pengiriman pesan ke Redis.
@@ -22,8 +22,12 @@
 - **Branching per Service**: Setiap pengerjaan/pembuatan Microservice baru (atau fitur besar) WAJIB dilakukan di **Branch Baru** (contoh branch: `feature/patient-service`, `feature/emr-service`). 
 - Penggabungan kode ke branch utama (`main`) baru dilakukan setelah servis di branch terisolasi tersebut rampung. Hal ini mensimulasikan lingkungan *engineering* profesional.
 
-## 4. Pembagian Hak Akses (RBAC)
-Sistem ini membutuhkan otentikasi **PASETO (Platform-Agnostic Security Tokens)**—alternatif modern dan lebih aman dari JWT—serta otorisasi untuk beberapa Role:
+## 4. Keamanan, Token & Pembagian Hak Akses (RBAC)
+Sistem ini membutuhkan otentikasi **PASETO (Platform-Agnostic Security Tokens)**—alternatif modern dan lebih aman dari JWT—dengan skema keamanan berlapis:
+- **Access Token & Refresh Token**: Login menghasilkan *access token* berumur pendek (15 menit) dan *refresh token* berumur panjang (7 hari) yang di-*hash* dengan SHA-256 dan disimpan di database. Hal ini memungkinkan rotasi sesi yang aman tanpa memaksa user sering login ulang.
+- **Auto-Provisioning Admin**: Pada saat *startup*, `auth-service` akan membaca *Environment Variables* (`INITIAL_ADMIN_USERNAME`, `INITIAL_ADMIN_PASSWORD`) dan secara otomatis membuat akun *Super Admin* jika belum ada, menghilangkan ketergantungan pada *database seeder* manual.
+
+Otorisasi dibedakan untuk beberapa Role:
 - **Admin / Resepsionis:** Pendaftaran pasien baru dan lama.
 - **Perawat:** Mengisi data pemeriksaan awal (triage/vital signs).
 - **Dokter:** Mengisi diagnosa (KBM), tindakan, dan request resep.
@@ -84,12 +88,18 @@ Pada Go (Service Registration & Pharmacy), terdapat *Interface* utama:
   }
   ```
 
-  **3. Response Error** (Detail teknis hanya dicetak di Log Backend)
+  **3. Response Error (Global Exception Handling)**
+  Untuk mencegah bocornya detail implementasi gRPC (misal: "username already exists") ke pihak luar, sistem menerapkan *Global Exception Handling* di API Gateway.
+  - Gateway mencegat error dari gRPC dan memetakannya ke string Bahasa Indonesia yang ramah pengguna (contoh: "Data sudah terdaftar di sistem. Silakan gunakan data lain.").
+  - Detail teknis asli (*raw error*) hanya dicetak di Log Backend (menggunakan *structured logging* `slog`) untuk keperluan *debugging*.
+  - Error validasi form (`pkg/validator`) juga mengembalikan balasan yang spesifik (misal: "tidak boleh kosong").
+
+  Contoh respons error:
   ```json
   {
     "request_id": "xxx",
     "trace_id": "abc-123",
     "success": false,
-    "message": "Pesan error untuk user"
+    "message": "Data sudah terdaftar di sistem. Silakan gunakan data lain."
   }
   ```

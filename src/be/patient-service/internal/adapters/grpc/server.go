@@ -22,8 +22,11 @@ func NewPatientGrpcServer(service ports.PatientService) *PatientGrpcServer {
 }
 
 func (s *PatientGrpcServer) RegisterPatient(ctx context.Context, req *pb.RegisterPatientRequest) (*pb.RegisterPatientResponse, error) {
-	mrn, err := s.patientService.RegisterPatient(ctx, req.Name, req.Nik, req.Dob)
+	mrn, err := s.patientService.RegisterPatient(ctx, req.Name, req.Nik, req.Dob, req.UserId)
 	if err != nil {
+		if err.Error() == "patient already exists" {
+			return nil, status.Errorf(codes.AlreadyExists, "Registration failed: invalid data")
+		}
 		return nil, status.Errorf(codes.Internal, "failed to register patient: %v", err)
 	}
 

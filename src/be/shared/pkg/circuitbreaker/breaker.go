@@ -10,7 +10,6 @@
 package circuitbreaker
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -63,7 +62,7 @@ func CallGRPC[T any](cb *gobreaker.CircuitBreaker, fn func() (T, error)) (T, err
 			return zero, status.Errorf(codes.Unavailable,
 				"service %s is temporarily unavailable (circuit open): %v", cb.Name(), err)
 		}
-		return zero, fmt.Errorf("%w", err)
+		return zero, err
 	}
 
 	return result.(T), nil

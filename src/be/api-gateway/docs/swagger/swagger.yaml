@@ -34,8 +34,64 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-  /auth/signup:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          access_token:
+                            type: string
+                          refresh_token:
+                            type: string
+                          access_token_expires_at:
+                            type: string
+                          refresh_token_expires_at:
+                            type: string
+                          role:
+                            type: string
+                          user_id:
+                            type: string
+  /auth/refresh:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+    post:
+      summary: Refresh PASETO token
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Successful refresh
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          access_token:
+                            type: string
+                          refresh_token:
+                            type: string
+                          access_token_expires_at:
+                            type: string
+                          refresh_token_expires_at:
+                            type: string
+  /auth/signup/staff:
     parameters:
       - $ref: '#/components/parameters/RequestIdHeader'
     post:
@@ -62,6 +118,46 @@ paths:
       responses:
         '200':
           description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /auth/signup/patient:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+    post:
+      summary: Register a new patient (public)
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, name, nik, dob]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                  minLength: 6
+                name:
+                  type: string
+                nik:
+                  type: string
+                dob:
+                  type: string
+      responses:
+        '200':
+          description: Patient registered successfully
           content:
             application/json:
               schema:
@@ -535,9 +631,13 @@ components:
     ErrorResponse:
       type: object
       properties:
+        request_id:
+          type: string
+        trace_id:
+          type: string
         success:
           type: boolean
           example: false
         message:
           type: string
-          example: "validation failed: encounter_no: cannot be empty"
+          example: "invalid credentials"
