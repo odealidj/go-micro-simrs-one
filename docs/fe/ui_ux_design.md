@@ -16,7 +16,7 @@ Modul ini adalah pintu masuk sistem. Desain difokuskan pada kebersihan antarmuka
 | **Username** | Text Input | `string` | Wajib diisi, min 4 karakter | |
 | **Password** | Password Input (Togle Eye) | `string` | Wajib diisi | Menyembunyikan karakter default |
 
-![Signup Page Mockup](./assets/signup_ocr_mockup.png)
+![Signup Page Mockup](./assets/signup_ocr_mockup_balsamiq.png)
 
 ### 📋 Form: Registrasi Pasien Mandiri (`POST /api/v1/auth/signup/patient`)
 > [!TIP]  
