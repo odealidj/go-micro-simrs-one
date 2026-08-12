@@ -276,7 +276,7 @@ Peran    : Modul Poliklinik
 Workers  : aggregator_cron.go (update wait time aggregates)
 ```
 
-> Berfungsi sebagai **modul Poliklinik** — area kerja dokter dan perawat di dalam poli. Mencakup pencatatan pemeriksaan awal (triage/vital signs), input diagnosa ICD-10, pencatatan tindakan medis beserta tarif, dan kalkulasi estimasi waktu tunggu antrean poli berdasarkan data historis multidimensi.
+> Berfungsi sebagai **modul Poliklinik** — area kerja dokter dan perawat di dalam poli. Mencakup pencatatan pemeriksaan awal (triage/vital signs), input diagnosa **Kamus Bahasa Medis (KBM)**, pemetaan dan verifikasi KBM ke ICD-10 oleh bagian Rekam Medis, pencatatan tindakan medis beserta tarif, dan kalkulasi estimasi waktu tunggu antrean poli berdasarkan data historis multidimensi.
 
 **gRPC Methods:**
 
