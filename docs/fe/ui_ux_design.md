@@ -16,16 +16,31 @@ Modul ini adalah pintu masuk sistem. Desain difokuskan pada kebersihan antarmuka
 | **Username** | Text Input | `string` | Wajib diisi, min 4 karakter | |
 | **Password** | Password Input (Togle Eye) | `string` | Wajib diisi | Menyembunyikan karakter default |
 
-![Signup Page Mockup](./assets/signup_page_mockup.png)
+![Signup Page Mockup](./assets/signup_ocr_mockup.png)
 
 ### 📋 Form: Registrasi Pasien Mandiri (`POST /api/v1/auth/signup/patient`)
+> [!TIP]  
+> **Pendaftaran Cepat dengan AI OCR:** Pasien dapat menekan tombol 📷 **"Scan KTP"** untuk mengunggah atau memfoto KTP. Aplikasi akan memanggil `POST /api/v1/auth/ocr-ktp` untuk mengekstrak data menggunakan Google Gemini AI dan langsung mengisi otomatis (autofill) NIK, Nama Lengkap, dan Tanggal Lahir.
+
 | Field | UI Component | Tipe Data | Validasi Frontend | Keterangan |
 | :--- | :--- | :--- | :--- | :--- |
+| **Scan KTP** | Button / File Input | `file` | `image/jpeg, image/png` max 5MB | Memanggil API OCR KTP |
 | **NIK** | Number Input (Masked) | `string` | Wajib, Tepat 16 Digit | Gunakan format auto-spacing |
 | **Nama Lengkap** | Text Input | `string` | Wajib, min 3 karakter | |
 | **Tanggal Lahir** | Date Picker | `string` | Wajib, format `YYYY-MM-DD` | Pasien tidak boleh memilih tanggal di masa depan |
 | **Username** | Text Input | `string` | Wajib, alfanumerik | Unik untuk login aplikasi mobile pasien |
 | **Password** | Password Input | `string` | Wajib, min 8 karakter | Minimal 1 huruf besar dan 1 angka |
+
+### 📋 Form: Registrasi Pasien oleh Petugas (`POST /api/v1/patient/register`)
+> [!TIP]  
+> **Fitur KTP OCR (AI-Powered):** Form ini menyediakan tombol 📷 **"Scan KTP"** (menggunakan *webcam* atau *upload* file). Ketika tombol ditekan, Frontend akan memanggil `POST /api/v1/auth/ocr-ktp`. Hasil kembaliannya (JSON) akan langsung mengisi (*autofill*) kolom NIK, Nama, dan Tanggal Lahir untuk meminimalisir kesalahan ketik petugas.
+
+| Field | UI Component | Tipe Data | Validasi Frontend | Keterangan |
+| :--- | :--- | :--- | :--- | :--- |
+| **Ambil KTP** | File Input / Camera | `file` | `image/jpeg, image/png` max 5MB | Memanggil `ocr-ktp` API |
+| **NIK** | Number Input (Masked) | `string` | Wajib, Tepat 16 Digit | Diisi manual atau via OCR |
+| **Nama Lengkap** | Text Input | `string` | Wajib, min 3 karakter | Diisi manual atau via OCR |
+| **Tanggal Lahir** | Date Picker | `string` | Wajib, format `YYYY-MM-DD` | Diisi manual atau via OCR |
 
 ---
 
