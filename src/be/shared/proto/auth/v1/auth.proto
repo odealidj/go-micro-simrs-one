@@ -16,6 +16,9 @@ service AuthService {
   
   // RefreshToken exchanges a valid refresh token for a new pair of access and refresh tokens
   rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+  
+  // ExtractKTPData extracts NIK, Name, and DOB from a KTP image using AI OCR
+  rpc ExtractKTPData (ExtractKTPDataRequest) returns (ExtractKTPDataResponse);
 }
 
 message LoginRequest {
@@ -65,4 +68,16 @@ message RefreshTokenResponse {
   string refresh_token = 3;
   string access_token_expires_at = 4;
   string refresh_token_expires_at = 5;
+}
+
+message ExtractKTPDataRequest {
+  string base64_image = 1;
+}
+
+message ExtractKTPDataResponse {
+  bool success = 1;
+  string nik = 2;
+  string name = 3;
+  string dob = 4;
+  string error_message = 5;
 }

@@ -246,6 +246,34 @@ func main() {
 			})
 		})
 
+		r.Post("/auth/ocr-ktp", func(w http.ResponseWriter, req *http.Request) {
+			var payload struct {
+				Base64Image string `json:"base64_image"`
+			}
+			if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+				response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+				return
+			}
+			if payload.Base64Image == "" {
+				response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: "base64_image is required"})
+				return
+			}
+			res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.ExtractKTPDataResponse, error) {
+				return authClient.ExtractKTPData(req.Context(), &authpb.ExtractKTPDataRequest{
+					Base64Image: payload.Base64Image,
+				})
+			})
+			if err != nil {
+				response.HandleGRPCError(w, err)
+				return
+			}
+			response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "KTP data extracted successfully",
+				Data:    res,
+			})
+		})
+
 		r.Post("/auth/signup/patient", func(w http.ResponseWriter, req *http.Request) {
 			var payload struct {
 				Username string `json:"username"`
