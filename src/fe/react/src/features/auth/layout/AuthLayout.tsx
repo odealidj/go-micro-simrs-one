@@ -6,7 +6,7 @@ export function AuthLayout() {
     <div 
       className="min-h-screen w-full flex bg-slate-900 relative"
       style={{
-        backgroundImage: 'url("https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=2073&auto=format&fit=crop")', // Professional modern medical/tech building
+        backgroundImage: 'url("/bg-medical-tech.png")', // Generated digital medical tech theme
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
