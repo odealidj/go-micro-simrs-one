@@ -14,7 +14,7 @@ type EMRRepository interface {
 	EstimateWaitTime(ctx context.Context, doctorID, deptCode, gender, ageBracket string) (int64, error)
 
 	// KBM
-	SearchKBM(ctx context.Context, query string, limit, offset int32) ([]*domain.KBMItem, int32, error)
+	SearchKBM(ctx context.Context, deptCode, query string, limit, offset int32) ([]*domain.KBMItem, int32, error)
 	GetKBMDetail(ctx context.Context, kbmCode string) (*domain.KBMItem, error)
 	GetICD10SuggestionsForKBM(ctx context.Context, kbmCode string) ([]*domain.ICD10Suggestion, error)
 	AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, kbmName, notes, doctorId, deptCode, gender, ageBracket string) error
@@ -31,7 +31,7 @@ type EMRService interface {
 	EstimateWaitTime(ctx context.Context, doctorID, deptCode, gender, ageBracket string) (int64, error)
 
 	// KBM
-	SearchKBM(ctx context.Context, query string, limit, offset int32) ([]*domain.KBMItem, int32, error)
+	SearchKBM(ctx context.Context, deptCode, query string, limit, offset int32) ([]*domain.KBMItem, int32, error)
 	GetKBMDetail(ctx context.Context, kbmCode string) (*domain.KBMItem, error)
 	GetICD10SuggestionsForKBM(ctx context.Context, kbmCode string) ([]*domain.ICD10Suggestion, error)
 	AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, notes, doctorId, deptCode, gender, ageBracket string) error

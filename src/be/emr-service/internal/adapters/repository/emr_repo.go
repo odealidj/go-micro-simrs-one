@@ -84,12 +84,38 @@ func (r *emrRepoSqlc) AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode,
 	return err
 }
 
-func (r *emrRepoSqlc) SearchKBM(ctx context.Context, query string, limit, offset int32) ([]*domain.KBMItem, int32, error) {
-	dbItems, err := r.q.SearchKBM(ctx, db.SearchKBMParams{
-		Column1: sql.NullString{String: query, Valid: true},
-		Limit:   limit,
-		Offset:  offset,
-	})
+func (r *emrRepoSqlc) SearchKBM(ctx context.Context, deptCode, query string, limit, offset int32) ([]*domain.KBMItem, int32, error) {
+	var dbItems []db.KbmCatalog
+	var err error
+
+	if deptCode != "" {
+		// Use polyclinic specific search
+		mappedItems, errQ := r.q.SearchKBMByPolyclinic(ctx, db.SearchKBMByPolyclinicParams{
+			PolyclinicCode: deptCode,
+			Column2:        sql.NullString{String: query, Valid: true},
+			Limit:          limit,
+			Offset:         offset,
+		})
+		err = errQ
+		for _, i := range mappedItems {
+			// Cast db.SearchKBMByPolyclinicRow to db.KbmCatalog if needed, but sqlc generates a struct.
+			// Let's copy it field by field or cast it based on what sqlc generated.
+			dbItems = append(dbItems, db.KbmCatalog{
+				KbmCode:     i.KbmCode,
+				KbmName:     i.KbmName,
+				Description: i.Description,
+				BodySystem:  i.BodySystem,
+			})
+		}
+	} else {
+		// Global search
+		dbItems, err = r.q.SearchKBM(ctx, db.SearchKBMParams{
+			Column1: sql.NullString{String: query, Valid: true},
+			Limit:   limit,
+			Offset:  offset,
+		})
+	}
+
 	if err != nil {
 		return nil, 0, err
 	}
@@ -103,9 +129,7 @@ func (r *emrRepoSqlc) SearchKBM(ctx context.Context, query string, limit, offset
 			BodySystem:  i.BodySystem.String,
 		})
 	}
-	// For simplicity, we just return length as total, or we could run a separate COUNT query.
-	// Since we don't have a count query, let's just return 0 for total if not needed, or len(dbItems) if small.
-	return items, int32(len(dbItems)), nil // Ideally should use a count query.
+	return items, int32(len(dbItems)), nil
 }
 
 func (r *emrRepoSqlc) GetKBMDetail(ctx context.Context, kbmCode string) (*domain.KBMItem, error) {

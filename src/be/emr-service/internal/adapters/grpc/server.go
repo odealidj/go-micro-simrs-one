@@ -49,7 +49,7 @@ func (s *EMRGrpcServer) SearchKBM(ctx context.Context, req *pb.SearchKBMRequest)
 	if limit == 0 {
 		limit = 20
 	}
-	items, total, err := s.emrService.SearchKBM(ctx, req.Query, limit, req.Offset)
+	items, total, err := s.emrService.SearchKBM(ctx, req.DepartmentCode, req.Query, limit, req.Offset)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to search kbm: %v", err)
 	}

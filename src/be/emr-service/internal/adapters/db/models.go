@@ -38,6 +38,12 @@ type KbmIcd10Mapping struct {
 	CreatedAt sql.NullTime
 }
 
+type KbmPolyclinicMapping struct {
+	KbmCode        string
+	PolyclinicCode string
+	CreatedAt      sql.NullTime
+}
+
 type MedicalAction struct {
 	ID              string
 	MedicalRecordID string
@@ -80,4 +86,13 @@ type OutboxEvent struct {
 	Payload       json.RawMessage
 	Status        string
 	CreatedAt     sql.NullTime
+}
+
+type Polyclinic struct {
+	Code        string
+	Name        string
+	Description sql.NullString
+	IsActive    bool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
 }

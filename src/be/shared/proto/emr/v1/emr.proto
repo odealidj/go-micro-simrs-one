@@ -65,6 +65,7 @@ message SearchKBMRequest {
   string body_system = 2;
   int32  limit = 3;
   int32  offset = 4;
+  string department_code = 5;
 }
 
 message KBMItem {
