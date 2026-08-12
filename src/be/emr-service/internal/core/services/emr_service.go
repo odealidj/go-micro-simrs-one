@@ -51,9 +51,15 @@ func (s *emrServiceImpl) SubmitTriage(ctx context.Context, encounterNo string, s
 	return nil
 }
 
-func (s *emrServiceImpl) AddDiagnosis(ctx context.Context, encounterNo, icd10Code, notes, doctorId, deptCode, gender, ageBracket string) error {
+func (s *emrServiceImpl) AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, notes, doctorId, deptCode, gender, ageBracket string) error {
 	if s.repo != nil {
-		err := s.repo.AddDiagnosis(ctx, encounterNo, icd10Code, notes, doctorId, deptCode, gender, ageBracket)
+		// Fetch KBM detail to get the name
+		kbm, err := s.repo.GetKBMDetail(ctx, kbmCode)
+		if err != nil {
+			return err
+		}
+
+		err = s.repo.AddDiagnosisKBM(ctx, encounterNo, kbmCode, kbm.KBMName, notes, doctorId, deptCode, gender, ageBracket)
 		if err != nil {
 			return err
 		}
@@ -66,6 +72,41 @@ func (s *emrServiceImpl) AddDiagnosis(ctx context.Context, encounterNo, icd10Cod
 		return nil
 	}
 	return nil
+}
+
+func (s *emrServiceImpl) SearchKBM(ctx context.Context, query string, limit, offset int32) ([]*domain.KBMItem, int32, error) {
+	if s.repo != nil {
+		return s.repo.SearchKBM(ctx, query, limit, offset)
+	}
+	return nil, 0, nil
+}
+
+func (s *emrServiceImpl) GetKBMDetail(ctx context.Context, kbmCode string) (*domain.KBMItem, error) {
+	if s.repo != nil {
+		return s.repo.GetKBMDetail(ctx, kbmCode)
+	}
+	return nil, nil
+}
+
+func (s *emrServiceImpl) VerifyICD10Mapping(ctx context.Context, encounterNo string, icd10Codes []string, notes string) error {
+	if s.repo != nil {
+		return s.repo.VerifyICD10Mapping(ctx, encounterNo, icd10Codes, notes)
+	}
+	return nil
+}
+
+func (s *emrServiceImpl) GetICD10SuggestionsForKBM(ctx context.Context, kbmCode string) ([]*domain.ICD10Suggestion, error) {
+	if s.repo != nil {
+		return s.repo.GetICD10SuggestionsForKBM(ctx, kbmCode)
+	}
+	return nil, nil
+}
+
+func (s *emrServiceImpl) ListPendingICD10Verifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error) {
+	if s.repo != nil {
+		return s.repo.ListPendingICD10Verifications(ctx, limit, offset)
+	}
+	return nil, 0, nil
 }
 
 func (s *emrServiceImpl) AddMedicalAction(ctx context.Context, encounterNo, actionCode, actionName string, price float64, notes string) error {

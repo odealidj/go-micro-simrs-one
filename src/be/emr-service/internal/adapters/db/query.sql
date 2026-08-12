@@ -3,20 +3,54 @@ INSERT INTO medical_records (id, encounter_no, mrn)
 VALUES ($1, $2, $3)
 RETURNING *;
 
--- name: AddDiagnosis :one
+-- name: AddDiagnosisKBM :one
 UPDATE medical_records
-SET icd10_codes = array_append(COALESCE(icd10_codes, ARRAY[]::TEXT[]), $2),
-    notes = $3,
+SET kbm_code = $2,
+    kbm_name = $3,
+    icd10_mapping_status = 'AUTO_MAPPED',
+    notes = $4,
     status = 'COMPLETED',
     completed_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP,
-    diagnosis = $2,
-    doctor_id = $4,
-    department_code = $5,
-    gender = $6,
-    age_bracket = $7
+    doctor_id = $5,
+    department_code = $6,
+    gender = $7,
+    age_bracket = $8
 WHERE encounter_no = $1
 RETURNING *;
+
+-- name: SearchKBM :many
+SELECT * FROM kbm_catalog
+WHERE is_active = true 
+  AND kbm_name ILIKE '%' || $1 || '%'
+ORDER BY kbm_name ASC
+LIMIT $2 OFFSET $3;
+
+-- name: GetKBMByCode :one
+SELECT * FROM kbm_catalog
+WHERE kbm_code = $1 LIMIT 1;
+
+-- name: VerifyICD10Mapping :one
+UPDATE medical_records
+SET icd10_codes = $2,
+    icd10_mapping_status = 'VERIFIED',
+    notes = CASE WHEN $3::text != '' THEN notes || E'\nCatatan RM: ' || $3::text ELSE notes END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE encounter_no = $1
+RETURNING *;
+
+-- name: GetICD10MappingsByKBM :many
+SELECT icd10_code, is_primary
+FROM kbm_icd10_mappings
+WHERE kbm_code = $1
+ORDER BY is_primary DESC, icd10_code ASC;
+
+-- name: ListPendingICD10Verifications :many
+SELECT encounter_no, mrn, kbm_code, kbm_name, icd10_mapping_status, created_at
+FROM medical_records
+WHERE icd10_mapping_status IN ('PENDING_REVIEW', 'AUTO_MAPPED')
+ORDER BY created_at ASC
+LIMIT $1 OFFSET $2;
 
 -- name: StartEncounter :exec
 UPDATE medical_records
@@ -62,9 +96,9 @@ SET status = $2
 WHERE id = $1;
 
 -- name: UpsertClinicWaitAggregate :exec
-INSERT INTO clinic_wait_time_aggregates (diagnosis, doctor_id, department_code, gender, age_bracket, average_wait_minutes, sample_count)
+INSERT INTO clinic_wait_time_aggregates (kbm_code, doctor_id, department_code, gender, age_bracket, average_wait_minutes, sample_count)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-ON CONFLICT (diagnosis, doctor_id, department_code, gender, age_bracket) 
+ON CONFLICT (kbm_code, doctor_id, department_code, gender, age_bracket) 
 DO UPDATE SET 
     average_wait_minutes = EXCLUDED.average_wait_minutes,
     sample_count = EXCLUDED.sample_count,
@@ -73,7 +107,7 @@ DO UPDATE SET
 -- name: GetClinicWaitAggregate :one
 SELECT average_wait_minutes, sample_count
 FROM clinic_wait_time_aggregates
-WHERE diagnosis = $1 AND doctor_id = $2 AND department_code = $3 AND gender = $4 AND age_bracket = $5;
+WHERE kbm_code = $1 AND doctor_id = $2 AND department_code = $3 AND gender = $4 AND age_bracket = $5;
 
 -- name: GetClinicWaitAggregateWithoutDiagnosis :one
 SELECT COALESCE(AVG(average_wait_minutes), 0)::float8 AS avg_wait_minutes

@@ -13,25 +13,27 @@ import (
 	"github.com/lib/pq"
 )
 
-const addDiagnosis = `-- name: AddDiagnosis :one
+const addDiagnosisKBM = `-- name: AddDiagnosisKBM :one
 UPDATE medical_records
-SET icd10_codes = array_append(COALESCE(icd10_codes, ARRAY[]::TEXT[]), $2),
-    notes = $3,
+SET kbm_code = $2,
+    kbm_name = $3,
+    icd10_mapping_status = 'AUTO_MAPPED',
+    notes = $4,
     status = 'COMPLETED',
     completed_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP,
-    diagnosis = $2,
-    doctor_id = $4,
-    department_code = $5,
-    gender = $6,
-    age_bracket = $7
+    doctor_id = $5,
+    department_code = $6,
+    gender = $7,
+    age_bracket = $8
 WHERE encounter_no = $1
-RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket
+RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, kbm_code, kbm_name, icd10_mapping_status
 `
 
-type AddDiagnosisParams struct {
+type AddDiagnosisKBMParams struct {
 	EncounterNo    string
-	Diagnosis      sql.NullString
+	KbmCode        sql.NullString
+	KbmName        sql.NullString
 	Notes          sql.NullString
 	DoctorID       sql.NullString
 	DepartmentCode sql.NullString
@@ -39,10 +41,11 @@ type AddDiagnosisParams struct {
 	AgeBracket     sql.NullString
 }
 
-func (q *Queries) AddDiagnosis(ctx context.Context, arg AddDiagnosisParams) (MedicalRecord, error) {
-	row := q.db.QueryRowContext(ctx, addDiagnosis,
+func (q *Queries) AddDiagnosisKBM(ctx context.Context, arg AddDiagnosisKBMParams) (MedicalRecord, error) {
+	row := q.db.QueryRowContext(ctx, addDiagnosisKBM,
 		arg.EncounterNo,
-		arg.Diagnosis,
+		arg.KbmCode,
+		arg.KbmName,
 		arg.Notes,
 		arg.DoctorID,
 		arg.DepartmentCode,
@@ -70,6 +73,9 @@ func (q *Queries) AddDiagnosis(ctx context.Context, arg AddDiagnosisParams) (Med
 		&i.Diagnosis,
 		&i.Gender,
 		&i.AgeBracket,
+		&i.KbmCode,
+		&i.KbmName,
+		&i.Icd10MappingStatus,
 	)
 	return i, err
 }
@@ -114,7 +120,7 @@ func (q *Queries) AddMedicalAction(ctx context.Context, arg AddMedicalActionPara
 const createDraftMR = `-- name: CreateDraftMR :one
 INSERT INTO medical_records (id, encounter_no, mrn)
 VALUES ($1, $2, $3)
-RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket
+RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, kbm_code, kbm_name, icd10_mapping_status
 `
 
 type CreateDraftMRParams struct {
@@ -146,6 +152,9 @@ func (q *Queries) CreateDraftMR(ctx context.Context, arg CreateDraftMRParams) (M
 		&i.Diagnosis,
 		&i.Gender,
 		&i.AgeBracket,
+		&i.KbmCode,
+		&i.KbmName,
+		&i.Icd10MappingStatus,
 	)
 	return i, err
 }
@@ -187,11 +196,11 @@ func (q *Queries) CreateOutboxEvent(ctx context.Context, arg CreateOutboxEventPa
 const getClinicWaitAggregate = `-- name: GetClinicWaitAggregate :one
 SELECT average_wait_minutes, sample_count
 FROM clinic_wait_time_aggregates
-WHERE diagnosis = $1 AND doctor_id = $2 AND department_code = $3 AND gender = $4 AND age_bracket = $5
+WHERE kbm_code = $1 AND doctor_id = $2 AND department_code = $3 AND gender = $4 AND age_bracket = $5
 `
 
 type GetClinicWaitAggregateParams struct {
-	Diagnosis      string
+	KbmCode        string
 	DoctorID       string
 	DepartmentCode string
 	Gender         string
@@ -205,7 +214,7 @@ type GetClinicWaitAggregateRow struct {
 
 func (q *Queries) GetClinicWaitAggregate(ctx context.Context, arg GetClinicWaitAggregateParams) (GetClinicWaitAggregateRow, error) {
 	row := q.db.QueryRowContext(ctx, getClinicWaitAggregate,
-		arg.Diagnosis,
+		arg.KbmCode,
 		arg.DoctorID,
 		arg.DepartmentCode,
 		arg.Gender,
@@ -241,8 +250,63 @@ func (q *Queries) GetClinicWaitAggregateWithoutDiagnosis(ctx context.Context, ar
 	return avg_wait_minutes, err
 }
 
+const getICD10MappingsByKBM = `-- name: GetICD10MappingsByKBM :many
+SELECT icd10_code, is_primary
+FROM kbm_icd10_mappings
+WHERE kbm_code = $1
+ORDER BY is_primary DESC, icd10_code ASC
+`
+
+type GetICD10MappingsByKBMRow struct {
+	Icd10Code string
+	IsPrimary sql.NullBool
+}
+
+func (q *Queries) GetICD10MappingsByKBM(ctx context.Context, kbmCode string) ([]GetICD10MappingsByKBMRow, error) {
+	rows, err := q.db.QueryContext(ctx, getICD10MappingsByKBM, kbmCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetICD10MappingsByKBMRow
+	for rows.Next() {
+		var i GetICD10MappingsByKBMRow
+		if err := rows.Scan(&i.Icd10Code, &i.IsPrimary); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getKBMByCode = `-- name: GetKBMByCode :one
+SELECT kbm_code, kbm_name, description, body_system, is_active, created_at, updated_at FROM kbm_catalog
+WHERE kbm_code = $1 LIMIT 1
+`
+
+func (q *Queries) GetKBMByCode(ctx context.Context, kbmCode string) (KbmCatalog, error) {
+	row := q.db.QueryRowContext(ctx, getKBMByCode, kbmCode)
+	var i KbmCatalog
+	err := row.Scan(
+		&i.KbmCode,
+		&i.KbmName,
+		&i.Description,
+		&i.BodySystem,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getMRByEncounterNo = `-- name: GetMRByEncounterNo :one
-SELECT id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket
+SELECT id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, kbm_code, kbm_name, icd10_mapping_status
 FROM medical_records
 WHERE encounter_no = $1 LIMIT 1
 `
@@ -270,6 +334,9 @@ func (q *Queries) GetMRByEncounterNo(ctx context.Context, encounterNo string) (M
 		&i.Diagnosis,
 		&i.Gender,
 		&i.AgeBracket,
+		&i.KbmCode,
+		&i.KbmName,
+		&i.Icd10MappingStatus,
 	)
 	return i, err
 }
@@ -349,6 +416,103 @@ func (q *Queries) GetPendingOutboxEvents(ctx context.Context) ([]OutboxEvent, er
 	return items, nil
 }
 
+const listPendingICD10Verifications = `-- name: ListPendingICD10Verifications :many
+SELECT encounter_no, mrn, kbm_code, kbm_name, icd10_mapping_status, created_at
+FROM medical_records
+WHERE icd10_mapping_status IN ('PENDING_REVIEW', 'AUTO_MAPPED')
+ORDER BY created_at ASC
+LIMIT $1 OFFSET $2
+`
+
+type ListPendingICD10VerificationsParams struct {
+	Limit  int32
+	Offset int32
+}
+
+type ListPendingICD10VerificationsRow struct {
+	EncounterNo        string
+	Mrn                string
+	KbmCode            sql.NullString
+	KbmName            sql.NullString
+	Icd10MappingStatus sql.NullString
+	CreatedAt          sql.NullTime
+}
+
+func (q *Queries) ListPendingICD10Verifications(ctx context.Context, arg ListPendingICD10VerificationsParams) ([]ListPendingICD10VerificationsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPendingICD10Verifications, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPendingICD10VerificationsRow
+	for rows.Next() {
+		var i ListPendingICD10VerificationsRow
+		if err := rows.Scan(
+			&i.EncounterNo,
+			&i.Mrn,
+			&i.KbmCode,
+			&i.KbmName,
+			&i.Icd10MappingStatus,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const searchKBM = `-- name: SearchKBM :many
+SELECT kbm_code, kbm_name, description, body_system, is_active, created_at, updated_at FROM kbm_catalog
+WHERE is_active = true 
+  AND kbm_name ILIKE '%' || $1 || '%'
+ORDER BY kbm_name ASC
+LIMIT $2 OFFSET $3
+`
+
+type SearchKBMParams struct {
+	Column1 sql.NullString
+	Limit   int32
+	Offset  int32
+}
+
+func (q *Queries) SearchKBM(ctx context.Context, arg SearchKBMParams) ([]KbmCatalog, error) {
+	rows, err := q.db.QueryContext(ctx, searchKBM, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []KbmCatalog
+	for rows.Next() {
+		var i KbmCatalog
+		if err := rows.Scan(
+			&i.KbmCode,
+			&i.KbmName,
+			&i.Description,
+			&i.BodySystem,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const startEncounter = `-- name: StartEncounter :exec
 UPDATE medical_records
 SET status = 'IN_PROGRESS', started_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
@@ -380,7 +544,7 @@ const updateTriage = `-- name: UpdateTriage :one
 UPDATE medical_records
 SET blood_pressure_systolic = $2, blood_pressure_diastolic = $3, temperature = $4, heart_rate = $5, notes = $6, updated_at = CURRENT_TIMESTAMP
 WHERE encounter_no = $1
-RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket
+RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, kbm_code, kbm_name, icd10_mapping_status
 `
 
 type UpdateTriageParams struct {
@@ -422,14 +586,17 @@ func (q *Queries) UpdateTriage(ctx context.Context, arg UpdateTriageParams) (Med
 		&i.Diagnosis,
 		&i.Gender,
 		&i.AgeBracket,
+		&i.KbmCode,
+		&i.KbmName,
+		&i.Icd10MappingStatus,
 	)
 	return i, err
 }
 
 const upsertClinicWaitAggregate = `-- name: UpsertClinicWaitAggregate :exec
-INSERT INTO clinic_wait_time_aggregates (diagnosis, doctor_id, department_code, gender, age_bracket, average_wait_minutes, sample_count)
+INSERT INTO clinic_wait_time_aggregates (kbm_code, doctor_id, department_code, gender, age_bracket, average_wait_minutes, sample_count)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-ON CONFLICT (diagnosis, doctor_id, department_code, gender, age_bracket) 
+ON CONFLICT (kbm_code, doctor_id, department_code, gender, age_bracket) 
 DO UPDATE SET 
     average_wait_minutes = EXCLUDED.average_wait_minutes,
     sample_count = EXCLUDED.sample_count,
@@ -437,7 +604,7 @@ DO UPDATE SET
 `
 
 type UpsertClinicWaitAggregateParams struct {
-	Diagnosis          string
+	KbmCode            string
 	DoctorID           string
 	DepartmentCode     string
 	Gender             string
@@ -448,7 +615,7 @@ type UpsertClinicWaitAggregateParams struct {
 
 func (q *Queries) UpsertClinicWaitAggregate(ctx context.Context, arg UpsertClinicWaitAggregateParams) error {
 	_, err := q.db.ExecContext(ctx, upsertClinicWaitAggregate,
-		arg.Diagnosis,
+		arg.KbmCode,
 		arg.DoctorID,
 		arg.DepartmentCode,
 		arg.Gender,
@@ -457,4 +624,50 @@ func (q *Queries) UpsertClinicWaitAggregate(ctx context.Context, arg UpsertClini
 		arg.SampleCount,
 	)
 	return err
+}
+
+const verifyICD10Mapping = `-- name: VerifyICD10Mapping :one
+UPDATE medical_records
+SET icd10_codes = $2,
+    icd10_mapping_status = 'VERIFIED',
+    notes = CASE WHEN $3::text != '' THEN notes || E'\nCatatan RM: ' || $3::text ELSE notes END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE encounter_no = $1
+RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, kbm_code, kbm_name, icd10_mapping_status
+`
+
+type VerifyICD10MappingParams struct {
+	EncounterNo string
+	Icd10Codes  []string
+	Column3     string
+}
+
+func (q *Queries) VerifyICD10Mapping(ctx context.Context, arg VerifyICD10MappingParams) (MedicalRecord, error) {
+	row := q.db.QueryRowContext(ctx, verifyICD10Mapping, arg.EncounterNo, pq.Array(arg.Icd10Codes), arg.Column3)
+	var i MedicalRecord
+	err := row.Scan(
+		&i.ID,
+		&i.EncounterNo,
+		&i.Mrn,
+		pq.Array(&i.Icd10Codes),
+		&i.Notes,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.BloodPressureSystolic,
+		&i.BloodPressureDiastolic,
+		&i.Temperature,
+		&i.HeartRate,
+		&i.Status,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.DoctorID,
+		&i.DepartmentCode,
+		&i.Diagnosis,
+		&i.Gender,
+		&i.AgeBracket,
+		&i.KbmCode,
+		&i.KbmName,
+		&i.Icd10MappingStatus,
+	)
+	return i, err
 }

@@ -323,21 +323,21 @@ func main() {
 				response.JSON(w, http.StatusOK, res)
 			})
 
-				r.Post("/emr/diagnosis", func(w http.ResponseWriter, req *http.Request) {
-					var payload emrpb.AddDiagnosisRequest
+				r.Post("/emr/diagnosis-kbm", func(w http.ResponseWriter, req *http.Request) {
+					var payload emrpb.AddDiagnosisKBMRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
 					if err := validator.ValidateAll(map[string]func() error{
 						"encounter_no": validator.NotEmpty(payload.EncounterNo),
-						"icd10_code":   validator.NotEmpty(payload.Icd10Code),
+						"kbm_code":     validator.NotEmpty(payload.KbmCode),
 					}); err != nil {
 						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.AddDiagnosisResponse, error) {
-					return emrClient.AddDiagnosis(req.Context(), &payload)
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.AddDiagnosisKBMResponse, error) {
+					return emrClient.AddDiagnosisKBM(req.Context(), &payload)
 				})
 				if err != nil {
 					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
@@ -373,6 +373,80 @@ func main() {
 				}
 				response.JSON(w, http.StatusOK, res)
 			})
+			})
+
+			// KBM (Doctor, Nurse, Medical Records, Admin)
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireRole("doctor", "nurse", "medical_records", "admin"))
+				r.Get("/emr/kbm/search", func(w http.ResponseWriter, req *http.Request) {
+					query := req.URL.Query().Get("q")
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.SearchKBMResponse, error) {
+						return emrClient.SearchKBM(req.Context(), &emrpb.SearchKBMRequest{
+							Query: query,
+							Limit: 20,
+						})
+					})
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					response.JSON(w, http.StatusOK, res)
+				})
+
+				r.Get("/emr/kbm/{code}", func(w http.ResponseWriter, req *http.Request) {
+					code := chi.URLParam(req, "code")
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetKBMDetailResponse, error) {
+						return emrClient.GetKBMDetail(req.Context(), &emrpb.GetKBMDetailRequest{KbmCode: code})
+					})
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					response.JSON(w, http.StatusOK, res)
+				})
+			})
+
+			// EMR (Medical Records)
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireRole("medical_records", "admin"))
+				r.Post("/emr/verify-icd10", func(w http.ResponseWriter, req *http.Request) {
+					var payload emrpb.VerifyICD10MappingRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.VerifyICD10MappingResponse, error) {
+						return emrClient.VerifyICD10Mapping(req.Context(), &payload)
+					})
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					response.JSON(w, http.StatusOK, res)
+				})
+
+				r.Get("/emr/pending-icd10", func(w http.ResponseWriter, req *http.Request) {
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.ListPendingICD10VerificationsResponse, error) {
+						return emrClient.ListPendingICD10Verifications(req.Context(), &emrpb.ListPendingICD10VerificationsRequest{Limit: 50})
+					})
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					response.JSON(w, http.StatusOK, res)
+				})
+
+				r.Get("/emr/kbm/{code}/icd10-suggestions", func(w http.ResponseWriter, req *http.Request) {
+					code := chi.URLParam(req, "code")
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetICD10SuggestionsForKBMResponse, error) {
+						return emrClient.GetICD10SuggestionsForKBM(req.Context(), &emrpb.GetICD10SuggestionsForKBMRequest{KbmCode: code})
+					})
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					response.JSON(w, http.StatusOK, res)
+				})
 			})
 
 			// Pharmacy (Pharmacist, Admin)

@@ -40,7 +40,7 @@ func (r *emrRepoSqlc) StartEncounter(ctx context.Context, encounterNo string) er
 	return r.q.StartEncounter(ctx, encounterNo)
 }
 
-func (r *emrRepoSqlc) AddDiagnosis(ctx context.Context, encounterNo, icd10Code, notes, doctorId, deptCode, gender, ageBracket string) error {
+func (r *emrRepoSqlc) AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, kbmName, notes, doctorId, deptCode, gender, ageBracket string) error {
 	var n sql.NullString
 	if notes != "" {
 		n = sql.NullString{String: notes, Valid: true}
@@ -62,15 +62,19 @@ func (r *emrRepoSqlc) AddDiagnosis(ctx context.Context, encounterNo, icd10Code, 
 	if ageBracket != "" {
 		age = sql.NullString{String: ageBracket, Valid: true}
 	}
-
-	var diag sql.NullString
-	if icd10Code != "" {
-		diag = sql.NullString{String: icd10Code, Valid: true}
+	var kc sql.NullString
+	if kbmCode != "" {
+		kc = sql.NullString{String: kbmCode, Valid: true}
+	}
+	var kn sql.NullString
+	if kbmName != "" {
+		kn = sql.NullString{String: kbmName, Valid: true}
 	}
 
-	_, err := r.q.AddDiagnosis(ctx, db.AddDiagnosisParams{
+	_, err := r.q.AddDiagnosisKBM(ctx, db.AddDiagnosisKBMParams{
 		EncounterNo:    encounterNo,
-		Diagnosis:      diag,
+		KbmCode:        kc,
+		KbmName:        kn,
 		Notes:          n,
 		DoctorID:       doc,
 		DepartmentCode: dept,
@@ -78,6 +82,93 @@ func (r *emrRepoSqlc) AddDiagnosis(ctx context.Context, encounterNo, icd10Code, 
 		AgeBracket:     age,
 	})
 	return err
+}
+
+func (r *emrRepoSqlc) SearchKBM(ctx context.Context, query string, limit, offset int32) ([]*domain.KBMItem, int32, error) {
+	dbItems, err := r.q.SearchKBM(ctx, db.SearchKBMParams{
+		Column1: sql.NullString{String: query, Valid: true},
+		Limit:   limit,
+		Offset:  offset,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var items []*domain.KBMItem
+	for _, i := range dbItems {
+		items = append(items, &domain.KBMItem{
+			KBMCode:     i.KbmCode,
+			KBMName:     i.KbmName,
+			Description: i.Description.String,
+			BodySystem:  i.BodySystem.String,
+		})
+	}
+	// For simplicity, we just return length as total, or we could run a separate COUNT query.
+	// Since we don't have a count query, let's just return 0 for total if not needed, or len(dbItems) if small.
+	return items, int32(len(dbItems)), nil // Ideally should use a count query.
+}
+
+func (r *emrRepoSqlc) GetKBMDetail(ctx context.Context, kbmCode string) (*domain.KBMItem, error) {
+	i, err := r.q.GetKBMByCode(ctx, kbmCode)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("kbm not found")
+		}
+		return nil, err
+	}
+	return &domain.KBMItem{
+		KBMCode:     i.KbmCode,
+		KBMName:     i.KbmName,
+		Description: i.Description.String,
+		BodySystem:  i.BodySystem.String,
+	}, nil
+}
+
+func (r *emrRepoSqlc) VerifyICD10Mapping(ctx context.Context, encounterNo string, icd10Codes []string, notes string) error {
+	_, err := r.q.VerifyICD10Mapping(ctx, db.VerifyICD10MappingParams{
+		EncounterNo: encounterNo,
+		Icd10Codes:  icd10Codes,
+		Column3:     notes,
+	})
+	return err
+}
+
+func (r *emrRepoSqlc) GetICD10SuggestionsForKBM(ctx context.Context, kbmCode string) ([]*domain.ICD10Suggestion, error) {
+	dbItems, err := r.q.GetICD10MappingsByKBM(ctx, kbmCode)
+	if err != nil {
+		return nil, err
+	}
+	var items []*domain.ICD10Suggestion
+	for _, item := range dbItems {
+		items = append(items, &domain.ICD10Suggestion{
+			ICD10Code: item.Icd10Code,
+			IsPrimary: item.IsPrimary.Bool,
+		})
+	}
+	return items, nil
+}
+
+func (r *emrRepoSqlc) ListPendingICD10Verifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error) {
+	dbItems, err := r.q.ListPendingICD10Verifications(ctx, db.ListPendingICD10VerificationsParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var items []*domain.PendingVerification
+	for _, i := range dbItems {
+		items = append(items, &domain.PendingVerification{
+			EncounterNo:        i.EncounterNo,
+			MRN:                i.Mrn,
+			KBMCode:            i.KbmCode.String,
+			KBMName:            i.KbmName.String,
+			ICD10MappingStatus: i.Icd10MappingStatus.String,
+			CreatedAt:          i.CreatedAt.Time,
+		})
+	}
+	return items, int32(len(dbItems)), nil
 }
 
 func (r *emrRepoSqlc) UpdateTriage(ctx context.Context, encounterNo string, systolic, diastolic *int32, temp *float64, heartRate *int32, notes string) error {
@@ -171,11 +262,14 @@ func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) 
 	}
 
 	record := &domain.MedicalRecord{
-		ID:          mr.ID,
-		EncounterNo: mr.EncounterNo,
-		MRN:         mr.Mrn,
-		ICD10Codes:  mr.Icd10Codes,
-		Notes:       mr.Notes.String,
+		ID:                 mr.ID,
+		EncounterNo:        mr.EncounterNo,
+		MRN:                mr.Mrn,
+		ICD10Codes:         mr.Icd10Codes,
+		KBMCode:            mr.KbmCode.String,
+		KBMName:            mr.KbmName.String,
+		ICD10MappingStatus: mr.Icd10MappingStatus.String,
+		Notes:              mr.Notes.String,
 		Triage: domain.TriageData{
 			BloodPressureSystolic:  sys,
 			BloodPressureDiastolic: dia,
