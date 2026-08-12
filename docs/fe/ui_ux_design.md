@@ -16,6 +16,8 @@ Modul ini adalah pintu masuk sistem. Desain difokuskan pada kebersihan antarmuka
 | **Username** | Text Input | `string` | Wajib diisi, min 4 karakter | |
 | **Password** | Password Input (Togle Eye) | `string` | Wajib diisi | Menyembunyikan karakter default |
 
+![Signup Page Mockup](./assets/signup_page_mockup.png)
+
 ### 📋 Form: Registrasi Pasien Mandiri (`POST /api/v1/auth/signup/patient`)
 | Field | UI Component | Tipe Data | Validasi Frontend | Keterangan |
 | :--- | :--- | :--- | :--- | :--- |
