@@ -37,3 +37,22 @@ func (r *userRepoSqlc) FindByUsername(ctx context.Context, username string) (*do
 		CreatedAt:    u.CreatedAt.Time,
 	}, nil
 }
+
+func (r *userRepoSqlc) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
+	u, err := r.q.CreateUser(ctx, db.CreateUserParams{
+		Username:     user.Username,
+		PasswordHash: user.PasswordHash,
+		Role:         user.Role,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.User{
+		ID:           u.ID.String(),
+		Username:     u.Username,
+		PasswordHash: u.PasswordHash,
+		Role:         u.Role,
+		CreatedAt:    u.CreatedAt.Time,
+	}, nil
+}

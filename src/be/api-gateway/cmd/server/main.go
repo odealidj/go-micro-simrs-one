@@ -211,6 +211,34 @@ func main() {
 			r.Use(middleware.AuthMiddleware(tokenManager))
 			r.Use(simrsmiddleware.IdempotencyMiddleware(rdb, 24*time.Hour))
 			
+			// Auth (Admin only)
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireRole("admin"))
+				r.Post("/auth/signup", func(w http.ResponseWriter, req *http.Request) {
+					var payload authpb.SignupRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					if err := validator.ValidateAll(map[string]func() error{
+						"username": validator.NotEmpty(payload.Username),
+						"password": validator.MinLength(payload.Password, 6),
+						"role":     validator.NotEmpty(payload.Role),
+					}); err != nil {
+						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.SignupResponse, error) {
+						return authClient.Signup(req.Context(), &payload)
+					})
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					response.JSON(w, http.StatusOK, res)
+				})
+			})
+			
 			// Patient (Admin, Nurse)
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireRole("admin", "nurse"))

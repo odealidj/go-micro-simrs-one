@@ -40,6 +40,7 @@ migrate-down:
 
 # --- New Commands ---
 
+.PHONY: be-run-demo-data be-stop-demo-data
 .PHONY: up down be-infra-up be-infra-down be-run-all be-stop-all be-run-local-all be-stop-local-all
 .PHONY: be-run-local-auth-service be-stop-local-auth-service be-run-local-patient-service be-stop-local-patient-service
 .PHONY: be-run-local-registration-service be-stop-local-registration-service be-run-local-emr-service be-stop-local-emr-service
@@ -67,6 +68,14 @@ be-run-all:
 
 be-stop-all:
 	podman compose stop auth-service patient-service registration-service emr-service pharmacy-service billing-service api-gateway
+
+be-run-demo-data:
+	@echo "Seeding demo data (admin user)..."
+	podman exec -i $$(podman ps --filter "name=postgres" -q | head -n 1) psql -U root -d simrs_db < ./src/be/scripts/demo_data_up.sql
+
+be-stop-demo-data:
+	@echo "Removing demo data (admin user)..."
+	podman exec -i $$(podman ps --filter "name=postgres" -q | head -n 1) psql -U root -d simrs_db < ./src/be/scripts/demo_data_down.sql
 
 # Docker Host Services
 be-run-auth-service:
