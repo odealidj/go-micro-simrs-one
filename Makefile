@@ -251,3 +251,20 @@ be-stop-local-api-gateway:
 	@echo "Stopping local api-gateway..."
 	$(call kill_port,8080)
 	@rm -f src/be/api-gateway/run.pid src/be/api-gateway/tmp-main
+
+# ============================================================
+# Frontend React Services
+# ============================================================
+.PHONY: fe-react-start fe-react-build fe-react-lint
+
+fe-react-start:
+	@echo "Starting React Frontend (Vite) on port 5173..."
+	@cd src/fe/react && pnpm dev
+
+fe-react-build:
+	@echo "Building React Frontend..."
+	@cd src/fe/react && pnpm build
+
+fe-react-lint:
+	@echo "Linting React Frontend..."
+	@cd src/fe/react && pnpm lint
