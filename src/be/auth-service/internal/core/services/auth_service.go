@@ -3,8 +3,13 @@ package services
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/aliube/go-micro-simrs-one/auth-service/internal/core/domain"
@@ -12,6 +17,7 @@ import (
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/auth"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/genai"
 )
 
 type authServiceImpl struct {
@@ -168,4 +174,78 @@ func (s *authServiceImpl) ValidateToken(ctx context.Context, token string) (bool
 	}
 
 	return true, role, userID, nil
+}
+
+func (s *authServiceImpl) ExtractKTPData(ctx context.Context, base64Image string) (*ports.ExtractKTPDataResult, error) {
+	apiKey := os.Getenv("GEMINI_API_KEY")
+	if apiKey == "" {
+		return nil, errors.New("GEMINI_API_KEY is not set")
+	}
+
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{
+		APIKey: apiKey,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create genai client: %w", err)
+	}
+
+	// Clean up base64 string if it contains data URI prefix
+	if idx := strings.Index(base64Image, ","); idx != -1 {
+		base64Image = base64Image[idx+1:]
+	}
+	
+	// Decode base64 to get byte array (wait, we can just pass base64 directly or decode it)
+	// Actually, the new genai SDK expects parts. If passing image, we can use InlineData.
+	// We need to decode it to bytes first.
+	imageBytes, err := base64.StdEncoding.DecodeString(base64Image)
+	if err != nil {
+		return nil, fmt.Errorf("invalid base64 image: %w", err)
+	}
+
+	prompt := "Ekstrak informasi dari gambar KTP ini. Kembalikan HANYA dalam format JSON dengan key: 'nik', 'nama', 'tanggal_lahir'. Format tanggal_lahir harus YYYY-MM-DD. Jangan tambahkan teks markdown atau penjelasan apapun."
+
+	contents := []*genai.Content{
+		{
+			Parts: []*genai.Part{
+				{
+					Text: prompt,
+				},
+				{
+					InlineData: &genai.Blob{
+						MIMEType: "image/jpeg",
+						Data:     imageBytes,
+					},
+				},
+			},
+		},
+	}
+	config := &genai.GenerateContentConfig{
+		ResponseMIMEType: "application/json",
+	}
+
+	resp, err := client.Models.GenerateContent(ctx, "gemini-1.5-flash", contents, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call gemini api: %w", err)
+	}
+
+	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
+		return nil, errors.New("gemini returned empty response")
+	}
+
+	var jsonResponse string
+	if resp.Candidates[0].Content.Parts[0].Text != "" {
+		jsonResponse = resp.Candidates[0].Content.Parts[0].Text
+	}
+
+	// Remove possible markdown formatting if the model ignored the instruction
+	jsonResponse = strings.TrimPrefix(jsonResponse, "```json\n")
+	jsonResponse = strings.TrimPrefix(jsonResponse, "```\n")
+	jsonResponse = strings.TrimSuffix(jsonResponse, "\n```")
+
+	var result ports.ExtractKTPDataResult
+	if err := json.Unmarshal([]byte(jsonResponse), &result); err != nil {
+		return nil, fmt.Errorf("failed to parse gemini JSON response: %w. Raw: %s", err, jsonResponse)
+	}
+
+	return &result, nil
 }

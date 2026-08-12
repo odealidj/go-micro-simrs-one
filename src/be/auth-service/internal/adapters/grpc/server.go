@@ -86,3 +86,21 @@ func (s *AuthGrpcServer) ValidateToken(ctx context.Context, req *pb.ValidateToke
 	}
 	return &pb.ValidateTokenResponse{Valid: true, UserId: userID, Role: role}, nil
 }
+
+func (s *AuthGrpcServer) ExtractKTPData(ctx context.Context, req *pb.ExtractKTPDataRequest) (*pb.ExtractKTPDataResponse, error) {
+	if req.Base64Image == "" {
+		return nil, status.Error(codes.InvalidArgument, "base64_image is required")
+	}
+
+	result, err := s.authService.ExtractKTPData(ctx, req.Base64Image)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to extract KTP data: %v", err)
+	}
+
+	return &pb.ExtractKTPDataResponse{
+		Success: true,
+		Nik:     result.NIK,
+		Name:    result.Name,
+		Dob:     result.DOB,
+	}, nil
+}
