@@ -8,7 +8,7 @@ Dokumen ini memetakan alur antarmuka pengguna (UI/UX) beserta **struktur form** 
 
 Modul ini adalah pintu masuk sistem. Desain difokuskan pada kebersihan antarmuka, validasi instan, dan penanganan error secara *graceful*.
 
-![Login Page Mockup](/home/aliube/.gemini/antigravity/brain/075aa9a4-f4cd-42d3-90e9-882df7411e02/login_page_mockup_1786539057775.png)
+![Login Page Mockup](./assets/login_page_mockup.png)
 
 ### 📋 Form: Login Karyawan (`POST /api/v1/auth/login`)
 | Field | UI Component | Tipe Data | Validasi Frontend | Keterangan |
@@ -31,7 +31,7 @@ Modul ini adalah pintu masuk sistem. Desain difokuskan pada kebersihan antarmuka
 
 Modul Electronic Medical Record (EMR) memegang peranan sangat penting. Sistem menerapkan *Split-Screen* untuk mengoptimalkan ruang kerja dokter.
 
-![EMR Dashboard Mockup](/home/aliube/.gemini/antigravity/brain/075aa9a4-f4cd-42d3-90e9-882df7411e02/emr_dashboard_mockup_1786539269735.png)
+![EMR Dashboard Mockup](./assets/emr_dashboard_mockup.png)
 
 ### 📋 Form: Triage / Pemeriksaan Perawat (`POST /api/v1/emr/triage`)
 | Field | UI Component | Tipe Data | Validasi Frontend | Keterangan |
@@ -54,7 +54,7 @@ Modul Electronic Medical Record (EMR) memegang peranan sangat penting. Sistem me
 
 Apotek berjalan dengan alur *Kanban Board*. Setiap kartu resep obat merepresentasikan data dari `GET /queue/pharmacy/stream`. Apoteker tidak diperkenankan memproses resep yang belum dibayar di kasir.
 
-![Pharmacy Kanban Mockup](/home/aliube/.gemini/antigravity/brain/075aa9a4-f4cd-42d3-90e9-882df7411e02/pharmacy_kanban_mockup_1786539288166.png)
+![Pharmacy Kanban Mockup](./assets/pharmacy_kanban_mockup.png)
 
 ### 📋 Form: Konfirmasi Dispense Obat (`POST /api/v1/pharmacy/dispense`)
 Form ini dimunculkan di dalam sebuah *Modal Dialog* saat apoteker mengklik "Selesai" pada sebuah kartu resep.
