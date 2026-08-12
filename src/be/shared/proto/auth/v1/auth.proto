@@ -8,6 +8,9 @@ service AuthService {
   // Login verifies credentials and returns a PASETO token
   rpc Login (LoginRequest) returns (LoginResponse);
   
+  // Signup creates a new user account
+  rpc Signup (SignupRequest) returns (SignupResponse);
+  
   // ValidateToken verifies a PASETO token and returns the user's role/id
   rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
 }
@@ -22,6 +25,18 @@ message LoginResponse {
   string token = 2;
   string role = 3;
   string user_id = 4;
+}
+
+message SignupRequest {
+  string username = 1;
+  string password = 2;
+  string role = 3;
+}
+
+message SignupResponse {
+  bool success = 1;
+  string user_id = 2;
+  string message = 3;
 }
 
 message ValidateTokenRequest {

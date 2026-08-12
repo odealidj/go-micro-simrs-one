@@ -27,7 +27,32 @@ func (s *AuthGrpcServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.L
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "invalid credentials: %v", err)
 	}
-	return &pb.LoginResponse{Success: true, Token: token, Role: role, UserId: userID}, nil
+	return &pb.LoginResponse{
+		Success: true,
+		Token:   token,
+		Role:    role,
+		UserId:  userID,
+	}, nil
+}
+
+func (s *AuthGrpcServer) Signup(ctx context.Context, req *pb.SignupRequest) (*pb.SignupResponse, error) {
+	if req.Username == "" || req.Password == "" || req.Role == "" {
+		return nil, status.Error(codes.InvalidArgument, "username, password, and role are required")
+	}
+
+	userID, err := s.authService.Signup(ctx, req.Username, req.Password, req.Role)
+	if err != nil {
+		if err.Error() == "username already exists" {
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &pb.SignupResponse{
+		Success: true,
+		UserId:  userID,
+		Message: "User registered successfully",
+	}, nil
 }
 
 func (s *AuthGrpcServer) ValidateToken(ctx context.Context, req *pb.ValidateTokenRequest) (*pb.ValidateTokenResponse, error) {
