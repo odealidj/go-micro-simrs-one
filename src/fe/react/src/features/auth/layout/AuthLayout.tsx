@@ -22,7 +22,7 @@ export function AuthLayout() {
           </div>
           <div className="leading-tight text-white">
             <h1 className="font-bold text-3xl tracking-tight">Codina SIMRS</h1>
-            <p className="text-sm font-semibold tracking-[0.2em] text-blue-200/80 uppercase mt-1">Hospital System</p>
+            <p className="text-sm font-semibold tracking-[0.2em] text-blue-200/80 uppercase mt-1">Modul Rawat Jalan</p>
           </div>
         </div>
 
@@ -31,11 +31,11 @@ export function AuthLayout() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
             <blockquote className="space-y-6 relative z-10">
               <p className="text-2xl font-medium leading-relaxed text-white/95">
-                "Melayani dengan sepenuh hati, memberikan ekosistem digital cerdas dan terintegrasi untuk layanan kesehatan masa depan."
+                "Melayani dengan sepenuh hati, memberikan pengalaman pendaftaran dan antrean rawat jalan yang cepat, cerdas, dan terintegrasi."
               </p>
               <footer className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-white/20" />
-                <span className="text-sm text-blue-200/80 font-semibold tracking-wider uppercase">Versi 2.0 Pro</span>
+                <span className="text-sm text-blue-200/80 font-semibold tracking-wider uppercase">Outpatient V2.0</span>
               </footer>
             </blockquote>
           </div>
