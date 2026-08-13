@@ -46,10 +46,10 @@ export function LoginPage() {
     <Card className="border border-white/50 bg-white/40 backdrop-blur-md shadow-2xl rounded-3xl overflow-hidden">
       <CardHeader className="space-y-4 pt-10 pb-6">
         <CardTitle className="text-3xl text-center font-bold text-blue-700 tracking-tight leading-tight uppercase">
-          HOSPITAL<br/>INFORMATION<br/>SYSTEM
+          PORTAL<br/>RAWAT JALAN
         </CardTitle>
         <CardDescription className="text-center text-slate-700 font-medium px-4">
-          Welcome to Codina SIMRS. Please sign<br/>in to your account.
+          Selamat datang di layanan Rawat Jalan.<br/>Silakan masuk untuk melanjutkan.
         </CardDescription>
       </CardHeader>
       <CardContent className="px-8 pb-10">

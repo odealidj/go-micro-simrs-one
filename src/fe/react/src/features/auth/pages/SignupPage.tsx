@@ -53,10 +53,10 @@ export function SignupPage() {
     <Card className="border border-white/50 bg-white/40 backdrop-blur-md shadow-2xl rounded-3xl overflow-hidden max-w-lg w-full mx-auto">
       <CardHeader className="space-y-4 pt-8 pb-4">
         <CardTitle className="text-3xl text-center font-bold text-blue-700 tracking-tight leading-tight uppercase">
-          PATIENT<br/>REGISTRATION
+          PENDAFTARAN<br/>RAWAT JALAN
         </CardTitle>
         <CardDescription className="text-center text-slate-700 font-medium px-4">
-          Buat akun untuk memudahkan layanan antrean<br/>dan rekam medis Anda.
+          Buat akun untuk memudahkan layanan antrean<br/>dan rekam medis rawat jalan Anda.
         </CardDescription>
       </CardHeader>
       <CardContent className="px-8 pb-8">
