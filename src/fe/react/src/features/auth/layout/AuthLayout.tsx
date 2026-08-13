@@ -21,7 +21,7 @@ export function AuthLayout() {
             <Activity className="h-8 w-8 text-blue-400" />
           </div>
           <div className="leading-tight text-white">
-            <h1 className="font-bold text-3xl tracking-tight">Codina SIMRS</h1>
+            <h1 className="font-bold text-3xl tracking-tight">Codina Mini SIMRS</h1>
             <p className="text-sm font-semibold tracking-[0.2em] text-blue-200/80 uppercase mt-1">Modul Rawat Jalan</p>
           </div>
         </div>
@@ -35,7 +35,7 @@ export function AuthLayout() {
               </p>
               <footer className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-white/20" />
-                <span className="text-sm text-blue-200/80 font-semibold tracking-wider uppercase">Outpatient V2.0</span>
+                <span className="text-sm text-blue-200/80 font-semibold tracking-wider uppercase">Mini Outpatient V2.0</span>
               </footer>
             </blockquote>
           </div>
