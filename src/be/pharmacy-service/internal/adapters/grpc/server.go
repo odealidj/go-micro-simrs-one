@@ -113,10 +113,20 @@ func (s *PharmacyGrpcServer) GetMasterObat(ctx context.Context, req *pb.GetMaste
 	var data []*pb.MasterObat
 	for _, i := range res {
 		price, _ := strconv.ParseFloat(i.Price, 64)
+		
+		// Handle polyclinics string array, sqlc generated it as []string or pgtype
+		// Let's assume it's []string.
+		var polyclinics []string
+		if len(i.Polyclinics) > 0 {
+			polyclinics = i.Polyclinics
+		}
+
 		data = append(data, &pb.MasterObat{
-			ItemCode: i.ItemCode,
-			Name:     i.Name,
-			Price:    price,
+			ItemCode:      i.ItemCode,
+			Name:          i.Name,
+			Price:         price,
+			StockQuantity: i.StockQuantity,
+			Polyclinics:   polyclinics,
 		})
 	}
 	return &pb.GetMasterObatResponse{Data: data, TotalCount: int32(count)}, nil
@@ -155,10 +165,18 @@ func (s *PharmacyGrpcServer) GetMasterObatByPoli(ctx context.Context, req *pb.Ge
 	var data []*pb.MasterObat
 	for _, i := range res {
 		price, _ := strconv.ParseFloat(i.Price, 64)
+		
+		var polyclinics []string
+		if len(i.Polyclinics) > 0 {
+			polyclinics = i.Polyclinics
+		}
+
 		data = append(data, &pb.MasterObat{
-			ItemCode: i.ItemCode,
-			Name:     i.Name,
-			Price:    price,
+			ItemCode:      i.ItemCode,
+			Name:          i.Name,
+			Price:         price,
+			StockQuantity: i.StockQuantity,
+			Polyclinics:   polyclinics,
 		})
 	}
 	return &pb.GetMasterObatByPoliResponse{Data: data, TotalCount: int32(count)}, nil
