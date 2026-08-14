@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: emr.proto
+// source: src/be/shared/proto/emr/v1/emr.proto
 
 package emrv1
 
@@ -771,5 +771,5 @@ var EMRService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "emr.proto",
+	Metadata: "src/be/shared/proto/emr/v1/emr.proto",
 }
