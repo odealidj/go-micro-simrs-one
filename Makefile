@@ -268,3 +268,13 @@ fe-react-build:
 fe-react-lint:
 	@echo "Linting React Frontend..."
 	@cd src/fe/react && pnpm lint
+
+seed-data-master:
+	@echo "Seeding master data..."
+	@cd src/be/auth-service && go run ../scripts/seed.go ../scripts/seed_master_data.sql
+	@echo "Master data seeded successfully."
+
+reset-data-master:
+	@echo "Resetting master data..."
+	@cd src/be/auth-service && go run ../scripts/seed.go ../scripts/reset_master_data.sql
+	@echo "Master data reset successfully."

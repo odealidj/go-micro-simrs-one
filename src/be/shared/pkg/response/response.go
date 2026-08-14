@@ -125,6 +125,17 @@ func HandleGRPCError(w http.ResponseWriter, err error) {
 		userMsg = ErrorMessages[codes.Internal]
 	}
 
+	// Override specific gRPC error messages for better UX
+	if st.Code() == codes.Unauthenticated {
+		if st.Message() == "invalid credentials" {
+			userMsg = "Username atau password salah."
+		} else if st.Message() == "account is pending approval by admin" {
+			userMsg = "Akun Anda belum aktif. Silakan tunggu konfirmasi Admin."
+		} else if st.Message() == "account is inactive or rejected" {
+			userMsg = "Akun Anda tidak aktif atau ditolak."
+		}
+	}
+
 	JSON(w, httpStatus, ErrorResponse{
 		Success: false,
 		Message: userMsg,

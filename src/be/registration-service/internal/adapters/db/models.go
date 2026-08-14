@@ -7,6 +7,8 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+
+	"github.com/google/uuid"
 )
 
 type Encounter struct {
@@ -16,6 +18,8 @@ type Encounter struct {
 	DoctorID    string
 	Status      string
 	CreatedAt   sql.NullTime
+	DeletedDt   sql.NullTime
+	DeletedBy   uuid.NullUUID
 }
 
 type OutboxEvent struct {

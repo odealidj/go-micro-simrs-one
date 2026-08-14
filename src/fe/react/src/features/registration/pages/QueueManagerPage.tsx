@@ -1,129 +1,186 @@
 import { useState } from "react";
-import { Mic, CheckCircle2, User, Clock } from "lucide-react";
+import { Mic, SkipForward, RotateCcw, CheckCircle2, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export function QueueManagerPage() {
-  const [activePoli, setActivePoli] = useState("Poli Umum");
+// Mock Data
+const MOCK_WAITLIST = [
+  { id: "A-002", name: "Ibu Siti Aminah", type: "Pasien Lama (BPJS)", time: "10:45", estimate: "~5 mnt" },
+  { id: "A-003", name: "Agus Pratama", type: "Pasien Baru (Umum)", time: "10:55", estimate: "~15 mnt" },
+  { id: "A-004", name: "Dewi Lestari", type: "Pasien Lama (Asuransi)", time: "11:10", estimate: "~30 mnt" },
+];
 
-  const poliList = ["Poli Umum", "Poli Gigi", "Poli Anak", "Poli Kandungan"];
+export function QueueManagerPage() {
+  const [activeTab, setActiveTab] = useState("umum");
   
-  const queues = [
-    { id: "A-001", name: "Budi Santoso", status: "Sedang Dilayani", time: "09:00" },
-    { id: "A-002", name: "Siti Aminah", status: "Menunggu", time: "09:15" },
-    { id: "A-003", name: "Andi Saputra", status: "Menunggu", time: "09:30" },
-    { id: "A-004", name: "Rina Wati", status: "Menunggu", time: "09:45" },
+  // States for Queue Logic
+  const [activeCall, setActiveCall] = useState<{id: string, name: string} | null>({
+    id: "A-001",
+    name: "Bpk. Budi Santoso"
+  });
+  const [waitlist, setWaitlist] = useState(MOCK_WAITLIST);
+  
+  const queueTabs = [
+    { id: "umum", label: "Poli Umum", activeCount: waitlist.length + (activeCall ? 1 : 0) },
+    { id: "gigi", label: "Poli Gigi", activeCount: 5 },
+    { id: "anak", label: "Poli Anak", activeCount: 8 },
   ];
 
+  const handleNextCall = () => {
+    if (waitlist.length > 0) {
+      const nextPatient = waitlist[0];
+      setActiveCall({ id: nextPatient.id, name: nextPatient.name });
+      setWaitlist(waitlist.slice(1));
+    } else {
+      setActiveCall(null);
+    }
+  };
+
+  const handleComplete = () => {
+    handleNextCall();
+  };
+
+  const handleSkip = () => {
+    // In a real app, move them to the end of the line or mark as skipped. 
+    // Here we just pull the next patient.
+    handleNextCall();
+  };
+
   return (
-    <div className="space-y-6 max-w-6xl mx-auto h-full flex flex-col">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-white tracking-tight">Manajemen Antrean</h2>
-          <p className="text-slate-400 mt-1">Kelola dan panggil antrean pasien per poliklinik.</p>
-        </div>
-        <div className="flex bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-1">
-          {poliList.map(poli => (
-            <button
-              key={poli}
-              onClick={() => setActivePoli(poli)}
-              className={cn(
-                "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                activePoli === poli 
-                  ? "bg-blue-600 text-white shadow-lg" 
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
-              )}
-            >
-              {poli}
-            </button>
-          ))}
-        </div>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      <div>
+        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Manajemen Antrean</h2>
+        <p className="text-slate-500 mt-1">Kontrol pemanggilan pasien dan estimasi pelayanan.</p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
-        {/* Left: Active Queue Info */}
-        <div className="lg:w-1/3 flex flex-col gap-6">
-          <Card className="bg-gradient-to-br from-blue-600/40 to-blue-900/40 backdrop-blur-xl border-blue-500/30 shadow-2xl overflow-hidden relative flex-1">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-            <CardHeader className="text-center pb-2 relative z-10">
-              <CardTitle className="text-blue-200 text-lg uppercase tracking-widest font-semibold">
-                Sedang Dipanggil
-              </CardTitle>
+      {/* Tabs Navigation */}
+      <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+        {queueTabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              "px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-2",
+              activeTab === tab.id 
+                ? "bg-blue-600 text-white shadow-sm" 
+                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+            )}
+          >
+            {tab.label}
+            <span className={cn(
+              "px-2 py-0.5 rounded-full text-xs",
+              activeTab === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+            )}>
+              {tab.activeCount}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left Column: Active Call Controls */}
+        <div className="col-span-1 lg:col-span-7 space-y-6">
+          <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-4">
+              <CardTitle className="text-lg text-slate-800 text-center">Sedang Dipanggil</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center flex-1 relative z-10">
-              <div className="text-7xl font-black text-white tracking-tighter drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
-                A-001
-              </div>
-              <div className="mt-6 text-xl text-slate-200 font-medium">Budi Santoso</div>
-              <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-sm font-semibold">
-                <Clock className="w-4 h-4" />
-                Estimasi Selesai: 15 Menit
-              </div>
+            <CardContent className="p-8 flex flex-col items-center justify-center min-h-[300px]">
+              {activeCall ? (
+                <>
+                  <div className="text-[120px] font-bold leading-none tracking-tighter text-blue-600 mb-2">
+                    {activeCall.id}
+                  </div>
+                  <p className="text-2xl font-medium text-slate-800">{activeCall.name}</p>
+                  <p className="text-slate-500 mt-1">Poli Umum • Dr. Ali Ube</p>
+                  
+                  <div className="flex items-center gap-4 mt-10">
+                    <Button variant="outline" size="lg" className="h-16 w-16 rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-blue-600">
+                      <RotateCcw className="h-6 w-6" />
+                    </Button>
+                    <Button size="lg" className="h-16 px-8 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg shadow-sm gap-2">
+                      <Mic className="h-6 w-6" />
+                      Panggil (Audio)
+                    </Button>
+                    <Button onClick={handleSkip} variant="outline" size="lg" className="h-16 w-16 rounded-2xl border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-amber-600">
+                      <SkipForward className="h-6 w-6" />
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                 <div className="text-center text-slate-500">
+                    <p className="text-xl font-medium">Antrean Kosong</p>
+                    <p className="mt-2 text-sm">Tidak ada pasien dalam daftar panggil.</p>
+                 </div>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="bg-black/40 backdrop-blur-md border-white/10 shadow-xl">
-            <CardContent className="p-6 flex flex-col gap-4">
-              <Button size="lg" className="w-full h-14 text-lg bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-[0_0_20px_rgba(22,163,74,0.3)] border border-green-500/50">
-                <Mic className="mr-2 h-6 w-6" />
-                Panggil Nomor A-002
-              </Button>
-              <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="h-12 border-blue-500/30 text-blue-400 hover:bg-blue-500/10 rounded-xl">
-                  Ulangi Panggilan
-                </Button>
-                <Button variant="outline" className="h-12 border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-xl">
-                  Lewati (Skip)
+          <Card className="bg-white border-slate-200 shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800">Tandai Selesai</h3>
+                  <p className="text-sm text-slate-500">Pasien telah selesai menerima pelayanan admin.</p>
+                </div>
+                <Button 
+                  onClick={handleComplete} 
+                  disabled={!activeCall}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-2 disabled:bg-emerald-600/50"
+                >
+                  <CheckCircle2 className="h-5 w-5" />
+                  Selesai
                 </Button>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right: Queue List */}
-        <div className="flex-1">
-          <Card className="bg-black/20 backdrop-blur-md border-white/10 shadow-xl h-full flex flex-col">
-            <CardHeader className="border-b border-white/5 pb-4">
-              <CardTitle className="text-white flex items-center justify-between">
-                Daftar Antrean
-                <span className="text-sm font-normal text-slate-400 bg-white/5 px-3 py-1 rounded-full">
-                  Total: 12 Pasien
-                </span>
-              </CardTitle>
+        {/* Right Column: Waiting List */}
+        <div className="col-span-1 lg:col-span-5">
+          <Card className="bg-white border-slate-200 shadow-sm h-full flex flex-col">
+            <CardHeader className="border-b border-slate-100 pb-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg text-slate-800">Daftar Tunggu</CardTitle>
+                <span className="text-sm text-slate-500">Estimasi</span>
+              </div>
             </CardHeader>
-            <CardContent className="p-0 overflow-auto flex-1">
-              <div className="divide-y divide-white/5">
-                {queues.map((q, idx) => (
-                  <div key={q.id} className={cn(
-                    "flex items-center justify-between p-4 hover:bg-white/5 transition-colors",
-                    idx === 0 && "bg-blue-900/20"
-                  )}>
+            <CardContent className="p-0 flex-1 overflow-y-auto">
+              <div className="divide-y divide-slate-100">
+                
+                {waitlist.length > 0 ? waitlist.map((patient, index) => (
+                  <div key={patient.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between group">
                     <div className="flex items-center gap-4">
                       <div className={cn(
-                        "h-12 w-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-inner",
-                        idx === 0 ? "bg-blue-600 text-white" : "bg-white/10 text-slate-300"
+                        "h-12 w-12 rounded-xl font-bold flex items-center justify-center text-lg",
+                        index === 0 ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-600"
                       )}>
-                        {q.id}
+                        {patient.id}
                       </div>
                       <div>
-                        <p className={cn("font-medium", idx === 0 ? "text-white" : "text-slate-300")}>{q.name}</p>
-                        <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                          {idx === 0 ? <CheckCircle2 className="w-3 h-3 text-green-400" /> : <User className="w-3 h-3" />}
-                          {q.status}
+                        <p className="font-semibold text-slate-800">{patient.name}</p>
+                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                          <User className="h-3 w-3" /> {patient.type}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-semibold text-slate-300">{q.time}</p>
-                      <p className="text-xs text-slate-500 mt-1">Estimasi</p>
+                      <p className={cn("text-sm font-medium", index === 0 ? "text-amber-600" : "text-slate-600")}>{patient.estimate}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{patient.time}</p>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="p-8 text-center text-slate-500">
+                     Daftar antrean kosong.
+                  </div>
+                )}
+                
               </div>
             </CardContent>
           </Card>
         </div>
+
       </div>
     </div>
   );

@@ -8,10 +8,12 @@ import (
 	"os"
 
 	"google.golang.org/grpc"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
 	grpcAdapter "github.com/aliube/go-micro-simrs-one/auth-service/internal/adapters/grpc"
+	authdb "github.com/aliube/go-micro-simrs-one/auth-service/internal/adapters/db"
 	"github.com/aliube/go-micro-simrs-one/auth-service/internal/adapters/repository"
 	"github.com/aliube/go-micro-simrs-one/auth-service/internal/core/services"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/auth"
@@ -68,9 +70,9 @@ func main() {
 		initAdminPass = "admin123"
 	}
 
-	_, err = authService.Signup(context.Background(), initAdminUser, initAdminPass, "admin")
+	err = authService.BootstrapAdmin(context.Background(), initAdminUser, initAdminPass, "admin@example.com", "")
 	if err != nil {
-		if err.Error() == "username already exists" {
+		if err.Error() == "NIP already registered" {
 			slog.Info("Initial admin user already exists", "username", initAdminUser)
 		} else {
 			slog.Error("Failed to bootstrap initial admin user", "error", err)
@@ -81,8 +83,12 @@ func main() {
 	// -----------------------------------
 
 	// 4. Init gRPC Server
-	grpcServer := grpc.NewServer()
-	authGrpcHandler := grpcAdapter.NewAuthGrpcServer(authService)
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			recovery.UnaryServerInterceptor(),
+		),
+	)
+	authGrpcHandler := grpcAdapter.NewAuthGrpcServer(authService, authdb.New(dbConn))
 	pb.RegisterAuthServiceServer(grpcServer, authGrpcHandler)
 
 	// 5. Register gRPC Health Check

@@ -1,0 +1,2 @@
+ALTER TABLE patients ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE patients ADD COLUMN deleted_by UUID;

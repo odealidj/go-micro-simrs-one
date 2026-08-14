@@ -11,7 +11,16 @@ service EMRService {
   rpc StartEncounter (StartEncounterRequest) returns (StartEncounterResponse);
   rpc GetEstimatedWaitTime (GetEstimatedWaitTimeRequest) returns (GetEstimatedWaitTimeResponse);
 
-  // Master KBM
+  // Master Data Reads
+  rpc GetPolyclinics (GetPolyclinicsRequest) returns (GetPolyclinicsResponse);
+  rpc GetMasterKBMs (GetMasterKBMsRequest) returns (GetMasterKBMsResponse);
+  rpc GetMasterKBMsByPoli (GetMasterKBMsByPoliRequest) returns (GetMasterKBMsByPoliResponse);
+  rpc GetMasterTindakan (GetMasterTindakanRequest) returns (GetMasterTindakanResponse);
+  rpc GetMasterTindakanByPoli (GetMasterTindakanByPoliRequest) returns (GetMasterTindakanByPoliResponse);
+  rpc GetMasterICD10 (GetMasterICD10Request) returns (GetMasterICD10Response);
+  rpc GetMasterICD10ByPoli (GetMasterICD10ByPoliRequest) returns (GetMasterICD10ByPoliResponse);
+
+  // Master KBM (Existing)
   rpc SearchKBM (SearchKBMRequest) returns (SearchKBMResponse);
   rpc GetKBMDetail (GetKBMDetailRequest) returns (GetKBMDetailResponse);
   rpc GetICD10SuggestionsForKBM (GetICD10SuggestionsForKBMRequest) returns (GetICD10SuggestionsForKBMResponse);
@@ -192,3 +201,97 @@ message GetMedicalRecordResponse {
   repeated MedicalAction actions = 8;
   string notes = 9;
 }
+
+// -- Master Data Messages --
+message GetPolyclinicsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+}
+message Polyclinic {
+  string code = 1;
+  string name = 2;
+}
+message GetPolyclinicsResponse {
+  repeated Polyclinic data = 1;
+  int32 total_count = 2;
+}
+
+message GetMasterKBMsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search_name = 3;
+  string search_code = 4;
+}
+message GetMasterKBMsResponse {
+  repeated KBMItem data = 1;
+  int32 total_count = 2;
+}
+
+message GetMasterKBMsByPoliRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string poli_code = 3;
+  string search_name = 4;
+  string search_code = 5;
+}
+message GetMasterKBMsByPoliResponse {
+  repeated KBMItem data = 1;
+  int32 total_count = 2;
+}
+
+message GetMasterTindakanRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search_name = 3;
+  string search_code = 4;
+}
+message MasterTindakan {
+  string kode_tindakan = 1;
+  string nama_tindakan = 2;
+  double base_price = 3;
+}
+message GetMasterTindakanResponse {
+  repeated MasterTindakan data = 1;
+  int32 total_count = 2;
+}
+
+message GetMasterTindakanByPoliRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string poli_code = 3;
+  string search_name = 4;
+  string search_code = 5;
+}
+message GetMasterTindakanByPoliResponse {
+  repeated MasterTindakan data = 1;
+  int32 total_count = 2;
+}
+
+message GetMasterICD10Request {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search_name = 3;
+  string search_code = 4;
+}
+message MasterICD10 {
+  string icd10_code = 1;
+  string name = 2;
+}
+message GetMasterICD10Response {
+  repeated MasterICD10 data = 1;
+  int32 total_count = 2;
+}
+
+message GetMasterICD10ByPoliRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string poli_code = 3;
+  string search_name = 4;
+  string search_code = 5;
+}
+message GetMasterICD10ByPoliResponse {
+  repeated MasterICD10 data = 1;
+  int32 total_count = 2;
+}
+

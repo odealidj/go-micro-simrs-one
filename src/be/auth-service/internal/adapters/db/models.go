@@ -11,6 +11,61 @@ import (
 	"github.com/google/uuid"
 )
 
+type JadwalPraktek struct {
+	ID           uuid.UUID
+	DokterID     uuid.UUID
+	PoliCode     string
+	HariMingguan int32
+	JamMulai     time.Time
+	JamSelesai   time.Time
+	Kuota        sql.NullInt32
+	CreatedAt    sql.NullTime
+	DeletedDt    sql.NullTime
+	DeletedBy    uuid.NullUUID
+}
+
+type MappingDokterPoli struct {
+	DokterID  uuid.UUID
+	PoliCode  string
+	DeletedDt sql.NullTime
+	DeletedBy uuid.NullUUID
+}
+
+type MappingPerawatPoli struct {
+	PerawatID uuid.UUID
+	PoliCode  string
+	DeletedDt sql.NullTime
+	DeletedBy uuid.NullUUID
+}
+
+type MasterRole struct {
+	ID        string
+	Deskripsi sql.NullString
+	DeletedDt sql.NullTime
+	DeletedBy uuid.NullUUID
+}
+
+type ProfilDokter struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	Spesialisasi sql.NullString
+	Sip          sql.NullString
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+	DeletedDt    sql.NullTime
+	DeletedBy    uuid.NullUUID
+}
+
+type ProfilPerawat struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	StrPerawat sql.NullString
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+	DeletedDt  sql.NullTime
+	DeletedBy  uuid.NullUUID
+}
+
 type RefreshToken struct {
 	ID        uuid.UUID
 	UserID    uuid.UUID
@@ -19,11 +74,28 @@ type RefreshToken struct {
 	CreatedAt sql.NullTime
 }
 
+type StaffProfile struct {
+	ID        uuid.UUID
+	UserID    uuid.NullUUID
+	Nip       string
+	Email     sql.NullString
+	Phone     sql.NullString
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	DeletedDt sql.NullTime
+	DeletedBy uuid.NullUUID
+}
+
 type User struct {
-	ID           uuid.UUID
-	Username     string
-	PasswordHash string
-	Role         string
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
+	ID                  uuid.UUID
+	Username            string
+	PasswordHash        string
+	Role                sql.NullString
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+	Status              sql.NullString
+	ForceChangePassword sql.NullBool
+	LastLoginAt         sql.NullTime
+	DeletedDt           sql.NullTime
+	DeletedBy           uuid.NullUUID
 }

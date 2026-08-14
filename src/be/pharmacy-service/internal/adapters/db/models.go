@@ -8,6 +8,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type EncounterPayment struct {
@@ -15,6 +17,8 @@ type EncounterPayment struct {
 	Status      string
 	UpdatedAt   time.Time
 	PaidAt      sql.NullTime
+	DeletedDt   sql.NullTime
+	DeletedBy   uuid.NullUUID
 }
 
 type Inventory struct {
@@ -22,6 +26,16 @@ type Inventory struct {
 	Name          string
 	StockQuantity int32
 	Price         string
+	DeletedDt     sql.NullTime
+	DeletedBy     uuid.NullUUID
+}
+
+type InventoryPolyclinicMapping struct {
+	ItemCode       string
+	PolyclinicCode string
+	CreatedAt      sql.NullTime
+	DeletedDt      sql.NullTime
+	DeletedBy      uuid.NullUUID
 }
 
 type OutboxEvent struct {
@@ -59,6 +73,8 @@ type Prescription struct {
 	AgeBracket     sql.NullString
 	DoctorID       sql.NullString
 	DepartmentCode sql.NullString
+	DeletedDt      sql.NullTime
+	DeletedBy      uuid.NullUUID
 }
 
 type PrescriptionItem struct {
@@ -67,4 +83,6 @@ type PrescriptionItem struct {
 	ItemCode       string
 	Quantity       int32
 	Price          string
+	DeletedDt      sql.NullTime
+	DeletedBy      uuid.NullUUID
 }

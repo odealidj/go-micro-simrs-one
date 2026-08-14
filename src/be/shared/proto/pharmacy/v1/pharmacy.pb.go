@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.26.1
-// source: shared/proto/pharmacy/v1/pharmacy.proto
+// source: pharmacy.proto
 
 package pharmacyv1
 
@@ -35,7 +35,7 @@ type GetEstimatedWaitTimeRequest struct {
 
 func (x *GetEstimatedWaitTimeRequest) Reset() {
 	*x = GetEstimatedWaitTimeRequest{}
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[0]
+	mi := &file_pharmacy_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -47,7 +47,7 @@ func (x *GetEstimatedWaitTimeRequest) String() string {
 func (*GetEstimatedWaitTimeRequest) ProtoMessage() {}
 
 func (x *GetEstimatedWaitTimeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[0]
+	mi := &file_pharmacy_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -60,7 +60,7 @@ func (x *GetEstimatedWaitTimeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEstimatedWaitTimeRequest.ProtoReflect.Descriptor instead.
 func (*GetEstimatedWaitTimeRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescGZIP(), []int{0}
+	return file_pharmacy_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetEstimatedWaitTimeRequest) GetIsCompounded() bool {
@@ -114,7 +114,7 @@ type GetEstimatedWaitTimeResponse struct {
 
 func (x *GetEstimatedWaitTimeResponse) Reset() {
 	*x = GetEstimatedWaitTimeResponse{}
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[1]
+	mi := &file_pharmacy_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -126,7 +126,7 @@ func (x *GetEstimatedWaitTimeResponse) String() string {
 func (*GetEstimatedWaitTimeResponse) ProtoMessage() {}
 
 func (x *GetEstimatedWaitTimeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[1]
+	mi := &file_pharmacy_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -139,7 +139,7 @@ func (x *GetEstimatedWaitTimeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEstimatedWaitTimeResponse.ProtoReflect.Descriptor instead.
 func (*GetEstimatedWaitTimeResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescGZIP(), []int{1}
+	return file_pharmacy_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetEstimatedWaitTimeResponse) GetEstimatedMinutes() int64 {
@@ -161,7 +161,7 @@ type PrescriptionItem struct {
 
 func (x *PrescriptionItem) Reset() {
 	*x = PrescriptionItem{}
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[2]
+	mi := &file_pharmacy_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -173,7 +173,7 @@ func (x *PrescriptionItem) String() string {
 func (*PrescriptionItem) ProtoMessage() {}
 
 func (x *PrescriptionItem) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[2]
+	mi := &file_pharmacy_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -186,7 +186,7 @@ func (x *PrescriptionItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PrescriptionItem.ProtoReflect.Descriptor instead.
 func (*PrescriptionItem) Descriptor() ([]byte, []int) {
-	return file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescGZIP(), []int{2}
+	return file_pharmacy_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *PrescriptionItem) GetItemCode() string {
@@ -234,7 +234,7 @@ type CreatePrescriptionRequest struct {
 
 func (x *CreatePrescriptionRequest) Reset() {
 	*x = CreatePrescriptionRequest{}
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[3]
+	mi := &file_pharmacy_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -246,7 +246,7 @@ func (x *CreatePrescriptionRequest) String() string {
 func (*CreatePrescriptionRequest) ProtoMessage() {}
 
 func (x *CreatePrescriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[3]
+	mi := &file_pharmacy_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -259,7 +259,7 @@ func (x *CreatePrescriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePrescriptionRequest.ProtoReflect.Descriptor instead.
 func (*CreatePrescriptionRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescGZIP(), []int{3}
+	return file_pharmacy_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CreatePrescriptionRequest) GetEncounterNo() string {
@@ -337,7 +337,7 @@ type CreatePrescriptionResponse struct {
 
 func (x *CreatePrescriptionResponse) Reset() {
 	*x = CreatePrescriptionResponse{}
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[4]
+	mi := &file_pharmacy_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -349,7 +349,7 @@ func (x *CreatePrescriptionResponse) String() string {
 func (*CreatePrescriptionResponse) ProtoMessage() {}
 
 func (x *CreatePrescriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[4]
+	mi := &file_pharmacy_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -362,7 +362,7 @@ func (x *CreatePrescriptionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreatePrescriptionResponse.ProtoReflect.Descriptor instead.
 func (*CreatePrescriptionResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescGZIP(), []int{4}
+	return file_pharmacy_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *CreatePrescriptionResponse) GetSuccess() bool {
@@ -402,7 +402,7 @@ type DispensePrescriptionRequest struct {
 
 func (x *DispensePrescriptionRequest) Reset() {
 	*x = DispensePrescriptionRequest{}
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[5]
+	mi := &file_pharmacy_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -414,7 +414,7 @@ func (x *DispensePrescriptionRequest) String() string {
 func (*DispensePrescriptionRequest) ProtoMessage() {}
 
 func (x *DispensePrescriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[5]
+	mi := &file_pharmacy_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -427,7 +427,7 @@ func (x *DispensePrescriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DispensePrescriptionRequest.ProtoReflect.Descriptor instead.
 func (*DispensePrescriptionRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescGZIP(), []int{5}
+	return file_pharmacy_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *DispensePrescriptionRequest) GetPrescriptionId() string {
@@ -447,7 +447,7 @@ type DispensePrescriptionResponse struct {
 
 func (x *DispensePrescriptionResponse) Reset() {
 	*x = DispensePrescriptionResponse{}
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[6]
+	mi := &file_pharmacy_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -459,7 +459,7 @@ func (x *DispensePrescriptionResponse) String() string {
 func (*DispensePrescriptionResponse) ProtoMessage() {}
 
 func (x *DispensePrescriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[6]
+	mi := &file_pharmacy_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -472,7 +472,7 @@ func (x *DispensePrescriptionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DispensePrescriptionResponse.ProtoReflect.Descriptor instead.
 func (*DispensePrescriptionResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescGZIP(), []int{6}
+	return file_pharmacy_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *DispensePrescriptionResponse) GetSuccess() bool {
@@ -498,7 +498,7 @@ type RollbackPrescriptionRequest struct {
 
 func (x *RollbackPrescriptionRequest) Reset() {
 	*x = RollbackPrescriptionRequest{}
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[7]
+	mi := &file_pharmacy_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -510,7 +510,7 @@ func (x *RollbackPrescriptionRequest) String() string {
 func (*RollbackPrescriptionRequest) ProtoMessage() {}
 
 func (x *RollbackPrescriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[7]
+	mi := &file_pharmacy_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -523,7 +523,7 @@ func (x *RollbackPrescriptionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RollbackPrescriptionRequest.ProtoReflect.Descriptor instead.
 func (*RollbackPrescriptionRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescGZIP(), []int{7}
+	return file_pharmacy_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *RollbackPrescriptionRequest) GetPrescriptionId() string {
@@ -543,7 +543,7 @@ type RollbackPrescriptionResponse struct {
 
 func (x *RollbackPrescriptionResponse) Reset() {
 	*x = RollbackPrescriptionResponse{}
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[8]
+	mi := &file_pharmacy_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -555,7 +555,7 @@ func (x *RollbackPrescriptionResponse) String() string {
 func (*RollbackPrescriptionResponse) ProtoMessage() {}
 
 func (x *RollbackPrescriptionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes[8]
+	mi := &file_pharmacy_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -568,7 +568,7 @@ func (x *RollbackPrescriptionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RollbackPrescriptionResponse.ProtoReflect.Descriptor instead.
 func (*RollbackPrescriptionResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescGZIP(), []int{8}
+	return file_pharmacy_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *RollbackPrescriptionResponse) GetSuccess() bool {
@@ -585,11 +585,320 @@ func (x *RollbackPrescriptionResponse) GetMessage() string {
 	return ""
 }
 
-var File_shared_proto_pharmacy_v1_pharmacy_proto protoreflect.FileDescriptor
+// Master Data
+type GetMasterObatRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	SearchName    string                 `protobuf:"bytes,3,opt,name=search_name,json=searchName,proto3" json:"search_name,omitempty"`
+	SearchCode    string                 `protobuf:"bytes,4,opt,name=search_code,json=searchCode,proto3" json:"search_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_shared_proto_pharmacy_v1_pharmacy_proto_rawDesc = "" +
+func (x *GetMasterObatRequest) Reset() {
+	*x = GetMasterObatRequest{}
+	mi := &file_pharmacy_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMasterObatRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMasterObatRequest) ProtoMessage() {}
+
+func (x *GetMasterObatRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pharmacy_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMasterObatRequest.ProtoReflect.Descriptor instead.
+func (*GetMasterObatRequest) Descriptor() ([]byte, []int) {
+	return file_pharmacy_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetMasterObatRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetMasterObatRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetMasterObatRequest) GetSearchName() string {
+	if x != nil {
+		return x.SearchName
+	}
+	return ""
+}
+
+func (x *GetMasterObatRequest) GetSearchCode() string {
+	if x != nil {
+		return x.SearchCode
+	}
+	return ""
+}
+
+type MasterObat struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ItemCode      string                 `protobuf:"bytes,1,opt,name=item_code,json=itemCode,proto3" json:"item_code,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Price         float64                `protobuf:"fixed64,3,opt,name=price,proto3" json:"price,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MasterObat) Reset() {
+	*x = MasterObat{}
+	mi := &file_pharmacy_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MasterObat) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MasterObat) ProtoMessage() {}
+
+func (x *MasterObat) ProtoReflect() protoreflect.Message {
+	mi := &file_pharmacy_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MasterObat.ProtoReflect.Descriptor instead.
+func (*MasterObat) Descriptor() ([]byte, []int) {
+	return file_pharmacy_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *MasterObat) GetItemCode() string {
+	if x != nil {
+		return x.ItemCode
+	}
+	return ""
+}
+
+func (x *MasterObat) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *MasterObat) GetPrice() float64 {
+	if x != nil {
+		return x.Price
+	}
+	return 0
+}
+
+type GetMasterObatResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*MasterObat          `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMasterObatResponse) Reset() {
+	*x = GetMasterObatResponse{}
+	mi := &file_pharmacy_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMasterObatResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMasterObatResponse) ProtoMessage() {}
+
+func (x *GetMasterObatResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pharmacy_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMasterObatResponse.ProtoReflect.Descriptor instead.
+func (*GetMasterObatResponse) Descriptor() ([]byte, []int) {
+	return file_pharmacy_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *GetMasterObatResponse) GetData() []*MasterObat {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetMasterObatResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+type GetMasterObatByPoliRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PoliCode      string                 `protobuf:"bytes,3,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
+	SearchName    string                 `protobuf:"bytes,4,opt,name=search_name,json=searchName,proto3" json:"search_name,omitempty"`
+	SearchCode    string                 `protobuf:"bytes,5,opt,name=search_code,json=searchCode,proto3" json:"search_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMasterObatByPoliRequest) Reset() {
+	*x = GetMasterObatByPoliRequest{}
+	mi := &file_pharmacy_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMasterObatByPoliRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMasterObatByPoliRequest) ProtoMessage() {}
+
+func (x *GetMasterObatByPoliRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_pharmacy_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMasterObatByPoliRequest.ProtoReflect.Descriptor instead.
+func (*GetMasterObatByPoliRequest) Descriptor() ([]byte, []int) {
+	return file_pharmacy_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetMasterObatByPoliRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetMasterObatByPoliRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetMasterObatByPoliRequest) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
+func (x *GetMasterObatByPoliRequest) GetSearchName() string {
+	if x != nil {
+		return x.SearchName
+	}
+	return ""
+}
+
+func (x *GetMasterObatByPoliRequest) GetSearchCode() string {
+	if x != nil {
+		return x.SearchCode
+	}
+	return ""
+}
+
+type GetMasterObatByPoliResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*MasterObat          `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMasterObatByPoliResponse) Reset() {
+	*x = GetMasterObatByPoliResponse{}
+	mi := &file_pharmacy_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMasterObatByPoliResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMasterObatByPoliResponse) ProtoMessage() {}
+
+func (x *GetMasterObatByPoliResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_pharmacy_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMasterObatByPoliResponse.ProtoReflect.Descriptor instead.
+func (*GetMasterObatByPoliResponse) Descriptor() ([]byte, []int) {
+	return file_pharmacy_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetMasterObatByPoliResponse) GetData() []*MasterObat {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetMasterObatByPoliResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+var File_pharmacy_proto protoreflect.FileDescriptor
+
+const file_pharmacy_proto_rawDesc = "" +
 	"\n" +
-	"'shared/proto/pharmacy/v1/pharmacy.proto\x12\vpharmacy.v1\"\xdf\x01\n" +
+	"\x0epharmacy.proto\x12\vpharmacy.v1\"\xdf\x01\n" +
 	"\x1bGetEstimatedWaitTimeRequest\x12#\n" +
 	"\ris_compounded\x18\x01 \x01(\bR\fisCompounded\x12\x1c\n" +
 	"\tdiagnosis\x18\x02 \x01(\tR\tdiagnosis\x12\x1b\n" +
@@ -630,27 +939,57 @@ const file_shared_proto_pharmacy_v1_pharmacy_proto_rawDesc = "" +
 	"\x0fprescription_id\x18\x01 \x01(\tR\x0eprescriptionId\"R\n" +
 	"\x1cRollbackPrescriptionResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2\xbf\x03\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\x89\x01\n" +
+	"\x14GetMasterObatRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1f\n" +
+	"\vsearch_name\x18\x03 \x01(\tR\n" +
+	"searchName\x12\x1f\n" +
+	"\vsearch_code\x18\x04 \x01(\tR\n" +
+	"searchCode\"S\n" +
+	"\n" +
+	"MasterObat\x12\x1b\n" +
+	"\titem_code\x18\x01 \x01(\tR\bitemCode\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05price\x18\x03 \x01(\x01R\x05price\"e\n" +
+	"\x15GetMasterObatResponse\x12+\n" +
+	"\x04data\x18\x01 \x03(\v2\x17.pharmacy.v1.MasterObatR\x04data\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount\"\xac\x01\n" +
+	"\x1aGetMasterObatByPoliRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1b\n" +
+	"\tpoli_code\x18\x03 \x01(\tR\bpoliCode\x12\x1f\n" +
+	"\vsearch_name\x18\x04 \x01(\tR\n" +
+	"searchName\x12\x1f\n" +
+	"\vsearch_code\x18\x05 \x01(\tR\n" +
+	"searchCode\"k\n" +
+	"\x1bGetMasterObatByPoliResponse\x12+\n" +
+	"\x04data\x18\x01 \x03(\v2\x17.pharmacy.v1.MasterObatR\x04data\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount2\x81\x05\n" +
 	"\x0fPharmacyService\x12e\n" +
 	"\x12CreatePrescription\x12&.pharmacy.v1.CreatePrescriptionRequest\x1a'.pharmacy.v1.CreatePrescriptionResponse\x12k\n" +
 	"\x14DispensePrescription\x12(.pharmacy.v1.DispensePrescriptionRequest\x1a).pharmacy.v1.DispensePrescriptionResponse\x12k\n" +
 	"\x14RollbackPrescription\x12(.pharmacy.v1.RollbackPrescriptionRequest\x1a).pharmacy.v1.RollbackPrescriptionResponse\x12k\n" +
-	"\x14GetEstimatedWaitTime\x12(.pharmacy.v1.GetEstimatedWaitTimeRequest\x1a).pharmacy.v1.GetEstimatedWaitTimeResponseBJZHgithub.com/aliube/go-micro-simrs-one/shared/proto/pharmacy/v1;pharmacyv1b\x06proto3"
+	"\x14GetEstimatedWaitTime\x12(.pharmacy.v1.GetEstimatedWaitTimeRequest\x1a).pharmacy.v1.GetEstimatedWaitTimeResponse\x12V\n" +
+	"\rGetMasterObat\x12!.pharmacy.v1.GetMasterObatRequest\x1a\".pharmacy.v1.GetMasterObatResponse\x12h\n" +
+	"\x13GetMasterObatByPoli\x12'.pharmacy.v1.GetMasterObatByPoliRequest\x1a(.pharmacy.v1.GetMasterObatByPoliResponseBJZHgithub.com/aliube/go-micro-simrs-one/shared/proto/pharmacy/v1;pharmacyv1b\x06proto3"
 
 var (
-	file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescOnce sync.Once
-	file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescData []byte
+	file_pharmacy_proto_rawDescOnce sync.Once
+	file_pharmacy_proto_rawDescData []byte
 )
 
-func file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescGZIP() []byte {
-	file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescOnce.Do(func() {
-		file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_shared_proto_pharmacy_v1_pharmacy_proto_rawDesc), len(file_shared_proto_pharmacy_v1_pharmacy_proto_rawDesc)))
+func file_pharmacy_proto_rawDescGZIP() []byte {
+	file_pharmacy_proto_rawDescOnce.Do(func() {
+		file_pharmacy_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_pharmacy_proto_rawDesc), len(file_pharmacy_proto_rawDesc)))
 	})
-	return file_shared_proto_pharmacy_v1_pharmacy_proto_rawDescData
+	return file_pharmacy_proto_rawDescData
 }
 
-var file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
-var file_shared_proto_pharmacy_v1_pharmacy_proto_goTypes = []any{
+var file_pharmacy_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_pharmacy_proto_goTypes = []any{
 	(*GetEstimatedWaitTimeRequest)(nil),  // 0: pharmacy.v1.GetEstimatedWaitTimeRequest
 	(*GetEstimatedWaitTimeResponse)(nil), // 1: pharmacy.v1.GetEstimatedWaitTimeResponse
 	(*PrescriptionItem)(nil),             // 2: pharmacy.v1.PrescriptionItem
@@ -660,44 +999,55 @@ var file_shared_proto_pharmacy_v1_pharmacy_proto_goTypes = []any{
 	(*DispensePrescriptionResponse)(nil), // 6: pharmacy.v1.DispensePrescriptionResponse
 	(*RollbackPrescriptionRequest)(nil),  // 7: pharmacy.v1.RollbackPrescriptionRequest
 	(*RollbackPrescriptionResponse)(nil), // 8: pharmacy.v1.RollbackPrescriptionResponse
+	(*GetMasterObatRequest)(nil),         // 9: pharmacy.v1.GetMasterObatRequest
+	(*MasterObat)(nil),                   // 10: pharmacy.v1.MasterObat
+	(*GetMasterObatResponse)(nil),        // 11: pharmacy.v1.GetMasterObatResponse
+	(*GetMasterObatByPoliRequest)(nil),   // 12: pharmacy.v1.GetMasterObatByPoliRequest
+	(*GetMasterObatByPoliResponse)(nil),  // 13: pharmacy.v1.GetMasterObatByPoliResponse
 }
-var file_shared_proto_pharmacy_v1_pharmacy_proto_depIdxs = []int32{
-	2, // 0: pharmacy.v1.CreatePrescriptionRequest.items:type_name -> pharmacy.v1.PrescriptionItem
-	3, // 1: pharmacy.v1.PharmacyService.CreatePrescription:input_type -> pharmacy.v1.CreatePrescriptionRequest
-	5, // 2: pharmacy.v1.PharmacyService.DispensePrescription:input_type -> pharmacy.v1.DispensePrescriptionRequest
-	7, // 3: pharmacy.v1.PharmacyService.RollbackPrescription:input_type -> pharmacy.v1.RollbackPrescriptionRequest
-	0, // 4: pharmacy.v1.PharmacyService.GetEstimatedWaitTime:input_type -> pharmacy.v1.GetEstimatedWaitTimeRequest
-	4, // 5: pharmacy.v1.PharmacyService.CreatePrescription:output_type -> pharmacy.v1.CreatePrescriptionResponse
-	6, // 6: pharmacy.v1.PharmacyService.DispensePrescription:output_type -> pharmacy.v1.DispensePrescriptionResponse
-	8, // 7: pharmacy.v1.PharmacyService.RollbackPrescription:output_type -> pharmacy.v1.RollbackPrescriptionResponse
-	1, // 8: pharmacy.v1.PharmacyService.GetEstimatedWaitTime:output_type -> pharmacy.v1.GetEstimatedWaitTimeResponse
-	5, // [5:9] is the sub-list for method output_type
-	1, // [1:5] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+var file_pharmacy_proto_depIdxs = []int32{
+	2,  // 0: pharmacy.v1.CreatePrescriptionRequest.items:type_name -> pharmacy.v1.PrescriptionItem
+	10, // 1: pharmacy.v1.GetMasterObatResponse.data:type_name -> pharmacy.v1.MasterObat
+	10, // 2: pharmacy.v1.GetMasterObatByPoliResponse.data:type_name -> pharmacy.v1.MasterObat
+	3,  // 3: pharmacy.v1.PharmacyService.CreatePrescription:input_type -> pharmacy.v1.CreatePrescriptionRequest
+	5,  // 4: pharmacy.v1.PharmacyService.DispensePrescription:input_type -> pharmacy.v1.DispensePrescriptionRequest
+	7,  // 5: pharmacy.v1.PharmacyService.RollbackPrescription:input_type -> pharmacy.v1.RollbackPrescriptionRequest
+	0,  // 6: pharmacy.v1.PharmacyService.GetEstimatedWaitTime:input_type -> pharmacy.v1.GetEstimatedWaitTimeRequest
+	9,  // 7: pharmacy.v1.PharmacyService.GetMasterObat:input_type -> pharmacy.v1.GetMasterObatRequest
+	12, // 8: pharmacy.v1.PharmacyService.GetMasterObatByPoli:input_type -> pharmacy.v1.GetMasterObatByPoliRequest
+	4,  // 9: pharmacy.v1.PharmacyService.CreatePrescription:output_type -> pharmacy.v1.CreatePrescriptionResponse
+	6,  // 10: pharmacy.v1.PharmacyService.DispensePrescription:output_type -> pharmacy.v1.DispensePrescriptionResponse
+	8,  // 11: pharmacy.v1.PharmacyService.RollbackPrescription:output_type -> pharmacy.v1.RollbackPrescriptionResponse
+	1,  // 12: pharmacy.v1.PharmacyService.GetEstimatedWaitTime:output_type -> pharmacy.v1.GetEstimatedWaitTimeResponse
+	11, // 13: pharmacy.v1.PharmacyService.GetMasterObat:output_type -> pharmacy.v1.GetMasterObatResponse
+	13, // 14: pharmacy.v1.PharmacyService.GetMasterObatByPoli:output_type -> pharmacy.v1.GetMasterObatByPoliResponse
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
-func init() { file_shared_proto_pharmacy_v1_pharmacy_proto_init() }
-func file_shared_proto_pharmacy_v1_pharmacy_proto_init() {
-	if File_shared_proto_pharmacy_v1_pharmacy_proto != nil {
+func init() { file_pharmacy_proto_init() }
+func file_pharmacy_proto_init() {
+	if File_pharmacy_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_shared_proto_pharmacy_v1_pharmacy_proto_rawDesc), len(file_shared_proto_pharmacy_v1_pharmacy_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_pharmacy_proto_rawDesc), len(file_pharmacy_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_shared_proto_pharmacy_v1_pharmacy_proto_goTypes,
-		DependencyIndexes: file_shared_proto_pharmacy_v1_pharmacy_proto_depIdxs,
-		MessageInfos:      file_shared_proto_pharmacy_v1_pharmacy_proto_msgTypes,
+		GoTypes:           file_pharmacy_proto_goTypes,
+		DependencyIndexes: file_pharmacy_proto_depIdxs,
+		MessageInfos:      file_pharmacy_proto_msgTypes,
 	}.Build()
-	File_shared_proto_pharmacy_v1_pharmacy_proto = out.File
-	file_shared_proto_pharmacy_v1_pharmacy_proto_goTypes = nil
-	file_shared_proto_pharmacy_v1_pharmacy_proto_depIdxs = nil
+	File_pharmacy_proto = out.File
+	file_pharmacy_proto_goTypes = nil
+	file_pharmacy_proto_depIdxs = nil
 }

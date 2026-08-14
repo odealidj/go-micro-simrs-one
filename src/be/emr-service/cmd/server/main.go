@@ -9,6 +9,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
@@ -82,8 +83,12 @@ func main() {
 	slog.Info("EMR Aggregator Worker started")
 
 	// 7. Init gRPC Server
-	grpcServer := grpc.NewServer()
-	pb.RegisterEMRServiceServer(grpcServer, grpcAdapter.NewEMRGrpcServer(emrService))
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			recovery.UnaryServerInterceptor(),
+		),
+	)
+	pb.RegisterEMRServiceServer(grpcServer, grpcAdapter.NewEMRGrpcServer(emrService, queriesRepo))
 
 	// 8. Register gRPC Health Check
 	healthSrv := health.NewServer()

@@ -2,10 +2,13 @@ package grpc
 
 import (
 	"context"
+	"database/sql"
+	"strconv"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/aliube/go-micro-simrs-one/emr-service/internal/adapters/db"
 	"github.com/aliube/go-micro-simrs-one/emr-service/internal/core/ports"
 	pb "github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1"
 )
@@ -13,11 +16,13 @@ import (
 type EMRGrpcServer struct {
 	pb.UnimplementedEMRServiceServer
 	emrService ports.EMRService
+	queries    *db.Queries
 }
 
-func NewEMRGrpcServer(service ports.EMRService) *EMRGrpcServer {
+func NewEMRGrpcServer(service ports.EMRService, queries *db.Queries) *EMRGrpcServer {
 	return &EMRGrpcServer{
 		emrService: service,
+		queries:    queries,
 	}
 }
 
@@ -222,4 +227,277 @@ func (s *EMRGrpcServer) GetEstimatedWaitTime(ctx context.Context, req *pb.GetEst
 	return &pb.GetEstimatedWaitTimeResponse{
 		EstimatedMinutes: est,
 	}, nil
+}
+
+func (s *EMRGrpcServer) GetPolyclinics(ctx context.Context, req *pb.GetPolyclinicsRequest) (*pb.GetPolyclinicsResponse, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	res, err := s.queries.GetPolyclinics(ctx, db.GetPolyclinicsParams{
+		Column1: sql.NullString{String: req.Search, Valid: true},
+		Limit:   pageSize,
+		Offset:  offset,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get polyclinics: %v", err)
+	}
+	count, err := s.queries.CountPolyclinics(ctx, sql.NullString{String: req.Search, Valid: true})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count polyclinics: %v", err)
+	}
+
+	var data []*pb.Polyclinic
+	for _, p := range res {
+		data = append(data, &pb.Polyclinic{Code: p.Code, Name: p.Name})
+	}
+	return &pb.GetPolyclinicsResponse{Data: data, TotalCount: int32(count)}, nil
+}
+
+func (s *EMRGrpcServer) GetMasterKBMs(ctx context.Context, req *pb.GetMasterKBMsRequest) (*pb.GetMasterKBMsResponse, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	res, err := s.queries.GetKBMs(ctx, db.GetKBMsParams{
+		Column1: sql.NullString{String: req.SearchName, Valid: true},
+		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+		Limit:   pageSize,
+		Offset:  offset,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get kbms: %v", err)
+	}
+	count, err := s.queries.CountKBMs(ctx, db.CountKBMsParams{
+		Column1: sql.NullString{String: req.SearchName, Valid: true},
+		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count kbms: %v", err)
+	}
+
+	var data []*pb.KBMItem
+	for _, k := range res {
+		data = append(data, &pb.KBMItem{
+			KbmCode:     k.KbmCode,
+			KbmName:     k.KbmName,
+			Description: k.Description.String,
+			BodySystem:  k.BodySystem.String,
+		})
+	}
+	return &pb.GetMasterKBMsResponse{Data: data, TotalCount: int32(count)}, nil
+}
+
+func (s *EMRGrpcServer) GetMasterKBMsByPoli(ctx context.Context, req *pb.GetMasterKBMsByPoliRequest) (*pb.GetMasterKBMsByPoliResponse, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	res, err := s.queries.GetKBMsByPolyclinic(ctx, db.GetKBMsByPolyclinicParams{
+		PolyclinicCode: req.PoliCode,
+		Column2:        sql.NullString{String: req.SearchName, Valid: true},
+		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+		Limit:          pageSize,
+		Offset:         offset,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get kbms by poli: %v", err)
+	}
+	count, err := s.queries.CountKBMsByPolyclinic(ctx, db.CountKBMsByPolyclinicParams{
+		PolyclinicCode: req.PoliCode,
+		Column2:        sql.NullString{String: req.SearchName, Valid: true},
+		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count kbms by poli: %v", err)
+	}
+
+	var data []*pb.KBMItem
+	for _, k := range res {
+		data = append(data, &pb.KBMItem{
+			KbmCode:     k.KbmCode,
+			KbmName:     k.KbmName,
+			Description: k.Description.String,
+			BodySystem:  k.BodySystem.String,
+		})
+	}
+	return &pb.GetMasterKBMsByPoliResponse{Data: data, TotalCount: int32(count)}, nil
+}
+
+func (s *EMRGrpcServer) GetMasterTindakan(ctx context.Context, req *pb.GetMasterTindakanRequest) (*pb.GetMasterTindakanResponse, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	res, err := s.queries.GetTindakan(ctx, db.GetTindakanParams{
+		Column1: sql.NullString{String: req.SearchName, Valid: true},
+		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+		Limit:   pageSize,
+		Offset:  offset,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get tindakan: %v", err)
+	}
+	count, err := s.queries.CountTindakan(ctx, db.CountTindakanParams{
+		Column1: sql.NullString{String: req.SearchName, Valid: true},
+		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count tindakan: %v", err)
+	}
+
+	var data []*pb.MasterTindakan
+	for _, t := range res {
+		basePrice, _ := strconv.ParseFloat(t.BasePrice, 64)
+		data = append(data, &pb.MasterTindakan{
+			KodeTindakan: t.KodeTindakan,
+			NamaTindakan: t.NamaTindakan,
+			BasePrice:    basePrice, // we can parse string from numeric or use Float64Value if available. wait pgtype.Numeric needs proper parsing.
+		})
+	}
+	return &pb.GetMasterTindakanResponse{Data: data, TotalCount: int32(count)}, nil
+}
+
+func (s *EMRGrpcServer) GetMasterTindakanByPoli(ctx context.Context, req *pb.GetMasterTindakanByPoliRequest) (*pb.GetMasterTindakanByPoliResponse, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	res, err := s.queries.GetTindakanByPolyclinic(ctx, db.GetTindakanByPolyclinicParams{
+		PolyclinicCode: req.PoliCode,
+		Column2:        sql.NullString{String: req.SearchName, Valid: true},
+		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+		Limit:          pageSize,
+		Offset:         offset,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get tindakan by poli: %v", err)
+	}
+	count, err := s.queries.CountTindakanByPolyclinic(ctx, db.CountTindakanByPolyclinicParams{
+		PolyclinicCode: req.PoliCode,
+		Column2:        sql.NullString{String: req.SearchName, Valid: true},
+		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count tindakan by poli: %v", err)
+	}
+
+	var data []*pb.MasterTindakan
+	for _, t := range res {
+		basePrice, _ := strconv.ParseFloat(t.BasePrice, 64)
+		data = append(data, &pb.MasterTindakan{
+			KodeTindakan: t.KodeTindakan,
+			NamaTindakan: t.NamaTindakan,
+			BasePrice:    basePrice,
+		})
+	}
+	return &pb.GetMasterTindakanByPoliResponse{Data: data, TotalCount: int32(count)}, nil
+}
+
+func (s *EMRGrpcServer) GetMasterICD10(ctx context.Context, req *pb.GetMasterICD10Request) (*pb.GetMasterICD10Response, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	res, err := s.queries.GetICD10(ctx, db.GetICD10Params{
+		Column1: sql.NullString{String: req.SearchName, Valid: true},
+		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+		Limit:   pageSize,
+		Offset:  offset,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get icd10: %v", err)
+	}
+	count, err := s.queries.CountICD10(ctx, db.CountICD10Params{
+		Column1: sql.NullString{String: req.SearchName, Valid: true},
+		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count icd10: %v", err)
+	}
+
+	var data []*pb.MasterICD10
+	for _, i := range res {
+		data = append(data, &pb.MasterICD10{
+			Icd10Code: i.Icd10Code,
+			Name:      i.Name,
+		})
+	}
+	return &pb.GetMasterICD10Response{Data: data, TotalCount: int32(count)}, nil
+}
+
+func (s *EMRGrpcServer) GetMasterICD10ByPoli(ctx context.Context, req *pb.GetMasterICD10ByPoliRequest) (*pb.GetMasterICD10ByPoliResponse, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	res, err := s.queries.GetICD10ByPolyclinic(ctx, db.GetICD10ByPolyclinicParams{
+		PolyclinicCode: req.PoliCode,
+		Column2:        sql.NullString{String: req.SearchName, Valid: true},
+		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+		Limit:          pageSize,
+		Offset:         offset,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get icd10 by poli: %v", err)
+	}
+	count, err := s.queries.CountICD10ByPolyclinic(ctx, db.CountICD10ByPolyclinicParams{
+		PolyclinicCode: req.PoliCode,
+		Column2:        sql.NullString{String: req.SearchName, Valid: true},
+		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count icd10 by poli: %v", err)
+	}
+
+	var data []*pb.MasterICD10
+	for _, i := range res {
+		data = append(data, &pb.MasterICD10{
+			Icd10Code: i.Icd10Code,
+			Name:      i.Name,
+		})
+	}
+	return &pb.GetMasterICD10ByPoliResponse{Data: data, TotalCount: int32(count)}, nil
 }
