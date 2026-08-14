@@ -28,6 +28,10 @@ export function MasterDataTable<T>({
   const [poliCode, setPoliCode] = useState("");
   const debouncedPoliCode = useDebounce(poliCode, 500);
 
+  const { data: polyclinics, loading: loadingPoli } = useMasterData<any>("/master/polyclinics", {
+    skip: !requiresPoliFilter
+  });
+
   const actualEndpoint = requiresPoliFilter 
     ? (debouncedPoliCode ? `${endpoint}/poli/${debouncedPoliCode}` : endpoint) 
     : endpoint;
@@ -59,13 +63,19 @@ export function MasterDataTable<T>({
               />
             </div>
             {requiresPoliFilter && (
-              <Input
-                type="text"
-                placeholder="Kode Poli (e.g. UMUM)"
+              <select
                 value={poliCode}
                 onChange={(e) => setPoliCode(e.target.value)}
-                className="w-48 bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-colors"
-              />
+                className="w-48 bg-slate-50 border border-transparent rounded-md px-3 py-2 text-sm text-slate-700 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
+                disabled={loadingPoli}
+              >
+                <option value="">Semua Poliklinik</option>
+                {polyclinics?.map((p: any) => (
+                  <option key={p.code} value={p.code}>
+                    {p.name} ({p.code})
+                  </option>
+                ))}
+              </select>
             )}
           </div>
         </div>

@@ -15,7 +15,11 @@ export interface PaginatedResponse<T> {
   meta: PaginatedMeta;
 }
 
-export function useMasterData<T>(endpoint: string) {
+export interface UseMasterDataOptions {
+  skip?: boolean;
+}
+
+export function useMasterData<T>(endpoint: string, options?: UseMasterDataOptions) {
   const [data, setData] = useState<T[]>([]);
   const [meta, setMeta] = useState<PaginatedMeta>({
     page: 1,
@@ -23,13 +27,17 @@ export function useMasterData<T>(endpoint: string) {
     total_count: 0,
     total_pages: 1,
   });
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!options?.skip);
   const [error, setError] = useState<string | null>(null);
 
   const [page, setPage] = useState<number>(1);
   const [search, setSearch] = useState<string>("");
 
   const fetchData = useCallback(async () => {
+    if (options?.skip) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -53,7 +61,7 @@ export function useMasterData<T>(endpoint: string) {
     } finally {
       setLoading(false);
     }
-  }, [endpoint, page, search]);
+  }, [endpoint, page, search, options?.skip]);
 
   useEffect(() => {
     fetchData();
