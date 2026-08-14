@@ -82,6 +82,7 @@ message KBMItem {
   string kbm_name = 2;
   string description = 3;
   string body_system = 4;
+  repeated string polyclinics = 5;
 }
 
 message SearchKBMResponse {
@@ -250,6 +251,7 @@ message MasterTindakan {
   string kode_tindakan = 1;
   string nama_tindakan = 2;
   double base_price = 3;
+  repeated string polyclinics = 4;
 }
 message GetMasterTindakanResponse {
   repeated MasterTindakan data = 1;
@@ -277,6 +279,7 @@ message GetMasterICD10Request {
 message MasterICD10 {
   string icd10_code = 1;
   string name = 2;
+  repeated string polyclinics = 3;
 }
 message GetMasterICD10Response {
   repeated MasterICD10 data = 1;

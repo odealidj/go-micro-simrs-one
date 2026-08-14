@@ -295,6 +295,7 @@ func (s *EMRGrpcServer) GetMasterKBMs(ctx context.Context, req *pb.GetMasterKBMs
 			KbmName:     k.KbmName,
 			Description: k.Description.String,
 			BodySystem:  k.BodySystem.String,
+			Polyclinics: k.Polyclinics,
 		})
 	}
 	return &pb.GetMasterKBMsResponse{Data: data, TotalCount: int32(count)}, nil
@@ -337,6 +338,7 @@ func (s *EMRGrpcServer) GetMasterKBMsByPoli(ctx context.Context, req *pb.GetMast
 			KbmName:     k.KbmName,
 			Description: k.Description.String,
 			BodySystem:  k.BodySystem.String,
+			Polyclinics: k.Polyclinics,
 		})
 	}
 	return &pb.GetMasterKBMsByPoliResponse{Data: data, TotalCount: int32(count)}, nil
@@ -377,6 +379,7 @@ func (s *EMRGrpcServer) GetMasterTindakan(ctx context.Context, req *pb.GetMaster
 			KodeTindakan: t.KodeTindakan,
 			NamaTindakan: t.NamaTindakan,
 			BasePrice:    basePrice, // we can parse string from numeric or use Float64Value if available. wait pgtype.Numeric needs proper parsing.
+			Polyclinics:  t.Polyclinics,
 		})
 	}
 	return &pb.GetMasterTindakanResponse{Data: data, TotalCount: int32(count)}, nil
@@ -419,6 +422,7 @@ func (s *EMRGrpcServer) GetMasterTindakanByPoli(ctx context.Context, req *pb.Get
 			KodeTindakan: t.KodeTindakan,
 			NamaTindakan: t.NamaTindakan,
 			BasePrice:    basePrice,
+			Polyclinics:  t.Polyclinics,
 		})
 	}
 	return &pb.GetMasterTindakanByPoliResponse{Data: data, TotalCount: int32(count)}, nil
@@ -455,8 +459,9 @@ func (s *EMRGrpcServer) GetMasterICD10(ctx context.Context, req *pb.GetMasterICD
 	var data []*pb.MasterICD10
 	for _, i := range res {
 		data = append(data, &pb.MasterICD10{
-			Icd10Code: i.Icd10Code,
-			Name:      i.Name,
+			Icd10Code:   i.Icd10Code,
+			Name:        i.Name,
+			Polyclinics: i.Polyclinics,
 		})
 	}
 	return &pb.GetMasterICD10Response{Data: data, TotalCount: int32(count)}, nil
@@ -495,8 +500,9 @@ func (s *EMRGrpcServer) GetMasterICD10ByPoli(ctx context.Context, req *pb.GetMas
 	var data []*pb.MasterICD10
 	for _, i := range res {
 		data = append(data, &pb.MasterICD10{
-			Icd10Code: i.Icd10Code,
-			Name:      i.Name,
+			Icd10Code:   i.Icd10Code,
+			Name:        i.Name,
+			Polyclinics: i.Polyclinics,
 		})
 	}
 	return &pb.GetMasterICD10ByPoliResponse{Data: data, TotalCount: int32(count)}, nil
