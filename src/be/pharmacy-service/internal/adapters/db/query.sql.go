@@ -9,6 +9,9 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const countObat = `-- name: CountObat :one
@@ -234,10 +237,14 @@ func (q *Queries) GetInventoryItemForUpdate(ctx context.Context, itemCode string
 }
 
 const getObat = `-- name: GetObat :many
-SELECT item_code, name, stock_quantity, price, deleted_dt, deleted_by FROM inventory
-WHERE deleted_dt IS NULL
-  AND (name ILIKE '%' || $1 || '%' OR item_code ILIKE '%' || $2 || '%')
-ORDER BY item_code ASC LIMIT $3 OFFSET $4
+SELECT i.item_code, i.name, i.stock_quantity, i.price, i.deleted_dt, i.deleted_by, 
+       COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+FROM inventory i
+LEFT JOIN inventory_polyclinic_mappings m ON m.item_code = i.item_code AND m.deleted_dt IS NULL
+WHERE i.deleted_dt IS NULL
+  AND (i.name ILIKE '%' || $1 || '%' OR i.item_code ILIKE '%' || $2 || '%')
+GROUP BY i.item_code
+ORDER BY i.item_code ASC LIMIT $3 OFFSET $4
 `
 
 type GetObatParams struct {
@@ -247,8 +254,18 @@ type GetObatParams struct {
 	Offset  int32
 }
 
+type GetObatRow struct {
+	ItemCode      string
+	Name          string
+	StockQuantity int32
+	Price         string
+	DeletedDt     sql.NullTime
+	DeletedBy     uuid.NullUUID
+	Polyclinics   []string
+}
+
 // Master Data Queries
-func (q *Queries) GetObat(ctx context.Context, arg GetObatParams) ([]Inventory, error) {
+func (q *Queries) GetObat(ctx context.Context, arg GetObatParams) ([]GetObatRow, error) {
 	rows, err := q.db.QueryContext(ctx, getObat,
 		arg.Column1,
 		arg.Column2,
@@ -259,9 +276,9 @@ func (q *Queries) GetObat(ctx context.Context, arg GetObatParams) ([]Inventory, 
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Inventory
+	var items []GetObatRow
 	for rows.Next() {
-		var i Inventory
+		var i GetObatRow
 		if err := rows.Scan(
 			&i.ItemCode,
 			&i.Name,
@@ -269,6 +286,7 @@ func (q *Queries) GetObat(ctx context.Context, arg GetObatParams) ([]Inventory, 
 			&i.Price,
 			&i.DeletedDt,
 			&i.DeletedBy,
+			pq.Array(&i.Polyclinics),
 		); err != nil {
 			return nil, err
 		}
@@ -284,10 +302,14 @@ func (q *Queries) GetObat(ctx context.Context, arg GetObatParams) ([]Inventory, 
 }
 
 const getObatByPolyclinic = `-- name: GetObatByPolyclinic :many
-SELECT i.item_code, i.name, i.stock_quantity, i.price, i.deleted_dt, i.deleted_by FROM inventory i
+SELECT i.item_code, i.name, i.stock_quantity, i.price, i.deleted_dt, i.deleted_by, 
+       COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+FROM inventory i
 JOIN inventory_polyclinic_mappings m ON i.item_code = m.item_code
+LEFT JOIN inventory_polyclinic_mappings m2 ON m2.item_code = i.item_code AND m2.deleted_dt IS NULL
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND (i.name ILIKE '%' || $2 || '%' OR i.item_code ILIKE '%' || $3 || '%')
+GROUP BY i.item_code
 ORDER BY i.item_code ASC LIMIT $4 OFFSET $5
 `
 
@@ -299,7 +321,17 @@ type GetObatByPolyclinicParams struct {
 	Offset         int32
 }
 
-func (q *Queries) GetObatByPolyclinic(ctx context.Context, arg GetObatByPolyclinicParams) ([]Inventory, error) {
+type GetObatByPolyclinicRow struct {
+	ItemCode      string
+	Name          string
+	StockQuantity int32
+	Price         string
+	DeletedDt     sql.NullTime
+	DeletedBy     uuid.NullUUID
+	Polyclinics   []string
+}
+
+func (q *Queries) GetObatByPolyclinic(ctx context.Context, arg GetObatByPolyclinicParams) ([]GetObatByPolyclinicRow, error) {
 	rows, err := q.db.QueryContext(ctx, getObatByPolyclinic,
 		arg.PolyclinicCode,
 		arg.Column2,
@@ -311,9 +343,9 @@ func (q *Queries) GetObatByPolyclinic(ctx context.Context, arg GetObatByPolyclin
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Inventory
+	var items []GetObatByPolyclinicRow
 	for rows.Next() {
-		var i Inventory
+		var i GetObatByPolyclinicRow
 		if err := rows.Scan(
 			&i.ItemCode,
 			&i.Name,
@@ -321,6 +353,7 @@ func (q *Queries) GetObatByPolyclinic(ctx context.Context, arg GetObatByPolyclin
 			&i.Price,
 			&i.DeletedDt,
 			&i.DeletedBy,
+			pq.Array(&i.Polyclinics),
 		); err != nil {
 			return nil, err
 		}

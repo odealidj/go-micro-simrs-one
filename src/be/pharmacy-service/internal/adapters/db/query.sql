@@ -87,10 +87,14 @@ WHERE doctor_id = $1 AND department_code = $2 AND gender = $3 AND age_bracket = 
 
 -- Master Data Queries
 -- name: GetObat :many
-SELECT * FROM inventory
-WHERE deleted_dt IS NULL
-  AND (name ILIKE '%' || $1 || '%' OR item_code ILIKE '%' || $2 || '%')
-ORDER BY item_code ASC LIMIT $3 OFFSET $4;
+SELECT i.*, 
+       COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+FROM inventory i
+LEFT JOIN inventory_polyclinic_mappings m ON m.item_code = i.item_code AND m.deleted_dt IS NULL
+WHERE i.deleted_dt IS NULL
+  AND (i.name ILIKE '%' || $1 || '%' OR i.item_code ILIKE '%' || $2 || '%')
+GROUP BY i.item_code
+ORDER BY i.item_code ASC LIMIT $3 OFFSET $4;
 
 -- name: CountObat :one
 SELECT COUNT(*) FROM inventory
@@ -98,10 +102,14 @@ WHERE deleted_dt IS NULL
   AND (name ILIKE '%' || $1 || '%' OR item_code ILIKE '%' || $2 || '%');
 
 -- name: GetObatByPolyclinic :many
-SELECT i.* FROM inventory i
+SELECT i.*, 
+       COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+FROM inventory i
 JOIN inventory_polyclinic_mappings m ON i.item_code = m.item_code
+LEFT JOIN inventory_polyclinic_mappings m2 ON m2.item_code = i.item_code AND m2.deleted_dt IS NULL
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND (i.name ILIKE '%' || $2 || '%' OR i.item_code ILIKE '%' || $3 || '%')
+GROUP BY i.item_code
 ORDER BY i.item_code ASC LIMIT $4 OFFSET $5;
 
 -- name: CountObatByPolyclinic :one

@@ -7,12 +7,16 @@ export function AssignObatPoliPage() {
       description="Data master"
       endpoint="/master/obat"
       requiresPoliFilter={true}
-      columns={["ID Obat","Nama Obat","Harga"]}
+      columns={["ID Obat","Nama Obat","Harga", "Stok", "Poliklinik"]}
       renderRow={(item, i) => (
         <tr key={i} className="hover:bg-slate-50/50 transition-colors">
           <td className="px-6 py-4 font-medium text-slate-900">{item.item_code || "-"}</td>
           <td className="px-6 py-4 text-slate-600">{item.name || "-"}</td>
           <td className="px-6 py-4 text-slate-600">{item.price || 0}</td>
+          <td className="px-6 py-4 text-slate-600">{item.stock_quantity ?? "-"}</td>
+          <td className="px-6 py-4 text-slate-600 max-w-[200px] truncate" title={item.polyclinics?.join(", ")}>
+            {item.polyclinics?.length > 0 ? item.polyclinics.join(", ") : "-"}
+          </td>
         </tr>
       )}
     />

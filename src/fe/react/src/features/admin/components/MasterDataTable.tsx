@@ -25,11 +25,11 @@ export function MasterDataTable<T>({
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 500);
 
-  const [poliCode, setPoliCode] = useState(requiresPoliFilter ? "UMUM" : "");
+  const [poliCode, setPoliCode] = useState("");
   const debouncedPoliCode = useDebounce(poliCode, 500);
 
   const actualEndpoint = requiresPoliFilter 
-    ? `${endpoint}/poli/${debouncedPoliCode || 'UMUM'}` 
+    ? (debouncedPoliCode ? `${endpoint}/poli/${debouncedPoliCode}` : endpoint) 
     : endpoint;
 
   const { data, loading, error, page, setPage, setSearch, meta } = 
