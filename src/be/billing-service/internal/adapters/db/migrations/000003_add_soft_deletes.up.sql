@@ -1,0 +1,4 @@
+ALTER TABLE invoices ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE invoices ADD COLUMN deleted_by UUID;
+ALTER TABLE invoice_items ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE invoice_items ADD COLUMN deleted_by UUID;

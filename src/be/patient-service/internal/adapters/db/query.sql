@@ -6,14 +6,14 @@ RETURNING mrn, name, nik, dob, user_id, created_at;
 -- name: GetPatientByMRN :one
 SELECT mrn, name, nik, dob, user_id, created_at
 FROM patients
-WHERE mrn = $1 LIMIT 1;
+WHERE mrn = $1 AND deleted_dt IS NULL LIMIT 1;
 
 -- name: GetPatientByNIK :one
 SELECT mrn, name, nik, dob, user_id, created_at
 FROM patients
-WHERE nik = $1 LIMIT 1;
+WHERE nik = $1 AND deleted_dt IS NULL LIMIT 1;
 
 -- name: UpdatePatientUserID :exec
 UPDATE patients
 SET user_id = $2
-WHERE mrn = $1;
+WHERE mrn = $1 AND deleted_dt IS NULL;

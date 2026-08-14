@@ -58,7 +58,7 @@ func (q *Queries) CreatePatient(ctx context.Context, arg CreatePatientParams) (C
 const getPatientByMRN = `-- name: GetPatientByMRN :one
 SELECT mrn, name, nik, dob, user_id, created_at
 FROM patients
-WHERE mrn = $1 LIMIT 1
+WHERE mrn = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
 type GetPatientByMRNRow struct {
@@ -87,7 +87,7 @@ func (q *Queries) GetPatientByMRN(ctx context.Context, mrn string) (GetPatientBy
 const getPatientByNIK = `-- name: GetPatientByNIK :one
 SELECT mrn, name, nik, dob, user_id, created_at
 FROM patients
-WHERE nik = $1 LIMIT 1
+WHERE nik = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
 type GetPatientByNIKRow struct {
@@ -116,7 +116,7 @@ func (q *Queries) GetPatientByNIK(ctx context.Context, nik string) (GetPatientBy
 const updatePatientUserID = `-- name: UpdatePatientUserID :exec
 UPDATE patients
 SET user_id = $2
-WHERE mrn = $1
+WHERE mrn = $1 AND deleted_dt IS NULL
 `
 
 type UpdatePatientUserIDParams struct {

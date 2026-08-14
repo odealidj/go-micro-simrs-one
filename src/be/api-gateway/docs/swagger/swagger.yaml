@@ -95,25 +95,27 @@ paths:
     parameters:
       - $ref: '#/components/parameters/RequestIdHeader'
     post:
-      summary: Register a new user (admin only)
+      summary: Register a new staff user (pending approval)
       tags:
         - Auth
-      security:
-        - BearerAuth: []
+      security: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [username, password, role]
+              required: [username, password, email]
               properties:
                 username:
                   type: string
+                  description: NIP
                 password:
                   type: string
                   minLength: 6
-                role:
+                email:
+                  type: string
+                phone:
                   type: string
       responses:
         '200':
@@ -128,46 +130,82 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /auth/signup/patient:
+
+  /admin/users:
     parameters:
       - $ref: '#/components/parameters/RequestIdHeader'
-    post:
-      summary: Register a new patient (public)
+      - in: query
+        name: status
+        schema:
+          type: string
+        required: false
+        description: Filter by status (e.g. PENDING, ACTIVE)
+    get:
+      summary: List users (admin only)
       tags:
-        - Auth
-      security: []
+        - Admin
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /admin/users/{user_id}/status:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - in: path
+        name: user_id
+        required: true
+        schema:
+          type: string
+    put:
+      summary: Update user status and role (admin only)
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [username, password, name, nik, dob]
               properties:
-                username:
+                status:
                   type: string
-                password:
-                  type: string
-                  minLength: 6
-                name:
-                  type: string
-                nik:
-                  type: string
-                dob:
+                role:
                   type: string
       responses:
         '200':
-          description: Patient registered successfully
+          description: Status updated
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        '422':
-          description: Validation error
+  /admin/users/{user_id}:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - in: path
+        name: user_id
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Soft delete user (admin only)
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User deleted
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/SuccessResponse'
   /patient/register:
     parameters:
       - $ref: '#/components/parameters/RequestIdHeader'

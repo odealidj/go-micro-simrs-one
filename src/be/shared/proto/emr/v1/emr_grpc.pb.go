@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: shared/proto/emr/v1/emr.proto
+// source: emr.proto
 
 package emrv1
 
@@ -24,6 +24,13 @@ const (
 	EMRService_GetMedicalRecord_FullMethodName              = "/emr.v1.EMRService/GetMedicalRecord"
 	EMRService_StartEncounter_FullMethodName                = "/emr.v1.EMRService/StartEncounter"
 	EMRService_GetEstimatedWaitTime_FullMethodName          = "/emr.v1.EMRService/GetEstimatedWaitTime"
+	EMRService_GetPolyclinics_FullMethodName                = "/emr.v1.EMRService/GetPolyclinics"
+	EMRService_GetMasterKBMs_FullMethodName                 = "/emr.v1.EMRService/GetMasterKBMs"
+	EMRService_GetMasterKBMsByPoli_FullMethodName           = "/emr.v1.EMRService/GetMasterKBMsByPoli"
+	EMRService_GetMasterTindakan_FullMethodName             = "/emr.v1.EMRService/GetMasterTindakan"
+	EMRService_GetMasterTindakanByPoli_FullMethodName       = "/emr.v1.EMRService/GetMasterTindakanByPoli"
+	EMRService_GetMasterICD10_FullMethodName                = "/emr.v1.EMRService/GetMasterICD10"
+	EMRService_GetMasterICD10ByPoli_FullMethodName          = "/emr.v1.EMRService/GetMasterICD10ByPoli"
 	EMRService_SearchKBM_FullMethodName                     = "/emr.v1.EMRService/SearchKBM"
 	EMRService_GetKBMDetail_FullMethodName                  = "/emr.v1.EMRService/GetKBMDetail"
 	EMRService_GetICD10SuggestionsForKBM_FullMethodName     = "/emr.v1.EMRService/GetICD10SuggestionsForKBM"
@@ -41,7 +48,15 @@ type EMRServiceClient interface {
 	GetMedicalRecord(ctx context.Context, in *GetMedicalRecordRequest, opts ...grpc.CallOption) (*GetMedicalRecordResponse, error)
 	StartEncounter(ctx context.Context, in *StartEncounterRequest, opts ...grpc.CallOption) (*StartEncounterResponse, error)
 	GetEstimatedWaitTime(ctx context.Context, in *GetEstimatedWaitTimeRequest, opts ...grpc.CallOption) (*GetEstimatedWaitTimeResponse, error)
-	// Master KBM
+	// Master Data Reads
+	GetPolyclinics(ctx context.Context, in *GetPolyclinicsRequest, opts ...grpc.CallOption) (*GetPolyclinicsResponse, error)
+	GetMasterKBMs(ctx context.Context, in *GetMasterKBMsRequest, opts ...grpc.CallOption) (*GetMasterKBMsResponse, error)
+	GetMasterKBMsByPoli(ctx context.Context, in *GetMasterKBMsByPoliRequest, opts ...grpc.CallOption) (*GetMasterKBMsByPoliResponse, error)
+	GetMasterTindakan(ctx context.Context, in *GetMasterTindakanRequest, opts ...grpc.CallOption) (*GetMasterTindakanResponse, error)
+	GetMasterTindakanByPoli(ctx context.Context, in *GetMasterTindakanByPoliRequest, opts ...grpc.CallOption) (*GetMasterTindakanByPoliResponse, error)
+	GetMasterICD10(ctx context.Context, in *GetMasterICD10Request, opts ...grpc.CallOption) (*GetMasterICD10Response, error)
+	GetMasterICD10ByPoli(ctx context.Context, in *GetMasterICD10ByPoliRequest, opts ...grpc.CallOption) (*GetMasterICD10ByPoliResponse, error)
+	// Master KBM (Existing)
 	SearchKBM(ctx context.Context, in *SearchKBMRequest, opts ...grpc.CallOption) (*SearchKBMResponse, error)
 	GetKBMDetail(ctx context.Context, in *GetKBMDetailRequest, opts ...grpc.CallOption) (*GetKBMDetailResponse, error)
 	GetICD10SuggestionsForKBM(ctx context.Context, in *GetICD10SuggestionsForKBMRequest, opts ...grpc.CallOption) (*GetICD10SuggestionsForKBMResponse, error)
@@ -104,6 +119,76 @@ func (c *eMRServiceClient) GetEstimatedWaitTime(ctx context.Context, in *GetEsti
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetEstimatedWaitTimeResponse)
 	err := c.cc.Invoke(ctx, EMRService_GetEstimatedWaitTime_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetPolyclinics(ctx context.Context, in *GetPolyclinicsRequest, opts ...grpc.CallOption) (*GetPolyclinicsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPolyclinicsResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetPolyclinics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetMasterKBMs(ctx context.Context, in *GetMasterKBMsRequest, opts ...grpc.CallOption) (*GetMasterKBMsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterKBMsResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetMasterKBMs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetMasterKBMsByPoli(ctx context.Context, in *GetMasterKBMsByPoliRequest, opts ...grpc.CallOption) (*GetMasterKBMsByPoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterKBMsByPoliResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetMasterKBMsByPoli_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetMasterTindakan(ctx context.Context, in *GetMasterTindakanRequest, opts ...grpc.CallOption) (*GetMasterTindakanResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterTindakanResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetMasterTindakan_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetMasterTindakanByPoli(ctx context.Context, in *GetMasterTindakanByPoliRequest, opts ...grpc.CallOption) (*GetMasterTindakanByPoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterTindakanByPoliResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetMasterTindakanByPoli_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetMasterICD10(ctx context.Context, in *GetMasterICD10Request, opts ...grpc.CallOption) (*GetMasterICD10Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterICD10Response)
+	err := c.cc.Invoke(ctx, EMRService_GetMasterICD10_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetMasterICD10ByPoli(ctx context.Context, in *GetMasterICD10ByPoliRequest, opts ...grpc.CallOption) (*GetMasterICD10ByPoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterICD10ByPoliResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetMasterICD10ByPoli_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +264,15 @@ type EMRServiceServer interface {
 	GetMedicalRecord(context.Context, *GetMedicalRecordRequest) (*GetMedicalRecordResponse, error)
 	StartEncounter(context.Context, *StartEncounterRequest) (*StartEncounterResponse, error)
 	GetEstimatedWaitTime(context.Context, *GetEstimatedWaitTimeRequest) (*GetEstimatedWaitTimeResponse, error)
-	// Master KBM
+	// Master Data Reads
+	GetPolyclinics(context.Context, *GetPolyclinicsRequest) (*GetPolyclinicsResponse, error)
+	GetMasterKBMs(context.Context, *GetMasterKBMsRequest) (*GetMasterKBMsResponse, error)
+	GetMasterKBMsByPoli(context.Context, *GetMasterKBMsByPoliRequest) (*GetMasterKBMsByPoliResponse, error)
+	GetMasterTindakan(context.Context, *GetMasterTindakanRequest) (*GetMasterTindakanResponse, error)
+	GetMasterTindakanByPoli(context.Context, *GetMasterTindakanByPoliRequest) (*GetMasterTindakanByPoliResponse, error)
+	GetMasterICD10(context.Context, *GetMasterICD10Request) (*GetMasterICD10Response, error)
+	GetMasterICD10ByPoli(context.Context, *GetMasterICD10ByPoliRequest) (*GetMasterICD10ByPoliResponse, error)
+	// Master KBM (Existing)
 	SearchKBM(context.Context, *SearchKBMRequest) (*SearchKBMResponse, error)
 	GetKBMDetail(context.Context, *GetKBMDetailRequest) (*GetKBMDetailResponse, error)
 	GetICD10SuggestionsForKBM(context.Context, *GetICD10SuggestionsForKBMRequest) (*GetICD10SuggestionsForKBMResponse, error)
@@ -212,6 +305,27 @@ func (UnimplementedEMRServiceServer) StartEncounter(context.Context, *StartEncou
 }
 func (UnimplementedEMRServiceServer) GetEstimatedWaitTime(context.Context, *GetEstimatedWaitTimeRequest) (*GetEstimatedWaitTimeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetEstimatedWaitTime not implemented")
+}
+func (UnimplementedEMRServiceServer) GetPolyclinics(context.Context, *GetPolyclinicsRequest) (*GetPolyclinicsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPolyclinics not implemented")
+}
+func (UnimplementedEMRServiceServer) GetMasterKBMs(context.Context, *GetMasterKBMsRequest) (*GetMasterKBMsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterKBMs not implemented")
+}
+func (UnimplementedEMRServiceServer) GetMasterKBMsByPoli(context.Context, *GetMasterKBMsByPoliRequest) (*GetMasterKBMsByPoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterKBMsByPoli not implemented")
+}
+func (UnimplementedEMRServiceServer) GetMasterTindakan(context.Context, *GetMasterTindakanRequest) (*GetMasterTindakanResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterTindakan not implemented")
+}
+func (UnimplementedEMRServiceServer) GetMasterTindakanByPoli(context.Context, *GetMasterTindakanByPoliRequest) (*GetMasterTindakanByPoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterTindakanByPoli not implemented")
+}
+func (UnimplementedEMRServiceServer) GetMasterICD10(context.Context, *GetMasterICD10Request) (*GetMasterICD10Response, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterICD10 not implemented")
+}
+func (UnimplementedEMRServiceServer) GetMasterICD10ByPoli(context.Context, *GetMasterICD10ByPoliRequest) (*GetMasterICD10ByPoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterICD10ByPoli not implemented")
 }
 func (UnimplementedEMRServiceServer) SearchKBM(context.Context, *SearchKBMRequest) (*SearchKBMResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchKBM not implemented")
@@ -338,6 +452,132 @@ func _EMRService_GetEstimatedWaitTime_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EMRServiceServer).GetEstimatedWaitTime(ctx, req.(*GetEstimatedWaitTimeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetPolyclinics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPolyclinicsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetPolyclinics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetPolyclinics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetPolyclinics(ctx, req.(*GetPolyclinicsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetMasterKBMs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterKBMsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetMasterKBMs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetMasterKBMs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetMasterKBMs(ctx, req.(*GetMasterKBMsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetMasterKBMsByPoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterKBMsByPoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetMasterKBMsByPoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetMasterKBMsByPoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetMasterKBMsByPoli(ctx, req.(*GetMasterKBMsByPoliRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetMasterTindakan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterTindakanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetMasterTindakan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetMasterTindakan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetMasterTindakan(ctx, req.(*GetMasterTindakanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetMasterTindakanByPoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterTindakanByPoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetMasterTindakanByPoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetMasterTindakanByPoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetMasterTindakanByPoli(ctx, req.(*GetMasterTindakanByPoliRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetMasterICD10_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterICD10Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetMasterICD10(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetMasterICD10_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetMasterICD10(ctx, req.(*GetMasterICD10Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetMasterICD10ByPoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterICD10ByPoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetMasterICD10ByPoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetMasterICD10ByPoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetMasterICD10ByPoli(ctx, req.(*GetMasterICD10ByPoliRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -478,6 +718,34 @@ var EMRService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EMRService_GetEstimatedWaitTime_Handler,
 		},
 		{
+			MethodName: "GetPolyclinics",
+			Handler:    _EMRService_GetPolyclinics_Handler,
+		},
+		{
+			MethodName: "GetMasterKBMs",
+			Handler:    _EMRService_GetMasterKBMs_Handler,
+		},
+		{
+			MethodName: "GetMasterKBMsByPoli",
+			Handler:    _EMRService_GetMasterKBMsByPoli_Handler,
+		},
+		{
+			MethodName: "GetMasterTindakan",
+			Handler:    _EMRService_GetMasterTindakan_Handler,
+		},
+		{
+			MethodName: "GetMasterTindakanByPoli",
+			Handler:    _EMRService_GetMasterTindakanByPoli_Handler,
+		},
+		{
+			MethodName: "GetMasterICD10",
+			Handler:    _EMRService_GetMasterICD10_Handler,
+		},
+		{
+			MethodName: "GetMasterICD10ByPoli",
+			Handler:    _EMRService_GetMasterICD10ByPoli_Handler,
+		},
+		{
 			MethodName: "SearchKBM",
 			Handler:    _EMRService_SearchKBM_Handler,
 		},
@@ -503,5 +771,5 @@ var EMRService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "shared/proto/emr/v1/emr.proto",
+	Metadata: "emr.proto",
 }

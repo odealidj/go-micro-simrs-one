@@ -8,6 +8,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
@@ -54,7 +55,11 @@ func main() {
 	patientService := services.NewPatientService(patientRepo, rdb)
 
 	// 4. Init gRPC Server
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			recovery.UnaryServerInterceptor(),
+		),
+	)
 	pb.RegisterPatientServiceServer(grpcServer, grpcAdapter.NewPatientGrpcServer(patientService))
 
 	// 5. Register gRPC Health Check

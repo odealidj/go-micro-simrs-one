@@ -14,7 +14,7 @@ import (
 const createInvoice = `-- name: CreateInvoice :one
 INSERT INTO invoices (id, encounter_no, total_amount, status)
 VALUES ($1, $2, $3, $4)
-RETURNING id, encounter_no, total_amount, status, created_at, paid_at
+RETURNING id, encounter_no, total_amount, status, created_at, paid_at, deleted_dt, deleted_by
 `
 
 type CreateInvoiceParams struct {
@@ -39,6 +39,8 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 		&i.Status,
 		&i.CreatedAt,
 		&i.PaidAt,
+		&i.DeletedDt,
+		&i.DeletedBy,
 	)
 	return i, err
 }
@@ -46,7 +48,7 @@ func (q *Queries) CreateInvoice(ctx context.Context, arg CreateInvoiceParams) (I
 const createInvoiceItem = `-- name: CreateInvoiceItem :one
 INSERT INTO invoice_items (id, invoice_id, item_type, description, amount)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, invoice_id, item_type, description, amount, created_at
+RETURNING id, invoice_id, item_type, description, amount, created_at, deleted_dt, deleted_by
 `
 
 type CreateInvoiceItemParams struct {
@@ -73,6 +75,8 @@ func (q *Queries) CreateInvoiceItem(ctx context.Context, arg CreateInvoiceItemPa
 		&i.Description,
 		&i.Amount,
 		&i.CreatedAt,
+		&i.DeletedDt,
+		&i.DeletedBy,
 	)
 	return i, err
 }
@@ -112,9 +116,9 @@ func (q *Queries) CreateOutboxEvent(ctx context.Context, arg CreateOutboxEventPa
 }
 
 const getInvoice = `-- name: GetInvoice :one
-SELECT id, encounter_no, total_amount, status, created_at, paid_at
+SELECT id, encounter_no, total_amount, status, created_at, paid_at, deleted_dt, deleted_by
 FROM invoices
-WHERE id = $1 LIMIT 1
+WHERE id = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
 func (q *Queries) GetInvoice(ctx context.Context, id string) (Invoice, error) {
@@ -127,14 +131,16 @@ func (q *Queries) GetInvoice(ctx context.Context, id string) (Invoice, error) {
 		&i.Status,
 		&i.CreatedAt,
 		&i.PaidAt,
+		&i.DeletedDt,
+		&i.DeletedBy,
 	)
 	return i, err
 }
 
 const getInvoiceByEncounterNo = `-- name: GetInvoiceByEncounterNo :one
-SELECT id, encounter_no, total_amount, status, created_at, paid_at
+SELECT id, encounter_no, total_amount, status, created_at, paid_at, deleted_dt, deleted_by
 FROM invoices
-WHERE encounter_no = $1 LIMIT 1
+WHERE encounter_no = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
 func (q *Queries) GetInvoiceByEncounterNo(ctx context.Context, encounterNo string) (Invoice, error) {
@@ -147,14 +153,16 @@ func (q *Queries) GetInvoiceByEncounterNo(ctx context.Context, encounterNo strin
 		&i.Status,
 		&i.CreatedAt,
 		&i.PaidAt,
+		&i.DeletedDt,
+		&i.DeletedBy,
 	)
 	return i, err
 }
 
 const getInvoiceItems = `-- name: GetInvoiceItems :many
-SELECT id, invoice_id, item_type, description, amount, created_at
+SELECT id, invoice_id, item_type, description, amount, created_at, deleted_dt, deleted_by
 FROM invoice_items
-WHERE invoice_id = $1
+WHERE invoice_id = $1 AND deleted_dt IS NULL
 ORDER BY created_at ASC
 `
 
@@ -174,6 +182,8 @@ func (q *Queries) GetInvoiceItems(ctx context.Context, invoiceID string) ([]Invo
 			&i.Description,
 			&i.Amount,
 			&i.CreatedAt,
+			&i.DeletedDt,
+			&i.DeletedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -228,8 +238,8 @@ func (q *Queries) GetPendingOutboxEvents(ctx context.Context) ([]OutboxEvent, er
 const updateInvoiceAmount = `-- name: UpdateInvoiceAmount :one
 UPDATE invoices
 SET total_amount = total_amount + $2
-WHERE id = $1
-RETURNING id, encounter_no, total_amount, status, created_at, paid_at
+WHERE id = $1 AND deleted_dt IS NULL
+RETURNING id, encounter_no, total_amount, status, created_at, paid_at, deleted_dt, deleted_by
 `
 
 type UpdateInvoiceAmountParams struct {
@@ -247,6 +257,8 @@ func (q *Queries) UpdateInvoiceAmount(ctx context.Context, arg UpdateInvoiceAmou
 		&i.Status,
 		&i.CreatedAt,
 		&i.PaidAt,
+		&i.DeletedDt,
+		&i.DeletedBy,
 	)
 	return i, err
 }
@@ -254,8 +266,8 @@ func (q *Queries) UpdateInvoiceAmount(ctx context.Context, arg UpdateInvoiceAmou
 const updateInvoiceStatus = `-- name: UpdateInvoiceStatus :one
 UPDATE invoices
 SET status = $2, paid_at = $3
-WHERE id = $1
-RETURNING id, encounter_no, total_amount, status, created_at, paid_at
+WHERE id = $1 AND deleted_dt IS NULL
+RETURNING id, encounter_no, total_amount, status, created_at, paid_at, deleted_dt, deleted_by
 `
 
 type UpdateInvoiceStatusParams struct {
@@ -274,6 +286,8 @@ func (q *Queries) UpdateInvoiceStatus(ctx context.Context, arg UpdateInvoiceStat
 		&i.Status,
 		&i.CreatedAt,
 		&i.PaidAt,
+		&i.DeletedDt,
+		&i.DeletedBy,
 	)
 	return i, err
 }

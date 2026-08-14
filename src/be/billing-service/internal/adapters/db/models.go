@@ -7,6 +7,8 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+
+	"github.com/google/uuid"
 )
 
 type Invoice struct {
@@ -16,6 +18,8 @@ type Invoice struct {
 	Status      string
 	CreatedAt   sql.NullTime
 	PaidAt      sql.NullTime
+	DeletedDt   sql.NullTime
+	DeletedBy   uuid.NullUUID
 }
 
 type InvoiceItem struct {
@@ -25,6 +29,8 @@ type InvoiceItem struct {
 	Description string
 	Amount      string
 	CreatedAt   sql.NullTime
+	DeletedDt   sql.NullTime
+	DeletedBy   uuid.NullUUID
 }
 
 type OutboxEvent struct {

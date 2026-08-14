@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 )
 
@@ -15,6 +16,7 @@ SELECT COUNT(*) FROM encounters
 WHERE department = $1
   AND status = 'REGISTERED'
   AND DATE(created_at) = CURRENT_DATE
+  AND deleted_dt IS NULL
 `
 
 func (q *Queries) CountActiveEncountersByDept(ctx context.Context, department string) (int64, error) {
@@ -38,7 +40,16 @@ type CreateEncounterParams struct {
 	Status      string
 }
 
-func (q *Queries) CreateEncounter(ctx context.Context, arg CreateEncounterParams) (Encounter, error) {
+type CreateEncounterRow struct {
+	EncounterNo string
+	Mrn         string
+	Department  string
+	DoctorID    string
+	Status      string
+	CreatedAt   sql.NullTime
+}
+
+func (q *Queries) CreateEncounter(ctx context.Context, arg CreateEncounterParams) (CreateEncounterRow, error) {
 	row := q.db.QueryRowContext(ctx, createEncounter,
 		arg.EncounterNo,
 		arg.Mrn,
@@ -46,7 +57,7 @@ func (q *Queries) CreateEncounter(ctx context.Context, arg CreateEncounterParams
 		arg.DoctorID,
 		arg.Status,
 	)
-	var i Encounter
+	var i CreateEncounterRow
 	err := row.Scan(
 		&i.EncounterNo,
 		&i.Mrn,

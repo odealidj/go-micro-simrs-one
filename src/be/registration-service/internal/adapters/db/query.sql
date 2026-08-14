@@ -23,4 +23,5 @@ WHERE id = $1;
 SELECT COUNT(*) FROM encounters
 WHERE department = $1
   AND status = 'REGISTERED'
-  AND DATE(created_at) = CURRENT_DATE;
+  AND DATE(created_at) = CURRENT_DATE
+  AND deleted_dt IS NULL;

@@ -7,6 +7,8 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+
+	"github.com/google/uuid"
 )
 
 type ClinicWaitTimeAggregate struct {
@@ -21,6 +23,24 @@ type ClinicWaitTimeAggregate struct {
 	UpdatedAt          sql.NullTime
 }
 
+type Icd10Catalog struct {
+	Icd10Code   string
+	Name        string
+	Description sql.NullString
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+	DeletedDt   sql.NullTime
+	DeletedBy   uuid.NullUUID
+}
+
+type Icd10PolyclinicMapping struct {
+	Icd10Code      string
+	PolyclinicCode string
+	CreatedAt      sql.NullTime
+	DeletedDt      sql.NullTime
+	DeletedBy      uuid.NullUUID
+}
+
 type KbmCatalog struct {
 	KbmCode     string
 	KbmName     string
@@ -29,6 +49,8 @@ type KbmCatalog struct {
 	IsActive    bool
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+	DeletedDt   sql.NullTime
+	DeletedBy   uuid.NullUUID
 }
 
 type KbmIcd10Mapping struct {
@@ -36,12 +58,27 @@ type KbmIcd10Mapping struct {
 	Icd10Code string
 	IsPrimary sql.NullBool
 	CreatedAt sql.NullTime
+	DeletedDt sql.NullTime
+	DeletedBy uuid.NullUUID
 }
 
 type KbmPolyclinicMapping struct {
 	KbmCode        string
 	PolyclinicCode string
 	CreatedAt      sql.NullTime
+	DeletedDt      sql.NullTime
+	DeletedBy      uuid.NullUUID
+}
+
+type MasterTindakan struct {
+	KodeTindakan string
+	NamaTindakan string
+	BasePrice    string
+	IsActive     bool
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+	DeletedDt    sql.NullTime
+	DeletedBy    uuid.NullUUID
 }
 
 type MedicalAction struct {
@@ -52,6 +89,8 @@ type MedicalAction struct {
 	Price           string
 	Notes           sql.NullString
 	CreatedAt       sql.NullTime
+	DeletedDt       sql.NullTime
+	DeletedBy       uuid.NullUUID
 }
 
 type MedicalRecord struct {
@@ -77,6 +116,8 @@ type MedicalRecord struct {
 	KbmCode                sql.NullString
 	KbmName                sql.NullString
 	Icd10MappingStatus     sql.NullString
+	DeletedDt              sql.NullTime
+	DeletedBy              uuid.NullUUID
 }
 
 type OutboxEvent struct {
@@ -95,4 +136,14 @@ type Polyclinic struct {
 	IsActive    bool
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
+	DeletedDt   sql.NullTime
+	DeletedBy   uuid.NullUUID
+}
+
+type TindakanPolyclinicMapping struct {
+	KodeTindakan   string
+	PolyclinicCode string
+	CreatedAt      sql.NullTime
+	DeletedDt      sql.NullTime
+	DeletedBy      uuid.NullUUID
 }

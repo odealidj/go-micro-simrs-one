@@ -9,6 +9,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 
@@ -81,8 +82,12 @@ func main() {
 	slog.Info("Pharmacy Aggregator Worker started")
 
 	// 7. Init gRPC Server
-	grpcServer := grpc.NewServer()
-	pb.RegisterPharmacyServiceServer(grpcServer, grpcAdapter.NewPharmacyGrpcServer(pharmacyService))
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			recovery.UnaryServerInterceptor(),
+		),
+	)
+	pb.RegisterPharmacyServiceServer(grpcServer, grpcAdapter.NewPharmacyGrpcServer(pharmacyService, queriesRepo))
 
 	// 8. Register gRPC Health Check
 	healthSrv := health.NewServer()

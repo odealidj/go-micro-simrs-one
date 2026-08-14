@@ -1,0 +1,12 @@
+ALTER TABLE master_role DROP COLUMN deleted_dt;
+ALTER TABLE master_role DROP COLUMN deleted_by;
+ALTER TABLE profil_dokter DROP COLUMN deleted_dt;
+ALTER TABLE profil_dokter DROP COLUMN deleted_by;
+ALTER TABLE profil_perawat DROP COLUMN deleted_dt;
+ALTER TABLE profil_perawat DROP COLUMN deleted_by;
+ALTER TABLE mapping_dokter_poli DROP COLUMN deleted_dt;
+ALTER TABLE mapping_dokter_poli DROP COLUMN deleted_by;
+ALTER TABLE mapping_perawat_poli DROP COLUMN deleted_dt;
+ALTER TABLE mapping_perawat_poli DROP COLUMN deleted_by;
+ALTER TABLE jadwal_praktek DROP COLUMN deleted_dt;
+ALTER TABLE jadwal_praktek DROP COLUMN deleted_by;

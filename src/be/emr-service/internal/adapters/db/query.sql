@@ -21,7 +21,7 @@ RETURNING *;
 
 -- name: SearchKBM :many
 SELECT * FROM kbm_catalog
-WHERE is_active = true 
+WHERE is_active = true AND deleted_dt IS NULL
   AND kbm_name ILIKE '%' || $1 || '%'
 ORDER BY kbm_name ASC
 LIMIT $2 OFFSET $3;
@@ -30,7 +30,7 @@ LIMIT $2 OFFSET $3;
 SELECT c.* 
 FROM kbm_catalog c
 JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
-WHERE c.is_active = true 
+WHERE c.is_active = true AND c.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
   AND c.kbm_name ILIKE '%' || $2 || '%'
 ORDER BY c.kbm_name ASC
@@ -38,7 +38,7 @@ LIMIT $3 OFFSET $4;
 
 -- name: GetKBMByCode :one
 SELECT * FROM kbm_catalog
-WHERE kbm_code = $1 LIMIT 1;
+WHERE kbm_code = $1 AND deleted_dt IS NULL LIMIT 1;
 
 -- name: VerifyICD10Mapping :one
 UPDATE medical_records
@@ -52,13 +52,13 @@ RETURNING *;
 -- name: GetICD10MappingsByKBM :many
 SELECT icd10_code, is_primary
 FROM kbm_icd10_mappings
-WHERE kbm_code = $1
+WHERE kbm_code = $1 AND deleted_dt IS NULL
 ORDER BY is_primary DESC, icd10_code ASC;
 
 -- name: ListPendingICD10Verifications :many
 SELECT encounter_no, mrn, kbm_code, kbm_name, icd10_mapping_status, created_at
 FROM medical_records
-WHERE icd10_mapping_status IN ('PENDING_REVIEW', 'AUTO_MAPPED')
+WHERE icd10_mapping_status IN ('PENDING_REVIEW', 'AUTO_MAPPED') AND deleted_dt IS NULL
 ORDER BY created_at ASC
 LIMIT $1 OFFSET $2;
 
@@ -70,7 +70,7 @@ WHERE encounter_no = $1;
 -- name: GetMRByEncounterNo :one
 SELECT *
 FROM medical_records
-WHERE encounter_no = $1 LIMIT 1;
+WHERE encounter_no = $1 AND deleted_dt IS NULL LIMIT 1;
 
 -- name: UpdateTriage :one
 UPDATE medical_records
@@ -86,7 +86,7 @@ RETURNING *;
 -- name: GetMedicalActionsByRecordID :many
 SELECT *
 FROM medical_actions
-WHERE medical_record_id = $1
+WHERE medical_record_id = $1 AND deleted_dt IS NULL
 ORDER BY created_at ASC;
 
 -- name: CreateOutboxEvent :one
@@ -124,3 +124,92 @@ SELECT COALESCE(AVG(average_wait_minutes), 0)::float8 AS avg_wait_minutes
 FROM clinic_wait_time_aggregates
 WHERE doctor_id = $1 AND department_code = $2 AND gender = $3 AND age_bracket = $4;
 
+-- Master Data Queries
+-- name: GetPolyclinics :many
+SELECT * FROM polyclinics
+WHERE is_active = true AND deleted_dt IS NULL AND name ILIKE '%' || $1 || '%'
+ORDER BY code ASC LIMIT $2 OFFSET $3;
+
+-- name: CountPolyclinics :one
+SELECT COUNT(*) FROM polyclinics
+WHERE is_active = true AND deleted_dt IS NULL AND name ILIKE '%' || $1 || '%';
+
+-- name: GetKBMs :many
+SELECT * FROM kbm_catalog
+WHERE is_active = true AND deleted_dt IS NULL
+  AND (kbm_name ILIKE '%' || $1 || '%' OR kbm_code ILIKE '%' || $2 || '%')
+ORDER BY kbm_code ASC LIMIT $3 OFFSET $4;
+
+-- name: CountKBMs :one
+SELECT COUNT(*) FROM kbm_catalog
+WHERE is_active = true AND deleted_dt IS NULL
+  AND (kbm_name ILIKE '%' || $1 || '%' OR kbm_code ILIKE '%' || $2 || '%');
+
+-- name: GetKBMsByPolyclinic :many
+SELECT c.* FROM kbm_catalog c
+JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
+WHERE c.is_active = true AND c.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND m.polyclinic_code = $1
+  AND c.kbm_name ILIKE '%' || $2 || '%'
+  AND c.kbm_code ILIKE '%' || $3 || '%'
+ORDER BY c.kbm_code ASC LIMIT $4 OFFSET $5;
+
+-- name: CountKBMsByPolyclinic :one
+SELECT COUNT(*) FROM kbm_catalog c
+JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
+WHERE c.is_active = true AND c.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND m.polyclinic_code = $1
+  AND c.kbm_name ILIKE '%' || $2 || '%'
+  AND c.kbm_code ILIKE '%' || $3 || '%';
+
+-- name: GetTindakan :many
+SELECT * FROM master_tindakan
+WHERE is_active = true AND deleted_dt IS NULL
+  AND (nama_tindakan ILIKE '%' || $1 || '%' OR kode_tindakan ILIKE '%' || $2 || '%')
+ORDER BY kode_tindakan ASC LIMIT $3 OFFSET $4;
+
+-- name: CountTindakan :one
+SELECT COUNT(*) FROM master_tindakan
+WHERE is_active = true AND deleted_dt IS NULL
+  AND (nama_tindakan ILIKE '%' || $1 || '%' OR kode_tindakan ILIKE '%' || $2 || '%');
+
+-- name: GetTindakanByPolyclinic :many
+SELECT t.* FROM master_tindakan t
+JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan
+WHERE t.is_active = true AND t.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND m.polyclinic_code = $1
+  AND t.nama_tindakan ILIKE '%' || $2 || '%'
+  AND t.kode_tindakan ILIKE '%' || $3 || '%'
+ORDER BY t.kode_tindakan ASC LIMIT $4 OFFSET $5;
+
+-- name: CountTindakanByPolyclinic :one
+SELECT COUNT(*) FROM master_tindakan t
+JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan
+WHERE t.is_active = true AND t.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND m.polyclinic_code = $1
+  AND t.nama_tindakan ILIKE '%' || $2 || '%'
+  AND t.kode_tindakan ILIKE '%' || $3 || '%';
+
+-- name: GetICD10 :many
+SELECT * FROM icd10_catalog
+WHERE deleted_dt IS NULL
+  AND (name ILIKE '%' || $1 || '%' OR icd10_code ILIKE '%' || $2 || '%')
+ORDER BY icd10_code ASC LIMIT $3 OFFSET $4;
+
+-- name: CountICD10 :one
+SELECT COUNT(*) FROM icd10_catalog
+WHERE deleted_dt IS NULL
+  AND (name ILIKE '%' || $1 || '%' OR icd10_code ILIKE '%' || $2 || '%');
+
+-- name: GetICD10ByPolyclinic :many
+SELECT i.* FROM icd10_catalog i
+JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code
+WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND (i.name ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $3 || '%')
+ORDER BY i.icd10_code ASC LIMIT $4 OFFSET $5;
+
+-- name: CountICD10ByPolyclinic :one
+SELECT COUNT(*) FROM icd10_catalog i
+JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code
+WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND (i.name ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $3 || '%');

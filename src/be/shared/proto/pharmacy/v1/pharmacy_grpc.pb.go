@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: shared/proto/pharmacy/v1/pharmacy.proto
+// source: pharmacy.proto
 
 package pharmacyv1
 
@@ -23,6 +23,8 @@ const (
 	PharmacyService_DispensePrescription_FullMethodName = "/pharmacy.v1.PharmacyService/DispensePrescription"
 	PharmacyService_RollbackPrescription_FullMethodName = "/pharmacy.v1.PharmacyService/RollbackPrescription"
 	PharmacyService_GetEstimatedWaitTime_FullMethodName = "/pharmacy.v1.PharmacyService/GetEstimatedWaitTime"
+	PharmacyService_GetMasterObat_FullMethodName        = "/pharmacy.v1.PharmacyService/GetMasterObat"
+	PharmacyService_GetMasterObatByPoli_FullMethodName  = "/pharmacy.v1.PharmacyService/GetMasterObatByPoli"
 )
 
 // PharmacyServiceClient is the client API for PharmacyService service.
@@ -37,6 +39,9 @@ type PharmacyServiceClient interface {
 	RollbackPrescription(ctx context.Context, in *RollbackPrescriptionRequest, opts ...grpc.CallOption) (*RollbackPrescriptionResponse, error)
 	// Queue Estimation
 	GetEstimatedWaitTime(ctx context.Context, in *GetEstimatedWaitTimeRequest, opts ...grpc.CallOption) (*GetEstimatedWaitTimeResponse, error)
+	// Master Data
+	GetMasterObat(ctx context.Context, in *GetMasterObatRequest, opts ...grpc.CallOption) (*GetMasterObatResponse, error)
+	GetMasterObatByPoli(ctx context.Context, in *GetMasterObatByPoliRequest, opts ...grpc.CallOption) (*GetMasterObatByPoliResponse, error)
 }
 
 type pharmacyServiceClient struct {
@@ -87,6 +92,26 @@ func (c *pharmacyServiceClient) GetEstimatedWaitTime(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *pharmacyServiceClient) GetMasterObat(ctx context.Context, in *GetMasterObatRequest, opts ...grpc.CallOption) (*GetMasterObatResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterObatResponse)
+	err := c.cc.Invoke(ctx, PharmacyService_GetMasterObat_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pharmacyServiceClient) GetMasterObatByPoli(ctx context.Context, in *GetMasterObatByPoliRequest, opts ...grpc.CallOption) (*GetMasterObatByPoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterObatByPoliResponse)
+	err := c.cc.Invoke(ctx, PharmacyService_GetMasterObatByPoli_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PharmacyServiceServer is the server API for PharmacyService service.
 // All implementations must embed UnimplementedPharmacyServiceServer
 // for forward compatibility.
@@ -99,6 +124,9 @@ type PharmacyServiceServer interface {
 	RollbackPrescription(context.Context, *RollbackPrescriptionRequest) (*RollbackPrescriptionResponse, error)
 	// Queue Estimation
 	GetEstimatedWaitTime(context.Context, *GetEstimatedWaitTimeRequest) (*GetEstimatedWaitTimeResponse, error)
+	// Master Data
+	GetMasterObat(context.Context, *GetMasterObatRequest) (*GetMasterObatResponse, error)
+	GetMasterObatByPoli(context.Context, *GetMasterObatByPoliRequest) (*GetMasterObatByPoliResponse, error)
 	mustEmbedUnimplementedPharmacyServiceServer()
 }
 
@@ -120,6 +148,12 @@ func (UnimplementedPharmacyServiceServer) RollbackPrescription(context.Context, 
 }
 func (UnimplementedPharmacyServiceServer) GetEstimatedWaitTime(context.Context, *GetEstimatedWaitTimeRequest) (*GetEstimatedWaitTimeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetEstimatedWaitTime not implemented")
+}
+func (UnimplementedPharmacyServiceServer) GetMasterObat(context.Context, *GetMasterObatRequest) (*GetMasterObatResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterObat not implemented")
+}
+func (UnimplementedPharmacyServiceServer) GetMasterObatByPoli(context.Context, *GetMasterObatByPoliRequest) (*GetMasterObatByPoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterObatByPoli not implemented")
 }
 func (UnimplementedPharmacyServiceServer) mustEmbedUnimplementedPharmacyServiceServer() {}
 func (UnimplementedPharmacyServiceServer) testEmbeddedByValue()                         {}
@@ -214,6 +248,42 @@ func _PharmacyService_GetEstimatedWaitTime_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PharmacyService_GetMasterObat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterObatRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PharmacyServiceServer).GetMasterObat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PharmacyService_GetMasterObat_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PharmacyServiceServer).GetMasterObat(ctx, req.(*GetMasterObatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PharmacyService_GetMasterObatByPoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterObatByPoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PharmacyServiceServer).GetMasterObatByPoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PharmacyService_GetMasterObatByPoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PharmacyServiceServer).GetMasterObatByPoli(ctx, req.(*GetMasterObatByPoliRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PharmacyService_ServiceDesc is the grpc.ServiceDesc for PharmacyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -237,7 +307,15 @@ var PharmacyService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetEstimatedWaitTime",
 			Handler:    _PharmacyService_GetEstimatedWaitTime_Handler,
 		},
+		{
+			MethodName: "GetMasterObat",
+			Handler:    _PharmacyService_GetMasterObat_Handler,
+		},
+		{
+			MethodName: "GetMasterObatByPoli",
+			Handler:    _PharmacyService_GetMasterObatByPoli_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "shared/proto/pharmacy/v1/pharmacy.proto",
+	Metadata: "pharmacy.proto",
 }

@@ -32,11 +32,11 @@ func NewAuthService(repo ports.UserRepository, tm *auth.TokenManager) ports.Auth
 	}
 }
 
-func (s *authServiceImpl) Signup(ctx context.Context, username, password, role string) (string, error) {
-	// 1. Check if user exists
-	_, err := s.repo.FindByUsername(ctx, username)
+func (s *authServiceImpl) Signup(ctx context.Context, nip, password, email, phone string) (string, error) {
+	// 1. Check if user exists by NIP
+	_, err := s.repo.FindByUsername(ctx, nip)
 	if err == nil {
-		return "", errors.New("username already exists")
+		return "", errors.New("NIP already registered")
 	}
 
 	// 2. Hash password
@@ -45,19 +45,85 @@ func (s *authServiceImpl) Signup(ctx context.Context, username, password, role s
 		return "", err
 	}
 
-	// 3. Create user
+	// 3. Create user (Role is nil, Status is PENDING)
 	user := &domain.User{
-		Username:     username,
-		PasswordHash: string(hashedPassword),
-		Role:         role,
+		Username:            nip, // NIP is used as username for staff
+		PasswordHash:        string(hashedPassword),
+		Role:                nil,
+		Status:              "PENDING",
+		ForceChangePassword: true, // Force change password when first logging in if approved
 	}
 
-	createdUser, err := s.repo.Create(ctx, user)
+	profile := &domain.StaffProfile{
+		NIP:   nip,
+		Email: email,
+		Phone: phone,
+	}
+
+	createdUser, err := s.repo.CreateWithProfile(ctx, user, profile)
 	if err != nil {
 		return "", err
 	}
 
 	return createdUser.ID, nil
+}
+
+func (s *authServiceImpl) RegisterPatientUser(ctx context.Context, username, password string) (string, error) {
+	_, err := s.repo.FindByUsername(ctx, username)
+	if err == nil {
+		return "", errors.New("patient username already registered")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+
+	rolePatient := "patient"
+	user := &domain.User{
+		Username:            username,
+		PasswordHash:        string(hashedPassword),
+		Role:                &rolePatient,
+		Status:              "ACTIVE",
+		ForceChangePassword: true,
+	}
+
+	createdUser, err := s.repo.CreateWithProfile(ctx, user, &domain.StaffProfile{})
+	if err != nil {
+		return "", err
+	}
+
+	return createdUser.ID, nil
+}
+
+func (s *authServiceImpl) BootstrapAdmin(ctx context.Context, nip, password, email, phone string) error {
+	_, err := s.repo.FindByUsername(ctx, nip)
+	if err == nil {
+		return errors.New("NIP already registered")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	roleAdmin := "super_admin"
+	user := &domain.User{
+		Username:            nip,
+		PasswordHash:        string(hashedPassword),
+		Role:                &roleAdmin,
+		Status:              "ACTIVE",
+		ForceChangePassword: true,
+	}
+
+	profile := &domain.StaffProfile{
+		NIP:   nip,
+		Email: email,
+		Phone: phone,
+	}
+
+	_, err = s.repo.CreateWithProfile(ctx, user, profile)
+	return err
 }
 
 func (s *authServiceImpl) generateTokenPair(userID string, role string) (*ports.TokenPair, error) {
@@ -108,13 +174,26 @@ func (s *authServiceImpl) Login(ctx context.Context, username, password string) 
 		return nil, "", "", errors.New("invalid credentials")
 	}
 
-	// 3. Generate Token Pair
-	tokenPair, err := s.generateTokenPair(user.ID, user.Role)
+	// 3. Check status
+	if user.Status == "PENDING" {
+		return nil, "", "", errors.New("account is pending approval by admin")
+	}
+	if user.Status == "REJECTED" || user.Status == "INACTIVE" {
+		return nil, "", "", errors.New("account is inactive or rejected")
+	}
+
+	var role string
+	if user.Role != nil {
+		role = *user.Role
+	}
+
+	// 4. Generate Token Pair
+	tokenPair, err := s.generateTokenPair(user.ID, role)
 	if err != nil {
 		return nil, "", "", err
 	}
 
-	return tokenPair, user.Role, user.ID, nil
+	return tokenPair, role, user.ID, nil
 }
 
 func (s *authServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*ports.TokenPair, error) {
@@ -145,8 +224,13 @@ func (s *authServiceImpl) RefreshToken(ctx context.Context, refreshToken string)
 		return nil, errors.New("user not found")
 	}
 
+	var role string
+	if user.Role != nil {
+		role = *user.Role
+	}
+
 	// Generate new pair
-	tokenPair, err := s.generateTokenPair(user.ID, user.Role)
+	tokenPair, err := s.generateTokenPair(user.ID, role)
 	if err != nil {
 		return nil, err
 	}
@@ -248,4 +332,27 @@ func (s *authServiceImpl) ExtractKTPData(ctx context.Context, base64Image string
 	}
 
 	return &result, nil
+}
+
+func (s *authServiceImpl) ListUsers(ctx context.Context, page, pageSize int, statusFilter string) ([]*domain.UserWithProfile, int, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	return s.repo.ListUsers(ctx, page, pageSize, statusFilter)
+}
+
+func (s *authServiceImpl) UpdateUserStatus(ctx context.Context, userID, status string, role *string) error {
+	// Status validation can be added here
+	validStatuses := map[string]bool{"ACTIVE": true, "INACTIVE": true, "PENDING": true, "REJECTED": true}
+	if !validStatuses[status] {
+		return errors.New("invalid status")
+	}
+	return s.repo.UpdateStatusAndRole(ctx, userID, status, role)
+}
+
+func (s *authServiceImpl) DeleteUser(ctx context.Context, userID, deletedBy string) error {
+	return s.repo.SoftDelete(ctx, userID, deletedBy)
 }

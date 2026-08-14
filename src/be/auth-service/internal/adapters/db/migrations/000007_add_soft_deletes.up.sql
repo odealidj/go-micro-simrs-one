@@ -1,0 +1,12 @@
+ALTER TABLE master_role ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE master_role ADD COLUMN deleted_by UUID;
+ALTER TABLE profil_dokter ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE profil_dokter ADD COLUMN deleted_by UUID;
+ALTER TABLE profil_perawat ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE profil_perawat ADD COLUMN deleted_by UUID;
+ALTER TABLE mapping_dokter_poli ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE mapping_dokter_poli ADD COLUMN deleted_by UUID;
+ALTER TABLE mapping_perawat_poli ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE mapping_perawat_poli ADD COLUMN deleted_by UUID;
+ALTER TABLE jadwal_praktek ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE jadwal_praktek ADD COLUMN deleted_by UUID;

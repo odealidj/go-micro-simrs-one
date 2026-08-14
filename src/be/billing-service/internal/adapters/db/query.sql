@@ -6,23 +6,23 @@ RETURNING *;
 -- name: UpdateInvoiceStatus :one
 UPDATE invoices
 SET status = $2, paid_at = $3
-WHERE id = $1
+WHERE id = $1 AND deleted_dt IS NULL
 RETURNING *;
 
 -- name: GetInvoice :one
 SELECT *
 FROM invoices
-WHERE id = $1 LIMIT 1;
+WHERE id = $1 AND deleted_dt IS NULL LIMIT 1;
 
 -- name: GetInvoiceByEncounterNo :one
 SELECT *
 FROM invoices
-WHERE encounter_no = $1 LIMIT 1;
+WHERE encounter_no = $1 AND deleted_dt IS NULL LIMIT 1;
 
 -- name: UpdateInvoiceAmount :one
 UPDATE invoices
 SET total_amount = total_amount + $2
-WHERE id = $1
+WHERE id = $1 AND deleted_dt IS NULL
 RETURNING *;
 
 -- name: CreateInvoiceItem :one
@@ -33,7 +33,7 @@ RETURNING *;
 -- name: GetInvoiceItems :many
 SELECT *
 FROM invoice_items
-WHERE invoice_id = $1
+WHERE invoice_id = $1 AND deleted_dt IS NULL
 ORDER BY created_at ASC;
 
 -- name: CreateOutboxEvent :one

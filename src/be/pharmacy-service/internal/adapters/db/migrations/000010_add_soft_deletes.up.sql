@@ -1,0 +1,10 @@
+ALTER TABLE inventory ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE inventory ADD COLUMN deleted_by UUID;
+ALTER TABLE prescriptions ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE prescriptions ADD COLUMN deleted_by UUID;
+ALTER TABLE prescription_items ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE prescription_items ADD COLUMN deleted_by UUID;
+ALTER TABLE encounter_payments ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE encounter_payments ADD COLUMN deleted_by UUID;
+ALTER TABLE inventory_polyclinic_mappings ADD COLUMN deleted_dt TIMESTAMP WITH TIME ZONE;
+ALTER TABLE inventory_polyclinic_mappings ADD COLUMN deleted_by UUID;

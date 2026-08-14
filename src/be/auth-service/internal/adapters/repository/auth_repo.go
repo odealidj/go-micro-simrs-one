@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -13,12 +14,14 @@ import (
 )
 
 type userRepoSqlc struct {
-	q *db.Queries
+	dbConn *sql.DB
+	q      *db.Queries
 }
 
 func NewUserRepository(d *sql.DB) ports.UserRepository {
 	return &userRepoSqlc{
-		q: db.New(d),
+		dbConn: d,
+		q:      db.New(d),
 	}
 }
 
@@ -35,28 +38,135 @@ func (r *userRepoSqlc) FindByUsername(ctx context.Context, username string) (*do
 		ID:           u.ID.String(),
 		Username:     u.Username,
 		PasswordHash: u.PasswordHash,
-		Role:         u.Role,
-		CreatedAt:    u.CreatedAt.Time,
+		Role:                nullableString(u.Role),
+		Status:              u.Status.String,
+		ForceChangePassword: u.ForceChangePassword.Bool,
+		LastLoginAt:         nullableTime(u.LastLoginAt),
+		CreatedAt:           u.CreatedAt.Time,
 	}, nil
 }
 
-func (r *userRepoSqlc) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
-	u, err := r.q.CreateUser(ctx, db.CreateUserParams{
-		Username:     user.Username,
-		PasswordHash: user.PasswordHash,
-		Role:         user.Role,
+func (r *userRepoSqlc) CreateWithProfile(ctx context.Context, user *domain.User, profile *domain.StaffProfile) (*domain.User, error) {
+	tx, err := r.dbConn.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	qtx := r.q.WithTx(tx)
+
+	var roleStr string
+	if user.Role != nil {
+		roleStr = *user.Role
+	}
+	u, err := qtx.CreateUser(ctx, db.CreateUserParams{
+		Username:            user.Username,
+		PasswordHash:        user.PasswordHash,
+		Role:                sql.NullString{String: roleStr, Valid: user.Role != nil},
+		Status:              sql.NullString{String: user.Status, Valid: true},
+		ForceChangePassword: sql.NullBool{Bool: user.ForceChangePassword, Valid: true},
 	})
 	if err != nil {
 		return nil, err
 	}
 
+	_, err = qtx.CreateStaffProfile(ctx, db.CreateStaffProfileParams{
+		UserID: uuid.NullUUID{UUID: u.ID, Valid: true},
+		Nip:    profile.NIP,
+		Email:  sql.NullString{String: profile.Email, Valid: profile.Email != ""},
+		Phone:  sql.NullString{String: profile.Phone, Valid: profile.Phone != ""},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
 	return &domain.User{
-		ID:           u.ID.String(),
-		Username:     u.Username,
-		PasswordHash: u.PasswordHash,
-		Role:         u.Role,
-		CreatedAt:    u.CreatedAt.Time,
+		ID:                  u.ID.String(),
+		Username:            u.Username,
+		PasswordHash:        u.PasswordHash,
+		Role:                nullableString(u.Role),
+		Status:              u.Status.String,
+		ForceChangePassword: u.ForceChangePassword.Bool,
+		LastLoginAt:         nullableTime(u.LastLoginAt),
+		CreatedAt:           u.CreatedAt.Time,
 	}, nil
+}
+
+func (r *userRepoSqlc) ListUsers(ctx context.Context, page, pageSize int, statusFilter string) ([]*domain.UserWithProfile, int, error) {
+	offset := (page - 1) * pageSize
+
+	rows, err := r.q.ListUsersWithProfile(ctx, db.ListUsersWithProfileParams{
+		Column1: statusFilter,
+		Limit:   int32(pageSize),
+		Offset:  int32(offset),
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var users []*domain.UserWithProfile
+	for _, row := range rows {
+		u := &domain.UserWithProfile{
+			User: domain.User{
+				ID:        row.ID.String(),
+				Username:  row.Username,
+				Role:      nullableString(row.Role),
+				Status:    row.Status.String,
+				CreatedAt: row.CreatedAt.Time,
+			},
+		}
+		if row.Nip.Valid && row.Nip.String != "" {
+			u.StaffProfile = &domain.StaffProfile{
+				NIP:   row.Nip.String,
+				Email: row.Email.String,
+				Phone: row.Phone.String,
+			}
+		}
+		users = append(users, u)
+	}
+
+	totalCount, err := r.q.CountUsersWithProfile(ctx, statusFilter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return users, int(totalCount), nil
+}
+
+func (r *userRepoSqlc) UpdateStatusAndRole(ctx context.Context, userID, status string, role *string) error {
+	parsedID, err := uuid.Parse(userID)
+	if err != nil {
+		return errors.New("invalid user ID")
+	}
+
+	roleStr := ""
+	if role != nil {
+		roleStr = *role
+	}
+
+	return r.q.UpdateUserStatusAndRole(ctx, db.UpdateUserStatusAndRoleParams{
+		ID:     parsedID,
+		Status: sql.NullString{String: status, Valid: true},
+		Role:   sql.NullString{String: roleStr, Valid: role != nil},
+	})
+}
+
+func (r *userRepoSqlc) SoftDelete(ctx context.Context, userID, deletedBy string) error {
+	parsedID, err := uuid.Parse(userID)
+	if err != nil {
+		return errors.New("invalid user ID")
+	}
+	
+	parsedDeletedBy, _ := uuid.Parse(deletedBy)
+
+	return r.q.SoftDeleteUser(ctx, db.SoftDeleteUserParams{
+		ID:        parsedID,
+		DeletedBy: uuid.NullUUID{UUID: parsedDeletedBy, Valid: deletedBy != ""},
+	})
 }
 
 func (r *userRepoSqlc) FindByID(ctx context.Context, id string) (*domain.User, error) {
@@ -76,9 +186,26 @@ func (r *userRepoSqlc) FindByID(ctx context.Context, id string) (*domain.User, e
 		ID:           u.ID.String(),
 		Username:     u.Username,
 		PasswordHash: u.PasswordHash,
-		Role:         u.Role,
-		CreatedAt:    u.CreatedAt.Time,
+		Role:                nullableString(u.Role),
+		Status:              u.Status.String,
+		ForceChangePassword: u.ForceChangePassword.Bool,
+		LastLoginAt:         nullableTime(u.LastLoginAt),
+		CreatedAt:           u.CreatedAt.Time,
 	}, nil
+}
+
+func nullableString(ns sql.NullString) *string {
+	if ns.Valid {
+		return &ns.String
+	}
+	return nil
+}
+
+func nullableTime(nt sql.NullTime) *time.Time {
+	if nt.Valid {
+		return &nt.Time
+	}
+	return nil
 }
 
 func (r *userRepoSqlc) CreateRefreshToken(ctx context.Context, token *domain.RefreshToken) error {

@@ -1,11 +1,16 @@
 import { RouterProvider } from "react-router-dom";
+import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
+import { AuthProvider } from "./lib/AuthContext";
 import { router } from "./routes";
 
 function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="simrs-ui-theme">
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+        <Toaster richColors position="top-right" />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

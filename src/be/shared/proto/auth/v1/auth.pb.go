@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.26.1
-// source: shared/proto/auth/v1/auth.proto
+// source: auth.proto
 
 package authv1
 
@@ -31,7 +31,7 @@ type LoginRequest struct {
 
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[0]
+	mi := &file_auth_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[0]
+	mi := &file_auth_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{0}
+	return file_auth_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *LoginRequest) GetUsername() string {
@@ -88,7 +88,7 @@ type LoginResponse struct {
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[1]
+	mi := &file_auth_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -100,7 +100,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[1]
+	mi := &file_auth_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -113,7 +113,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{1}
+	return file_auth_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *LoginResponse) GetSuccess() bool {
@@ -169,14 +169,15 @@ type SignupRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	Role          string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	Phone         string                 `protobuf:"bytes,4,opt,name=phone,proto3" json:"phone,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *SignupRequest) Reset() {
 	*x = SignupRequest{}
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[2]
+	mi := &file_auth_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -188,7 +189,7 @@ func (x *SignupRequest) String() string {
 func (*SignupRequest) ProtoMessage() {}
 
 func (x *SignupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[2]
+	mi := &file_auth_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -201,7 +202,7 @@ func (x *SignupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignupRequest.ProtoReflect.Descriptor instead.
 func (*SignupRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{2}
+	return file_auth_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SignupRequest) GetUsername() string {
@@ -218,9 +219,16 @@ func (x *SignupRequest) GetPassword() string {
 	return ""
 }
 
-func (x *SignupRequest) GetRole() string {
+func (x *SignupRequest) GetEmail() string {
 	if x != nil {
-		return x.Role
+		return x.Email
+	}
+	return ""
+}
+
+func (x *SignupRequest) GetPhone() string {
+	if x != nil {
+		return x.Phone
 	}
 	return ""
 }
@@ -236,7 +244,7 @@ type SignupResponse struct {
 
 func (x *SignupResponse) Reset() {
 	*x = SignupResponse{}
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[3]
+	mi := &file_auth_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -248,7 +256,7 @@ func (x *SignupResponse) String() string {
 func (*SignupResponse) ProtoMessage() {}
 
 func (x *SignupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[3]
+	mi := &file_auth_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -261,7 +269,7 @@ func (x *SignupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignupResponse.ProtoReflect.Descriptor instead.
 func (*SignupResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{3}
+	return file_auth_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SignupResponse) GetSuccess() bool {
@@ -285,6 +293,110 @@ func (x *SignupResponse) GetMessage() string {
 	return ""
 }
 
+type RegisterPatientUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterPatientUserRequest) Reset() {
+	*x = RegisterPatientUserRequest{}
+	mi := &file_auth_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterPatientUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterPatientUserRequest) ProtoMessage() {}
+
+func (x *RegisterPatientUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterPatientUserRequest.ProtoReflect.Descriptor instead.
+func (*RegisterPatientUserRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *RegisterPatientUserRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *RegisterPatientUserRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type RegisterPatientUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RegisterPatientUserResponse) Reset() {
+	*x = RegisterPatientUserResponse{}
+	mi := &file_auth_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RegisterPatientUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RegisterPatientUserResponse) ProtoMessage() {}
+
+func (x *RegisterPatientUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RegisterPatientUserResponse.ProtoReflect.Descriptor instead.
+func (*RegisterPatientUserResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *RegisterPatientUserResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *RegisterPatientUserResponse) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 type ValidateTokenRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
@@ -294,7 +406,7 @@ type ValidateTokenRequest struct {
 
 func (x *ValidateTokenRequest) Reset() {
 	*x = ValidateTokenRequest{}
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[4]
+	mi := &file_auth_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -306,7 +418,7 @@ func (x *ValidateTokenRequest) String() string {
 func (*ValidateTokenRequest) ProtoMessage() {}
 
 func (x *ValidateTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[4]
+	mi := &file_auth_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -319,7 +431,7 @@ func (x *ValidateTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateTokenRequest.ProtoReflect.Descriptor instead.
 func (*ValidateTokenRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{4}
+	return file_auth_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ValidateTokenRequest) GetToken() string {
@@ -340,7 +452,7 @@ type ValidateTokenResponse struct {
 
 func (x *ValidateTokenResponse) Reset() {
 	*x = ValidateTokenResponse{}
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[5]
+	mi := &file_auth_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -352,7 +464,7 @@ func (x *ValidateTokenResponse) String() string {
 func (*ValidateTokenResponse) ProtoMessage() {}
 
 func (x *ValidateTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[5]
+	mi := &file_auth_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -365,7 +477,7 @@ func (x *ValidateTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateTokenResponse.ProtoReflect.Descriptor instead.
 func (*ValidateTokenResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{5}
+	return file_auth_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ValidateTokenResponse) GetValid() bool {
@@ -398,7 +510,7 @@ type RefreshTokenRequest struct {
 
 func (x *RefreshTokenRequest) Reset() {
 	*x = RefreshTokenRequest{}
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[6]
+	mi := &file_auth_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -410,7 +522,7 @@ func (x *RefreshTokenRequest) String() string {
 func (*RefreshTokenRequest) ProtoMessage() {}
 
 func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[6]
+	mi := &file_auth_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -423,7 +535,7 @@ func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshTokenRequest.ProtoReflect.Descriptor instead.
 func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{6}
+	return file_auth_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *RefreshTokenRequest) GetRefreshToken() string {
@@ -446,7 +558,7 @@ type RefreshTokenResponse struct {
 
 func (x *RefreshTokenResponse) Reset() {
 	*x = RefreshTokenResponse{}
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[7]
+	mi := &file_auth_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +570,7 @@ func (x *RefreshTokenResponse) String() string {
 func (*RefreshTokenResponse) ProtoMessage() {}
 
 func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[7]
+	mi := &file_auth_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -471,7 +583,7 @@ func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshTokenResponse.ProtoReflect.Descriptor instead.
 func (*RefreshTokenResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{7}
+	return file_auth_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *RefreshTokenResponse) GetSuccess() bool {
@@ -518,7 +630,7 @@ type ExtractKTPDataRequest struct {
 
 func (x *ExtractKTPDataRequest) Reset() {
 	*x = ExtractKTPDataRequest{}
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[8]
+	mi := &file_auth_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -530,7 +642,7 @@ func (x *ExtractKTPDataRequest) String() string {
 func (*ExtractKTPDataRequest) ProtoMessage() {}
 
 func (x *ExtractKTPDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[8]
+	mi := &file_auth_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -543,7 +655,7 @@ func (x *ExtractKTPDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExtractKTPDataRequest.ProtoReflect.Descriptor instead.
 func (*ExtractKTPDataRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{8}
+	return file_auth_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ExtractKTPDataRequest) GetBase64Image() string {
@@ -566,7 +678,7 @@ type ExtractKTPDataResponse struct {
 
 func (x *ExtractKTPDataResponse) Reset() {
 	*x = ExtractKTPDataResponse{}
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[9]
+	mi := &file_auth_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -578,7 +690,7 @@ func (x *ExtractKTPDataResponse) String() string {
 func (*ExtractKTPDataResponse) ProtoMessage() {}
 
 func (x *ExtractKTPDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_auth_v1_auth_proto_msgTypes[9]
+	mi := &file_auth_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -591,7 +703,7 @@ func (x *ExtractKTPDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExtractKTPDataResponse.ProtoReflect.Descriptor instead.
 func (*ExtractKTPDataResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{9}
+	return file_auth_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ExtractKTPDataResponse) GetSuccess() bool {
@@ -629,11 +741,1396 @@ func (x *ExtractKTPDataResponse) GetErrorMessage() string {
 	return ""
 }
 
-var File_shared_proto_auth_v1_auth_proto protoreflect.FileDescriptor
+type UserData struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Role          string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	Status        string                 `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Nip           string                 `protobuf:"bytes,6,opt,name=nip,proto3" json:"nip,omitempty"`
+	Email         string                 `protobuf:"bytes,7,opt,name=email,proto3" json:"email,omitempty"`
+	Phone         string                 `protobuf:"bytes,8,opt,name=phone,proto3" json:"phone,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_shared_proto_auth_v1_auth_proto_rawDesc = "" +
+func (x *UserData) Reset() {
+	*x = UserData{}
+	mi := &file_auth_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UserData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UserData) ProtoMessage() {}
+
+func (x *UserData) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UserData.ProtoReflect.Descriptor instead.
+func (*UserData) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *UserData) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *UserData) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *UserData) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+func (x *UserData) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *UserData) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *UserData) GetNip() string {
+	if x != nil {
+		return x.Nip
+	}
+	return ""
+}
+
+func (x *UserData) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *UserData) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+type ListUsersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	StatusFilter  string                 `protobuf:"bytes,3,opt,name=status_filter,json=statusFilter,proto3" json:"status_filter,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUsersRequest) Reset() {
+	*x = ListUsersRequest{}
+	mi := &file_auth_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUsersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUsersRequest) ProtoMessage() {}
+
+func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
+func (*ListUsersRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ListUsersRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListUsersRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListUsersRequest) GetStatusFilter() string {
+	if x != nil {
+		return x.StatusFilter
+	}
+	return ""
+}
+
+type ListUsersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Users         []*UserData            `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListUsersResponse) Reset() {
+	*x = ListUsersResponse{}
+	mi := &file_auth_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListUsersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListUsersResponse) ProtoMessage() {}
+
+func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
+func (*ListUsersResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ListUsersResponse) GetUsers() []*UserData {
+	if x != nil {
+		return x.Users
+	}
+	return nil
+}
+
+func (x *ListUsersResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+type UpdateUserStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	Role          string                 `protobuf:"bytes,3,opt,name=role,proto3" json:"role,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateUserStatusRequest) Reset() {
+	*x = UpdateUserStatusRequest{}
+	mi := &file_auth_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserStatusRequest) ProtoMessage() {}
+
+func (x *UpdateUserStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserStatusRequest.ProtoReflect.Descriptor instead.
+func (*UpdateUserStatusRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *UpdateUserStatusRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *UpdateUserStatusRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *UpdateUserStatusRequest) GetRole() string {
+	if x != nil {
+		return x.Role
+	}
+	return ""
+}
+
+type UpdateUserStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateUserStatusResponse) Reset() {
+	*x = UpdateUserStatusResponse{}
+	mi := &file_auth_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateUserStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateUserStatusResponse) ProtoMessage() {}
+
+func (x *UpdateUserStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateUserStatusResponse.ProtoReflect.Descriptor instead.
+func (*UpdateUserStatusResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *UpdateUserStatusResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateUserStatusResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type DeleteUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	DeletedBy     string                 `protobuf:"bytes,2,opt,name=deleted_by,json=deletedBy,proto3" json:"deleted_by,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteUserRequest) Reset() {
+	*x = DeleteUserRequest{}
+	mi := &file_auth_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteUserRequest) ProtoMessage() {}
+
+func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
+func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *DeleteUserRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *DeleteUserRequest) GetDeletedBy() string {
+	if x != nil {
+		return x.DeletedBy
+	}
+	return ""
+}
+
+type DeleteUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteUserResponse) Reset() {
+	*x = DeleteUserResponse{}
+	mi := &file_auth_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteUserResponse) ProtoMessage() {}
+
+func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
+func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *DeleteUserResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *DeleteUserResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type GetMasterRolesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMasterRolesRequest) Reset() {
+	*x = GetMasterRolesRequest{}
+	mi := &file_auth_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMasterRolesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMasterRolesRequest) ProtoMessage() {}
+
+func (x *GetMasterRolesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMasterRolesRequest.ProtoReflect.Descriptor instead.
+func (*GetMasterRolesRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetMasterRolesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetMasterRolesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetMasterRolesRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+type MasterRole struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Deskripsi     string                 `protobuf:"bytes,2,opt,name=deskripsi,proto3" json:"deskripsi,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MasterRole) Reset() {
+	*x = MasterRole{}
+	mi := &file_auth_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MasterRole) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MasterRole) ProtoMessage() {}
+
+func (x *MasterRole) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MasterRole.ProtoReflect.Descriptor instead.
+func (*MasterRole) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *MasterRole) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *MasterRole) GetDeskripsi() string {
+	if x != nil {
+		return x.Deskripsi
+	}
+	return ""
+}
+
+type GetMasterRolesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*MasterRole          `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetMasterRolesResponse) Reset() {
+	*x = GetMasterRolesResponse{}
+	mi := &file_auth_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetMasterRolesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetMasterRolesResponse) ProtoMessage() {}
+
+func (x *GetMasterRolesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetMasterRolesResponse.ProtoReflect.Descriptor instead.
+func (*GetMasterRolesResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetMasterRolesResponse) GetData() []*MasterRole {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetMasterRolesResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+type GetDoctorsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDoctorsRequest) Reset() {
+	*x = GetDoctorsRequest{}
+	mi := &file_auth_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDoctorsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDoctorsRequest) ProtoMessage() {}
+
+func (x *GetDoctorsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDoctorsRequest.ProtoReflect.Descriptor instead.
+func (*GetDoctorsRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *GetDoctorsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetDoctorsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetDoctorsRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+type Doctor struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Nip           string                 `protobuf:"bytes,3,opt,name=nip,proto3" json:"nip,omitempty"`
+	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	Spesialisasi  string                 `protobuf:"bytes,5,opt,name=spesialisasi,proto3" json:"spesialisasi,omitempty"`
+	Sip           string                 `protobuf:"bytes,6,opt,name=sip,proto3" json:"sip,omitempty"`
+	Status        string                 `protobuf:"bytes,7,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Doctor) Reset() {
+	*x = Doctor{}
+	mi := &file_auth_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Doctor) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Doctor) ProtoMessage() {}
+
+func (x *Doctor) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Doctor.ProtoReflect.Descriptor instead.
+func (*Doctor) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *Doctor) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Doctor) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *Doctor) GetNip() string {
+	if x != nil {
+		return x.Nip
+	}
+	return ""
+}
+
+func (x *Doctor) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *Doctor) GetSpesialisasi() string {
+	if x != nil {
+		return x.Spesialisasi
+	}
+	return ""
+}
+
+func (x *Doctor) GetSip() string {
+	if x != nil {
+		return x.Sip
+	}
+	return ""
+}
+
+func (x *Doctor) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type GetDoctorsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*Doctor              `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDoctorsResponse) Reset() {
+	*x = GetDoctorsResponse{}
+	mi := &file_auth_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDoctorsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDoctorsResponse) ProtoMessage() {}
+
+func (x *GetDoctorsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDoctorsResponse.ProtoReflect.Descriptor instead.
+func (*GetDoctorsResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *GetDoctorsResponse) GetData() []*Doctor {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetDoctorsResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+type GetNursesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNursesRequest) Reset() {
+	*x = GetNursesRequest{}
+	mi := &file_auth_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNursesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNursesRequest) ProtoMessage() {}
+
+func (x *GetNursesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNursesRequest.ProtoReflect.Descriptor instead.
+func (*GetNursesRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *GetNursesRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetNursesRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetNursesRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+type Nurse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Nip           string                 `protobuf:"bytes,3,opt,name=nip,proto3" json:"nip,omitempty"`
+	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	StrPerawat    string                 `protobuf:"bytes,5,opt,name=str_perawat,json=strPerawat,proto3" json:"str_perawat,omitempty"`
+	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Nurse) Reset() {
+	*x = Nurse{}
+	mi := &file_auth_proto_msgTypes[26]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Nurse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Nurse) ProtoMessage() {}
+
+func (x *Nurse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[26]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Nurse.ProtoReflect.Descriptor instead.
+func (*Nurse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{26}
+}
+
+func (x *Nurse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Nurse) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *Nurse) GetNip() string {
+	if x != nil {
+		return x.Nip
+	}
+	return ""
+}
+
+func (x *Nurse) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *Nurse) GetStrPerawat() string {
+	if x != nil {
+		return x.StrPerawat
+	}
+	return ""
+}
+
+func (x *Nurse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type GetNursesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*Nurse               `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNursesResponse) Reset() {
+	*x = GetNursesResponse{}
+	mi := &file_auth_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNursesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNursesResponse) ProtoMessage() {}
+
+func (x *GetNursesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNursesResponse.ProtoReflect.Descriptor instead.
+func (*GetNursesResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *GetNursesResponse) GetData() []*Nurse {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetNursesResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+type GetDoctorsByPoliRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PoliCode      string                 `protobuf:"bytes,3,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
+	Search        string                 `protobuf:"bytes,4,opt,name=search,proto3" json:"search,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDoctorsByPoliRequest) Reset() {
+	*x = GetDoctorsByPoliRequest{}
+	mi := &file_auth_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDoctorsByPoliRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDoctorsByPoliRequest) ProtoMessage() {}
+
+func (x *GetDoctorsByPoliRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDoctorsByPoliRequest.ProtoReflect.Descriptor instead.
+func (*GetDoctorsByPoliRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *GetDoctorsByPoliRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetDoctorsByPoliRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetDoctorsByPoliRequest) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
+func (x *GetDoctorsByPoliRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+type DoctorPoliMapping struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Nip           string                 `protobuf:"bytes,3,opt,name=nip,proto3" json:"nip,omitempty"`
+	Spesialisasi  string                 `protobuf:"bytes,4,opt,name=spesialisasi,proto3" json:"spesialisasi,omitempty"`
+	PoliCode      string                 `protobuf:"bytes,5,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DoctorPoliMapping) Reset() {
+	*x = DoctorPoliMapping{}
+	mi := &file_auth_proto_msgTypes[29]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DoctorPoliMapping) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DoctorPoliMapping) ProtoMessage() {}
+
+func (x *DoctorPoliMapping) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[29]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DoctorPoliMapping.ProtoReflect.Descriptor instead.
+func (*DoctorPoliMapping) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{29}
+}
+
+func (x *DoctorPoliMapping) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *DoctorPoliMapping) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *DoctorPoliMapping) GetNip() string {
+	if x != nil {
+		return x.Nip
+	}
+	return ""
+}
+
+func (x *DoctorPoliMapping) GetSpesialisasi() string {
+	if x != nil {
+		return x.Spesialisasi
+	}
+	return ""
+}
+
+func (x *DoctorPoliMapping) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
+type GetDoctorsByPoliResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*DoctorPoliMapping   `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDoctorsByPoliResponse) Reset() {
+	*x = GetDoctorsByPoliResponse{}
+	mi := &file_auth_proto_msgTypes[30]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDoctorsByPoliResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDoctorsByPoliResponse) ProtoMessage() {}
+
+func (x *GetDoctorsByPoliResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[30]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDoctorsByPoliResponse.ProtoReflect.Descriptor instead.
+func (*GetDoctorsByPoliResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{30}
+}
+
+func (x *GetDoctorsByPoliResponse) GetData() []*DoctorPoliMapping {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetDoctorsByPoliResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+type GetNursesByPoliRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	PoliCode      string                 `protobuf:"bytes,3,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
+	Search        string                 `protobuf:"bytes,4,opt,name=search,proto3" json:"search,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNursesByPoliRequest) Reset() {
+	*x = GetNursesByPoliRequest{}
+	mi := &file_auth_proto_msgTypes[31]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNursesByPoliRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNursesByPoliRequest) ProtoMessage() {}
+
+func (x *GetNursesByPoliRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[31]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNursesByPoliRequest.ProtoReflect.Descriptor instead.
+func (*GetNursesByPoliRequest) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{31}
+}
+
+func (x *GetNursesByPoliRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetNursesByPoliRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetNursesByPoliRequest) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
+func (x *GetNursesByPoliRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+type NursePoliMapping struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Nip           string                 `protobuf:"bytes,3,opt,name=nip,proto3" json:"nip,omitempty"`
+	StrPerawat    string                 `protobuf:"bytes,4,opt,name=str_perawat,json=strPerawat,proto3" json:"str_perawat,omitempty"`
+	PoliCode      string                 `protobuf:"bytes,5,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *NursePoliMapping) Reset() {
+	*x = NursePoliMapping{}
+	mi := &file_auth_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NursePoliMapping) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NursePoliMapping) ProtoMessage() {}
+
+func (x *NursePoliMapping) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NursePoliMapping.ProtoReflect.Descriptor instead.
+func (*NursePoliMapping) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *NursePoliMapping) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *NursePoliMapping) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *NursePoliMapping) GetNip() string {
+	if x != nil {
+		return x.Nip
+	}
+	return ""
+}
+
+func (x *NursePoliMapping) GetStrPerawat() string {
+	if x != nil {
+		return x.StrPerawat
+	}
+	return ""
+}
+
+func (x *NursePoliMapping) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
+type GetNursesByPoliResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*NursePoliMapping    `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetNursesByPoliResponse) Reset() {
+	*x = GetNursesByPoliResponse{}
+	mi := &file_auth_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetNursesByPoliResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetNursesByPoliResponse) ProtoMessage() {}
+
+func (x *GetNursesByPoliResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetNursesByPoliResponse.ProtoReflect.Descriptor instead.
+func (*GetNursesByPoliResponse) Descriptor() ([]byte, []int) {
+	return file_auth_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *GetNursesByPoliResponse) GetData() []*NursePoliMapping {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetNursesByPoliResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+var File_auth_proto protoreflect.FileDescriptor
+
+const file_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x1fshared/proto/auth/v1/auth.proto\x12\aauth.v1\"F\n" +
+	"\n" +
+	"auth.proto\x12\aauth.v1\"F\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x8e\x02\n" +
@@ -644,15 +2141,22 @@ const file_shared_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\x17access_token_expires_at\x18\x04 \x01(\tR\x14accessTokenExpiresAt\x127\n" +
 	"\x18refresh_token_expires_at\x18\x05 \x01(\tR\x15refreshTokenExpiresAt\x12\x12\n" +
 	"\x04role\x18\x06 \x01(\tR\x04role\x12\x17\n" +
-	"\auser_id\x18\a \x01(\tR\x06userId\"[\n" +
+	"\auser_id\x18\a \x01(\tR\x06userId\"s\n" +
 	"\rSignupRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x12\n" +
-	"\x04role\x18\x03 \x01(\tR\x04role\"]\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x14\n" +
+	"\x05phone\x18\x04 \x01(\tR\x05phone\"]\n" +
 	"\x0eSignupResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\",\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"T\n" +
+	"\x1aRegisterPatientUserRequest\x12\x1a\n" +
+	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"P\n" +
+	"\x1bRegisterPatientUserResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\",\n" +
 	"\x14ValidateTokenRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"Z\n" +
 	"\x15ValidateTokenResponse\x12\x14\n" +
@@ -674,77 +2178,243 @@ const file_shared_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\x03nik\x18\x02 \x01(\tR\x03nik\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x10\n" +
 	"\x03dob\x18\x04 \x01(\tR\x03dob\x12#\n" +
-	"\rerror_message\x18\x05 \x01(\tR\ferrorMessage2\xf0\x02\n" +
+	"\rerror_message\x18\x05 \x01(\tR\ferrorMessage\"\xbf\x01\n" +
+	"\bUserData\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x12\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\tR\x06status\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x10\n" +
+	"\x03nip\x18\x06 \x01(\tR\x03nip\x12\x14\n" +
+	"\x05email\x18\a \x01(\tR\x05email\x12\x14\n" +
+	"\x05phone\x18\b \x01(\tR\x05phone\"h\n" +
+	"\x10ListUsersRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12#\n" +
+	"\rstatus_filter\x18\x03 \x01(\tR\fstatusFilter\"]\n" +
+	"\x11ListUsersResponse\x12'\n" +
+	"\x05users\x18\x01 \x03(\v2\x11.auth.v1.UserDataR\x05users\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount\"^\n" +
+	"\x17UpdateUserStatusRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\x12\x12\n" +
+	"\x04role\x18\x03 \x01(\tR\x04role\"N\n" +
+	"\x18UpdateUserStatusResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"K\n" +
+	"\x11DeleteUserRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1d\n" +
+	"\n" +
+	"deleted_by\x18\x02 \x01(\tR\tdeletedBy\"H\n" +
+	"\x12DeleteUserResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"`\n" +
+	"\x15GetMasterRolesRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\":\n" +
+	"\n" +
+	"MasterRole\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1c\n" +
+	"\tdeskripsi\x18\x02 \x01(\tR\tdeskripsi\"b\n" +
+	"\x16GetMasterRolesResponse\x12'\n" +
+	"\x04data\x18\x01 \x03(\v2\x13.auth.v1.MasterRoleR\x04data\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount\"\\\n" +
+	"\x11GetDoctorsRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\"\xaa\x01\n" +
+	"\x06Doctor\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x10\n" +
+	"\x03nip\x18\x03 \x01(\tR\x03nip\x12\x14\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\x12\"\n" +
+	"\fspesialisasi\x18\x05 \x01(\tR\fspesialisasi\x12\x10\n" +
+	"\x03sip\x18\x06 \x01(\tR\x03sip\x12\x16\n" +
+	"\x06status\x18\a \x01(\tR\x06status\"Z\n" +
+	"\x12GetDoctorsResponse\x12#\n" +
+	"\x04data\x18\x01 \x03(\v2\x0f.auth.v1.DoctorR\x04data\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount\"[\n" +
+	"\x10GetNursesRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\"\x94\x01\n" +
+	"\x05Nurse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x10\n" +
+	"\x03nip\x18\x03 \x01(\tR\x03nip\x12\x14\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\x12\x1f\n" +
+	"\vstr_perawat\x18\x05 \x01(\tR\n" +
+	"strPerawat\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\"X\n" +
+	"\x11GetNursesResponse\x12\"\n" +
+	"\x04data\x18\x01 \x03(\v2\x0e.auth.v1.NurseR\x04data\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount\"\x7f\n" +
+	"\x17GetDoctorsByPoliRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1b\n" +
+	"\tpoli_code\x18\x03 \x01(\tR\bpoliCode\x12\x16\n" +
+	"\x06search\x18\x04 \x01(\tR\x06search\"\x92\x01\n" +
+	"\x11DoctorPoliMapping\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x10\n" +
+	"\x03nip\x18\x03 \x01(\tR\x03nip\x12\"\n" +
+	"\fspesialisasi\x18\x04 \x01(\tR\fspesialisasi\x12\x1b\n" +
+	"\tpoli_code\x18\x05 \x01(\tR\bpoliCode\"k\n" +
+	"\x18GetDoctorsByPoliResponse\x12.\n" +
+	"\x04data\x18\x01 \x03(\v2\x1a.auth.v1.DoctorPoliMappingR\x04data\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount\"~\n" +
+	"\x16GetNursesByPoliRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1b\n" +
+	"\tpoli_code\x18\x03 \x01(\tR\bpoliCode\x12\x16\n" +
+	"\x06search\x18\x04 \x01(\tR\x06search\"\x8e\x01\n" +
+	"\x10NursePoliMapping\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12\x10\n" +
+	"\x03nip\x18\x03 \x01(\tR\x03nip\x12\x1f\n" +
+	"\vstr_perawat\x18\x04 \x01(\tR\n" +
+	"strPerawat\x12\x1b\n" +
+	"\tpoli_code\x18\x05 \x01(\tR\bpoliCode\"i\n" +
+	"\x17GetNursesByPoliResponse\x12-\n" +
+	"\x04data\x18\x01 \x03(\v2\x19.auth.v1.NursePoliMappingR\x04data\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount2\xc3\b\n" +
 	"\vAuthService\x126\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\x129\n" +
-	"\x06Signup\x12\x16.auth.v1.SignupRequest\x1a\x17.auth.v1.SignupResponse\x12N\n" +
+	"\x06Signup\x12\x16.auth.v1.SignupRequest\x1a\x17.auth.v1.SignupResponse\x12`\n" +
+	"\x13RegisterPatientUser\x12#.auth.v1.RegisterPatientUserRequest\x1a$.auth.v1.RegisterPatientUserResponse\x12N\n" +
 	"\rValidateToken\x12\x1d.auth.v1.ValidateTokenRequest\x1a\x1e.auth.v1.ValidateTokenResponse\x12K\n" +
 	"\fRefreshToken\x12\x1c.auth.v1.RefreshTokenRequest\x1a\x1d.auth.v1.RefreshTokenResponse\x12Q\n" +
-	"\x0eExtractKTPData\x12\x1e.auth.v1.ExtractKTPDataRequest\x1a\x1f.auth.v1.ExtractKTPDataResponseBBZ@github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1;authv1b\x06proto3"
+	"\x0eExtractKTPData\x12\x1e.auth.v1.ExtractKTPDataRequest\x1a\x1f.auth.v1.ExtractKTPDataResponse\x12B\n" +
+	"\tListUsers\x12\x19.auth.v1.ListUsersRequest\x1a\x1a.auth.v1.ListUsersResponse\x12W\n" +
+	"\x10UpdateUserStatus\x12 .auth.v1.UpdateUserStatusRequest\x1a!.auth.v1.UpdateUserStatusResponse\x12E\n" +
+	"\n" +
+	"DeleteUser\x12\x1a.auth.v1.DeleteUserRequest\x1a\x1b.auth.v1.DeleteUserResponse\x12Q\n" +
+	"\x0eGetMasterRoles\x12\x1e.auth.v1.GetMasterRolesRequest\x1a\x1f.auth.v1.GetMasterRolesResponse\x12E\n" +
+	"\n" +
+	"GetDoctors\x12\x1a.auth.v1.GetDoctorsRequest\x1a\x1b.auth.v1.GetDoctorsResponse\x12B\n" +
+	"\tGetNurses\x12\x19.auth.v1.GetNursesRequest\x1a\x1a.auth.v1.GetNursesResponse\x12W\n" +
+	"\x10GetDoctorsByPoli\x12 .auth.v1.GetDoctorsByPoliRequest\x1a!.auth.v1.GetDoctorsByPoliResponse\x12T\n" +
+	"\x0fGetNursesByPoli\x12\x1f.auth.v1.GetNursesByPoliRequest\x1a .auth.v1.GetNursesByPoliResponseBBZ@github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1;authv1b\x06proto3"
 
 var (
-	file_shared_proto_auth_v1_auth_proto_rawDescOnce sync.Once
-	file_shared_proto_auth_v1_auth_proto_rawDescData []byte
+	file_auth_proto_rawDescOnce sync.Once
+	file_auth_proto_rawDescData []byte
 )
 
-func file_shared_proto_auth_v1_auth_proto_rawDescGZIP() []byte {
-	file_shared_proto_auth_v1_auth_proto_rawDescOnce.Do(func() {
-		file_shared_proto_auth_v1_auth_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_shared_proto_auth_v1_auth_proto_rawDesc), len(file_shared_proto_auth_v1_auth_proto_rawDesc)))
+func file_auth_proto_rawDescGZIP() []byte {
+	file_auth_proto_rawDescOnce.Do(func() {
+		file_auth_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_auth_proto_rawDesc), len(file_auth_proto_rawDesc)))
 	})
-	return file_shared_proto_auth_v1_auth_proto_rawDescData
+	return file_auth_proto_rawDescData
 }
 
-var file_shared_proto_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
-var file_shared_proto_auth_v1_auth_proto_goTypes = []any{
-	(*LoginRequest)(nil),           // 0: auth.v1.LoginRequest
-	(*LoginResponse)(nil),          // 1: auth.v1.LoginResponse
-	(*SignupRequest)(nil),          // 2: auth.v1.SignupRequest
-	(*SignupResponse)(nil),         // 3: auth.v1.SignupResponse
-	(*ValidateTokenRequest)(nil),   // 4: auth.v1.ValidateTokenRequest
-	(*ValidateTokenResponse)(nil),  // 5: auth.v1.ValidateTokenResponse
-	(*RefreshTokenRequest)(nil),    // 6: auth.v1.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),   // 7: auth.v1.RefreshTokenResponse
-	(*ExtractKTPDataRequest)(nil),  // 8: auth.v1.ExtractKTPDataRequest
-	(*ExtractKTPDataResponse)(nil), // 9: auth.v1.ExtractKTPDataResponse
+var file_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
+var file_auth_proto_goTypes = []any{
+	(*LoginRequest)(nil),                // 0: auth.v1.LoginRequest
+	(*LoginResponse)(nil),               // 1: auth.v1.LoginResponse
+	(*SignupRequest)(nil),               // 2: auth.v1.SignupRequest
+	(*SignupResponse)(nil),              // 3: auth.v1.SignupResponse
+	(*RegisterPatientUserRequest)(nil),  // 4: auth.v1.RegisterPatientUserRequest
+	(*RegisterPatientUserResponse)(nil), // 5: auth.v1.RegisterPatientUserResponse
+	(*ValidateTokenRequest)(nil),        // 6: auth.v1.ValidateTokenRequest
+	(*ValidateTokenResponse)(nil),       // 7: auth.v1.ValidateTokenResponse
+	(*RefreshTokenRequest)(nil),         // 8: auth.v1.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),        // 9: auth.v1.RefreshTokenResponse
+	(*ExtractKTPDataRequest)(nil),       // 10: auth.v1.ExtractKTPDataRequest
+	(*ExtractKTPDataResponse)(nil),      // 11: auth.v1.ExtractKTPDataResponse
+	(*UserData)(nil),                    // 12: auth.v1.UserData
+	(*ListUsersRequest)(nil),            // 13: auth.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),           // 14: auth.v1.ListUsersResponse
+	(*UpdateUserStatusRequest)(nil),     // 15: auth.v1.UpdateUserStatusRequest
+	(*UpdateUserStatusResponse)(nil),    // 16: auth.v1.UpdateUserStatusResponse
+	(*DeleteUserRequest)(nil),           // 17: auth.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),          // 18: auth.v1.DeleteUserResponse
+	(*GetMasterRolesRequest)(nil),       // 19: auth.v1.GetMasterRolesRequest
+	(*MasterRole)(nil),                  // 20: auth.v1.MasterRole
+	(*GetMasterRolesResponse)(nil),      // 21: auth.v1.GetMasterRolesResponse
+	(*GetDoctorsRequest)(nil),           // 22: auth.v1.GetDoctorsRequest
+	(*Doctor)(nil),                      // 23: auth.v1.Doctor
+	(*GetDoctorsResponse)(nil),          // 24: auth.v1.GetDoctorsResponse
+	(*GetNursesRequest)(nil),            // 25: auth.v1.GetNursesRequest
+	(*Nurse)(nil),                       // 26: auth.v1.Nurse
+	(*GetNursesResponse)(nil),           // 27: auth.v1.GetNursesResponse
+	(*GetDoctorsByPoliRequest)(nil),     // 28: auth.v1.GetDoctorsByPoliRequest
+	(*DoctorPoliMapping)(nil),           // 29: auth.v1.DoctorPoliMapping
+	(*GetDoctorsByPoliResponse)(nil),    // 30: auth.v1.GetDoctorsByPoliResponse
+	(*GetNursesByPoliRequest)(nil),      // 31: auth.v1.GetNursesByPoliRequest
+	(*NursePoliMapping)(nil),            // 32: auth.v1.NursePoliMapping
+	(*GetNursesByPoliResponse)(nil),     // 33: auth.v1.GetNursesByPoliResponse
 }
-var file_shared_proto_auth_v1_auth_proto_depIdxs = []int32{
-	0, // 0: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	2, // 1: auth.v1.AuthService.Signup:input_type -> auth.v1.SignupRequest
-	4, // 2: auth.v1.AuthService.ValidateToken:input_type -> auth.v1.ValidateTokenRequest
-	6, // 3: auth.v1.AuthService.RefreshToken:input_type -> auth.v1.RefreshTokenRequest
-	8, // 4: auth.v1.AuthService.ExtractKTPData:input_type -> auth.v1.ExtractKTPDataRequest
-	1, // 5: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	3, // 6: auth.v1.AuthService.Signup:output_type -> auth.v1.SignupResponse
-	5, // 7: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
-	7, // 8: auth.v1.AuthService.RefreshToken:output_type -> auth.v1.RefreshTokenResponse
-	9, // 9: auth.v1.AuthService.ExtractKTPData:output_type -> auth.v1.ExtractKTPDataResponse
-	5, // [5:10] is the sub-list for method output_type
-	0, // [0:5] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+var file_auth_proto_depIdxs = []int32{
+	12, // 0: auth.v1.ListUsersResponse.users:type_name -> auth.v1.UserData
+	20, // 1: auth.v1.GetMasterRolesResponse.data:type_name -> auth.v1.MasterRole
+	23, // 2: auth.v1.GetDoctorsResponse.data:type_name -> auth.v1.Doctor
+	26, // 3: auth.v1.GetNursesResponse.data:type_name -> auth.v1.Nurse
+	29, // 4: auth.v1.GetDoctorsByPoliResponse.data:type_name -> auth.v1.DoctorPoliMapping
+	32, // 5: auth.v1.GetNursesByPoliResponse.data:type_name -> auth.v1.NursePoliMapping
+	0,  // 6: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	2,  // 7: auth.v1.AuthService.Signup:input_type -> auth.v1.SignupRequest
+	4,  // 8: auth.v1.AuthService.RegisterPatientUser:input_type -> auth.v1.RegisterPatientUserRequest
+	6,  // 9: auth.v1.AuthService.ValidateToken:input_type -> auth.v1.ValidateTokenRequest
+	8,  // 10: auth.v1.AuthService.RefreshToken:input_type -> auth.v1.RefreshTokenRequest
+	10, // 11: auth.v1.AuthService.ExtractKTPData:input_type -> auth.v1.ExtractKTPDataRequest
+	13, // 12: auth.v1.AuthService.ListUsers:input_type -> auth.v1.ListUsersRequest
+	15, // 13: auth.v1.AuthService.UpdateUserStatus:input_type -> auth.v1.UpdateUserStatusRequest
+	17, // 14: auth.v1.AuthService.DeleteUser:input_type -> auth.v1.DeleteUserRequest
+	19, // 15: auth.v1.AuthService.GetMasterRoles:input_type -> auth.v1.GetMasterRolesRequest
+	22, // 16: auth.v1.AuthService.GetDoctors:input_type -> auth.v1.GetDoctorsRequest
+	25, // 17: auth.v1.AuthService.GetNurses:input_type -> auth.v1.GetNursesRequest
+	28, // 18: auth.v1.AuthService.GetDoctorsByPoli:input_type -> auth.v1.GetDoctorsByPoliRequest
+	31, // 19: auth.v1.AuthService.GetNursesByPoli:input_type -> auth.v1.GetNursesByPoliRequest
+	1,  // 20: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	3,  // 21: auth.v1.AuthService.Signup:output_type -> auth.v1.SignupResponse
+	5,  // 22: auth.v1.AuthService.RegisterPatientUser:output_type -> auth.v1.RegisterPatientUserResponse
+	7,  // 23: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
+	9,  // 24: auth.v1.AuthService.RefreshToken:output_type -> auth.v1.RefreshTokenResponse
+	11, // 25: auth.v1.AuthService.ExtractKTPData:output_type -> auth.v1.ExtractKTPDataResponse
+	14, // 26: auth.v1.AuthService.ListUsers:output_type -> auth.v1.ListUsersResponse
+	16, // 27: auth.v1.AuthService.UpdateUserStatus:output_type -> auth.v1.UpdateUserStatusResponse
+	18, // 28: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
+	21, // 29: auth.v1.AuthService.GetMasterRoles:output_type -> auth.v1.GetMasterRolesResponse
+	24, // 30: auth.v1.AuthService.GetDoctors:output_type -> auth.v1.GetDoctorsResponse
+	27, // 31: auth.v1.AuthService.GetNurses:output_type -> auth.v1.GetNursesResponse
+	30, // 32: auth.v1.AuthService.GetDoctorsByPoli:output_type -> auth.v1.GetDoctorsByPoliResponse
+	33, // 33: auth.v1.AuthService.GetNursesByPoli:output_type -> auth.v1.GetNursesByPoliResponse
+	20, // [20:34] is the sub-list for method output_type
+	6,  // [6:20] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_shared_proto_auth_v1_auth_proto_init() }
-func file_shared_proto_auth_v1_auth_proto_init() {
-	if File_shared_proto_auth_v1_auth_proto != nil {
+func init() { file_auth_proto_init() }
+func file_auth_proto_init() {
+	if File_auth_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_shared_proto_auth_v1_auth_proto_rawDesc), len(file_shared_proto_auth_v1_auth_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_proto_rawDesc), len(file_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_shared_proto_auth_v1_auth_proto_goTypes,
-		DependencyIndexes: file_shared_proto_auth_v1_auth_proto_depIdxs,
-		MessageInfos:      file_shared_proto_auth_v1_auth_proto_msgTypes,
+		GoTypes:           file_auth_proto_goTypes,
+		DependencyIndexes: file_auth_proto_depIdxs,
+		MessageInfos:      file_auth_proto_msgTypes,
 	}.Build()
-	File_shared_proto_auth_v1_auth_proto = out.File
-	file_shared_proto_auth_v1_auth_proto_goTypes = nil
-	file_shared_proto_auth_v1_auth_proto_depIdxs = nil
+	File_auth_proto = out.File
+	file_auth_proto_goTypes = nil
+	file_auth_proto_depIdxs = nil
 }

@@ -7,10 +7,117 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+const countDoctors = `-- name: CountDoctors :one
+SELECT COUNT(d.id)
+FROM profil_dokter d
+JOIN users u ON d.user_id = u.id
+LEFT JOIN staff_profiles s ON u.id = s.user_id
+WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL
+  AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%')
+`
+
+func (q *Queries) CountDoctors(ctx context.Context, dollar_1 string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countDoctors, dollar_1)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countDoctorsByPoli = `-- name: CountDoctorsByPoli :one
+SELECT COUNT(m.dokter_id)
+FROM mapping_dokter_poli m
+JOIN profil_dokter d ON m.dokter_id = d.id
+JOIN users u ON d.user_id = u.id
+LEFT JOIN staff_profiles s ON u.id = s.user_id
+WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND ($1::text = '' OR m.poli_code = $1)
+  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+`
+
+type CountDoctorsByPoliParams struct {
+	Column1 string
+	Column2 string
+}
+
+func (q *Queries) CountDoctorsByPoli(ctx context.Context, arg CountDoctorsByPoliParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countDoctorsByPoli, arg.Column1, arg.Column2)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countMasterRoles = `-- name: CountMasterRoles :one
+SELECT COUNT(id) 
+FROM master_role
+WHERE deleted_dt IS NULL
+  AND ($1::text = '' OR id ILIKE '%' || $1 || '%' OR deskripsi ILIKE '%' || $1 || '%')
+`
+
+func (q *Queries) CountMasterRoles(ctx context.Context, dollar_1 string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countMasterRoles, dollar_1)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countNurses = `-- name: CountNurses :one
+SELECT COUNT(p.id)
+FROM profil_perawat p
+JOIN users u ON p.user_id = u.id
+LEFT JOIN staff_profiles s ON u.id = s.user_id
+WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL
+  AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%')
+`
+
+func (q *Queries) CountNurses(ctx context.Context, dollar_1 string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countNurses, dollar_1)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countNursesByPoli = `-- name: CountNursesByPoli :one
+SELECT COUNT(m.perawat_id)
+FROM mapping_perawat_poli m
+JOIN profil_perawat p ON m.perawat_id = p.id
+JOIN users u ON p.user_id = u.id
+LEFT JOIN staff_profiles s ON u.id = s.user_id
+WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND ($1::text = '' OR m.poli_code = $1)
+  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+`
+
+type CountNursesByPoliParams struct {
+	Column1 string
+	Column2 string
+}
+
+func (q *Queries) CountNursesByPoli(ctx context.Context, arg CountNursesByPoliParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countNursesByPoli, arg.Column1, arg.Column2)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countUsersWithProfile = `-- name: CountUsersWithProfile :one
+SELECT COUNT(u.id)
+FROM users u
+WHERE u.deleted_dt IS NULL
+  AND ($1::text = '' OR u.status = $1)
+`
+
+func (q *Queries) CountUsersWithProfile(ctx context.Context, dollar_1 string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUsersWithProfile, dollar_1)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
 
 const createRefreshToken = `-- name: CreateRefreshToken :one
 INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
@@ -37,26 +144,92 @@ func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshToken
 	return i, err
 }
 
+const createStaffProfile = `-- name: CreateStaffProfile :one
+INSERT INTO staff_profiles (user_id, nip, email, phone)
+VALUES ($1, $2, $3, $4)
+RETURNING id, user_id, nip, email, phone, created_at, updated_at
+`
+
+type CreateStaffProfileParams struct {
+	UserID uuid.NullUUID
+	Nip    string
+	Email  sql.NullString
+	Phone  sql.NullString
+}
+
+type CreateStaffProfileRow struct {
+	ID        uuid.UUID
+	UserID    uuid.NullUUID
+	Nip       string
+	Email     sql.NullString
+	Phone     sql.NullString
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+func (q *Queries) CreateStaffProfile(ctx context.Context, arg CreateStaffProfileParams) (CreateStaffProfileRow, error) {
+	row := q.db.QueryRowContext(ctx, createStaffProfile,
+		arg.UserID,
+		arg.Nip,
+		arg.Email,
+		arg.Phone,
+	)
+	var i CreateStaffProfileRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Nip,
+		&i.Email,
+		&i.Phone,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, password_hash, role)
-VALUES ($1, $2, $3)
-RETURNING id, username, password_hash, role, created_at, updated_at
+INSERT INTO users (username, password_hash, role, status, force_change_password)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, username, password_hash, role, status, force_change_password, last_login_at, created_at, updated_at
 `
 
 type CreateUserParams struct {
-	Username     string
-	PasswordHash string
-	Role         string
+	Username            string
+	PasswordHash        string
+	Role                sql.NullString
+	Status              sql.NullString
+	ForceChangePassword sql.NullBool
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.PasswordHash, arg.Role)
-	var i User
+type CreateUserRow struct {
+	ID                  uuid.UUID
+	Username            string
+	PasswordHash        string
+	Role                sql.NullString
+	Status              sql.NullString
+	ForceChangePassword sql.NullBool
+	LastLoginAt         sql.NullTime
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
+	row := q.db.QueryRowContext(ctx, createUser,
+		arg.Username,
+		arg.PasswordHash,
+		arg.Role,
+		arg.Status,
+		arg.ForceChangePassword,
+	)
+	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
 		&i.PasswordHash,
 		&i.Role,
+		&i.Status,
+		&i.ForceChangePassword,
+		&i.LastLoginAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -71,6 +244,287 @@ WHERE token_hash = $1
 func (q *Queries) DeleteRefreshToken(ctx context.Context, tokenHash string) error {
 	_, err := q.db.ExecContext(ctx, deleteRefreshToken, tokenHash)
 	return err
+}
+
+const getDoctors = `-- name: GetDoctors :many
+SELECT d.id, u.username, s.nip, s.email, d.spesialisasi, d.sip, u.status
+FROM profil_dokter d
+JOIN users u ON d.user_id = u.id
+LEFT JOIN staff_profiles s ON u.id = s.user_id
+WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL
+  AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%')
+ORDER BY u.created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetDoctorsParams struct {
+	Column1 string
+	Limit   int32
+	Offset  int32
+}
+
+type GetDoctorsRow struct {
+	ID           uuid.UUID
+	Username     string
+	Nip          sql.NullString
+	Email        sql.NullString
+	Spesialisasi sql.NullString
+	Sip          sql.NullString
+	Status       sql.NullString
+}
+
+func (q *Queries) GetDoctors(ctx context.Context, arg GetDoctorsParams) ([]GetDoctorsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getDoctors, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDoctorsRow
+	for rows.Next() {
+		var i GetDoctorsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Nip,
+			&i.Email,
+			&i.Spesialisasi,
+			&i.Sip,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getDoctorsByPoli = `-- name: GetDoctorsByPoli :many
+SELECT d.id, u.username, s.nip, d.spesialisasi, m.poli_code
+FROM mapping_dokter_poli m
+JOIN profil_dokter d ON m.dokter_id = d.id
+JOIN users u ON d.user_id = u.id
+LEFT JOIN staff_profiles s ON u.id = s.user_id
+WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND ($1::text = '' OR m.poli_code = $1)
+  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+ORDER BY u.username
+LIMIT $3 OFFSET $4
+`
+
+type GetDoctorsByPoliParams struct {
+	Column1 string
+	Column2 string
+	Limit   int32
+	Offset  int32
+}
+
+type GetDoctorsByPoliRow struct {
+	ID           uuid.UUID
+	Username     string
+	Nip          sql.NullString
+	Spesialisasi sql.NullString
+	PoliCode     string
+}
+
+func (q *Queries) GetDoctorsByPoli(ctx context.Context, arg GetDoctorsByPoliParams) ([]GetDoctorsByPoliRow, error) {
+	rows, err := q.db.QueryContext(ctx, getDoctorsByPoli,
+		arg.Column1,
+		arg.Column2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDoctorsByPoliRow
+	for rows.Next() {
+		var i GetDoctorsByPoliRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Nip,
+			&i.Spesialisasi,
+			&i.PoliCode,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMasterRoles = `-- name: GetMasterRoles :many
+SELECT id, deskripsi 
+FROM master_role
+WHERE deleted_dt IS NULL
+  AND ($1::text = '' OR id ILIKE '%' || $1 || '%' OR deskripsi ILIKE '%' || $1 || '%')
+ORDER BY id
+LIMIT $2 OFFSET $3
+`
+
+type GetMasterRolesParams struct {
+	Column1 string
+	Limit   int32
+	Offset  int32
+}
+
+type GetMasterRolesRow struct {
+	ID        string
+	Deskripsi sql.NullString
+}
+
+func (q *Queries) GetMasterRoles(ctx context.Context, arg GetMasterRolesParams) ([]GetMasterRolesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getMasterRoles, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMasterRolesRow
+	for rows.Next() {
+		var i GetMasterRolesRow
+		if err := rows.Scan(&i.ID, &i.Deskripsi); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getNurses = `-- name: GetNurses :many
+SELECT p.id, u.username, s.nip, s.email, p.str_perawat, u.status
+FROM profil_perawat p
+JOIN users u ON p.user_id = u.id
+LEFT JOIN staff_profiles s ON u.id = s.user_id
+WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL
+  AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%')
+ORDER BY u.created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetNursesParams struct {
+	Column1 string
+	Limit   int32
+	Offset  int32
+}
+
+type GetNursesRow struct {
+	ID         uuid.UUID
+	Username   string
+	Nip        sql.NullString
+	Email      sql.NullString
+	StrPerawat sql.NullString
+	Status     sql.NullString
+}
+
+func (q *Queries) GetNurses(ctx context.Context, arg GetNursesParams) ([]GetNursesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getNurses, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetNursesRow
+	for rows.Next() {
+		var i GetNursesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Nip,
+			&i.Email,
+			&i.StrPerawat,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getNursesByPoli = `-- name: GetNursesByPoli :many
+SELECT p.id, u.username, s.nip, p.str_perawat, m.poli_code
+FROM mapping_perawat_poli m
+JOIN profil_perawat p ON m.perawat_id = p.id
+JOIN users u ON p.user_id = u.id
+LEFT JOIN staff_profiles s ON u.id = s.user_id
+WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND ($1::text = '' OR m.poli_code = $1)
+  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+ORDER BY u.username
+LIMIT $3 OFFSET $4
+`
+
+type GetNursesByPoliParams struct {
+	Column1 string
+	Column2 string
+	Limit   int32
+	Offset  int32
+}
+
+type GetNursesByPoliRow struct {
+	ID         uuid.UUID
+	Username   string
+	Nip        sql.NullString
+	StrPerawat sql.NullString
+	PoliCode   string
+}
+
+func (q *Queries) GetNursesByPoli(ctx context.Context, arg GetNursesByPoliParams) ([]GetNursesByPoliRow, error) {
+	rows, err := q.db.QueryContext(ctx, getNursesByPoli,
+		arg.Column1,
+		arg.Column2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetNursesByPoliRow
+	for rows.Next() {
+		var i GetNursesByPoliRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Nip,
+			&i.StrPerawat,
+			&i.PoliCode,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getRefreshToken = `-- name: GetRefreshToken :one
@@ -93,19 +547,34 @@ func (q *Queries) GetRefreshToken(ctx context.Context, tokenHash string) (Refres
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, username, password_hash, role, created_at, updated_at
+SELECT id, username, password_hash, role, status, force_change_password, last_login_at, created_at, updated_at
 FROM users
-WHERE id = $1 LIMIT 1
+WHERE id = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
+type GetUserByIDRow struct {
+	ID                  uuid.UUID
+	Username            string
+	PasswordHash        string
+	Role                sql.NullString
+	Status              sql.NullString
+	ForceChangePassword sql.NullBool
+	LastLoginAt         sql.NullTime
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByID, id)
-	var i User
+	var i GetUserByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
 		&i.PasswordHash,
 		&i.Role,
+		&i.Status,
+		&i.ForceChangePassword,
+		&i.LastLoginAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -113,21 +582,140 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserByUsername = `-- name: GetUserByUsername :one
-SELECT id, username, password_hash, role, created_at, updated_at
+SELECT id, username, password_hash, role, status, force_change_password, last_login_at, created_at, updated_at
 FROM users
-WHERE username = $1 LIMIT 1
+WHERE username = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
-func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
+type GetUserByUsernameRow struct {
+	ID                  uuid.UUID
+	Username            string
+	PasswordHash        string
+	Role                sql.NullString
+	Status              sql.NullString
+	ForceChangePassword sql.NullBool
+	LastLoginAt         sql.NullTime
+	CreatedAt           sql.NullTime
+	UpdatedAt           sql.NullTime
+}
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUserByUsernameRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
-	var i User
+	var i GetUserByUsernameRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
 		&i.PasswordHash,
 		&i.Role,
+		&i.Status,
+		&i.ForceChangePassword,
+		&i.LastLoginAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const listUsersWithProfile = `-- name: ListUsersWithProfile :many
+SELECT u.id, u.username, u.role, u.status, u.created_at, 
+       s.nip, s.email, s.phone
+FROM users u
+LEFT JOIN staff_profiles s ON u.id = s.user_id
+WHERE u.deleted_dt IS NULL
+  AND ($1::text = '' OR u.status = $1)
+ORDER BY u.created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListUsersWithProfileParams struct {
+	Column1 string
+	Limit   int32
+	Offset  int32
+}
+
+type ListUsersWithProfileRow struct {
+	ID        uuid.UUID
+	Username  string
+	Role      sql.NullString
+	Status    sql.NullString
+	CreatedAt sql.NullTime
+	Nip       sql.NullString
+	Email     sql.NullString
+	Phone     sql.NullString
+}
+
+func (q *Queries) ListUsersWithProfile(ctx context.Context, arg ListUsersWithProfileParams) ([]ListUsersWithProfileRow, error) {
+	rows, err := q.db.QueryContext(ctx, listUsersWithProfile, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListUsersWithProfileRow
+	for rows.Next() {
+		var i ListUsersWithProfileRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Role,
+			&i.Status,
+			&i.CreatedAt,
+			&i.Nip,
+			&i.Email,
+			&i.Phone,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const softDeleteUser = `-- name: SoftDeleteUser :exec
+UPDATE users
+SET deleted_dt = CURRENT_TIMESTAMP, deleted_by = $2, updated_at = CURRENT_TIMESTAMP
+WHERE id = $1 AND deleted_dt IS NULL
+`
+
+type SoftDeleteUserParams struct {
+	ID        uuid.UUID
+	DeletedBy uuid.NullUUID
+}
+
+func (q *Queries) SoftDeleteUser(ctx context.Context, arg SoftDeleteUserParams) error {
+	_, err := q.db.ExecContext(ctx, softDeleteUser, arg.ID, arg.DeletedBy)
+	return err
+}
+
+const updateLastLogin = `-- name: UpdateLastLogin :exec
+UPDATE users
+SET last_login_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+WHERE id = $1 AND deleted_dt IS NULL
+`
+
+func (q *Queries) UpdateLastLogin(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, updateLastLogin, id)
+	return err
+}
+
+const updateUserStatusAndRole = `-- name: UpdateUserStatusAndRole :exec
+UPDATE users
+SET status = $2, role = $3, updated_at = CURRENT_TIMESTAMP
+WHERE id = $1 AND deleted_dt IS NULL
+`
+
+type UpdateUserStatusAndRoleParams struct {
+	ID     uuid.UUID
+	Status sql.NullString
+	Role   sql.NullString
+}
+
+func (q *Queries) UpdateUserStatusAndRole(ctx context.Context, arg UpdateUserStatusAndRoleParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserStatusAndRole, arg.ID, arg.Status, arg.Role)
+	return err
 }

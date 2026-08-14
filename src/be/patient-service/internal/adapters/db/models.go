@@ -17,4 +17,6 @@ type Patient struct {
 	Dob       string
 	CreatedAt sql.NullTime
 	UserID    uuid.NullUUID
+	DeletedDt sql.NullTime
+	DeletedBy uuid.NullUUID
 }

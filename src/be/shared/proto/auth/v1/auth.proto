@@ -8,8 +8,11 @@ service AuthService {
   // Login verifies credentials and returns a PASETO token
   rpc Login (LoginRequest) returns (LoginResponse);
   
-  // Signup creates a new user account
+  // Signup creates a new staff account (pending approval)
   rpc Signup (SignupRequest) returns (SignupResponse);
+  
+  // RegisterPatientUser creates an active patient user (called internally by gateway)
+  rpc RegisterPatientUser (RegisterPatientUserRequest) returns (RegisterPatientUserResponse);
   
   // ValidateToken verifies a PASETO token and returns the user's role/id
   rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
@@ -19,6 +22,22 @@ service AuthService {
   
   // ExtractKTPData extracts NIK, Name, and DOB from a KTP image using AI OCR
   rpc ExtractKTPData (ExtractKTPDataRequest) returns (ExtractKTPDataResponse);
+  
+  // ListUsers returns a list of users for admin management
+  rpc ListUsers (ListUsersRequest) returns (ListUsersResponse);
+  
+  // UpdateUserStatus updates a user's role and status
+  rpc UpdateUserStatus (UpdateUserStatusRequest) returns (UpdateUserStatusResponse);
+  
+  // DeleteUser soft deletes a user
+  rpc DeleteUser (DeleteUserRequest) returns (DeleteUserResponse);
+  
+  // Master Data Reads
+  rpc GetMasterRoles (GetMasterRolesRequest) returns (GetMasterRolesResponse);
+  rpc GetDoctors (GetDoctorsRequest) returns (GetDoctorsResponse);
+  rpc GetNurses (GetNursesRequest) returns (GetNursesResponse);
+  rpc GetDoctorsByPoli (GetDoctorsByPoliRequest) returns (GetDoctorsByPoliResponse);
+  rpc GetNursesByPoli (GetNursesByPoliRequest) returns (GetNursesByPoliResponse);
 }
 
 message LoginRequest {
@@ -39,13 +58,24 @@ message LoginResponse {
 message SignupRequest {
   string username = 1;
   string password = 2;
-  string role = 3;
+  string email = 3;
+  string phone = 4;
 }
 
 message SignupResponse {
   bool success = 1;
   string user_id = 2;
   string message = 3;
+}
+
+message RegisterPatientUserRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message RegisterPatientUserResponse {
+  bool success = 1;
+  string user_id = 2;
 }
 
 message ValidateTokenRequest {
@@ -80,4 +110,146 @@ message ExtractKTPDataResponse {
   string name = 3;
   string dob = 4;
   string error_message = 5;
+}
+
+message UserData {
+  string id = 1;
+  string username = 2;
+  string role = 3;
+  string status = 4;
+  string created_at = 5;
+  string nip = 6;
+  string email = 7;
+  string phone = 8;
+}
+
+message ListUsersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string status_filter = 3;
+}
+
+message ListUsersResponse {
+  repeated UserData users = 1;
+  int32 total_count = 2;
+}
+
+message UpdateUserStatusRequest {
+  string user_id = 1;
+  string status = 2;
+  string role = 3;
+}
+
+message UpdateUserStatusResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message DeleteUserRequest {
+  string user_id = 1;
+  string deleted_by = 2;
+}
+
+message DeleteUserResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Master Data Requests & Responses
+
+message GetMasterRolesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+}
+
+message MasterRole {
+  string id = 1;
+  string deskripsi = 2;
+}
+
+message GetMasterRolesResponse {
+  repeated MasterRole data = 1;
+  int32 total_count = 2;
+}
+
+message GetDoctorsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+}
+
+message Doctor {
+  string id = 1;
+  string username = 2;
+  string nip = 3;
+  string email = 4;
+  string spesialisasi = 5;
+  string sip = 6;
+  string status = 7;
+}
+
+message GetDoctorsResponse {
+  repeated Doctor data = 1;
+  int32 total_count = 2;
+}
+
+message GetNursesRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+}
+
+message Nurse {
+  string id = 1;
+  string username = 2;
+  string nip = 3;
+  string email = 4;
+  string str_perawat = 5;
+  string status = 6;
+}
+
+message GetNursesResponse {
+  repeated Nurse data = 1;
+  int32 total_count = 2;
+}
+
+message GetDoctorsByPoliRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string poli_code = 3;
+  string search = 4;
+}
+
+message DoctorPoliMapping {
+  string id = 1;
+  string username = 2;
+  string nip = 3;
+  string spesialisasi = 4;
+  string poli_code = 5;
+}
+
+message GetDoctorsByPoliResponse {
+  repeated DoctorPoliMapping data = 1;
+  int32 total_count = 2;
+}
+
+message GetNursesByPoliRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string poli_code = 3;
+  string search = 4;
+}
+
+message NursePoliMapping {
+  string id = 1;
+  string username = 2;
+  string nip = 3;
+  string str_perawat = 4;
+  string poli_code = 5;
+}
+
+message GetNursesByPoliResponse {
+  repeated NursePoliMapping data = 1;
+  int32 total_count = 2;
 }

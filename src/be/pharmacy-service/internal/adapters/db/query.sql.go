@@ -11,6 +11,44 @@ import (
 	"encoding/json"
 )
 
+const countObat = `-- name: CountObat :one
+SELECT COUNT(*) FROM inventory
+WHERE deleted_dt IS NULL
+  AND (name ILIKE '%' || $1 || '%' OR item_code ILIKE '%' || $2 || '%')
+`
+
+type CountObatParams struct {
+	Column1 sql.NullString
+	Column2 sql.NullString
+}
+
+func (q *Queries) CountObat(ctx context.Context, arg CountObatParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countObat, arg.Column1, arg.Column2)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countObatByPolyclinic = `-- name: CountObatByPolyclinic :one
+SELECT COUNT(*) FROM inventory i
+JOIN inventory_polyclinic_mappings m ON i.item_code = m.item_code
+WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND (i.name ILIKE '%' || $2 || '%' OR i.item_code ILIKE '%' || $3 || '%')
+`
+
+type CountObatByPolyclinicParams struct {
+	PolyclinicCode string
+	Column2        sql.NullString
+	Column3        sql.NullString
+}
+
+func (q *Queries) CountObatByPolyclinic(ctx context.Context, arg CountObatByPolyclinicParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countObatByPolyclinic, arg.PolyclinicCode, arg.Column2, arg.Column3)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createOutboxEvent = `-- name: CreateOutboxEvent :one
 INSERT INTO outbox_events (id, aggregate_type, event_type, payload, status)
 VALUES ($1, $2, $3, $4, $5)
@@ -48,7 +86,7 @@ func (q *Queries) CreateOutboxEvent(ctx context.Context, arg CreateOutboxEventPa
 const createPrescription = `-- name: CreatePrescription :one
 INSERT INTO prescriptions (id, encounter_no, status, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, encounter_no, status, created_at, updated_at, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code
+RETURNING id, encounter_no, status, created_at, updated_at, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code, deleted_dt, deleted_by
 `
 
 type CreatePrescriptionParams struct {
@@ -91,6 +129,8 @@ func (q *Queries) CreatePrescription(ctx context.Context, arg CreatePrescription
 		&i.AgeBracket,
 		&i.DoctorID,
 		&i.DepartmentCode,
+		&i.DeletedDt,
+		&i.DeletedBy,
 	)
 	return i, err
 }
@@ -98,7 +138,7 @@ func (q *Queries) CreatePrescription(ctx context.Context, arg CreatePrescription
 const createPrescriptionItem = `-- name: CreatePrescriptionItem :one
 INSERT INTO prescription_items (id, prescription_id, item_code, quantity, price)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, prescription_id, item_code, quantity, price
+RETURNING id, prescription_id, item_code, quantity, price, deleted_dt, deleted_by
 `
 
 type CreatePrescriptionItemParams struct {
@@ -124,6 +164,8 @@ func (q *Queries) CreatePrescriptionItem(ctx context.Context, arg CreatePrescrip
 		&i.ItemCode,
 		&i.Quantity,
 		&i.Price,
+		&i.DeletedDt,
+		&i.DeletedBy,
 	)
 	return i, err
 }
@@ -131,7 +173,7 @@ func (q *Queries) CreatePrescriptionItem(ctx context.Context, arg CreatePrescrip
 const getEncounterPayment = `-- name: GetEncounterPayment :one
 SELECT status
 FROM encounter_payments
-WHERE encounter_no = $1 LIMIT 1
+WHERE encounter_no = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
 func (q *Queries) GetEncounterPayment(ctx context.Context, encounterNo string) (string, error) {
@@ -144,12 +186,19 @@ func (q *Queries) GetEncounterPayment(ctx context.Context, encounterNo string) (
 const getInventoryItem = `-- name: GetInventoryItem :one
 SELECT item_code, name, stock_quantity, price
 FROM inventory
-WHERE item_code = $1 LIMIT 1
+WHERE item_code = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
-func (q *Queries) GetInventoryItem(ctx context.Context, itemCode string) (Inventory, error) {
+type GetInventoryItemRow struct {
+	ItemCode      string
+	Name          string
+	StockQuantity int32
+	Price         string
+}
+
+func (q *Queries) GetInventoryItem(ctx context.Context, itemCode string) (GetInventoryItemRow, error) {
 	row := q.db.QueryRowContext(ctx, getInventoryItem, itemCode)
-	var i Inventory
+	var i GetInventoryItemRow
 	err := row.Scan(
 		&i.ItemCode,
 		&i.Name,
@@ -162,12 +211,19 @@ func (q *Queries) GetInventoryItem(ctx context.Context, itemCode string) (Invent
 const getInventoryItemForUpdate = `-- name: GetInventoryItemForUpdate :one
 SELECT item_code, name, stock_quantity, price
 FROM inventory
-WHERE item_code = $1 LIMIT 1 FOR UPDATE
+WHERE item_code = $1 AND deleted_dt IS NULL LIMIT 1 FOR UPDATE
 `
 
-func (q *Queries) GetInventoryItemForUpdate(ctx context.Context, itemCode string) (Inventory, error) {
+type GetInventoryItemForUpdateRow struct {
+	ItemCode      string
+	Name          string
+	StockQuantity int32
+	Price         string
+}
+
+func (q *Queries) GetInventoryItemForUpdate(ctx context.Context, itemCode string) (GetInventoryItemForUpdateRow, error) {
 	row := q.db.QueryRowContext(ctx, getInventoryItemForUpdate, itemCode)
-	var i Inventory
+	var i GetInventoryItemForUpdateRow
 	err := row.Scan(
 		&i.ItemCode,
 		&i.Name,
@@ -175,6 +231,108 @@ func (q *Queries) GetInventoryItemForUpdate(ctx context.Context, itemCode string
 		&i.Price,
 	)
 	return i, err
+}
+
+const getObat = `-- name: GetObat :many
+SELECT item_code, name, stock_quantity, price, deleted_dt, deleted_by FROM inventory
+WHERE deleted_dt IS NULL
+  AND (name ILIKE '%' || $1 || '%' OR item_code ILIKE '%' || $2 || '%')
+ORDER BY item_code ASC LIMIT $3 OFFSET $4
+`
+
+type GetObatParams struct {
+	Column1 sql.NullString
+	Column2 sql.NullString
+	Limit   int32
+	Offset  int32
+}
+
+// Master Data Queries
+func (q *Queries) GetObat(ctx context.Context, arg GetObatParams) ([]Inventory, error) {
+	rows, err := q.db.QueryContext(ctx, getObat,
+		arg.Column1,
+		arg.Column2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Inventory
+	for rows.Next() {
+		var i Inventory
+		if err := rows.Scan(
+			&i.ItemCode,
+			&i.Name,
+			&i.StockQuantity,
+			&i.Price,
+			&i.DeletedDt,
+			&i.DeletedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getObatByPolyclinic = `-- name: GetObatByPolyclinic :many
+SELECT i.item_code, i.name, i.stock_quantity, i.price, i.deleted_dt, i.deleted_by FROM inventory i
+JOIN inventory_polyclinic_mappings m ON i.item_code = m.item_code
+WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
+  AND (i.name ILIKE '%' || $2 || '%' OR i.item_code ILIKE '%' || $3 || '%')
+ORDER BY i.item_code ASC LIMIT $4 OFFSET $5
+`
+
+type GetObatByPolyclinicParams struct {
+	PolyclinicCode string
+	Column2        sql.NullString
+	Column3        sql.NullString
+	Limit          int32
+	Offset         int32
+}
+
+func (q *Queries) GetObatByPolyclinic(ctx context.Context, arg GetObatByPolyclinicParams) ([]Inventory, error) {
+	rows, err := q.db.QueryContext(ctx, getObatByPolyclinic,
+		arg.PolyclinicCode,
+		arg.Column2,
+		arg.Column3,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Inventory
+	for rows.Next() {
+		var i Inventory
+		if err := rows.Scan(
+			&i.ItemCode,
+			&i.Name,
+			&i.StockQuantity,
+			&i.Price,
+			&i.DeletedDt,
+			&i.DeletedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPendingOutboxEvents = `-- name: GetPendingOutboxEvents :many
@@ -276,9 +434,9 @@ func (q *Queries) GetPharmacyWaitAggregateWithoutDiagnosis(ctx context.Context, 
 }
 
 const getPrescription = `-- name: GetPrescription :one
-SELECT id, encounter_no, status, created_at, updated_at, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code
+SELECT id, encounter_no, status, created_at, updated_at, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code, deleted_dt, deleted_by
 FROM prescriptions
-WHERE id = $1 LIMIT 1
+WHERE id = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
 func (q *Queries) GetPrescription(ctx context.Context, id string) (Prescription, error) {
@@ -297,14 +455,16 @@ func (q *Queries) GetPrescription(ctx context.Context, id string) (Prescription,
 		&i.AgeBracket,
 		&i.DoctorID,
 		&i.DepartmentCode,
+		&i.DeletedDt,
+		&i.DeletedBy,
 	)
 	return i, err
 }
 
 const getPrescriptionItems = `-- name: GetPrescriptionItems :many
-SELECT id, prescription_id, item_code, quantity, price
+SELECT id, prescription_id, item_code, quantity, price, deleted_dt, deleted_by
 FROM prescription_items
-WHERE prescription_id = $1
+WHERE prescription_id = $1 AND deleted_dt IS NULL
 `
 
 func (q *Queries) GetPrescriptionItems(ctx context.Context, prescriptionID string) ([]PrescriptionItem, error) {
@@ -322,6 +482,8 @@ func (q *Queries) GetPrescriptionItems(ctx context.Context, prescriptionID strin
 			&i.ItemCode,
 			&i.Quantity,
 			&i.Price,
+			&i.DeletedDt,
+			&i.DeletedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -355,8 +517,8 @@ func (q *Queries) UpdateOutboxEventStatus(ctx context.Context, arg UpdateOutboxE
 const updatePrescriptionStatus = `-- name: UpdatePrescriptionStatus :one
 UPDATE prescriptions
 SET status = $2, updated_at = CURRENT_TIMESTAMP
-WHERE id = $1
-RETURNING id, encounter_no, status, created_at, updated_at, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code
+WHERE id = $1 AND deleted_dt IS NULL
+RETURNING id, encounter_no, status, created_at, updated_at, is_compounded, notes, diagnosis, gender, age_bracket, doctor_id, department_code, deleted_dt, deleted_by
 `
 
 type UpdatePrescriptionStatusParams struct {
@@ -380,6 +542,8 @@ func (q *Queries) UpdatePrescriptionStatus(ctx context.Context, arg UpdatePrescr
 		&i.AgeBracket,
 		&i.DoctorID,
 		&i.DepartmentCode,
+		&i.DeletedDt,
+		&i.DeletedBy,
 	)
 	return i, err
 }
@@ -387,7 +551,7 @@ func (q *Queries) UpdatePrescriptionStatus(ctx context.Context, arg UpdatePrescr
 const updateStock = `-- name: UpdateStock :exec
 UPDATE inventory
 SET stock_quantity = stock_quantity - $2
-WHERE item_code = $1
+WHERE item_code = $1 AND deleted_dt IS NULL
 `
 
 type UpdateStockParams struct {

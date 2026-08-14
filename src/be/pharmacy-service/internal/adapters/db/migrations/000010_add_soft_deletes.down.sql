@@ -1,0 +1,10 @@
+ALTER TABLE inventory DROP COLUMN deleted_dt;
+ALTER TABLE inventory DROP COLUMN deleted_by;
+ALTER TABLE prescriptions DROP COLUMN deleted_dt;
+ALTER TABLE prescriptions DROP COLUMN deleted_by;
+ALTER TABLE prescription_items DROP COLUMN deleted_dt;
+ALTER TABLE prescription_items DROP COLUMN deleted_by;
+ALTER TABLE encounter_payments DROP COLUMN deleted_dt;
+ALTER TABLE encounter_payments DROP COLUMN deleted_by;
+ALTER TABLE inventory_polyclinic_mappings DROP COLUMN deleted_dt;
+ALTER TABLE inventory_polyclinic_mappings DROP COLUMN deleted_by;

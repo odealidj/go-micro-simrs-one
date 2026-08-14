@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: shared/proto/auth/v1/auth.proto
+// source: auth.proto
 
 package authv1
 
@@ -19,11 +19,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName          = "/auth.v1.AuthService/Login"
-	AuthService_Signup_FullMethodName         = "/auth.v1.AuthService/Signup"
-	AuthService_ValidateToken_FullMethodName  = "/auth.v1.AuthService/ValidateToken"
-	AuthService_RefreshToken_FullMethodName   = "/auth.v1.AuthService/RefreshToken"
-	AuthService_ExtractKTPData_FullMethodName = "/auth.v1.AuthService/ExtractKTPData"
+	AuthService_Login_FullMethodName               = "/auth.v1.AuthService/Login"
+	AuthService_Signup_FullMethodName              = "/auth.v1.AuthService/Signup"
+	AuthService_RegisterPatientUser_FullMethodName = "/auth.v1.AuthService/RegisterPatientUser"
+	AuthService_ValidateToken_FullMethodName       = "/auth.v1.AuthService/ValidateToken"
+	AuthService_RefreshToken_FullMethodName        = "/auth.v1.AuthService/RefreshToken"
+	AuthService_ExtractKTPData_FullMethodName      = "/auth.v1.AuthService/ExtractKTPData"
+	AuthService_ListUsers_FullMethodName           = "/auth.v1.AuthService/ListUsers"
+	AuthService_UpdateUserStatus_FullMethodName    = "/auth.v1.AuthService/UpdateUserStatus"
+	AuthService_DeleteUser_FullMethodName          = "/auth.v1.AuthService/DeleteUser"
+	AuthService_GetMasterRoles_FullMethodName      = "/auth.v1.AuthService/GetMasterRoles"
+	AuthService_GetDoctors_FullMethodName          = "/auth.v1.AuthService/GetDoctors"
+	AuthService_GetNurses_FullMethodName           = "/auth.v1.AuthService/GetNurses"
+	AuthService_GetDoctorsByPoli_FullMethodName    = "/auth.v1.AuthService/GetDoctorsByPoli"
+	AuthService_GetNursesByPoli_FullMethodName     = "/auth.v1.AuthService/GetNursesByPoli"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -32,14 +41,28 @@ const (
 type AuthServiceClient interface {
 	// Login verifies credentials and returns a PASETO token
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	// Signup creates a new user account
+	// Signup creates a new staff account (pending approval)
 	Signup(ctx context.Context, in *SignupRequest, opts ...grpc.CallOption) (*SignupResponse, error)
+	// RegisterPatientUser creates an active patient user (called internally by gateway)
+	RegisterPatientUser(ctx context.Context, in *RegisterPatientUserRequest, opts ...grpc.CallOption) (*RegisterPatientUserResponse, error)
 	// ValidateToken verifies a PASETO token and returns the user's role/id
 	ValidateToken(ctx context.Context, in *ValidateTokenRequest, opts ...grpc.CallOption) (*ValidateTokenResponse, error)
 	// RefreshToken exchanges a valid refresh token for a new pair of access and refresh tokens
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 	// ExtractKTPData extracts NIK, Name, and DOB from a KTP image using AI OCR
 	ExtractKTPData(ctx context.Context, in *ExtractKTPDataRequest, opts ...grpc.CallOption) (*ExtractKTPDataResponse, error)
+	// ListUsers returns a list of users for admin management
+	ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error)
+	// UpdateUserStatus updates a user's role and status
+	UpdateUserStatus(ctx context.Context, in *UpdateUserStatusRequest, opts ...grpc.CallOption) (*UpdateUserStatusResponse, error)
+	// DeleteUser soft deletes a user
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
+	// Master Data Reads
+	GetMasterRoles(ctx context.Context, in *GetMasterRolesRequest, opts ...grpc.CallOption) (*GetMasterRolesResponse, error)
+	GetDoctors(ctx context.Context, in *GetDoctorsRequest, opts ...grpc.CallOption) (*GetDoctorsResponse, error)
+	GetNurses(ctx context.Context, in *GetNursesRequest, opts ...grpc.CallOption) (*GetNursesResponse, error)
+	GetDoctorsByPoli(ctx context.Context, in *GetDoctorsByPoliRequest, opts ...grpc.CallOption) (*GetDoctorsByPoliResponse, error)
+	GetNursesByPoli(ctx context.Context, in *GetNursesByPoliRequest, opts ...grpc.CallOption) (*GetNursesByPoliResponse, error)
 }
 
 type authServiceClient struct {
@@ -64,6 +87,16 @@ func (c *authServiceClient) Signup(ctx context.Context, in *SignupRequest, opts 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SignupResponse)
 	err := c.cc.Invoke(ctx, AuthService_Signup_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) RegisterPatientUser(ctx context.Context, in *RegisterPatientUserRequest, opts ...grpc.CallOption) (*RegisterPatientUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegisterPatientUserResponse)
+	err := c.cc.Invoke(ctx, AuthService_RegisterPatientUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -100,20 +133,114 @@ func (c *authServiceClient) ExtractKTPData(ctx context.Context, in *ExtractKTPDa
 	return out, nil
 }
 
+func (c *authServiceClient) ListUsers(ctx context.Context, in *ListUsersRequest, opts ...grpc.CallOption) (*ListUsersResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListUsersResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) UpdateUserStatus(ctx context.Context, in *UpdateUserStatusRequest, opts ...grpc.CallOption) (*UpdateUserStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateUserStatusResponse)
+	err := c.cc.Invoke(ctx, AuthService_UpdateUserStatus_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteUserResponse)
+	err := c.cc.Invoke(ctx, AuthService_DeleteUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) GetMasterRoles(ctx context.Context, in *GetMasterRolesRequest, opts ...grpc.CallOption) (*GetMasterRolesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterRolesResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetMasterRoles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) GetDoctors(ctx context.Context, in *GetDoctorsRequest, opts ...grpc.CallOption) (*GetDoctorsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDoctorsResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetDoctors_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) GetNurses(ctx context.Context, in *GetNursesRequest, opts ...grpc.CallOption) (*GetNursesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetNursesResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetNurses_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) GetDoctorsByPoli(ctx context.Context, in *GetDoctorsByPoliRequest, opts ...grpc.CallOption) (*GetDoctorsByPoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDoctorsByPoliResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetDoctorsByPoli_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) GetNursesByPoli(ctx context.Context, in *GetNursesByPoliRequest, opts ...grpc.CallOption) (*GetNursesByPoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetNursesByPoliResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetNursesByPoli_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
 type AuthServiceServer interface {
 	// Login verifies credentials and returns a PASETO token
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
-	// Signup creates a new user account
+	// Signup creates a new staff account (pending approval)
 	Signup(context.Context, *SignupRequest) (*SignupResponse, error)
+	// RegisterPatientUser creates an active patient user (called internally by gateway)
+	RegisterPatientUser(context.Context, *RegisterPatientUserRequest) (*RegisterPatientUserResponse, error)
 	// ValidateToken verifies a PASETO token and returns the user's role/id
 	ValidateToken(context.Context, *ValidateTokenRequest) (*ValidateTokenResponse, error)
 	// RefreshToken exchanges a valid refresh token for a new pair of access and refresh tokens
 	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	// ExtractKTPData extracts NIK, Name, and DOB from a KTP image using AI OCR
 	ExtractKTPData(context.Context, *ExtractKTPDataRequest) (*ExtractKTPDataResponse, error)
+	// ListUsers returns a list of users for admin management
+	ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error)
+	// UpdateUserStatus updates a user's role and status
+	UpdateUserStatus(context.Context, *UpdateUserStatusRequest) (*UpdateUserStatusResponse, error)
+	// DeleteUser soft deletes a user
+	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
+	// Master Data Reads
+	GetMasterRoles(context.Context, *GetMasterRolesRequest) (*GetMasterRolesResponse, error)
+	GetDoctors(context.Context, *GetDoctorsRequest) (*GetDoctorsResponse, error)
+	GetNurses(context.Context, *GetNursesRequest) (*GetNursesResponse, error)
+	GetDoctorsByPoli(context.Context, *GetDoctorsByPoliRequest) (*GetDoctorsByPoliResponse, error)
+	GetNursesByPoli(context.Context, *GetNursesByPoliRequest) (*GetNursesByPoliResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -130,6 +257,9 @@ func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*Lo
 func (UnimplementedAuthServiceServer) Signup(context.Context, *SignupRequest) (*SignupResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Signup not implemented")
 }
+func (UnimplementedAuthServiceServer) RegisterPatientUser(context.Context, *RegisterPatientUserRequest) (*RegisterPatientUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RegisterPatientUser not implemented")
+}
 func (UnimplementedAuthServiceServer) ValidateToken(context.Context, *ValidateTokenRequest) (*ValidateTokenResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ValidateToken not implemented")
 }
@@ -138,6 +268,30 @@ func (UnimplementedAuthServiceServer) RefreshToken(context.Context, *RefreshToke
 }
 func (UnimplementedAuthServiceServer) ExtractKTPData(context.Context, *ExtractKTPDataRequest) (*ExtractKTPDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExtractKTPData not implemented")
+}
+func (UnimplementedAuthServiceServer) ListUsers(context.Context, *ListUsersRequest) (*ListUsersResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListUsers not implemented")
+}
+func (UnimplementedAuthServiceServer) UpdateUserStatus(context.Context, *UpdateUserStatusRequest) (*UpdateUserStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateUserStatus not implemented")
+}
+func (UnimplementedAuthServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedAuthServiceServer) GetMasterRoles(context.Context, *GetMasterRolesRequest) (*GetMasterRolesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterRoles not implemented")
+}
+func (UnimplementedAuthServiceServer) GetDoctors(context.Context, *GetDoctorsRequest) (*GetDoctorsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDoctors not implemented")
+}
+func (UnimplementedAuthServiceServer) GetNurses(context.Context, *GetNursesRequest) (*GetNursesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetNurses not implemented")
+}
+func (UnimplementedAuthServiceServer) GetDoctorsByPoli(context.Context, *GetDoctorsByPoliRequest) (*GetDoctorsByPoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDoctorsByPoli not implemented")
+}
+func (UnimplementedAuthServiceServer) GetNursesByPoli(context.Context, *GetNursesByPoliRequest) (*GetNursesByPoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetNursesByPoli not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -196,6 +350,24 @@ func _AuthService_Signup_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_RegisterPatientUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterPatientUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RegisterPatientUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_RegisterPatientUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RegisterPatientUser(ctx, req.(*RegisterPatientUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_ValidateToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ValidateTokenRequest)
 	if err := dec(in); err != nil {
@@ -250,6 +422,150 @@ func _AuthService_ExtractKTPData_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListUsers(ctx, req.(*ListUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_UpdateUserStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).UpdateUserStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_UpdateUserStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).UpdateUserStatus(ctx, req.(*UpdateUserStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_DeleteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_GetMasterRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterRolesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetMasterRoles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetMasterRoles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetMasterRoles(ctx, req.(*GetMasterRolesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_GetDoctors_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDoctorsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetDoctors(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetDoctors_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetDoctors(ctx, req.(*GetDoctorsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_GetNurses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNursesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetNurses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetNurses_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetNurses(ctx, req.(*GetNursesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_GetDoctorsByPoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDoctorsByPoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetDoctorsByPoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetDoctorsByPoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetDoctorsByPoli(ctx, req.(*GetDoctorsByPoliRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_GetNursesByPoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNursesByPoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetNursesByPoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetNursesByPoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetNursesByPoli(ctx, req.(*GetNursesByPoliRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +582,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_Signup_Handler,
 		},
 		{
+			MethodName: "RegisterPatientUser",
+			Handler:    _AuthService_RegisterPatientUser_Handler,
+		},
+		{
 			MethodName: "ValidateToken",
 			Handler:    _AuthService_ValidateToken_Handler,
 		},
@@ -277,7 +597,39 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ExtractKTPData",
 			Handler:    _AuthService_ExtractKTPData_Handler,
 		},
+		{
+			MethodName: "ListUsers",
+			Handler:    _AuthService_ListUsers_Handler,
+		},
+		{
+			MethodName: "UpdateUserStatus",
+			Handler:    _AuthService_UpdateUserStatus_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _AuthService_DeleteUser_Handler,
+		},
+		{
+			MethodName: "GetMasterRoles",
+			Handler:    _AuthService_GetMasterRoles_Handler,
+		},
+		{
+			MethodName: "GetDoctors",
+			Handler:    _AuthService_GetDoctors_Handler,
+		},
+		{
+			MethodName: "GetNurses",
+			Handler:    _AuthService_GetNurses_Handler,
+		},
+		{
+			MethodName: "GetDoctorsByPoli",
+			Handler:    _AuthService_GetDoctorsByPoli_Handler,
+		},
+		{
+			MethodName: "GetNursesByPoli",
+			Handler:    _AuthService_GetNursesByPoli_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "shared/proto/auth/v1/auth.proto",
+	Metadata: "auth.proto",
 }
