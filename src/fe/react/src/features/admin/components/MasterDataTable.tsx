@@ -10,7 +10,7 @@ interface MasterDataTableProps<T> {
   description: string;
   endpoint: string;
   columns: string[];
-  renderRow: (item: T, index: number) => ReactNode;
+  renderRow: (item: T, index: number, filterState?: { poliCode: string; search: string }) => ReactNode;
   requiresPoliFilter?: boolean;
 }
 
@@ -96,7 +96,7 @@ export function MasterDataTable<T>({
               ) : data.length === 0 ? (
                 <tr><td colSpan={columns.length} className="text-center py-8 text-slate-500">Tidak ada data</td></tr>
               ) : (
-                data.map((item, i) => renderRow(item, i))
+                data.map((item, i) => renderRow(item, i, { poliCode, search: searchInput }))
               )}
             </tbody>
           </table>
