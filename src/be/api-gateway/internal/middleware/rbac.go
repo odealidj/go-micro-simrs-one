@@ -29,13 +29,21 @@ func RequireRole(allowedRoles ...string) func(http.Handler) http.Handler {
 				})
 				return
 			}
+			
+			// Debug log
+			println("RequireRole - UserRole:", userRole)
 
 			// Check if the user's role is in the allowedRoles list
+			// Exception: super_admin can access everything
 			isAllowed := false
-			for _, allowedRole := range allowedRoles {
-				if userRole == allowedRole {
-					isAllowed = true
-					break
+			if userRole == "super_admin" {
+				isAllowed = true
+			} else {
+				for _, allowedRole := range allowedRoles {
+					if userRole == allowedRole {
+						isAllowed = true
+						break
+					}
 				}
 			}
 

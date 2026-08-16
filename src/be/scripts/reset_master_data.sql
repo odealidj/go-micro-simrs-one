@@ -2,16 +2,25 @@
 -- MASTER DATA RESET FOR SIMRS
 -- ==========================================
 
--- Mappings
-DELETE FROM pharmacy.inventory_polyclinic_mappings;
-DELETE FROM emr.icd10_polyclinic_mappings;
-DELETE FROM emr.tindakan_polyclinic_mappings;
-DELETE FROM emr.kbm_polyclinic_mappings;
+TRUNCATE TABLE pharmacy.inventory_polyclinic_mappings CASCADE;
+TRUNCATE TABLE pharmacy.inventory CASCADE;
+TRUNCATE TABLE emr.kbm_icd10_mappings CASCADE;
+TRUNCATE TABLE emr.icd10_polyclinic_mappings CASCADE;
+TRUNCATE TABLE emr.tindakan_polyclinic_mappings CASCADE;
+TRUNCATE TABLE emr.kbm_polyclinic_mappings CASCADE;
+TRUNCATE TABLE emr.master_tindakan CASCADE;
+TRUNCATE TABLE emr.icd10_catalog CASCADE;
+TRUNCATE TABLE emr.kbm_catalog CASCADE;
+TRUNCATE TABLE emr.polyclinics CASCADE;
 
--- Master Data
-DELETE FROM pharmacy.inventory;
-DELETE FROM emr.master_tindakan;
-DELETE FROM emr.icd10_catalog;
+TRUNCATE TABLE auth.mapping_dokter_poli CASCADE;
+TRUNCATE TABLE auth.mapping_perawat_poli CASCADE;
+TRUNCATE TABLE auth.profil_dokter CASCADE;
+TRUNCATE TABLE auth.profil_perawat CASCADE;
+TRUNCATE TABLE auth.staff_profiles CASCADE;
 
--- Note: auth.master_role is not deleted here because it is referenced by auth.users 
--- and deleting it would break existing user accounts.
+-- Hard delete all users except admin
+DELETE FROM auth.users WHERE role != 'admin' OR role IS NULL;
+
+-- Hard delete all roles except super_admin
+DELETE FROM auth.master_role WHERE id != 'super_admin';

@@ -42,6 +42,7 @@ migrate-down:
 
 .PHONY: be-run-demo-data be-stop-demo-data
 .PHONY: up down be-infra-up be-infra-down be-infra-clean be-run-all be-stop-all be-run-local-all be-stop-local-all
+.PHONY: be-run-exporters be-stop-exporters be-run-podman-exporter be-stop-podman-exporter
 .PHONY: be-run-local-auth-service be-stop-local-auth-service be-run-local-patient-service be-stop-local-patient-service
 .PHONY: be-run-local-registration-service be-stop-local-registration-service be-run-local-emr-service be-stop-local-emr-service
 .PHONY: be-run-local-pharmacy-service be-stop-local-pharmacy-service be-run-local-billing-service be-stop-local-billing-service
@@ -58,7 +59,9 @@ down:
 	podman compose down
 
 be-infra-up:
-	podman compose up -d postgres redis jaeger
+	@echo "Starting Podman API socket for container metrics..."
+	systemctl --user start podman.socket
+	podman compose up -d postgres redis jaeger postgres-exporter redis-exporter podman-exporter 2>&1 | grep -v "no container with" || true
 	@echo "Waiting for postgres to be ready..."
 	@for i in 1 2 3 4 5 6 7 8 9 10; do \
 		if podman exec go-micro-simrs-one_postgres_1 pg_isready -U root -d simrs_db > /dev/null 2>&1; then \
@@ -66,10 +69,13 @@ be-infra-up:
 		fi; \
 		echo "  Waiting for postgres... ($$i/10)"; sleep 2; \
 	done
+	@echo "Infra + Exporters (Postgres, Redis, Podman-Exporter) are UP."
 
 be-infra-down:
 	@echo "Stopping application containers first (they depend on infra)..."
 	-podman compose stop auth-service patient-service registration-service emr-service pharmacy-service billing-service api-gateway 2>/dev/null || true
+	@echo "Stopping exporters..."
+	-podman compose stop postgres-exporter redis-exporter podman-exporter 2>/dev/null || true
 	@echo "Removing infra containers (data is preserved in named volumes)..."
 	podman compose down postgres redis jaeger
 	@echo "Infra stopped. Run 'make be-infra-up' to restart."
@@ -136,6 +142,25 @@ be-run-api-gateway:
 be-stop-api-gateway:
 	podman compose stop api-gateway
 
+be-run-prometheus:
+	podman compose up -d prometheus
+
+be-stop-prometheus:
+	podman compose stop prometheus
+
+be-run-podman-exporter:
+	systemctl --user start podman.socket
+	podman compose up -d podman-exporter
+
+be-stop-podman-exporter:
+	podman compose stop podman-exporter
+
+be-run-exporters: be-run-podman-exporter
+	podman compose up -d postgres-exporter redis-exporter
+
+be-stop-exporters:
+	podman compose stop podman-exporter postgres-exporter redis-exporter
+
 
 # ============================================================
 # Local Host Services (Debugger)
@@ -148,6 +173,7 @@ be-stop-api-gateway:
 LOCAL_DB_URL="postgres://root:secretpassword@localhost:5432/simrs_db?sslmode=disable"
 LOCAL_REDIS_HOST="localhost:6379"
 LOCAL_JAEGER_ENDPOINT="localhost:4318"
+LOCAL_PROMETHEUS_URL="http://localhost:9090"
 
 # --- Helper macro: kill ONLY the process LISTENING on a port (not browser clients) ---
 define kill_port
@@ -170,9 +196,9 @@ define wait_port_free
 	done
 endef
 
-be-run-local-all: be-run-local-auth-service be-run-local-patient-service be-run-local-registration-service be-run-local-emr-service be-run-local-pharmacy-service be-run-local-billing-service be-run-local-api-gateway
+be-run-local-all: be-run-local-auth-service be-run-local-patient-service be-run-local-registration-service be-run-local-emr-service be-run-local-pharmacy-service be-run-local-billing-service be-run-local-api-gateway be-run-local-prometheus
 
-be-stop-local-all: be-stop-local-api-gateway be-stop-local-billing-service be-stop-local-pharmacy-service be-stop-local-emr-service be-stop-local-registration-service be-stop-local-patient-service be-stop-local-auth-service
+be-stop-local-all: be-stop-local-prometheus be-stop-local-api-gateway be-stop-local-billing-service be-stop-local-pharmacy-service be-stop-local-emr-service be-stop-local-registration-service be-stop-local-patient-service be-stop-local-auth-service
 	@echo "All local services stopped."
 
 # ---- auth-service (port 50051) ----
@@ -245,12 +271,22 @@ be-stop-local-billing-service:
 be-run-local-api-gateway:
 	@echo "Starting local api-gateway..."
 	@cd src/be/api-gateway && go build -o tmp-main cmd/server/main.go
-	@cd src/be/api-gateway && AUTH_SERVICE_ADDR=localhost:50051 PATIENT_SERVICE_ADDR=localhost:50052 REGISTRATION_SERVICE_ADDR=localhost:50053 EMR_SERVICE_ADDR=localhost:50054 PHARMACY_SERVICE_ADDR=localhost:50055 BILLING_SERVICE_ADDR=localhost:50056 PORT=8080 ./tmp-main > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/api-gateway && REDIS_HOST=$(LOCAL_REDIS_HOST) PROMETHEUS_URL=$(LOCAL_PROMETHEUS_URL) AUTH_SERVICE_ADDR=localhost:50051 PATIENT_SERVICE_ADDR=localhost:50052 REGISTRATION_SERVICE_ADDR=localhost:50053 EMR_SERVICE_ADDR=localhost:50054 PHARMACY_SERVICE_ADDR=localhost:50055 BILLING_SERVICE_ADDR=localhost:50056 PORT=8080 ./tmp-main > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-api-gateway:
 	@echo "Stopping local api-gateway..."
 	$(call kill_port,8080)
 	@rm -f src/be/api-gateway/run.pid src/be/api-gateway/tmp-main
+
+# ---- prometheus (port 9090) ----
+be-run-local-prometheus:
+	@echo "Starting local Prometheus..."
+	podman run -d --name simrs-prometheus-local --network host -v $(PWD)/prometheus-local.yml:/etc/prometheus/prometheus.yml docker.io/prom/prometheus:latest
+
+be-stop-local-prometheus:
+	@echo "Stopping local Prometheus..."
+	podman rm -f simrs-prometheus-local || true
+
 
 # ============================================================
 # Frontend React Services

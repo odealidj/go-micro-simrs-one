@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: auth.proto
+// source: src/be/shared/proto/auth/v1/auth.proto
 
 package authv1
 
@@ -33,6 +33,8 @@ const (
 	AuthService_GetNurses_FullMethodName           = "/auth.v1.AuthService/GetNurses"
 	AuthService_GetDoctorsByPoli_FullMethodName    = "/auth.v1.AuthService/GetDoctorsByPoli"
 	AuthService_GetNursesByPoli_FullMethodName     = "/auth.v1.AuthService/GetNursesByPoli"
+	AuthService_AssignDoctorPoli_FullMethodName    = "/auth.v1.AuthService/AssignDoctorPoli"
+	AuthService_AssignNursePoli_FullMethodName     = "/auth.v1.AuthService/AssignNursePoli"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -63,6 +65,8 @@ type AuthServiceClient interface {
 	GetNurses(ctx context.Context, in *GetNursesRequest, opts ...grpc.CallOption) (*GetNursesResponse, error)
 	GetDoctorsByPoli(ctx context.Context, in *GetDoctorsByPoliRequest, opts ...grpc.CallOption) (*GetDoctorsByPoliResponse, error)
 	GetNursesByPoli(ctx context.Context, in *GetNursesByPoliRequest, opts ...grpc.CallOption) (*GetNursesByPoliResponse, error)
+	AssignDoctorPoli(ctx context.Context, in *AssignDoctorPoliRequest, opts ...grpc.CallOption) (*AssignDoctorPoliResponse, error)
+	AssignNursePoli(ctx context.Context, in *AssignNursePoliRequest, opts ...grpc.CallOption) (*AssignNursePoliResponse, error)
 }
 
 type authServiceClient struct {
@@ -213,6 +217,26 @@ func (c *authServiceClient) GetNursesByPoli(ctx context.Context, in *GetNursesBy
 	return out, nil
 }
 
+func (c *authServiceClient) AssignDoctorPoli(ctx context.Context, in *AssignDoctorPoliRequest, opts ...grpc.CallOption) (*AssignDoctorPoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssignDoctorPoliResponse)
+	err := c.cc.Invoke(ctx, AuthService_AssignDoctorPoli_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) AssignNursePoli(ctx context.Context, in *AssignNursePoliRequest, opts ...grpc.CallOption) (*AssignNursePoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AssignNursePoliResponse)
+	err := c.cc.Invoke(ctx, AuthService_AssignNursePoli_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -241,6 +265,8 @@ type AuthServiceServer interface {
 	GetNurses(context.Context, *GetNursesRequest) (*GetNursesResponse, error)
 	GetDoctorsByPoli(context.Context, *GetDoctorsByPoliRequest) (*GetDoctorsByPoliResponse, error)
 	GetNursesByPoli(context.Context, *GetNursesByPoliRequest) (*GetNursesByPoliResponse, error)
+	AssignDoctorPoli(context.Context, *AssignDoctorPoliRequest) (*AssignDoctorPoliResponse, error)
+	AssignNursePoli(context.Context, *AssignNursePoliRequest) (*AssignNursePoliResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -292,6 +318,12 @@ func (UnimplementedAuthServiceServer) GetDoctorsByPoli(context.Context, *GetDoct
 }
 func (UnimplementedAuthServiceServer) GetNursesByPoli(context.Context, *GetNursesByPoliRequest) (*GetNursesByPoliResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetNursesByPoli not implemented")
+}
+func (UnimplementedAuthServiceServer) AssignDoctorPoli(context.Context, *AssignDoctorPoliRequest) (*AssignDoctorPoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AssignDoctorPoli not implemented")
+}
+func (UnimplementedAuthServiceServer) AssignNursePoli(context.Context, *AssignNursePoliRequest) (*AssignNursePoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AssignNursePoli not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -566,6 +598,42 @@ func _AuthService_GetNursesByPoli_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_AssignDoctorPoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignDoctorPoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).AssignDoctorPoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_AssignDoctorPoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).AssignDoctorPoli(ctx, req.(*AssignDoctorPoliRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_AssignNursePoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignNursePoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).AssignNursePoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_AssignNursePoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).AssignNursePoli(ctx, req.(*AssignNursePoliRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -629,7 +697,15 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetNursesByPoli",
 			Handler:    _AuthService_GetNursesByPoli_Handler,
 		},
+		{
+			MethodName: "AssignDoctorPoli",
+			Handler:    _AuthService_AssignDoctorPoli_Handler,
+		},
+		{
+			MethodName: "AssignNursePoli",
+			Handler:    _AuthService_AssignNursePoli_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "auth.proto",
+	Metadata: "src/be/shared/proto/auth/v1/auth.proto",
 }

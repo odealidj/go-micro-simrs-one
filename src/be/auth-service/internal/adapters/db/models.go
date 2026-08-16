@@ -29,6 +29,9 @@ type MappingDokterPoli struct {
 	PoliCode  string
 	DeletedDt sql.NullTime
 	DeletedBy uuid.NullUUID
+	ID        uuid.UUID
+	StartDate time.Time
+	EndDate   time.Time
 }
 
 type MappingPerawatPoli struct {
@@ -36,6 +39,9 @@ type MappingPerawatPoli struct {
 	PoliCode  string
 	DeletedDt sql.NullTime
 	DeletedBy uuid.NullUUID
+	ID        uuid.UUID
+	StartDate time.Time
+	EndDate   time.Time
 }
 
 type MasterRole struct {

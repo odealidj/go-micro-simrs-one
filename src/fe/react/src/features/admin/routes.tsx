@@ -21,7 +21,7 @@ import { AssignObatPoliPage } from "./pages/master/AssignObatPoliPage";
 export const adminRoutes: RouteObject[] = [
   {
     path: "/admin",
-    element: <ProtectedRoute allowedRoles={["admin"]} />,
+    element: <ProtectedRoute allowedRoles={["admin", "super_admin"]} />,
     children: [
       {
         element: <AdminLayout />,

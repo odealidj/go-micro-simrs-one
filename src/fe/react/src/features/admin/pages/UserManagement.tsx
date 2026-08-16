@@ -15,13 +15,22 @@ interface User {
 export function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState<{total_count: number, total_pages: number} | null>(null);
+  const pageSize = 10;
 
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get("/admin/users?page=1&page_size=50");
+      const response = await api.get(`/admin/users?page=${page}&page_size=${pageSize}`);
       if (response.data.success) {
         setUsers(response.data.data?.users || []);
+        if (response.data.data?.total_count !== undefined) {
+          setMeta({
+            total_count: response.data.data.total_count,
+            total_pages: Math.ceil(response.data.data.total_count / pageSize)
+          });
+        }
       }
     } catch (error) {
       toast.error("Gagal mengambil data user");
@@ -33,7 +42,7 @@ export function UserManagement() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page]);
 
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
 
@@ -61,18 +70,18 @@ export function UserManagement() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" /> Active</span>;
-      case "PENDING":
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" /> Pending</span>;
-      case "REJECTED":
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" /> Rejected</span>;
-      default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">{status}</span>;
-    }
-  };
+  // const getStatusBadge = (status: string) => {
+  //   switch (status) {
+  //     case "ACTIVE":
+  //       return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" /> Active</span>;
+  //     case "PENDING":
+  //       return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" /> Pending</span>;
+  //     case "REJECTED":
+  //       return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" /> Rejected</span>;
+  //     default:
+  //       return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">{status}</span>;
+  //   }
+  // };
 
   const roleOptions = [
     { value: "admisi", label: "Admisi / Pendaftaran" },
@@ -100,7 +109,6 @@ export function UserManagement() {
                 <tr>
                   <th className="px-6 py-4 font-semibold">Username / NIP</th>
                   <th className="px-6 py-4 font-semibold">Role</th>
-                  <th className="px-6 py-4 font-semibold">Status</th>
                   <th className="px-6 py-4 font-semibold text-right">Aksi</th>
                 </tr>
               </thead>
@@ -122,7 +130,6 @@ export function UserManagement() {
                     <tr key={user.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4 font-medium text-slate-900">{user.username}</td>
                       <td className="px-6 py-4 capitalize text-slate-600">{user.role || "-"}</td>
-                      <td className="px-6 py-4">{getStatusBadge(user.status)}</td>
                       <td className="px-6 py-4 text-right">
                         {user.status === "PENDING" && (
                           <div className="flex justify-end items-center space-x-2">
@@ -161,6 +168,30 @@ export function UserManagement() {
               </tbody>
             </table>
           </div>
+          {meta && (
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-slate-500">
+                Total data: {meta.total_count}
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  disabled={page <= 1} 
+                  onClick={() => setPage(p => p - 1)}
+                  className="px-3 py-1 border rounded text-sm disabled:opacity-50 hover:bg-slate-50"
+                >
+                  Prev
+                </button>
+                <span className="px-3 py-1 text-sm">Halaman {page} dari {meta.total_pages}</span>
+                <button 
+                  disabled={page >= meta.total_pages} 
+                  onClick={() => setPage(p => p + 1)}
+                  className="px-3 py-1 border rounded text-sm disabled:opacity-50 hover:bg-slate-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

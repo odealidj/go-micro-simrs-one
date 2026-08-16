@@ -38,6 +38,8 @@ service AuthService {
   rpc GetNurses (GetNursesRequest) returns (GetNursesResponse);
   rpc GetDoctorsByPoli (GetDoctorsByPoliRequest) returns (GetDoctorsByPoliResponse);
   rpc GetNursesByPoli (GetNursesByPoliRequest) returns (GetNursesByPoliResponse);
+  rpc AssignDoctorPoli (AssignDoctorPoliRequest) returns (AssignDoctorPoliResponse);
+  rpc AssignNursePoli (AssignNursePoliRequest) returns (AssignNursePoliResponse);
 }
 
 message LoginRequest {
@@ -187,6 +189,9 @@ message Doctor {
   string spesialisasi = 5;
   string sip = 6;
   string status = 7;
+  string poli_code = 8;
+  string start_date = 9;
+  string end_date = 10;
 }
 
 message GetDoctorsResponse {
@@ -207,6 +212,9 @@ message Nurse {
   string email = 4;
   string str_perawat = 5;
   string status = 6;
+  string poli_code = 7;
+  string start_date = 8;
+  string end_date = 9;
 }
 
 message GetNursesResponse {
@@ -227,6 +235,8 @@ message DoctorPoliMapping {
   string nip = 3;
   string spesialisasi = 4;
   string poli_code = 5;
+  string start_date = 6;
+  string end_date = 7;
 }
 
 message GetDoctorsByPoliResponse {
@@ -247,9 +257,36 @@ message NursePoliMapping {
   string nip = 3;
   string str_perawat = 4;
   string poli_code = 5;
+  string start_date = 6;
+  string end_date = 7;
 }
 
 message GetNursesByPoliResponse {
   repeated NursePoliMapping data = 1;
   int32 total_count = 2;
 }
+
+message AssignDoctorPoliRequest {
+  string dokter_id = 1;
+  string poli_code = 2;
+  string start_date = 3;
+  string end_date = 4;
+}
+
+message AssignDoctorPoliResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message AssignNursePoliRequest {
+  string perawat_id = 1;
+  string poli_code = 2;
+  string start_date = 3;
+  string end_date = 4;
+}
+
+message AssignNursePoliResponse {
+  bool success = 1;
+  string message = 2;
+}
+

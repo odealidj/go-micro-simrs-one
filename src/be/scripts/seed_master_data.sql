@@ -68,6 +68,14 @@ INSERT INTO emr.polyclinics (code, name) VALUES
 ('MATA', 'Poliklinik Mata')
 ON CONFLICT (code) DO NOTHING;
 
+-- Seed KBM Catalog
+INSERT INTO emr.kbm_catalog (kbm_code, kbm_name, description, body_system, is_active) VALUES
+('KBM-001', 'Demam Tinggi', 'Gejala demam di atas 38 derajat', 'Sistem Imun', true),
+('KBM-011', 'Batuk Berdahak', 'Batuk disertai dahak kental', 'Sistem Pernapasan', true),
+('KBM-021', 'Nyeri Perut', 'Nyeri pada area abdomen', 'Sistem Pencernaan', true),
+('KBM-031', 'Sakit Kepala Berat', 'Migrain atau sakit kepala tegang', 'Sistem Saraf', true)
+ON CONFLICT (kbm_code) DO NOTHING;
+
 -- Mappings EMR
 INSERT INTO emr.icd10_polyclinic_mappings (icd10_code, polyclinic_code) VALUES
 ('A00', 'UMUM'),
@@ -113,13 +121,7 @@ ON CONFLICT DO NOTHING;
 -- ADDITIONS: KBM, DOCTORS, NURSES
 -- ==========================================
 
--- Seed KBM Catalog
-INSERT INTO emr.kbm_catalog (kbm_code, kbm_name, description, body_system, is_active) VALUES
-('KBM-001', 'Demam Tinggi', 'Gejala demam di atas 38 derajat', 'Sistem Imun', true),
-('KBM-011', 'Batuk Berdahak', 'Batuk disertai dahak kental', 'Sistem Pernapasan', true),
-('KBM-021', 'Nyeri Perut', 'Nyeri pada area abdomen', 'Sistem Pencernaan', true),
-('KBM-031', 'Sakit Kepala Berat', 'Migrain atau sakit kepala tegang', 'Sistem Saraf', true)
-ON CONFLICT (kbm_code) DO NOTHING;
+-- KBM Catalog moved to the top
 
 -- Seed Users for Doctors and Nurses
 INSERT INTO auth.users (id, username, password_hash, role) VALUES

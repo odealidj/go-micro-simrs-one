@@ -107,7 +107,7 @@ func (s *authServiceImpl) BootstrapAdmin(ctx context.Context, nip, password, ema
 		return err
 	}
 
-	roleAdmin := "super_admin"
+	roleAdmin := "admin"
 	user := &domain.User{
 		Username:            nip,
 		PasswordHash:        string(hashedPassword),

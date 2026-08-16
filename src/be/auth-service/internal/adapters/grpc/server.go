@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -264,6 +265,14 @@ func (s *AuthGrpcServer) GetDoctors(ctx context.Context, req *pb.GetDoctorsReque
 
 	var pbDocs []*pb.Doctor
 	for _, d := range doctors {
+		startDate := ""
+		if d.StartDate.Valid {
+			startDate = d.StartDate.Time.Format("2006-01-02")
+		}
+		endDate := ""
+		if d.EndDate.Valid {
+			endDate = d.EndDate.Time.Format("2006-01-02")
+		}
 		pbDocs = append(pbDocs, &pb.Doctor{
 			Id:           d.ID.String(),
 			Username:     d.Username,
@@ -272,6 +281,9 @@ func (s *AuthGrpcServer) GetDoctors(ctx context.Context, req *pb.GetDoctorsReque
 			Spesialisasi: d.Spesialisasi.String,
 			Sip:          d.Sip.String,
 			Status:       d.Status.String,
+			PoliCode:     d.PoliCode.String,
+			StartDate:    startDate,
+			EndDate:      endDate,
 		})
 	}
 
@@ -308,6 +320,14 @@ func (s *AuthGrpcServer) GetNurses(ctx context.Context, req *pb.GetNursesRequest
 
 	var pbNurses []*pb.Nurse
 	for _, n := range nurses {
+		startDate := ""
+		if n.StartDate.Valid {
+			startDate = n.StartDate.Time.Format("2006-01-02")
+		}
+		endDate := ""
+		if n.EndDate.Valid {
+			endDate = n.EndDate.Time.Format("2006-01-02")
+		}
 		pbNurses = append(pbNurses, &pb.Nurse{
 			Id:         n.ID.String(),
 			Username:   n.Username,
@@ -315,6 +335,9 @@ func (s *AuthGrpcServer) GetNurses(ctx context.Context, req *pb.GetNursesRequest
 			Email:      n.Email.String,
 			StrPerawat: n.StrPerawat.String,
 			Status:     n.Status.String,
+			PoliCode:   n.PoliCode.String,
+			StartDate:  startDate,
+			EndDate:    endDate,
 		})
 	}
 
@@ -361,6 +384,8 @@ func (s *AuthGrpcServer) GetDoctorsByPoli(ctx context.Context, req *pb.GetDoctor
 			Nip:          d.Nip.String,
 			Spesialisasi: d.Spesialisasi.String,
 			PoliCode:     d.PoliCode,
+			StartDate:    d.StartDate.Format("2006-01-02"),
+			EndDate:      d.EndDate.Format("2006-01-02"),
 		})
 	}
 
@@ -407,12 +432,118 @@ func (s *AuthGrpcServer) GetNursesByPoli(ctx context.Context, req *pb.GetNursesB
 			Nip:        n.Nip.String,
 			StrPerawat: n.StrPerawat.String,
 			PoliCode:   n.PoliCode,
+			StartDate:  n.StartDate.Format("2006-01-02"),
+			EndDate:    n.EndDate.Format("2006-01-02"),
 		})
 	}
 
 	return &pb.GetNursesByPoliResponse{
 		Data:       pbNurses,
 		TotalCount: int32(count),
+	}, nil
+}
+
+func (s *AuthGrpcServer) AssignDoctorPoli(ctx context.Context, req *pb.AssignDoctorPoliRequest) (*pb.AssignDoctorPoliResponse, error) {
+	if req.DokterId == "" || req.PoliCode == "" || req.StartDate == "" || req.EndDate == "" {
+		return nil, status.Error(codes.InvalidArgument, "dokter_id, poli_code, start_date, and end_date are required")
+	}
+	
+	dokterUUID, err := uuid.Parse(req.DokterId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid dokter_id format")
+	}
+
+	startDate, err := time.Parse("2006-01-02", req.StartDate)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid start_date format, expected YYYY-MM-DD")
+	}
+
+	endDate, err := time.Parse("2006-01-02", req.EndDate)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid end_date format, expected YYYY-MM-DD")
+	}
+
+	if endDate.Before(startDate) {
+		return nil, status.Error(codes.InvalidArgument, "end_date cannot be before start_date")
+	}
+
+	isOverlap, err := s.queries.CheckDoctorAssignmentOverlap(ctx, db.CheckDoctorAssignmentOverlapParams{
+		DokterID:  dokterUUID,
+		StartDate: startDate,
+		EndDate:   endDate,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to check assignment overlap: %v", err)
+	}
+	if isOverlap {
+		return nil, status.Error(codes.FailedPrecondition, "Doctor is already assigned to a polyclinic during this period")
+	}
+
+	_, err = s.queries.AssignDoctorToPoli(ctx, db.AssignDoctorToPoliParams{
+		DokterID:  dokterUUID,
+		PoliCode:  req.PoliCode,
+		StartDate: startDate,
+		EndDate:   endDate,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to assign doctor to poli: %v", err)
+	}
+
+	return &pb.AssignDoctorPoliResponse{
+		Success: true,
+		Message: "Doctor assigned successfully",
+	}, nil
+}
+
+func (s *AuthGrpcServer) AssignNursePoli(ctx context.Context, req *pb.AssignNursePoliRequest) (*pb.AssignNursePoliResponse, error) {
+	if req.PerawatId == "" || req.PoliCode == "" || req.StartDate == "" || req.EndDate == "" {
+		return nil, status.Error(codes.InvalidArgument, "perawat_id, poli_code, start_date, and end_date are required")
+	}
+	
+	perawatUUID, err := uuid.Parse(req.PerawatId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid perawat_id format")
+	}
+
+	startDate, err := time.Parse("2006-01-02", req.StartDate)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid start_date format, expected YYYY-MM-DD")
+	}
+
+	endDate, err := time.Parse("2006-01-02", req.EndDate)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid end_date format, expected YYYY-MM-DD")
+	}
+
+	if endDate.Before(startDate) {
+		return nil, status.Error(codes.InvalidArgument, "end_date cannot be before start_date")
+	}
+
+	isOverlap, err := s.queries.CheckNurseAssignmentOverlap(ctx, db.CheckNurseAssignmentOverlapParams{
+		PerawatID: perawatUUID,
+		StartDate: startDate,
+		EndDate:   endDate,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to check assignment overlap: %v", err)
+	}
+	if isOverlap {
+		return nil, status.Error(codes.FailedPrecondition, "Nurse is already assigned to a polyclinic during this period")
+	}
+
+	_, err = s.queries.AssignNurseToPoli(ctx, db.AssignNurseToPoliParams{
+		PerawatID: perawatUUID,
+		PoliCode:  req.PoliCode,
+		StartDate: startDate,
+		EndDate:   endDate,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to assign nurse to poli: %v", err)
+	}
+
+	return &pb.AssignNursePoliResponse{
+		Success: true,
+		Message: "Nurse assigned successfully",
 	}, nil
 }
 
