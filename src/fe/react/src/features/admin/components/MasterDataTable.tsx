@@ -47,26 +47,18 @@ export function MasterDataTable<T>({
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h2 className="text-xl font-bold text-slate-800">{title}</h2>
-        <p className="text-slate-500 text-sm mt-1">{description}</p>
-        
-        <div className="mt-6 flex flex-col md:flex-row gap-4 justify-between">
-          <div className="flex gap-4 w-full md:w-1/2">
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                type="text"
-                placeholder="Cari data..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10 bg-slate-50 border-transparent focus:bg-white focus:border-blue-500 transition-colors"
-              />
-            </div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+            <p className="text-slate-500 text-sm mt-1">{description}</p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             {requiresPoliFilter && (
               <select
                 value={poliCode}
                 onChange={(e) => setPoliCode(e.target.value)}
-                className="w-48 bg-slate-50 border border-transparent rounded-md px-3 py-2 text-sm text-slate-700 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
+                className="w-full sm:w-48 bg-slate-50 border border-transparent rounded-md px-3 py-2 text-sm text-slate-700 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
                 disabled={loadingPoli}
               >
                 <option value="">Semua Poliklinik</option>
@@ -77,6 +69,16 @@ export function MasterDataTable<T>({
                 ))}
               </select>
             )}
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                type="text"
+                placeholder="Cari data..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="pl-9 bg-slate-50 border-slate-200 focus:bg-white focus:border-blue-500 transition-colors"
+              />
+            </div>
           </div>
         </div>
 
