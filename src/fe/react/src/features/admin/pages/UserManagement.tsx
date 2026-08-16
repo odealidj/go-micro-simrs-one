@@ -164,6 +164,7 @@ export function UserManagement() {
                 )}
               </tbody>
             </table>
+          </div>
           {meta && (
             <div className="mt-4 flex items-center justify-between">
               <div className="text-sm text-slate-500">
