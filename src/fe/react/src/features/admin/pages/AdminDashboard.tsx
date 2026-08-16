@@ -26,7 +26,10 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend
+  Legend,
+  ComposedChart,
+  Line,
+  Area
 } from "recharts";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
@@ -51,6 +54,7 @@ export function AdminDashboard() {
   
   const [activeTab, setActiveTab] = useState<"infrastructure" | "data">("infrastructure");
   const [masterMetrics, setMasterMetrics] = useState<any>({});
+  const [dbTrend, setDbTrend] = useState<{ time: string; activeConn: number; tps: number; redisConn: number; redisMem: number }[]>([]);
 
   // We now fetch real Outbox metrics from systemHealth, no longer needing mockOutbox
 
@@ -58,7 +62,22 @@ export function AdminDashboard() {
     try {
       const response = await api.get("/admin/system/health");
       if (response.data.success) {
-        setSystemHealth(response.data.data);
+        const data = response.data.data;
+        setSystemHealth(data);
+        setDbTrend(prev => {
+          const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          const newEntry = {
+            time: now,
+            activeConn: Number(data.pg_active_connections) || 0,
+            tps: Number(data.pg_xact_commit) || 0,
+            redisConn: Number(data.redis_connected_clients) || 0,
+            redisMem: Number(data.redis_memory_used_mb) || 0
+          };
+          const updated = [...prev, newEntry];
+          // Keep last 15 data points
+          if (updated.length > 15) return updated.slice(updated.length - 15);
+          return updated;
+        });
       }
     } catch (error) {
       toast.error("Gagal mengambil data system health");
@@ -121,7 +140,7 @@ export function AdminDashboard() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">IT Control Room</h1>
+        <h1 className="text-2xl font-bold text-slate-900">System Dashboard</h1>
         <p className="text-slate-500">Monitor kesehatan infrastruktur, antrean pesan, dan integritas data.</p>
       </div>
 
@@ -208,6 +227,9 @@ export function AdminDashboard() {
                 {systemHealth["cpu_usage_percent"] === "N/A" || !systemHealth["cpu_usage_percent"] ? "N/A" : `${systemHealth["cpu_usage_percent"]}%`}
               </div>
               <p className="text-xs text-slate-500 mt-1">Total beban CPU 5 menit terakhir</p>
+              {systemHealth["exporter_cpu_percent"] && systemHealth["exporter_cpu_percent"] !== "N/A" && (
+                <p className="text-[10px] text-blue-400 mt-0.5">Termasuk {systemHealth["exporter_cpu_percent"]}% Exporter Overhead</p>
+              )}
             </CardContent>
           </Card>
 
@@ -223,6 +245,9 @@ export function AdminDashboard() {
                 {systemHealth["ram_usage_mb"] === "N/A" || !systemHealth["ram_usage_mb"] ? "N/A" : `${systemHealth["ram_usage_mb"]} MB`}
               </div>
               <p className="text-xs text-slate-500 mt-1">Total memori aktif (Resident)</p>
+              {systemHealth["exporter_ram_mb"] && systemHealth["exporter_ram_mb"] !== "N/A" && (
+                <p className="text-[10px] text-indigo-400 mt-0.5">Termasuk {systemHealth["exporter_ram_mb"]} MB Exporter Overhead</p>
+              )}
             </CardContent>
           </Card>
 
@@ -415,72 +440,23 @@ export function AdminDashboard() {
         </Card>
       </div>
 
-      {/* TIER 4: SECURITY & OPERATIONS */}
-      <div>
-        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Keamanan & Akses (RBAC)</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center text-slate-600">
-                <Users className="w-4 h-4 mr-2" />
-                User Menunggu Persetujuan
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-slate-800">{usersPending}</div>
-                {usersPending > 0 && (
-                  <Link to="/admin/users" className="text-sm text-blue-600 hover:underline">
-                    Review Sekarang →
-                  </Link>
-                )}
-              </div>
-              <p className="text-xs text-slate-500 mt-2">Staf baru yang belum di-assign role</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="shadow-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center text-slate-600">
-                <Activity className="w-4 h-4 mr-2" />
-                Total User Sistem
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-800">{usersTotal}</div>
-              <p className="text-xs text-slate-500 mt-2">Seluruh akun yang pernah didaftarkan</p>
-            </CardContent>
-          </Card>
 
-          <Card className="shadow-sm opacity-60">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center text-slate-600">
-                <PackageX className="w-4 h-4 mr-2" />
-                Soft-Deleted Records
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-800">142</div>
-              <p className="text-xs text-slate-500 mt-2">Data sampah di database (Mock)</p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
       
       {/* TIER 4: INFRASTRUCTURE CHARTS */}
       <div>
-        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mt-6 mb-3">Analitik Infrastruktur</h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mt-6 mb-3">Analitik Infrastruktur (Pro)</h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2">
+          {/* CHART 1: Outbox Load */}
           <Card className="shadow-sm">
             <CardHeader>
               <CardTitle className="text-sm font-medium">Beban Antrean Pesan (Outbox)</CardTitle>
-              <CardDescription className="text-xs">Perbandingan event belum diproses & gagal per layanan</CardDescription>
+              <CardDescription className="text-xs">Perbandingan event belum diproses & gagal</CardDescription>
             </CardHeader>
             <CardContent className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={[
-                  { name: 'EMR Outbox', Unprocessed: Number(systemHealth.emr_outbox_unprocessed) || 0, Failed: Number(systemHealth.emr_outbox_failed) || 0 },
-                  { name: 'Pharmacy Outbox', Unprocessed: Number(systemHealth.pharmacy_outbox_unprocessed) || 0, Failed: Number(systemHealth.pharmacy_outbox_failed) || 0 }
+                  { name: 'EMR', Unprocessed: Number(systemHealth.emr_outbox_unprocessed) || 0, Failed: Number(systemHealth.emr_outbox_failed) || 0 },
+                  { name: 'Pharmacy', Unprocessed: Number(systemHealth.pharmacy_outbox_unprocessed) || 0, Failed: Number(systemHealth.pharmacy_outbox_failed) || 0 }
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} tickMargin={10} axisLine={false} tickLine={false} />
@@ -494,30 +470,89 @@ export function AdminDashboard() {
             </CardContent>
           </Card>
 
+          {/* CHART 2: Resource Consumption Distribution */}
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle className="text-sm font-medium">Rasio Layanan Aktif (Uptime)</CardTitle>
-              <CardDescription className="text-xs">Proporsi microservices yang sedang berjalan vs terhenti</CardDescription>
+              <CardTitle className="text-sm font-medium">Resource Distribution</CardTitle>
+              <CardDescription className="text-xs">Konsumsi CPU (%) vs RAM (MB) per Microservice</CardDescription>
             </CardHeader>
             <CardContent className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'Online', count: ['api_gateway', 'auth_service', 'patient_service', 'registration_service', 'emr_service', 'pharmacy_service', 'billing_service', 'redis'].filter(s => systemHealth[s] === 'SERVING').length },
-                      { name: 'Offline', count: ['api_gateway', 'auth_service', 'patient_service', 'registration_service', 'emr_service', 'pharmacy_service', 'billing_service', 'redis'].filter(s => systemHealth[s] && systemHealth[s] !== 'SERVING').length }
-                    ]}
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="count"
-                  >
-                    <Cell fill="#10b981" /> {/* Emerald for Online */}
-                    <Cell fill="#f43f5e" /> {/* Rose for Offline */}
-                  </Pie>
+                <ComposedChart data={(() => {
+                  const cpuMap = new Map();
+                  const ramMap = new Map();
+                  if (Array.isArray(systemHealth.microservices_cpu)) {
+                    systemHealth.microservices_cpu.forEach((i: any) => cpuMap.set(i.job, parseFloat(i.value) || 0));
+                  }
+                  if (Array.isArray(systemHealth.microservices_ram)) {
+                    systemHealth.microservices_ram.forEach((i: any) => ramMap.set(i.job, parseFloat(i.value) || 0));
+                  }
+                  const jobs = new Set([...cpuMap.keys(), ...ramMap.keys()]);
+                  return Array.from(jobs).map(job => ({
+                    name: String(job).replace('-service', '').replace('api-', ''),
+                    cpu: cpuMap.get(job) || 0,
+                    ram: ramMap.get(job) || 0
+                  }));
+                })()}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} tickMargin={10} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="left" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} orientation="left" />
+                  <YAxis yAxisId="right" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} orientation="right" />
+                  <RechartsTooltip cursor={{ fill: '#f1f5f9' }} />
+                  <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '11px' }} />
+                  <Bar yAxisId="left" dataKey="ram" name="RAM (MB)" fill="#6366f1" radius={[2, 2, 0, 0]} />
+                  <Line yAxisId="right" type="monotone" dataKey="cpu" name="CPU (%)" stroke="#f43f5e" strokeWidth={2} dot={{ r: 3 }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* CHART 3: Database Stress Correlation */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">PostgreSQL Stress Correlation</CardTitle>
+              <CardDescription className="text-xs">Active Conn vs Transactions/sec (TPS)</CardDescription>
+            </CardHeader>
+            <CardContent className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={dbTrend.length > 0 ? dbTrend : [
+                  { time: 'T-1', activeConn: 0, tps: 0 },
+                  { time: 'T-0', activeConn: Number(systemHealth.pg_active_connections) || 0, tps: Number(systemHealth.pg_xact_commit) || 0 }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="time" tick={{ fontSize: 10 }} tickMargin={10} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="left" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} orientation="left" />
+                  <YAxis yAxisId="right" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} orientation="right" />
                   <RechartsTooltip />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
-                </PieChart>
+                  <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '11px' }} />
+                  <Line yAxisId="left" type="stepAfter" dataKey="activeConn" name="Connections" stroke="#0ea5e9" strokeWidth={2} dot={false} />
+                  <Area yAxisId="right" type="monotone" dataKey="tps" name="Transactions/sec" fill="#10b981" stroke="#10b981" fillOpacity={0.2} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* CHART 4: Redis Cache Utilization */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-sm font-medium">Redis Cache Utilization</CardTitle>
+              <CardDescription className="text-xs">Memory Used (MB) vs Connected Clients</CardDescription>
+            </CardHeader>
+            <CardContent className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={dbTrend.length > 0 ? dbTrend : [
+                  { time: 'T-1', redisConn: 0, redisMem: 0 },
+                  { time: 'T-0', redisConn: Number(systemHealth.redis_connected_clients) || 0, redisMem: Number(systemHealth.redis_memory_used_mb) || 0 }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="time" tick={{ fontSize: 10 }} tickMargin={10} axisLine={false} tickLine={false} />
+                  <YAxis yAxisId="left" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} orientation="left" />
+                  <YAxis yAxisId="right" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} orientation="right" />
+                  <RechartsTooltip />
+                  <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: '11px' }} />
+                  <Area yAxisId="left" type="monotone" dataKey="redisMem" name="Memory (MB)" fill="#a855f7" stroke="#a855f7" fillOpacity={0.2} />
+                  <Line yAxisId="right" type="stepAfter" dataKey="redisConn" name="Clients" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                </ComposedChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
@@ -528,6 +563,58 @@ export function AdminDashboard() {
 
       {activeTab === "data" && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          {/* TIER 4: SECURITY & OPERATIONS */}
+          <div>
+            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Keamanan & Akses (RBAC)</h2>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center text-slate-600">
+                    <Users className="w-4 h-4 mr-2" />
+                    User Menunggu Persetujuan
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="text-3xl font-bold text-slate-800">{usersPending}</div>
+                    {usersPending > 0 && (
+                      <Link to="/admin/users" className="text-sm text-blue-600 hover:underline">
+                        Review Sekarang →
+                      </Link>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">Staf baru yang belum di-assign role</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center text-slate-600">
+                    <Activity className="w-4 h-4 mr-2" />
+                    Total User Sistem
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-slate-800">{usersTotal}</div>
+                  <p className="text-xs text-slate-500 mt-2">Seluruh akun yang pernah didaftarkan</p>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm opacity-60">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center text-slate-600">
+                    <PackageX className="w-4 h-4 mr-2" />
+                    Soft-Deleted Records
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-slate-800">142</div>
+                  <p className="text-xs text-slate-500 mt-2">Data sampah di database (Mock)</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
           {/* TIER 1: MASTER DATA VOLUME */}
           <div>
             <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Volume Data Master</h2>
