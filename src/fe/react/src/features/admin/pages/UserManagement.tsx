@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
@@ -95,24 +94,22 @@ export function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle>Manajemen Pengguna</CardTitle>
-          <CardDescription>
-            Daftar semua pengguna terdaftar, termasuk staf yang menunggu persetujuan.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 text-slate-700 border-b">
-                <tr>
-                  <th className="px-6 py-4 font-semibold">Username / NIP</th>
-                  <th className="px-6 py-4 font-semibold">Role</th>
-                  <th className="px-6 py-4 font-semibold text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <h2 className="text-xl font-bold text-slate-800">Manajemen Pengguna</h2>
+        <p className="text-slate-500 text-sm mt-1">
+          Daftar semua pengguna terdaftar, termasuk staf yang menunggu persetujuan.
+        </p>
+
+        <div className="mt-6 overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 text-slate-500 font-medium border-y border-slate-200">
+              <tr>
+                <th className="px-6 py-4">Username / NIP</th>
+                <th className="px-6 py-4">Role</th>
+                <th className="px-6 py-4 text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
                 {isLoading ? (
                   <tr>
                     <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
@@ -127,7 +124,7 @@ export function UserManagement() {
                   </tr>
                 ) : (
                   users.map((user) => (
-                    <tr key={user.id} className="hover:bg-slate-50 transition-colors">
+                    <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-6 py-4 font-medium text-slate-900">{user.username}</td>
                       <td className="px-6 py-4 capitalize text-slate-600">{user.role || "-"}</td>
                       <td className="px-6 py-4 text-right">
@@ -167,7 +164,6 @@ export function UserManagement() {
                 )}
               </tbody>
             </table>
-          </div>
           {meta && (
             <div className="mt-4 flex items-center justify-between">
               <div className="text-sm text-slate-500">
@@ -192,8 +188,7 @@ export function UserManagement() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }
