@@ -233,12 +233,19 @@ func (q *Queries) CountNursesByPoli(ctx context.Context, arg CountNursesByPoliPa
 const countUsersWithProfile = `-- name: CountUsersWithProfile :one
 SELECT COUNT(u.id)
 FROM users u
+LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL
   AND ($1::text = '' OR u.status = $1)
+  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
 `
 
-func (q *Queries) CountUsersWithProfile(ctx context.Context, dollar_1 string) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countUsersWithProfile, dollar_1)
+type CountUsersWithProfileParams struct {
+	Column1 string
+	Column2 string
+}
+
+func (q *Queries) CountUsersWithProfile(ctx context.Context, arg CountUsersWithProfileParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countUsersWithProfile, arg.Column1, arg.Column2)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -771,6 +778,7 @@ FROM users u
 LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL
   AND ($1::text = '' OR u.status = $1)
+  AND ($4::text = '' OR u.username ILIKE '%' || $4 || '%' OR s.nip ILIKE '%' || $4 || '%')
 ORDER BY u.created_at DESC
 LIMIT $2 OFFSET $3
 `
@@ -779,6 +787,7 @@ type ListUsersWithProfileParams struct {
 	Column1 string
 	Limit   int32
 	Offset  int32
+	Column4 string
 }
 
 type ListUsersWithProfileRow struct {
@@ -793,7 +802,12 @@ type ListUsersWithProfileRow struct {
 }
 
 func (q *Queries) ListUsersWithProfile(ctx context.Context, arg ListUsersWithProfileParams) ([]ListUsersWithProfileRow, error) {
-	rows, err := q.db.QueryContext(ctx, listUsersWithProfile, arg.Column1, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listUsersWithProfile,
+		arg.Column1,
+		arg.Limit,
+		arg.Offset,
+		arg.Column4,
+	)
 	if err != nil {
 		return nil, err
 	}

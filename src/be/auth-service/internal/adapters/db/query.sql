@@ -25,14 +25,17 @@ FROM users u
 LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL
   AND ($1::text = '' OR u.status = $1)
+  AND ($4::text = '' OR u.username ILIKE '%' || $4 || '%' OR s.nip ILIKE '%' || $4 || '%')
 ORDER BY u.created_at DESC
 LIMIT $2 OFFSET $3;
 
 -- name: CountUsersWithProfile :one
 SELECT COUNT(u.id)
 FROM users u
+LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL
-  AND ($1::text = '' OR u.status = $1);
+  AND ($1::text = '' OR u.status = $1)
+  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%');
 
 -- name: UpdateUserStatusAndRole :exec
 UPDATE users

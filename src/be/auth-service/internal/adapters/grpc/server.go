@@ -131,7 +131,7 @@ func (s *AuthGrpcServer) ExtractKTPData(ctx context.Context, req *pb.ExtractKTPD
 }
 
 func (s *AuthGrpcServer) ListUsers(ctx context.Context, req *pb.ListUsersRequest) (*pb.ListUsersResponse, error) {
-	users, totalCount, err := s.authService.ListUsers(ctx, int(req.Page), int(req.PageSize), req.StatusFilter)
+	users, totalCount, err := s.authService.ListUsers(ctx, int(req.Page), int(req.PageSize), req.StatusFilter, req.Search)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list users: %v", err)
 	}

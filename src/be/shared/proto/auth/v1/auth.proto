@@ -129,6 +129,7 @@ message ListUsersRequest {
   int32 page = 1;
   int32 page_size = 2;
   string status_filter = 3;
+  string search = 4;
 }
 
 message ListUsersResponse {
