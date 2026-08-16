@@ -455,7 +455,9 @@ func main() {
 
 					statusData["sla_percent"] = queryPrometheus(`avg(avg_over_time(up[30d])) * 100`)
 					statusData["cpu_usage_percent"] = queryPrometheus(`sum(rate(process_cpu_seconds_total[5m])) * 100`)
+					statusData["exporter_cpu_percent"] = queryPrometheus(`sum(rate(process_cpu_seconds_total{job=~".*exporter.*|podman-exporter"}[5m])) * 100`)
 					statusData["ram_usage_mb"] = queryPrometheus(`sum(process_resident_memory_bytes) / 1024 / 1024`)
+					statusData["exporter_ram_mb"] = queryPrometheus(`sum(process_resident_memory_bytes{job=~".*exporter.*|podman-exporter"}) / 1024 / 1024`)
 					statusData["http_error_rate"] = queryPrometheus(`sum(rate(http_requests_total{code=~"5.."}[5m])) or vector(0)`)
 					
 					statusData["microservices_cpu"] = queryPrometheusList(`sum by (job) (rate(process_cpu_seconds_total{job!~".*exporter.*|podman-exporter"}[5m])) * 100`)
@@ -642,12 +644,14 @@ func main() {
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
 					if pageSize <= 0 { pageSize = 50 }
 					statusFilter := req.URL.Query().Get("status")
+					searchQuery := req.URL.Query().Get("search")
 
 					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.ListUsersResponse, error) {
 						return authClient.ListUsers(req.Context(), &authpb.ListUsersRequest{
 							Page:         int32(page),
 							PageSize:     int32(pageSize),
 							StatusFilter: statusFilter,
+							Search:       searchQuery,
 						})
 					})
 					if err != nil {

@@ -334,14 +334,15 @@ func (s *authServiceImpl) ExtractKTPData(ctx context.Context, base64Image string
 	return &result, nil
 }
 
-func (s *authServiceImpl) ListUsers(ctx context.Context, page, pageSize int, statusFilter string) ([]*domain.UserWithProfile, int, error) {
-	if page < 1 {
+func (s *authServiceImpl) ListUsers(ctx context.Context, page, pageSize int, statusFilter, search string) ([]*domain.UserWithProfile, int, error) {
+	if page <= 0 {
 		page = 1
 	}
-	if pageSize < 1 {
+	if pageSize <= 0 {
 		pageSize = 10
 	}
-	return s.repo.ListUsers(ctx, page, pageSize, statusFilter)
+
+	return s.repo.ListUsers(ctx, page, pageSize, statusFilter, search)
 }
 
 func (s *authServiceImpl) UpdateUserStatus(ctx context.Context, userID, status string, role *string) error {

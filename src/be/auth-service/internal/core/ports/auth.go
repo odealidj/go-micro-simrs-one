@@ -12,7 +12,7 @@ type UserRepository interface {
 	FindByUsername(ctx context.Context, username string) (*domain.User, error)
 	FindByID(ctx context.Context, id string) (*domain.User, error)
 	CreateWithProfile(ctx context.Context, user *domain.User, profile *domain.StaffProfile) (*domain.User, error)
-	ListUsers(ctx context.Context, page, pageSize int, statusFilter string) ([]*domain.UserWithProfile, int, error)
+	ListUsers(ctx context.Context, page, pageSize int, statusFilter, search string) ([]*domain.UserWithProfile, int, error)
 	UpdateStatusAndRole(ctx context.Context, userID, status string, role *string) error
 	SoftDelete(ctx context.Context, userID, deletedBy string) error
 	
@@ -44,7 +44,7 @@ type AuthService interface {
 	RefreshToken(ctx context.Context, refreshToken string) (tokenPair *TokenPair, err error)
 	ExtractKTPData(ctx context.Context, base64Image string) (*ExtractKTPDataResult, error)
 	
-	ListUsers(ctx context.Context, page, pageSize int, statusFilter string) ([]*domain.UserWithProfile, int, error)
+	ListUsers(ctx context.Context, page, pageSize int, statusFilter, search string) ([]*domain.UserWithProfile, int, error)
 	UpdateUserStatus(ctx context.Context, userID, status string, role *string) error
 	DeleteUser(ctx context.Context, userID, deletedBy string) error
 }

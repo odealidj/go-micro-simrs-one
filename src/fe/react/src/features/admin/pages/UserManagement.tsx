@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Search } from "lucide-react";
+import { useDebounce } from "@/hooks/useDebounce";
+import { Input } from "@/components/ui/input";
 
 interface User {
   id: string;
@@ -18,10 +20,14 @@ export function UserManagement() {
   const [meta, setMeta] = useState<{total_count: number, total_pages: number} | null>(null);
   const pageSize = 10;
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get(`/admin/users?page=${page}&page_size=${pageSize}`);
+      const searchParam = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : "";
+      const response = await api.get(`/admin/users?page=${page}&page_size=${pageSize}${searchParam}`);
       if (response.data.success) {
         setUsers(response.data.data?.users || []);
         if (response.data.data?.total_count !== undefined) {
@@ -40,8 +46,12 @@ export function UserManagement() {
   };
 
   useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
+  useEffect(() => {
     fetchUsers();
-  }, [page]);
+  }, [page, debouncedSearch]);
 
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
 
@@ -95,10 +105,24 @@ export function UserManagement() {
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h2 className="text-xl font-bold text-slate-800">Manajemen Pengguna</h2>
-        <p className="text-slate-500 text-sm mt-1">
-          Daftar semua pengguna terdaftar, termasuk staf yang menunggu persetujuan.
-        </p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h2 className="text-xl font-bold text-slate-800">Manajemen Pengguna</h2>
+            <p className="text-slate-500 text-sm mt-1">
+              Daftar semua pengguna terdaftar, termasuk staf yang menunggu persetujuan.
+            </p>
+          </div>
+          
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Cari username atau NIP..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 bg-slate-50 border-slate-200"
+            />
+          </div>
+        </div>
 
         <div className="mt-6 overflow-x-auto">
           <table className="w-full text-sm text-left">

@@ -96,13 +96,14 @@ func (r *userRepoSqlc) CreateWithProfile(ctx context.Context, user *domain.User,
 	}, nil
 }
 
-func (r *userRepoSqlc) ListUsers(ctx context.Context, page, pageSize int, statusFilter string) ([]*domain.UserWithProfile, int, error) {
+func (r *userRepoSqlc) ListUsers(ctx context.Context, page, pageSize int, statusFilter, search string) ([]*domain.UserWithProfile, int, error) {
 	offset := (page - 1) * pageSize
 
 	rows, err := r.q.ListUsersWithProfile(ctx, db.ListUsersWithProfileParams{
 		Column1: statusFilter,
 		Limit:   int32(pageSize),
 		Offset:  int32(offset),
+		Column4: search,
 	})
 	if err != nil {
 		return nil, 0, err
@@ -129,7 +130,10 @@ func (r *userRepoSqlc) ListUsers(ctx context.Context, page, pageSize int, status
 		users = append(users, u)
 	}
 
-	totalCount, err := r.q.CountUsersWithProfile(ctx, statusFilter)
+	totalCount, err := r.q.CountUsersWithProfile(ctx, db.CountUsersWithProfileParams{
+		Column1: statusFilter,
+		Column2: search,
+	})
 	if err != nil {
 		return nil, 0, err
 	}

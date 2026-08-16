@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.26.1
-// source: src/be/shared/proto/auth/v1/auth.proto
+// source: proto/auth/v1/auth.proto
 
 package authv1
 
@@ -31,7 +31,7 @@ type LoginRequest struct {
 
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[0]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[0]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{0}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *LoginRequest) GetUsername() string {
@@ -88,7 +88,7 @@ type LoginResponse struct {
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[1]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -100,7 +100,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[1]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -113,7 +113,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{1}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *LoginResponse) GetSuccess() bool {
@@ -177,7 +177,7 @@ type SignupRequest struct {
 
 func (x *SignupRequest) Reset() {
 	*x = SignupRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[2]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -189,7 +189,7 @@ func (x *SignupRequest) String() string {
 func (*SignupRequest) ProtoMessage() {}
 
 func (x *SignupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[2]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -202,7 +202,7 @@ func (x *SignupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignupRequest.ProtoReflect.Descriptor instead.
 func (*SignupRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{2}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SignupRequest) GetUsername() string {
@@ -244,7 +244,7 @@ type SignupResponse struct {
 
 func (x *SignupResponse) Reset() {
 	*x = SignupResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[3]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -256,7 +256,7 @@ func (x *SignupResponse) String() string {
 func (*SignupResponse) ProtoMessage() {}
 
 func (x *SignupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[3]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -269,7 +269,7 @@ func (x *SignupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignupResponse.ProtoReflect.Descriptor instead.
 func (*SignupResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{3}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SignupResponse) GetSuccess() bool {
@@ -303,7 +303,7 @@ type RegisterPatientUserRequest struct {
 
 func (x *RegisterPatientUserRequest) Reset() {
 	*x = RegisterPatientUserRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[4]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -315,7 +315,7 @@ func (x *RegisterPatientUserRequest) String() string {
 func (*RegisterPatientUserRequest) ProtoMessage() {}
 
 func (x *RegisterPatientUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[4]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -328,7 +328,7 @@ func (x *RegisterPatientUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterPatientUserRequest.ProtoReflect.Descriptor instead.
 func (*RegisterPatientUserRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{4}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RegisterPatientUserRequest) GetUsername() string {
@@ -355,7 +355,7 @@ type RegisterPatientUserResponse struct {
 
 func (x *RegisterPatientUserResponse) Reset() {
 	*x = RegisterPatientUserResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[5]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -367,7 +367,7 @@ func (x *RegisterPatientUserResponse) String() string {
 func (*RegisterPatientUserResponse) ProtoMessage() {}
 
 func (x *RegisterPatientUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[5]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -380,7 +380,7 @@ func (x *RegisterPatientUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterPatientUserResponse.ProtoReflect.Descriptor instead.
 func (*RegisterPatientUserResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{5}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RegisterPatientUserResponse) GetSuccess() bool {
@@ -406,7 +406,7 @@ type ValidateTokenRequest struct {
 
 func (x *ValidateTokenRequest) Reset() {
 	*x = ValidateTokenRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[6]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -418,7 +418,7 @@ func (x *ValidateTokenRequest) String() string {
 func (*ValidateTokenRequest) ProtoMessage() {}
 
 func (x *ValidateTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[6]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -431,7 +431,7 @@ func (x *ValidateTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateTokenRequest.ProtoReflect.Descriptor instead.
 func (*ValidateTokenRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{6}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ValidateTokenRequest) GetToken() string {
@@ -452,7 +452,7 @@ type ValidateTokenResponse struct {
 
 func (x *ValidateTokenResponse) Reset() {
 	*x = ValidateTokenResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[7]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -464,7 +464,7 @@ func (x *ValidateTokenResponse) String() string {
 func (*ValidateTokenResponse) ProtoMessage() {}
 
 func (x *ValidateTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[7]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -477,7 +477,7 @@ func (x *ValidateTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateTokenResponse.ProtoReflect.Descriptor instead.
 func (*ValidateTokenResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{7}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ValidateTokenResponse) GetValid() bool {
@@ -510,7 +510,7 @@ type RefreshTokenRequest struct {
 
 func (x *RefreshTokenRequest) Reset() {
 	*x = RefreshTokenRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[8]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -522,7 +522,7 @@ func (x *RefreshTokenRequest) String() string {
 func (*RefreshTokenRequest) ProtoMessage() {}
 
 func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[8]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -535,7 +535,7 @@ func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshTokenRequest.ProtoReflect.Descriptor instead.
 func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{8}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *RefreshTokenRequest) GetRefreshToken() string {
@@ -558,7 +558,7 @@ type RefreshTokenResponse struct {
 
 func (x *RefreshTokenResponse) Reset() {
 	*x = RefreshTokenResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[9]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -570,7 +570,7 @@ func (x *RefreshTokenResponse) String() string {
 func (*RefreshTokenResponse) ProtoMessage() {}
 
 func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[9]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -583,7 +583,7 @@ func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshTokenResponse.ProtoReflect.Descriptor instead.
 func (*RefreshTokenResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{9}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *RefreshTokenResponse) GetSuccess() bool {
@@ -630,7 +630,7 @@ type ExtractKTPDataRequest struct {
 
 func (x *ExtractKTPDataRequest) Reset() {
 	*x = ExtractKTPDataRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[10]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -642,7 +642,7 @@ func (x *ExtractKTPDataRequest) String() string {
 func (*ExtractKTPDataRequest) ProtoMessage() {}
 
 func (x *ExtractKTPDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[10]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -655,7 +655,7 @@ func (x *ExtractKTPDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExtractKTPDataRequest.ProtoReflect.Descriptor instead.
 func (*ExtractKTPDataRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{10}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ExtractKTPDataRequest) GetBase64Image() string {
@@ -678,7 +678,7 @@ type ExtractKTPDataResponse struct {
 
 func (x *ExtractKTPDataResponse) Reset() {
 	*x = ExtractKTPDataResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[11]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -690,7 +690,7 @@ func (x *ExtractKTPDataResponse) String() string {
 func (*ExtractKTPDataResponse) ProtoMessage() {}
 
 func (x *ExtractKTPDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[11]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -703,7 +703,7 @@ func (x *ExtractKTPDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExtractKTPDataResponse.ProtoReflect.Descriptor instead.
 func (*ExtractKTPDataResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{11}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ExtractKTPDataResponse) GetSuccess() bool {
@@ -757,7 +757,7 @@ type UserData struct {
 
 func (x *UserData) Reset() {
 	*x = UserData{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[12]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -769,7 +769,7 @@ func (x *UserData) String() string {
 func (*UserData) ProtoMessage() {}
 
 func (x *UserData) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[12]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -782,7 +782,7 @@ func (x *UserData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserData.ProtoReflect.Descriptor instead.
 func (*UserData) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{12}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UserData) GetId() string {
@@ -846,13 +846,14 @@ type ListUsersRequest struct {
 	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	StatusFilter  string                 `protobuf:"bytes,3,opt,name=status_filter,json=statusFilter,proto3" json:"status_filter,omitempty"`
+	Search        string                 `protobuf:"bytes,4,opt,name=search,proto3" json:"search,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListUsersRequest) Reset() {
 	*x = ListUsersRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[13]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -864,7 +865,7 @@ func (x *ListUsersRequest) String() string {
 func (*ListUsersRequest) ProtoMessage() {}
 
 func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[13]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -877,7 +878,7 @@ func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListUsersRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{13}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListUsersRequest) GetPage() int32 {
@@ -901,6 +902,13 @@ func (x *ListUsersRequest) GetStatusFilter() string {
 	return ""
 }
 
+func (x *ListUsersRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
 type ListUsersResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Users         []*UserData            `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
@@ -911,7 +919,7 @@ type ListUsersResponse struct {
 
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[14]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -923,7 +931,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[14]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -936,7 +944,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{14}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListUsersResponse) GetUsers() []*UserData {
@@ -964,7 +972,7 @@ type UpdateUserStatusRequest struct {
 
 func (x *UpdateUserStatusRequest) Reset() {
 	*x = UpdateUserStatusRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[15]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -976,7 +984,7 @@ func (x *UpdateUserStatusRequest) String() string {
 func (*UpdateUserStatusRequest) ProtoMessage() {}
 
 func (x *UpdateUserStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[15]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -989,7 +997,7 @@ func (x *UpdateUserStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserStatusRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{15}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *UpdateUserStatusRequest) GetUserId() string {
@@ -1023,7 +1031,7 @@ type UpdateUserStatusResponse struct {
 
 func (x *UpdateUserStatusResponse) Reset() {
 	*x = UpdateUserStatusResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[16]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1035,7 +1043,7 @@ func (x *UpdateUserStatusResponse) String() string {
 func (*UpdateUserStatusResponse) ProtoMessage() {}
 
 func (x *UpdateUserStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[16]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1048,7 +1056,7 @@ func (x *UpdateUserStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserStatusResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{16}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UpdateUserStatusResponse) GetSuccess() bool {
@@ -1075,7 +1083,7 @@ type DeleteUserRequest struct {
 
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[17]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1087,7 +1095,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[17]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1100,7 +1108,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{17}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *DeleteUserRequest) GetUserId() string {
@@ -1127,7 +1135,7 @@ type DeleteUserResponse struct {
 
 func (x *DeleteUserResponse) Reset() {
 	*x = DeleteUserResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[18]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1139,7 +1147,7 @@ func (x *DeleteUserResponse) String() string {
 func (*DeleteUserResponse) ProtoMessage() {}
 
 func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[18]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1152,7 +1160,7 @@ func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{18}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *DeleteUserResponse) GetSuccess() bool {
@@ -1180,7 +1188,7 @@ type GetMasterRolesRequest struct {
 
 func (x *GetMasterRolesRequest) Reset() {
 	*x = GetMasterRolesRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[19]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1192,7 +1200,7 @@ func (x *GetMasterRolesRequest) String() string {
 func (*GetMasterRolesRequest) ProtoMessage() {}
 
 func (x *GetMasterRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[19]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1205,7 +1213,7 @@ func (x *GetMasterRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterRolesRequest.ProtoReflect.Descriptor instead.
 func (*GetMasterRolesRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{19}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetMasterRolesRequest) GetPage() int32 {
@@ -1239,7 +1247,7 @@ type MasterRole struct {
 
 func (x *MasterRole) Reset() {
 	*x = MasterRole{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[20]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1251,7 +1259,7 @@ func (x *MasterRole) String() string {
 func (*MasterRole) ProtoMessage() {}
 
 func (x *MasterRole) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[20]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1264,7 +1272,7 @@ func (x *MasterRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MasterRole.ProtoReflect.Descriptor instead.
 func (*MasterRole) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{20}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *MasterRole) GetId() string {
@@ -1291,7 +1299,7 @@ type GetMasterRolesResponse struct {
 
 func (x *GetMasterRolesResponse) Reset() {
 	*x = GetMasterRolesResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[21]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1303,7 +1311,7 @@ func (x *GetMasterRolesResponse) String() string {
 func (*GetMasterRolesResponse) ProtoMessage() {}
 
 func (x *GetMasterRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[21]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1316,7 +1324,7 @@ func (x *GetMasterRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterRolesResponse.ProtoReflect.Descriptor instead.
 func (*GetMasterRolesResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{21}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetMasterRolesResponse) GetData() []*MasterRole {
@@ -1344,7 +1352,7 @@ type GetDoctorsRequest struct {
 
 func (x *GetDoctorsRequest) Reset() {
 	*x = GetDoctorsRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[22]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1356,7 +1364,7 @@ func (x *GetDoctorsRequest) String() string {
 func (*GetDoctorsRequest) ProtoMessage() {}
 
 func (x *GetDoctorsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[22]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1369,7 +1377,7 @@ func (x *GetDoctorsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDoctorsRequest.ProtoReflect.Descriptor instead.
 func (*GetDoctorsRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{22}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetDoctorsRequest) GetPage() int32 {
@@ -1411,7 +1419,7 @@ type Doctor struct {
 
 func (x *Doctor) Reset() {
 	*x = Doctor{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[23]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1423,7 +1431,7 @@ func (x *Doctor) String() string {
 func (*Doctor) ProtoMessage() {}
 
 func (x *Doctor) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[23]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1436,7 +1444,7 @@ func (x *Doctor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Doctor.ProtoReflect.Descriptor instead.
 func (*Doctor) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{23}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Doctor) GetId() string {
@@ -1519,7 +1527,7 @@ type GetDoctorsResponse struct {
 
 func (x *GetDoctorsResponse) Reset() {
 	*x = GetDoctorsResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[24]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1531,7 +1539,7 @@ func (x *GetDoctorsResponse) String() string {
 func (*GetDoctorsResponse) ProtoMessage() {}
 
 func (x *GetDoctorsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[24]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1544,7 +1552,7 @@ func (x *GetDoctorsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDoctorsResponse.ProtoReflect.Descriptor instead.
 func (*GetDoctorsResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{24}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetDoctorsResponse) GetData() []*Doctor {
@@ -1572,7 +1580,7 @@ type GetNursesRequest struct {
 
 func (x *GetNursesRequest) Reset() {
 	*x = GetNursesRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[25]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1584,7 +1592,7 @@ func (x *GetNursesRequest) String() string {
 func (*GetNursesRequest) ProtoMessage() {}
 
 func (x *GetNursesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[25]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1597,7 +1605,7 @@ func (x *GetNursesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNursesRequest.ProtoReflect.Descriptor instead.
 func (*GetNursesRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{25}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetNursesRequest) GetPage() int32 {
@@ -1638,7 +1646,7 @@ type Nurse struct {
 
 func (x *Nurse) Reset() {
 	*x = Nurse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[26]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1650,7 +1658,7 @@ func (x *Nurse) String() string {
 func (*Nurse) ProtoMessage() {}
 
 func (x *Nurse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[26]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1663,7 +1671,7 @@ func (x *Nurse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Nurse.ProtoReflect.Descriptor instead.
 func (*Nurse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{26}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *Nurse) GetId() string {
@@ -1739,7 +1747,7 @@ type GetNursesResponse struct {
 
 func (x *GetNursesResponse) Reset() {
 	*x = GetNursesResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[27]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1751,7 +1759,7 @@ func (x *GetNursesResponse) String() string {
 func (*GetNursesResponse) ProtoMessage() {}
 
 func (x *GetNursesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[27]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1764,7 +1772,7 @@ func (x *GetNursesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNursesResponse.ProtoReflect.Descriptor instead.
 func (*GetNursesResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{27}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GetNursesResponse) GetData() []*Nurse {
@@ -1793,7 +1801,7 @@ type GetDoctorsByPoliRequest struct {
 
 func (x *GetDoctorsByPoliRequest) Reset() {
 	*x = GetDoctorsByPoliRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[28]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1805,7 +1813,7 @@ func (x *GetDoctorsByPoliRequest) String() string {
 func (*GetDoctorsByPoliRequest) ProtoMessage() {}
 
 func (x *GetDoctorsByPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[28]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1818,7 +1826,7 @@ func (x *GetDoctorsByPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDoctorsByPoliRequest.ProtoReflect.Descriptor instead.
 func (*GetDoctorsByPoliRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{28}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetDoctorsByPoliRequest) GetPage() int32 {
@@ -1864,7 +1872,7 @@ type DoctorPoliMapping struct {
 
 func (x *DoctorPoliMapping) Reset() {
 	*x = DoctorPoliMapping{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[29]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1876,7 +1884,7 @@ func (x *DoctorPoliMapping) String() string {
 func (*DoctorPoliMapping) ProtoMessage() {}
 
 func (x *DoctorPoliMapping) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[29]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1889,7 +1897,7 @@ func (x *DoctorPoliMapping) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DoctorPoliMapping.ProtoReflect.Descriptor instead.
 func (*DoctorPoliMapping) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{29}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *DoctorPoliMapping) GetId() string {
@@ -1951,7 +1959,7 @@ type GetDoctorsByPoliResponse struct {
 
 func (x *GetDoctorsByPoliResponse) Reset() {
 	*x = GetDoctorsByPoliResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[30]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1963,7 +1971,7 @@ func (x *GetDoctorsByPoliResponse) String() string {
 func (*GetDoctorsByPoliResponse) ProtoMessage() {}
 
 func (x *GetDoctorsByPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[30]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1976,7 +1984,7 @@ func (x *GetDoctorsByPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDoctorsByPoliResponse.ProtoReflect.Descriptor instead.
 func (*GetDoctorsByPoliResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{30}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetDoctorsByPoliResponse) GetData() []*DoctorPoliMapping {
@@ -2005,7 +2013,7 @@ type GetNursesByPoliRequest struct {
 
 func (x *GetNursesByPoliRequest) Reset() {
 	*x = GetNursesByPoliRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[31]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2017,7 +2025,7 @@ func (x *GetNursesByPoliRequest) String() string {
 func (*GetNursesByPoliRequest) ProtoMessage() {}
 
 func (x *GetNursesByPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[31]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2030,7 +2038,7 @@ func (x *GetNursesByPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNursesByPoliRequest.ProtoReflect.Descriptor instead.
 func (*GetNursesByPoliRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{31}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetNursesByPoliRequest) GetPage() int32 {
@@ -2076,7 +2084,7 @@ type NursePoliMapping struct {
 
 func (x *NursePoliMapping) Reset() {
 	*x = NursePoliMapping{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[32]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2088,7 +2096,7 @@ func (x *NursePoliMapping) String() string {
 func (*NursePoliMapping) ProtoMessage() {}
 
 func (x *NursePoliMapping) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[32]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2101,7 +2109,7 @@ func (x *NursePoliMapping) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NursePoliMapping.ProtoReflect.Descriptor instead.
 func (*NursePoliMapping) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{32}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *NursePoliMapping) GetId() string {
@@ -2163,7 +2171,7 @@ type GetNursesByPoliResponse struct {
 
 func (x *GetNursesByPoliResponse) Reset() {
 	*x = GetNursesByPoliResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[33]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2175,7 +2183,7 @@ func (x *GetNursesByPoliResponse) String() string {
 func (*GetNursesByPoliResponse) ProtoMessage() {}
 
 func (x *GetNursesByPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[33]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2188,7 +2196,7 @@ func (x *GetNursesByPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNursesByPoliResponse.ProtoReflect.Descriptor instead.
 func (*GetNursesByPoliResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{33}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetNursesByPoliResponse) GetData() []*NursePoliMapping {
@@ -2217,7 +2225,7 @@ type AssignDoctorPoliRequest struct {
 
 func (x *AssignDoctorPoliRequest) Reset() {
 	*x = AssignDoctorPoliRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[34]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2229,7 +2237,7 @@ func (x *AssignDoctorPoliRequest) String() string {
 func (*AssignDoctorPoliRequest) ProtoMessage() {}
 
 func (x *AssignDoctorPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[34]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2242,7 +2250,7 @@ func (x *AssignDoctorPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignDoctorPoliRequest.ProtoReflect.Descriptor instead.
 func (*AssignDoctorPoliRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{34}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *AssignDoctorPoliRequest) GetDokterId() string {
@@ -2283,7 +2291,7 @@ type AssignDoctorPoliResponse struct {
 
 func (x *AssignDoctorPoliResponse) Reset() {
 	*x = AssignDoctorPoliResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[35]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2295,7 +2303,7 @@ func (x *AssignDoctorPoliResponse) String() string {
 func (*AssignDoctorPoliResponse) ProtoMessage() {}
 
 func (x *AssignDoctorPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[35]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2308,7 +2316,7 @@ func (x *AssignDoctorPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignDoctorPoliResponse.ProtoReflect.Descriptor instead.
 func (*AssignDoctorPoliResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{35}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *AssignDoctorPoliResponse) GetSuccess() bool {
@@ -2337,7 +2345,7 @@ type AssignNursePoliRequest struct {
 
 func (x *AssignNursePoliRequest) Reset() {
 	*x = AssignNursePoliRequest{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[36]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2349,7 +2357,7 @@ func (x *AssignNursePoliRequest) String() string {
 func (*AssignNursePoliRequest) ProtoMessage() {}
 
 func (x *AssignNursePoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[36]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2362,7 +2370,7 @@ func (x *AssignNursePoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignNursePoliRequest.ProtoReflect.Descriptor instead.
 func (*AssignNursePoliRequest) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{36}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *AssignNursePoliRequest) GetPerawatId() string {
@@ -2403,7 +2411,7 @@ type AssignNursePoliResponse struct {
 
 func (x *AssignNursePoliResponse) Reset() {
 	*x = AssignNursePoliResponse{}
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[37]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2415,7 +2423,7 @@ func (x *AssignNursePoliResponse) String() string {
 func (*AssignNursePoliResponse) ProtoMessage() {}
 
 func (x *AssignNursePoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_src_be_shared_proto_auth_v1_auth_proto_msgTypes[37]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2428,7 +2436,7 @@ func (x *AssignNursePoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignNursePoliResponse.ProtoReflect.Descriptor instead.
 func (*AssignNursePoliResponse) Descriptor() ([]byte, []int) {
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP(), []int{37}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *AssignNursePoliResponse) GetSuccess() bool {
@@ -2445,11 +2453,11 @@ func (x *AssignNursePoliResponse) GetMessage() string {
 	return ""
 }
 
-var File_src_be_shared_proto_auth_v1_auth_proto protoreflect.FileDescriptor
+var File_proto_auth_v1_auth_proto protoreflect.FileDescriptor
 
-const file_src_be_shared_proto_auth_v1_auth_proto_rawDesc = "" +
+const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"&src/be/shared/proto/auth/v1/auth.proto\x12\aauth.v1\"F\n" +
+	"\x18proto/auth/v1/auth.proto\x12\aauth.v1\"F\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x8e\x02\n" +
@@ -2507,11 +2515,12 @@ const file_src_be_shared_proto_auth_v1_auth_proto_rawDesc = "" +
 	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x10\n" +
 	"\x03nip\x18\x06 \x01(\tR\x03nip\x12\x14\n" +
 	"\x05email\x18\a \x01(\tR\x05email\x12\x14\n" +
-	"\x05phone\x18\b \x01(\tR\x05phone\"h\n" +
+	"\x05phone\x18\b \x01(\tR\x05phone\"\x80\x01\n" +
 	"\x10ListUsersRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12#\n" +
-	"\rstatus_filter\x18\x03 \x01(\tR\fstatusFilter\"]\n" +
+	"\rstatus_filter\x18\x03 \x01(\tR\fstatusFilter\x12\x16\n" +
+	"\x06search\x18\x04 \x01(\tR\x06search\"]\n" +
 	"\x11ListUsersResponse\x12'\n" +
 	"\x05users\x18\x01 \x03(\v2\x11.auth.v1.UserDataR\x05users\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x05R\n" +
@@ -2660,19 +2669,19 @@ const file_src_be_shared_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\x0fAssignNursePoli\x12\x1f.auth.v1.AssignNursePoliRequest\x1a .auth.v1.AssignNursePoliResponseBBZ@github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1;authv1b\x06proto3"
 
 var (
-	file_src_be_shared_proto_auth_v1_auth_proto_rawDescOnce sync.Once
-	file_src_be_shared_proto_auth_v1_auth_proto_rawDescData []byte
+	file_proto_auth_v1_auth_proto_rawDescOnce sync.Once
+	file_proto_auth_v1_auth_proto_rawDescData []byte
 )
 
-func file_src_be_shared_proto_auth_v1_auth_proto_rawDescGZIP() []byte {
-	file_src_be_shared_proto_auth_v1_auth_proto_rawDescOnce.Do(func() {
-		file_src_be_shared_proto_auth_v1_auth_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_src_be_shared_proto_auth_v1_auth_proto_rawDesc), len(file_src_be_shared_proto_auth_v1_auth_proto_rawDesc)))
+func file_proto_auth_v1_auth_proto_rawDescGZIP() []byte {
+	file_proto_auth_v1_auth_proto_rawDescOnce.Do(func() {
+		file_proto_auth_v1_auth_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_auth_v1_auth_proto_rawDesc), len(file_proto_auth_v1_auth_proto_rawDesc)))
 	})
-	return file_src_be_shared_proto_auth_v1_auth_proto_rawDescData
+	return file_proto_auth_v1_auth_proto_rawDescData
 }
 
-var file_src_be_shared_proto_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
-var file_src_be_shared_proto_auth_v1_auth_proto_goTypes = []any{
+var file_proto_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_proto_auth_v1_auth_proto_goTypes = []any{
 	(*LoginRequest)(nil),                // 0: auth.v1.LoginRequest
 	(*LoginResponse)(nil),               // 1: auth.v1.LoginResponse
 	(*SignupRequest)(nil),               // 2: auth.v1.SignupRequest
@@ -2712,7 +2721,7 @@ var file_src_be_shared_proto_auth_v1_auth_proto_goTypes = []any{
 	(*AssignNursePoliRequest)(nil),      // 36: auth.v1.AssignNursePoliRequest
 	(*AssignNursePoliResponse)(nil),     // 37: auth.v1.AssignNursePoliResponse
 }
-var file_src_be_shared_proto_auth_v1_auth_proto_depIdxs = []int32{
+var file_proto_auth_v1_auth_proto_depIdxs = []int32{
 	12, // 0: auth.v1.ListUsersResponse.users:type_name -> auth.v1.UserData
 	20, // 1: auth.v1.GetMasterRolesResponse.data:type_name -> auth.v1.MasterRole
 	23, // 2: auth.v1.GetDoctorsResponse.data:type_name -> auth.v1.Doctor
@@ -2758,26 +2767,26 @@ var file_src_be_shared_proto_auth_v1_auth_proto_depIdxs = []int32{
 	0,  // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_src_be_shared_proto_auth_v1_auth_proto_init() }
-func file_src_be_shared_proto_auth_v1_auth_proto_init() {
-	if File_src_be_shared_proto_auth_v1_auth_proto != nil {
+func init() { file_proto_auth_v1_auth_proto_init() }
+func file_proto_auth_v1_auth_proto_init() {
+	if File_proto_auth_v1_auth_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_src_be_shared_proto_auth_v1_auth_proto_rawDesc), len(file_src_be_shared_proto_auth_v1_auth_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_auth_v1_auth_proto_rawDesc), len(file_proto_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   38,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_src_be_shared_proto_auth_v1_auth_proto_goTypes,
-		DependencyIndexes: file_src_be_shared_proto_auth_v1_auth_proto_depIdxs,
-		MessageInfos:      file_src_be_shared_proto_auth_v1_auth_proto_msgTypes,
+		GoTypes:           file_proto_auth_v1_auth_proto_goTypes,
+		DependencyIndexes: file_proto_auth_v1_auth_proto_depIdxs,
+		MessageInfos:      file_proto_auth_v1_auth_proto_msgTypes,
 	}.Build()
-	File_src_be_shared_proto_auth_v1_auth_proto = out.File
-	file_src_be_shared_proto_auth_v1_auth_proto_goTypes = nil
-	file_src_be_shared_proto_auth_v1_auth_proto_depIdxs = nil
+	File_proto_auth_v1_auth_proto = out.File
+	file_proto_auth_v1_auth_proto_goTypes = nil
+	file_proto_auth_v1_auth_proto_depIdxs = nil
 }
