@@ -64,7 +64,7 @@ api.interceptors.response.use(
         })
           .then((token) => {
             originalRequest.headers["Authorization"] = `Bearer ${token}`;
-            return api(originalRequest);
+            return axios(originalRequest);
           })
           .catch((err) => Promise.reject(err));
       }
@@ -98,7 +98,7 @@ api.interceptors.response.use(
         isRefreshing = false;
 
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-        return api(originalRequest);
+        return axios(originalRequest);
       } catch (err) {
         processQueue(err, null);
         isRefreshing = false;

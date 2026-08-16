@@ -1,37 +1,92 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Mic, SkipForward, RotateCcw, CheckCircle2, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
-// Mock Data
-const MOCK_WAITLIST = [
-  { id: "A-002", name: "Ibu Siti Aminah", type: "Pasien Lama (BPJS)", time: "10:45", estimate: "~5 mnt" },
-  { id: "A-003", name: "Agus Pratama", type: "Pasien Baru (Umum)", time: "10:55", estimate: "~15 mnt" },
-  { id: "A-004", name: "Dewi Lestari", type: "Pasien Lama (Asuransi)", time: "11:10", estimate: "~30 mnt" },
-];
+interface QueuePatient {
+  id: string;
+  name: string;
+  type: string;
+  time: string;
+  estimate: string;
+  status: string;
+  departmentCode: string;
+}
 
 export function QueueManagerPage() {
-  const [activeTab, setActiveTab] = useState("umum");
+  const [activeTab, setActiveTab] = useState("all");
+  const [waitlist, setWaitlist] = useState<QueuePatient[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [activeCall, setActiveCall] = useState<{id: string, name: string} | null>(null);
   
-  // States for Queue Logic
-  const [activeCall, setActiveCall] = useState<{id: string, name: string} | null>({
-    id: "A-001",
-    name: "Bpk. Budi Santoso"
-  });
-  const [waitlist, setWaitlist] = useState(MOCK_WAITLIST);
-  
+  // Format current date to YYYY-MM-DD
+  const getTodayString = () => {
+    const d = new Date();
+    const month = `${d.getMonth() + 1}`.padStart(2, '0');
+    const day = `${d.getDate()}`.padStart(2, '0');
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`;
+  };
+
+  const fetchQueue = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/registrations/today', {
+        params: {
+          date: getTodayString(),
+          queue_only: true
+        }
+      });
+      if (response.data?.success) {
+        const encounters = response.data.data.encounters || [];
+        const mappedQueue: QueuePatient[] = encounters.map((e: any) => ({
+          id: e.encounter_no,
+          name: e.patient_name,
+          type: e.status_pasien, // "Baru RS" / "Lama RS"
+          time: e.registered_time.substring(11, 16), // extract HH:mm
+          estimate: "~5 mnt", // TODO: dynamic estimation
+          status: e.status,
+          departmentCode: e.department_code,
+        }));
+        
+        setWaitlist(mappedQueue);
+        
+        if (mappedQueue.length > 0 && !activeCall) {
+          // If no active call, don't automatically set it yet, but you could.
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching queue:", error);
+      toast.error("Terjadi kesalahan mengambil data antrean");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchQueue();
+    // Refresh queue every 15 seconds
+    const interval = setInterval(fetchQueue, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   const queueTabs = [
-    { id: "umum", label: "Poli Umum", activeCount: waitlist.length + (activeCall ? 1 : 0) },
-    { id: "gigi", label: "Poli Gigi", activeCount: 5 },
-    { id: "anak", label: "Poli Anak", activeCount: 8 },
+    { id: "all", label: "Semua Poli", activeCount: waitlist.length },
+    { id: "UMU", label: "Poli Umum", activeCount: waitlist.filter(w => w.departmentCode === "UMU").length },
+    { id: "GIG", label: "Poli Gigi", activeCount: waitlist.filter(w => w.departmentCode === "GIG").length },
   ];
 
+  const filteredWaitlist = activeTab === "all" ? waitlist : waitlist.filter(w => w.departmentCode === activeTab);
+
   const handleNextCall = () => {
-    if (waitlist.length > 0) {
-      const nextPatient = waitlist[0];
+    if (filteredWaitlist.length > 0) {
+      const nextPatient = filteredWaitlist[0];
       setActiveCall({ id: nextPatient.id, name: nextPatient.name });
-      setWaitlist(waitlist.slice(1));
+      // Remove from waitlist locally until next refresh
+      setWaitlist(waitlist.filter(w => w.id !== nextPatient.id));
     } else {
       setActiveCall(null);
     }
@@ -149,7 +204,7 @@ export function QueueManagerPage() {
             <CardContent className="p-0 flex-1 overflow-y-auto">
               <div className="divide-y divide-slate-100">
                 
-                {waitlist.length > 0 ? waitlist.map((patient, index) => (
+                {filteredWaitlist.length > 0 ? filteredWaitlist.map((patient, index) => (
                   <div key={patient.id} className="p-4 hover:bg-slate-50 transition-colors flex items-center justify-between group">
                     <div className="flex items-center gap-4">
                       <div className={cn(

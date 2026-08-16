@@ -7,6 +7,19 @@ option go_package = "github.com/aliube/go-micro-simrs-one/shared/proto/billing/v
 service BillingService {
   rpc GenerateInvoice (GenerateInvoiceRequest) returns (GenerateInvoiceResponse);
   rpc PayInvoice (PayInvoiceRequest) returns (PayInvoiceResponse);
+  rpc AddRegistrationFee (AddRegistrationFeeRequest) returns (AddRegistrationFeeResponse);
+}
+
+message AddRegistrationFeeRequest {
+  string encounter_no = 1;
+  string department_code = 2;
+  double amount = 3;
+}
+
+message AddRegistrationFeeResponse {
+  bool success = 1;
+  string invoice_id = 2;
+  string message = 3;
 }
 
 message InvoiceItem {
@@ -35,4 +48,5 @@ message PayInvoiceRequest {
 message PayInvoiceResponse {
   bool success = 1;
   string message = 2;
+  string encounter_no = 3;
 }

@@ -26,6 +26,7 @@ type RegisterEncounterRequest struct {
 	Mrn            string                 `protobuf:"bytes,1,opt,name=mrn,proto3" json:"mrn,omitempty"`
 	DepartmentCode string                 `protobuf:"bytes,2,opt,name=department_code,json=departmentCode,proto3" json:"department_code,omitempty"` // e.g. "IGD", "P01"
 	DoctorId       string                 `protobuf:"bytes,3,opt,name=doctor_id,json=doctorId,proto3" json:"doctor_id,omitempty"`
+	Guarantor      string                 `protobuf:"bytes,4,opt,name=guarantor,proto3" json:"guarantor,omitempty"` // e.g. "Umum", "BPJS"
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -77,6 +78,13 @@ func (x *RegisterEncounterRequest) GetDepartmentCode() string {
 func (x *RegisterEncounterRequest) GetDoctorId() string {
 	if x != nil {
 		return x.DoctorId
+	}
+	return ""
+}
+
+func (x *RegisterEncounterRequest) GetGuarantor() string {
+	if x != nil {
+		return x.Guarantor
 	}
 	return ""
 }
@@ -141,21 +149,467 @@ func (x *RegisterEncounterResponse) GetMessage() string {
 	return ""
 }
 
+type GetTodayEncountersRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"` // optional search by MRN or Name
+	Date          string                 `protobuf:"bytes,4,opt,name=date,proto3" json:"date,omitempty"`     // optional date filter YYYY-MM-DD
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTodayEncountersRequest) Reset() {
+	*x = GetTodayEncountersRequest{}
+	mi := &file_registration_v1_registration_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTodayEncountersRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTodayEncountersRequest) ProtoMessage() {}
+
+func (x *GetTodayEncountersRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTodayEncountersRequest.ProtoReflect.Descriptor instead.
+func (*GetTodayEncountersRequest) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *GetTodayEncountersRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetTodayEncountersRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetTodayEncountersRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+func (x *GetTodayEncountersRequest) GetDate() string {
+	if x != nil {
+		return x.Date
+	}
+	return ""
+}
+
+type EncounterDetail struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	EncounterNo    string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
+	Mrn            string                 `protobuf:"bytes,2,opt,name=mrn,proto3" json:"mrn,omitempty"`
+	DepartmentCode string                 `protobuf:"bytes,3,opt,name=department_code,json=departmentCode,proto3" json:"department_code,omitempty"`
+	DoctorId       string                 `protobuf:"bytes,4,opt,name=doctor_id,json=doctorId,proto3" json:"doctor_id,omitempty"`
+	Status         string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
+	RegisteredTime string                 `protobuf:"bytes,6,opt,name=registered_time,json=registeredTime,proto3" json:"registered_time,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *EncounterDetail) Reset() {
+	*x = EncounterDetail{}
+	mi := &file_registration_v1_registration_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EncounterDetail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EncounterDetail) ProtoMessage() {}
+
+func (x *EncounterDetail) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EncounterDetail.ProtoReflect.Descriptor instead.
+func (*EncounterDetail) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *EncounterDetail) GetEncounterNo() string {
+	if x != nil {
+		return x.EncounterNo
+	}
+	return ""
+}
+
+func (x *EncounterDetail) GetMrn() string {
+	if x != nil {
+		return x.Mrn
+	}
+	return ""
+}
+
+func (x *EncounterDetail) GetDepartmentCode() string {
+	if x != nil {
+		return x.DepartmentCode
+	}
+	return ""
+}
+
+func (x *EncounterDetail) GetDoctorId() string {
+	if x != nil {
+		return x.DoctorId
+	}
+	return ""
+}
+
+func (x *EncounterDetail) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *EncounterDetail) GetRegisteredTime() string {
+	if x != nil {
+		return x.RegisteredTime
+	}
+	return ""
+}
+
+type GetTodayEncountersResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Encounters    []*EncounterDetail     `protobuf:"bytes,1,rep,name=encounters,proto3" json:"encounters,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetTodayEncountersResponse) Reset() {
+	*x = GetTodayEncountersResponse{}
+	mi := &file_registration_v1_registration_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetTodayEncountersResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetTodayEncountersResponse) ProtoMessage() {}
+
+func (x *GetTodayEncountersResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetTodayEncountersResponse.ProtoReflect.Descriptor instead.
+func (*GetTodayEncountersResponse) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetTodayEncountersResponse) GetEncounters() []*EncounterDetail {
+	if x != nil {
+		return x.Encounters
+	}
+	return nil
+}
+
+func (x *GetTodayEncountersResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+type CancelEncounterRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EncounterNo   string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
+	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelEncounterRequest) Reset() {
+	*x = CancelEncounterRequest{}
+	mi := &file_registration_v1_registration_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelEncounterRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelEncounterRequest) ProtoMessage() {}
+
+func (x *CancelEncounterRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelEncounterRequest.ProtoReflect.Descriptor instead.
+func (*CancelEncounterRequest) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CancelEncounterRequest) GetEncounterNo() string {
+	if x != nil {
+		return x.EncounterNo
+	}
+	return ""
+}
+
+func (x *CancelEncounterRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+type CancelEncounterResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelEncounterResponse) Reset() {
+	*x = CancelEncounterResponse{}
+	mi := &file_registration_v1_registration_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelEncounterResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelEncounterResponse) ProtoMessage() {}
+
+func (x *CancelEncounterResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelEncounterResponse.ProtoReflect.Descriptor instead.
+func (*CancelEncounterResponse) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CancelEncounterResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CancelEncounterResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type UpdateEncounterStatusRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EncounterNo   string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
+	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateEncounterStatusRequest) Reset() {
+	*x = UpdateEncounterStatusRequest{}
+	mi := &file_registration_v1_registration_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateEncounterStatusRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateEncounterStatusRequest) ProtoMessage() {}
+
+func (x *UpdateEncounterStatusRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateEncounterStatusRequest.ProtoReflect.Descriptor instead.
+func (*UpdateEncounterStatusRequest) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *UpdateEncounterStatusRequest) GetEncounterNo() string {
+	if x != nil {
+		return x.EncounterNo
+	}
+	return ""
+}
+
+func (x *UpdateEncounterStatusRequest) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+type UpdateEncounterStatusResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateEncounterStatusResponse) Reset() {
+	*x = UpdateEncounterStatusResponse{}
+	mi := &file_registration_v1_registration_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateEncounterStatusResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateEncounterStatusResponse) ProtoMessage() {}
+
+func (x *UpdateEncounterStatusResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateEncounterStatusResponse.ProtoReflect.Descriptor instead.
+func (*UpdateEncounterStatusResponse) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *UpdateEncounterStatusResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateEncounterStatusResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_registration_v1_registration_proto protoreflect.FileDescriptor
 
 const file_registration_v1_registration_proto_rawDesc = "" +
 	"\n" +
-	"\"registration/v1/registration.proto\x12\x0fregistration.v1\"r\n" +
+	"\"registration/v1/registration.proto\x12\x0fregistration.v1\"\x90\x01\n" +
 	"\x18RegisterEncounterRequest\x12\x10\n" +
 	"\x03mrn\x18\x01 \x01(\tR\x03mrn\x12'\n" +
 	"\x0fdepartment_code\x18\x02 \x01(\tR\x0edepartmentCode\x12\x1b\n" +
-	"\tdoctor_id\x18\x03 \x01(\tR\bdoctorId\"r\n" +
+	"\tdoctor_id\x18\x03 \x01(\tR\bdoctorId\x12\x1c\n" +
+	"\tguarantor\x18\x04 \x01(\tR\tguarantor\"r\n" +
 	"\x19RegisterEncounterResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12!\n" +
 	"\fencounter_no\x18\x02 \x01(\tR\vencounterNo\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage2\x81\x01\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"x\n" +
+	"\x19GetTodayEncountersRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\x12\x12\n" +
+	"\x04date\x18\x04 \x01(\tR\x04date\"\xcd\x01\n" +
+	"\x0fEncounterDetail\x12!\n" +
+	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x10\n" +
+	"\x03mrn\x18\x02 \x01(\tR\x03mrn\x12'\n" +
+	"\x0fdepartment_code\x18\x03 \x01(\tR\x0edepartmentCode\x12\x1b\n" +
+	"\tdoctor_id\x18\x04 \x01(\tR\bdoctorId\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\tR\x06status\x12'\n" +
+	"\x0fregistered_time\x18\x06 \x01(\tR\x0eregisteredTime\"\x7f\n" +
+	"\x1aGetTodayEncountersResponse\x12@\n" +
+	"\n" +
+	"encounters\x18\x01 \x03(\v2 .registration.v1.EncounterDetailR\n" +
+	"encounters\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount\"S\n" +
+	"\x16CancelEncounterRequest\x12!\n" +
+	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"M\n" +
+	"\x17CancelEncounterResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"Y\n" +
+	"\x1cUpdateEncounterStatusRequest\x12!\n" +
+	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x16\n" +
+	"\x06status\x18\x02 \x01(\tR\x06status\"S\n" +
+	"\x1dUpdateEncounterStatusResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2\xce\x03\n" +
 	"\x13RegistrationService\x12j\n" +
-	"\x11RegisterEncounter\x12).registration.v1.RegisterEncounterRequest\x1a*.registration.v1.RegisterEncounterResponseBRZPgithub.com/aliube/go-micro-simrs-one/shared/proto/registration/v1;registrationv1b\x06proto3"
+	"\x11RegisterEncounter\x12).registration.v1.RegisterEncounterRequest\x1a*.registration.v1.RegisterEncounterResponse\x12m\n" +
+	"\x12GetTodayEncounters\x12*.registration.v1.GetTodayEncountersRequest\x1a+.registration.v1.GetTodayEncountersResponse\x12d\n" +
+	"\x0fCancelEncounter\x12'.registration.v1.CancelEncounterRequest\x1a(.registration.v1.CancelEncounterResponse\x12v\n" +
+	"\x15UpdateEncounterStatus\x12-.registration.v1.UpdateEncounterStatusRequest\x1a..registration.v1.UpdateEncounterStatusResponseBRZPgithub.com/aliube/go-micro-simrs-one/shared/proto/registration/v1;registrationv1b\x06proto3"
 
 var (
 	file_registration_v1_registration_proto_rawDescOnce sync.Once
@@ -169,19 +623,33 @@ func file_registration_v1_registration_proto_rawDescGZIP() []byte {
 	return file_registration_v1_registration_proto_rawDescData
 }
 
-var file_registration_v1_registration_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_registration_v1_registration_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_registration_v1_registration_proto_goTypes = []any{
-	(*RegisterEncounterRequest)(nil),  // 0: registration.v1.RegisterEncounterRequest
-	(*RegisterEncounterResponse)(nil), // 1: registration.v1.RegisterEncounterResponse
+	(*RegisterEncounterRequest)(nil),      // 0: registration.v1.RegisterEncounterRequest
+	(*RegisterEncounterResponse)(nil),     // 1: registration.v1.RegisterEncounterResponse
+	(*GetTodayEncountersRequest)(nil),     // 2: registration.v1.GetTodayEncountersRequest
+	(*EncounterDetail)(nil),               // 3: registration.v1.EncounterDetail
+	(*GetTodayEncountersResponse)(nil),    // 4: registration.v1.GetTodayEncountersResponse
+	(*CancelEncounterRequest)(nil),        // 5: registration.v1.CancelEncounterRequest
+	(*CancelEncounterResponse)(nil),       // 6: registration.v1.CancelEncounterResponse
+	(*UpdateEncounterStatusRequest)(nil),  // 7: registration.v1.UpdateEncounterStatusRequest
+	(*UpdateEncounterStatusResponse)(nil), // 8: registration.v1.UpdateEncounterStatusResponse
 }
 var file_registration_v1_registration_proto_depIdxs = []int32{
-	0, // 0: registration.v1.RegistrationService.RegisterEncounter:input_type -> registration.v1.RegisterEncounterRequest
-	1, // 1: registration.v1.RegistrationService.RegisterEncounter:output_type -> registration.v1.RegisterEncounterResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: registration.v1.GetTodayEncountersResponse.encounters:type_name -> registration.v1.EncounterDetail
+	0, // 1: registration.v1.RegistrationService.RegisterEncounter:input_type -> registration.v1.RegisterEncounterRequest
+	2, // 2: registration.v1.RegistrationService.GetTodayEncounters:input_type -> registration.v1.GetTodayEncountersRequest
+	5, // 3: registration.v1.RegistrationService.CancelEncounter:input_type -> registration.v1.CancelEncounterRequest
+	7, // 4: registration.v1.RegistrationService.UpdateEncounterStatus:input_type -> registration.v1.UpdateEncounterStatusRequest
+	1, // 5: registration.v1.RegistrationService.RegisterEncounter:output_type -> registration.v1.RegisterEncounterResponse
+	4, // 6: registration.v1.RegistrationService.GetTodayEncounters:output_type -> registration.v1.GetTodayEncountersResponse
+	6, // 7: registration.v1.RegistrationService.CancelEncounter:output_type -> registration.v1.CancelEncounterResponse
+	8, // 8: registration.v1.RegistrationService.UpdateEncounterStatus:output_type -> registration.v1.UpdateEncounterStatusResponse
+	5, // [5:9] is the sub-list for method output_type
+	1, // [1:5] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_registration_v1_registration_proto_init() }
@@ -195,7 +663,7 @@ func file_registration_v1_registration_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_registration_v1_registration_proto_rawDesc), len(file_registration_v1_registration_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

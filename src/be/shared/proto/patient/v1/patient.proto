@@ -7,6 +7,8 @@ option go_package = "github.com/aliube/go-micro-simrs-one/shared/proto/patient/v
 service PatientService {
   rpc RegisterPatient (RegisterPatientRequest) returns (RegisterPatientResponse);
   rpc GetPatientByMRN (GetPatientByMRNRequest) returns (GetPatientByMRNResponse);
+  rpc SearchPatients (SearchPatientsRequest) returns (SearchPatientsResponse);
+  rpc DeletePatient (DeletePatientRequest) returns (DeletePatientResponse);
 }
 
 message RegisterPatientRequest {
@@ -14,6 +16,11 @@ message RegisterPatientRequest {
   string nik = 2;
   string dob = 3;
   string user_id = 4;
+  string gender = 5;
+  string birth_place = 6;
+  string address = 7;
+  string photo_url = 8;
+  string email = 9;
 }
 
 message RegisterPatientResponse {
@@ -27,8 +34,38 @@ message GetPatientByMRNRequest {
 }
 
 message GetPatientByMRNResponse {
+  Patient patient = 1;
+}
+
+message Patient {
   string mrn = 1;
   string name = 2;
   string nik = 3;
   string dob = 4;
+  string gender = 5;
+  string birth_place = 6;
+  string address = 7;
+  string photo_url = 8;
+  string user_id = 9;
+  string email = 10;
+}
+
+message SearchPatientsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+}
+
+message SearchPatientsResponse {
+  repeated Patient patients = 1;
+  int32 total_count = 2;
+}
+
+message DeletePatientRequest {
+  string mrn = 1;
+}
+
+message DeletePatientResponse {
+  bool success = 1;
+  string message = 2;
 }

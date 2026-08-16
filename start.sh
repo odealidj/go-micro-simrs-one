@@ -1,4 +1,8 @@
 #!/bin/bash
+if [ -f ~/.env ]; then
+  export $(grep -v '^#' ~/.env | xargs)
+fi
+
 cd src/be/auth-service && DATABASE_URL=postgres://simrs_user:simrs_pass@localhost:5432/simrs_db?sslmode=disable REDIS_HOST=localhost:6379 JAEGER_ENDPOINT=http://localhost:14268/api/traces PORT=50051 ./tmp-main > run.log 2>&1 &
 cd ../patient-service && DATABASE_URL=postgres://simrs_user:simrs_pass@localhost:5432/simrs_db?sslmode=disable REDIS_HOST=localhost:6379 JAEGER_ENDPOINT=http://localhost:14268/api/traces PORT=50052 ./tmp-main > run.log 2>&1 &
 cd ../registration-service && DATABASE_URL=postgres://simrs_user:simrs_pass@localhost:5432/simrs_db?sslmode=disable REDIS_HOST=localhost:6379 JAEGER_ENDPOINT=http://localhost:14268/api/traces PORT=50053 ./tmp-main > run.log 2>&1 &

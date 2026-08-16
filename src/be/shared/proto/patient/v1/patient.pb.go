@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.26.1
-// source: shared/proto/patient/v1/patient.proto
+// source: patient/v1/patient.proto
 
 package patientv1
 
@@ -27,13 +27,18 @@ type RegisterPatientRequest struct {
 	Nik           string                 `protobuf:"bytes,2,opt,name=nik,proto3" json:"nik,omitempty"`
 	Dob           string                 `protobuf:"bytes,3,opt,name=dob,proto3" json:"dob,omitempty"`
 	UserId        string                 `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Gender        string                 `protobuf:"bytes,5,opt,name=gender,proto3" json:"gender,omitempty"`
+	BirthPlace    string                 `protobuf:"bytes,6,opt,name=birth_place,json=birthPlace,proto3" json:"birth_place,omitempty"`
+	Address       string                 `protobuf:"bytes,7,opt,name=address,proto3" json:"address,omitempty"`
+	PhotoUrl      string                 `protobuf:"bytes,8,opt,name=photo_url,json=photoUrl,proto3" json:"photo_url,omitempty"`
+	Email         string                 `protobuf:"bytes,9,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RegisterPatientRequest) Reset() {
 	*x = RegisterPatientRequest{}
-	mi := &file_shared_proto_patient_v1_patient_proto_msgTypes[0]
+	mi := &file_patient_v1_patient_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +50,7 @@ func (x *RegisterPatientRequest) String() string {
 func (*RegisterPatientRequest) ProtoMessage() {}
 
 func (x *RegisterPatientRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_patient_v1_patient_proto_msgTypes[0]
+	mi := &file_patient_v1_patient_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +63,7 @@ func (x *RegisterPatientRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterPatientRequest.ProtoReflect.Descriptor instead.
 func (*RegisterPatientRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_patient_v1_patient_proto_rawDescGZIP(), []int{0}
+	return file_patient_v1_patient_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *RegisterPatientRequest) GetName() string {
@@ -89,6 +94,41 @@ func (x *RegisterPatientRequest) GetUserId() string {
 	return ""
 }
 
+func (x *RegisterPatientRequest) GetGender() string {
+	if x != nil {
+		return x.Gender
+	}
+	return ""
+}
+
+func (x *RegisterPatientRequest) GetBirthPlace() string {
+	if x != nil {
+		return x.BirthPlace
+	}
+	return ""
+}
+
+func (x *RegisterPatientRequest) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *RegisterPatientRequest) GetPhotoUrl() string {
+	if x != nil {
+		return x.PhotoUrl
+	}
+	return ""
+}
+
+func (x *RegisterPatientRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
 type RegisterPatientResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -100,7 +140,7 @@ type RegisterPatientResponse struct {
 
 func (x *RegisterPatientResponse) Reset() {
 	*x = RegisterPatientResponse{}
-	mi := &file_shared_proto_patient_v1_patient_proto_msgTypes[1]
+	mi := &file_patient_v1_patient_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -112,7 +152,7 @@ func (x *RegisterPatientResponse) String() string {
 func (*RegisterPatientResponse) ProtoMessage() {}
 
 func (x *RegisterPatientResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_patient_v1_patient_proto_msgTypes[1]
+	mi := &file_patient_v1_patient_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -125,7 +165,7 @@ func (x *RegisterPatientResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterPatientResponse.ProtoReflect.Descriptor instead.
 func (*RegisterPatientResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_patient_v1_patient_proto_rawDescGZIP(), []int{1}
+	return file_patient_v1_patient_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RegisterPatientResponse) GetSuccess() bool {
@@ -158,7 +198,7 @@ type GetPatientByMRNRequest struct {
 
 func (x *GetPatientByMRNRequest) Reset() {
 	*x = GetPatientByMRNRequest{}
-	mi := &file_shared_proto_patient_v1_patient_proto_msgTypes[2]
+	mi := &file_patient_v1_patient_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -170,7 +210,7 @@ func (x *GetPatientByMRNRequest) String() string {
 func (*GetPatientByMRNRequest) ProtoMessage() {}
 
 func (x *GetPatientByMRNRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_patient_v1_patient_proto_msgTypes[2]
+	mi := &file_patient_v1_patient_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -183,7 +223,7 @@ func (x *GetPatientByMRNRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPatientByMRNRequest.ProtoReflect.Descriptor instead.
 func (*GetPatientByMRNRequest) Descriptor() ([]byte, []int) {
-	return file_shared_proto_patient_v1_patient_proto_rawDescGZIP(), []int{2}
+	return file_patient_v1_patient_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *GetPatientByMRNRequest) GetMrn() string {
@@ -195,17 +235,14 @@ func (x *GetPatientByMRNRequest) GetMrn() string {
 
 type GetPatientByMRNResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Mrn           string                 `protobuf:"bytes,1,opt,name=mrn,proto3" json:"mrn,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Nik           string                 `protobuf:"bytes,3,opt,name=nik,proto3" json:"nik,omitempty"`
-	Dob           string                 `protobuf:"bytes,4,opt,name=dob,proto3" json:"dob,omitempty"`
+	Patient       *Patient               `protobuf:"bytes,1,opt,name=patient,proto3" json:"patient,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetPatientByMRNResponse) Reset() {
 	*x = GetPatientByMRNResponse{}
-	mi := &file_shared_proto_patient_v1_patient_proto_msgTypes[3]
+	mi := &file_patient_v1_patient_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -217,7 +254,7 @@ func (x *GetPatientByMRNResponse) String() string {
 func (*GetPatientByMRNResponse) ProtoMessage() {}
 
 func (x *GetPatientByMRNResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_shared_proto_patient_v1_patient_proto_msgTypes[3]
+	mi := &file_patient_v1_patient_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -230,114 +267,459 @@ func (x *GetPatientByMRNResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPatientByMRNResponse.ProtoReflect.Descriptor instead.
 func (*GetPatientByMRNResponse) Descriptor() ([]byte, []int) {
-	return file_shared_proto_patient_v1_patient_proto_rawDescGZIP(), []int{3}
+	return file_patient_v1_patient_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *GetPatientByMRNResponse) GetMrn() string {
+func (x *GetPatientByMRNResponse) GetPatient() *Patient {
+	if x != nil {
+		return x.Patient
+	}
+	return nil
+}
+
+type Patient struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Mrn           string                 `protobuf:"bytes,1,opt,name=mrn,proto3" json:"mrn,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Nik           string                 `protobuf:"bytes,3,opt,name=nik,proto3" json:"nik,omitempty"`
+	Dob           string                 `protobuf:"bytes,4,opt,name=dob,proto3" json:"dob,omitempty"`
+	Gender        string                 `protobuf:"bytes,5,opt,name=gender,proto3" json:"gender,omitempty"`
+	BirthPlace    string                 `protobuf:"bytes,6,opt,name=birth_place,json=birthPlace,proto3" json:"birth_place,omitempty"`
+	Address       string                 `protobuf:"bytes,7,opt,name=address,proto3" json:"address,omitempty"`
+	PhotoUrl      string                 `protobuf:"bytes,8,opt,name=photo_url,json=photoUrl,proto3" json:"photo_url,omitempty"`
+	UserId        string                 `protobuf:"bytes,9,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Email         string                 `protobuf:"bytes,10,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Patient) Reset() {
+	*x = Patient{}
+	mi := &file_patient_v1_patient_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Patient) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Patient) ProtoMessage() {}
+
+func (x *Patient) ProtoReflect() protoreflect.Message {
+	mi := &file_patient_v1_patient_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Patient.ProtoReflect.Descriptor instead.
+func (*Patient) Descriptor() ([]byte, []int) {
+	return file_patient_v1_patient_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Patient) GetMrn() string {
 	if x != nil {
 		return x.Mrn
 	}
 	return ""
 }
 
-func (x *GetPatientByMRNResponse) GetName() string {
+func (x *Patient) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *GetPatientByMRNResponse) GetNik() string {
+func (x *Patient) GetNik() string {
 	if x != nil {
 		return x.Nik
 	}
 	return ""
 }
 
-func (x *GetPatientByMRNResponse) GetDob() string {
+func (x *Patient) GetDob() string {
 	if x != nil {
 		return x.Dob
 	}
 	return ""
 }
 
-var File_shared_proto_patient_v1_patient_proto protoreflect.FileDescriptor
+func (x *Patient) GetGender() string {
+	if x != nil {
+		return x.Gender
+	}
+	return ""
+}
 
-const file_shared_proto_patient_v1_patient_proto_rawDesc = "" +
+func (x *Patient) GetBirthPlace() string {
+	if x != nil {
+		return x.BirthPlace
+	}
+	return ""
+}
+
+func (x *Patient) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *Patient) GetPhotoUrl() string {
+	if x != nil {
+		return x.PhotoUrl
+	}
+	return ""
+}
+
+func (x *Patient) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *Patient) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+type SearchPatientsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchPatientsRequest) Reset() {
+	*x = SearchPatientsRequest{}
+	mi := &file_patient_v1_patient_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchPatientsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchPatientsRequest) ProtoMessage() {}
+
+func (x *SearchPatientsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_patient_v1_patient_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchPatientsRequest.ProtoReflect.Descriptor instead.
+func (*SearchPatientsRequest) Descriptor() ([]byte, []int) {
+	return file_patient_v1_patient_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SearchPatientsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *SearchPatientsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *SearchPatientsRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+type SearchPatientsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Patients      []*Patient             `protobuf:"bytes,1,rep,name=patients,proto3" json:"patients,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchPatientsResponse) Reset() {
+	*x = SearchPatientsResponse{}
+	mi := &file_patient_v1_patient_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchPatientsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchPatientsResponse) ProtoMessage() {}
+
+func (x *SearchPatientsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_patient_v1_patient_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchPatientsResponse.ProtoReflect.Descriptor instead.
+func (*SearchPatientsResponse) Descriptor() ([]byte, []int) {
+	return file_patient_v1_patient_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SearchPatientsResponse) GetPatients() []*Patient {
+	if x != nil {
+		return x.Patients
+	}
+	return nil
+}
+
+func (x *SearchPatientsResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+type DeletePatientRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Mrn           string                 `protobuf:"bytes,1,opt,name=mrn,proto3" json:"mrn,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeletePatientRequest) Reset() {
+	*x = DeletePatientRequest{}
+	mi := &file_patient_v1_patient_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeletePatientRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeletePatientRequest) ProtoMessage() {}
+
+func (x *DeletePatientRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_patient_v1_patient_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeletePatientRequest.ProtoReflect.Descriptor instead.
+func (*DeletePatientRequest) Descriptor() ([]byte, []int) {
+	return file_patient_v1_patient_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *DeletePatientRequest) GetMrn() string {
+	if x != nil {
+		return x.Mrn
+	}
+	return ""
+}
+
+type DeletePatientResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeletePatientResponse) Reset() {
+	*x = DeletePatientResponse{}
+	mi := &file_patient_v1_patient_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeletePatientResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeletePatientResponse) ProtoMessage() {}
+
+func (x *DeletePatientResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_patient_v1_patient_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeletePatientResponse.ProtoReflect.Descriptor instead.
+func (*DeletePatientResponse) Descriptor() ([]byte, []int) {
+	return file_patient_v1_patient_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *DeletePatientResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *DeletePatientResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+var File_patient_v1_patient_proto protoreflect.FileDescriptor
+
+const file_patient_v1_patient_proto_rawDesc = "" +
 	"\n" +
-	"%shared/proto/patient/v1/patient.proto\x12\n" +
-	"patient.v1\"i\n" +
+	"\x18patient/v1/patient.proto\x12\n" +
+	"patient.v1\"\xef\x01\n" +
 	"\x16RegisterPatientRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x10\n" +
 	"\x03nik\x18\x02 \x01(\tR\x03nik\x12\x10\n" +
 	"\x03dob\x18\x03 \x01(\tR\x03dob\x12\x17\n" +
-	"\auser_id\x18\x04 \x01(\tR\x06userId\"_\n" +
+	"\auser_id\x18\x04 \x01(\tR\x06userId\x12\x16\n" +
+	"\x06gender\x18\x05 \x01(\tR\x06gender\x12\x1f\n" +
+	"\vbirth_place\x18\x06 \x01(\tR\n" +
+	"birthPlace\x12\x18\n" +
+	"\aaddress\x18\a \x01(\tR\aaddress\x12\x1b\n" +
+	"\tphoto_url\x18\b \x01(\tR\bphotoUrl\x12\x14\n" +
+	"\x05email\x18\t \x01(\tR\x05email\"_\n" +
 	"\x17RegisterPatientResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x10\n" +
 	"\x03mrn\x18\x02 \x01(\tR\x03mrn\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\"*\n" +
 	"\x16GetPatientByMRNRequest\x12\x10\n" +
-	"\x03mrn\x18\x01 \x01(\tR\x03mrn\"c\n" +
-	"\x17GetPatientByMRNResponse\x12\x10\n" +
+	"\x03mrn\x18\x01 \x01(\tR\x03mrn\"H\n" +
+	"\x17GetPatientByMRNResponse\x12-\n" +
+	"\apatient\x18\x01 \x01(\v2\x13.patient.v1.PatientR\apatient\"\xf2\x01\n" +
+	"\aPatient\x12\x10\n" +
 	"\x03mrn\x18\x01 \x01(\tR\x03mrn\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x10\n" +
 	"\x03nik\x18\x03 \x01(\tR\x03nik\x12\x10\n" +
-	"\x03dob\x18\x04 \x01(\tR\x03dob2\xc8\x01\n" +
+	"\x03dob\x18\x04 \x01(\tR\x03dob\x12\x16\n" +
+	"\x06gender\x18\x05 \x01(\tR\x06gender\x12\x1f\n" +
+	"\vbirth_place\x18\x06 \x01(\tR\n" +
+	"birthPlace\x12\x18\n" +
+	"\aaddress\x18\a \x01(\tR\aaddress\x12\x1b\n" +
+	"\tphoto_url\x18\b \x01(\tR\bphotoUrl\x12\x17\n" +
+	"\auser_id\x18\t \x01(\tR\x06userId\x12\x14\n" +
+	"\x05email\x18\n" +
+	" \x01(\tR\x05email\"`\n" +
+	"\x15SearchPatientsRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\"j\n" +
+	"\x16SearchPatientsResponse\x12/\n" +
+	"\bpatients\x18\x01 \x03(\v2\x13.patient.v1.PatientR\bpatients\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount\"(\n" +
+	"\x14DeletePatientRequest\x12\x10\n" +
+	"\x03mrn\x18\x01 \x01(\tR\x03mrn\"K\n" +
+	"\x15DeletePatientResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2\xf7\x02\n" +
 	"\x0ePatientService\x12Z\n" +
 	"\x0fRegisterPatient\x12\".patient.v1.RegisterPatientRequest\x1a#.patient.v1.RegisterPatientResponse\x12Z\n" +
-	"\x0fGetPatientByMRN\x12\".patient.v1.GetPatientByMRNRequest\x1a#.patient.v1.GetPatientByMRNResponseBHZFgithub.com/aliube/go-micro-simrs-one/shared/proto/patient/v1;patientv1b\x06proto3"
+	"\x0fGetPatientByMRN\x12\".patient.v1.GetPatientByMRNRequest\x1a#.patient.v1.GetPatientByMRNResponse\x12W\n" +
+	"\x0eSearchPatients\x12!.patient.v1.SearchPatientsRequest\x1a\".patient.v1.SearchPatientsResponse\x12T\n" +
+	"\rDeletePatient\x12 .patient.v1.DeletePatientRequest\x1a!.patient.v1.DeletePatientResponseBHZFgithub.com/aliube/go-micro-simrs-one/shared/proto/patient/v1;patientv1b\x06proto3"
 
 var (
-	file_shared_proto_patient_v1_patient_proto_rawDescOnce sync.Once
-	file_shared_proto_patient_v1_patient_proto_rawDescData []byte
+	file_patient_v1_patient_proto_rawDescOnce sync.Once
+	file_patient_v1_patient_proto_rawDescData []byte
 )
 
-func file_shared_proto_patient_v1_patient_proto_rawDescGZIP() []byte {
-	file_shared_proto_patient_v1_patient_proto_rawDescOnce.Do(func() {
-		file_shared_proto_patient_v1_patient_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_shared_proto_patient_v1_patient_proto_rawDesc), len(file_shared_proto_patient_v1_patient_proto_rawDesc)))
+func file_patient_v1_patient_proto_rawDescGZIP() []byte {
+	file_patient_v1_patient_proto_rawDescOnce.Do(func() {
+		file_patient_v1_patient_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_patient_v1_patient_proto_rawDesc), len(file_patient_v1_patient_proto_rawDesc)))
 	})
-	return file_shared_proto_patient_v1_patient_proto_rawDescData
+	return file_patient_v1_patient_proto_rawDescData
 }
 
-var file_shared_proto_patient_v1_patient_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
-var file_shared_proto_patient_v1_patient_proto_goTypes = []any{
+var file_patient_v1_patient_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_patient_v1_patient_proto_goTypes = []any{
 	(*RegisterPatientRequest)(nil),  // 0: patient.v1.RegisterPatientRequest
 	(*RegisterPatientResponse)(nil), // 1: patient.v1.RegisterPatientResponse
 	(*GetPatientByMRNRequest)(nil),  // 2: patient.v1.GetPatientByMRNRequest
 	(*GetPatientByMRNResponse)(nil), // 3: patient.v1.GetPatientByMRNResponse
+	(*Patient)(nil),                 // 4: patient.v1.Patient
+	(*SearchPatientsRequest)(nil),   // 5: patient.v1.SearchPatientsRequest
+	(*SearchPatientsResponse)(nil),  // 6: patient.v1.SearchPatientsResponse
+	(*DeletePatientRequest)(nil),    // 7: patient.v1.DeletePatientRequest
+	(*DeletePatientResponse)(nil),   // 8: patient.v1.DeletePatientResponse
 }
-var file_shared_proto_patient_v1_patient_proto_depIdxs = []int32{
-	0, // 0: patient.v1.PatientService.RegisterPatient:input_type -> patient.v1.RegisterPatientRequest
-	2, // 1: patient.v1.PatientService.GetPatientByMRN:input_type -> patient.v1.GetPatientByMRNRequest
-	1, // 2: patient.v1.PatientService.RegisterPatient:output_type -> patient.v1.RegisterPatientResponse
-	3, // 3: patient.v1.PatientService.GetPatientByMRN:output_type -> patient.v1.GetPatientByMRNResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+var file_patient_v1_patient_proto_depIdxs = []int32{
+	4, // 0: patient.v1.GetPatientByMRNResponse.patient:type_name -> patient.v1.Patient
+	4, // 1: patient.v1.SearchPatientsResponse.patients:type_name -> patient.v1.Patient
+	0, // 2: patient.v1.PatientService.RegisterPatient:input_type -> patient.v1.RegisterPatientRequest
+	2, // 3: patient.v1.PatientService.GetPatientByMRN:input_type -> patient.v1.GetPatientByMRNRequest
+	5, // 4: patient.v1.PatientService.SearchPatients:input_type -> patient.v1.SearchPatientsRequest
+	7, // 5: patient.v1.PatientService.DeletePatient:input_type -> patient.v1.DeletePatientRequest
+	1, // 6: patient.v1.PatientService.RegisterPatient:output_type -> patient.v1.RegisterPatientResponse
+	3, // 7: patient.v1.PatientService.GetPatientByMRN:output_type -> patient.v1.GetPatientByMRNResponse
+	6, // 8: patient.v1.PatientService.SearchPatients:output_type -> patient.v1.SearchPatientsResponse
+	8, // 9: patient.v1.PatientService.DeletePatient:output_type -> patient.v1.DeletePatientResponse
+	6, // [6:10] is the sub-list for method output_type
+	2, // [2:6] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_shared_proto_patient_v1_patient_proto_init() }
-func file_shared_proto_patient_v1_patient_proto_init() {
-	if File_shared_proto_patient_v1_patient_proto != nil {
+func init() { file_patient_v1_patient_proto_init() }
+func file_patient_v1_patient_proto_init() {
+	if File_patient_v1_patient_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_shared_proto_patient_v1_patient_proto_rawDesc), len(file_shared_proto_patient_v1_patient_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_patient_v1_patient_proto_rawDesc), len(file_patient_v1_patient_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_shared_proto_patient_v1_patient_proto_goTypes,
-		DependencyIndexes: file_shared_proto_patient_v1_patient_proto_depIdxs,
-		MessageInfos:      file_shared_proto_patient_v1_patient_proto_msgTypes,
+		GoTypes:           file_patient_v1_patient_proto_goTypes,
+		DependencyIndexes: file_patient_v1_patient_proto_depIdxs,
+		MessageInfos:      file_patient_v1_patient_proto_msgTypes,
 	}.Build()
-	File_shared_proto_patient_v1_patient_proto = out.File
-	file_shared_proto_patient_v1_patient_proto_goTypes = nil
-	file_shared_proto_patient_v1_patient_proto_depIdxs = nil
+	File_patient_v1_patient_proto = out.File
+	file_patient_v1_patient_proto_goTypes = nil
+	file_patient_v1_patient_proto_depIdxs = nil
 }

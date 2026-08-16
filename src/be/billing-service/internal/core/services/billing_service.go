@@ -39,6 +39,33 @@ func (s *billingServiceImpl) getOrCreateInvoice(ctx context.Context, encounterNo
 	return inv, nil
 }
 
+func (s *billingServiceImpl) AddRegistrationFee(ctx context.Context, encounterNo, departmentCode string, amount float64) (string, error) {
+	inv, err := s.getOrCreateInvoice(ctx, encounterNo)
+	if err != nil {
+		return "", err
+	}
+
+	item := &domain.InvoiceItem{
+		ID:          uuid.New().String(),
+		InvoiceID:   inv.ID,
+		ItemType:    "ACTION", // We consider registration fee as an action
+		Description: fmt.Sprintf("Biaya Pendaftaran - %s", departmentCode),
+		Amount:      amount,
+	}
+
+	err = s.repo.CreateInvoiceItem(ctx, item)
+	if err != nil {
+		return "", err
+	}
+
+	err = s.repo.UpdateInvoiceAmount(ctx, inv.ID, amount)
+	if err != nil {
+		return "", err
+	}
+	
+	return inv.ID, nil
+}
+
 func (s *billingServiceImpl) AddActionItem(ctx context.Context, encounterNo, actionCode, description string, amount float64) error {
 	inv, err := s.getOrCreateInvoice(ctx, encounterNo)
 	if err != nil {
@@ -92,23 +119,23 @@ func (s *billingServiceImpl) GenerateInvoice(ctx context.Context, encounterNo st
 	return inv, nil
 }
 
-func (s *billingServiceImpl) PayInvoice(ctx context.Context, invoiceID string, amountPaid float64) error {
+func (s *billingServiceImpl) PayInvoice(ctx context.Context, invoiceID string, amountPaid float64) (string, error) {
 	inv, err := s.repo.GetInvoice(ctx, invoiceID)
 	if err != nil {
-		return err
+		return "", err
 	}
 	
 	if inv.Status == "PAID" {
-		return fmt.Errorf("invoice is already paid")
+		return "", fmt.Errorf("invoice is already paid")
 	}
 
 	if amountPaid < inv.TotalAmount {
-		return fmt.Errorf("insufficient amount. Total is %.2f", inv.TotalAmount)
+		return "", fmt.Errorf("insufficient amount. Total is %.2f", inv.TotalAmount)
 	}
 
 	err = s.repo.UpdateInvoiceStatus(ctx, invoiceID, "PAID")
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Publish InvoicePaid event to Outbox
@@ -118,5 +145,5 @@ func (s *billingServiceImpl) PayInvoice(ctx context.Context, invoiceID string, a
 		slog.Warn("Failed to create outbox event for InvoicePaid", "error", err)
 	}
 
-	return nil
+	return inv.EncounterNo, nil
 }

@@ -15,6 +15,7 @@ type UserRepository interface {
 	ListUsers(ctx context.Context, page, pageSize int, statusFilter, search string) ([]*domain.UserWithProfile, int, error)
 	UpdateStatusAndRole(ctx context.Context, userID, status string, role *string) error
 	SoftDelete(ctx context.Context, userID, deletedBy string) error
+	HardDelete(ctx context.Context, userID string) error
 	
 	CreateRefreshToken(ctx context.Context, token *domain.RefreshToken) error
 	GetRefreshToken(ctx context.Context, tokenHash string) (*domain.RefreshToken, error)
@@ -46,5 +47,5 @@ type AuthService interface {
 	
 	ListUsers(ctx context.Context, page, pageSize int, statusFilter, search string) ([]*domain.UserWithProfile, int, error)
 	UpdateUserStatus(ctx context.Context, userID, status string, role *string) error
-	DeleteUser(ctx context.Context, userID, deletedBy string) error
+	DeleteUser(ctx context.Context, userID, deletedBy string, hardDelete bool) error
 }

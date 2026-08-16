@@ -11,12 +11,17 @@ import (
 )
 
 type Patient struct {
-	Mrn       string
-	Name      string
-	Nik       string
-	Dob       string
-	CreatedAt sql.NullTime
-	UserID    uuid.NullUUID
-	DeletedDt sql.NullTime
-	DeletedBy uuid.NullUUID
+	Mrn        string
+	Name       string
+	Nik        string
+	Dob        string
+	CreatedAt  sql.NullTime
+	UserID     uuid.NullUUID
+	DeletedDt  sql.NullTime
+	DeletedBy  uuid.NullUUID
+	Gender     sql.NullString
+	BirthPlace sql.NullString
+	Address    sql.NullString
+	PhotoUrl   sql.NullString
+	Email      sql.NullString
 }

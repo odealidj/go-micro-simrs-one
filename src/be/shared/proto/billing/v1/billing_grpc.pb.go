@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: proto/billing/v1/billing.proto
+// source: billing/v1/billing.proto
 
 package billingv1
 
@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BillingService_GenerateInvoice_FullMethodName = "/billing.v1.BillingService/GenerateInvoice"
-	BillingService_PayInvoice_FullMethodName      = "/billing.v1.BillingService/PayInvoice"
+	BillingService_GenerateInvoice_FullMethodName    = "/billing.v1.BillingService/GenerateInvoice"
+	BillingService_PayInvoice_FullMethodName         = "/billing.v1.BillingService/PayInvoice"
+	BillingService_AddRegistrationFee_FullMethodName = "/billing.v1.BillingService/AddRegistrationFee"
 )
 
 // BillingServiceClient is the client API for BillingService service.
@@ -29,6 +30,7 @@ const (
 type BillingServiceClient interface {
 	GenerateInvoice(ctx context.Context, in *GenerateInvoiceRequest, opts ...grpc.CallOption) (*GenerateInvoiceResponse, error)
 	PayInvoice(ctx context.Context, in *PayInvoiceRequest, opts ...grpc.CallOption) (*PayInvoiceResponse, error)
+	AddRegistrationFee(ctx context.Context, in *AddRegistrationFeeRequest, opts ...grpc.CallOption) (*AddRegistrationFeeResponse, error)
 }
 
 type billingServiceClient struct {
@@ -59,12 +61,23 @@ func (c *billingServiceClient) PayInvoice(ctx context.Context, in *PayInvoiceReq
 	return out, nil
 }
 
+func (c *billingServiceClient) AddRegistrationFee(ctx context.Context, in *AddRegistrationFeeRequest, opts ...grpc.CallOption) (*AddRegistrationFeeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddRegistrationFeeResponse)
+	err := c.cc.Invoke(ctx, BillingService_AddRegistrationFee_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BillingServiceServer is the server API for BillingService service.
 // All implementations must embed UnimplementedBillingServiceServer
 // for forward compatibility.
 type BillingServiceServer interface {
 	GenerateInvoice(context.Context, *GenerateInvoiceRequest) (*GenerateInvoiceResponse, error)
 	PayInvoice(context.Context, *PayInvoiceRequest) (*PayInvoiceResponse, error)
+	AddRegistrationFee(context.Context, *AddRegistrationFeeRequest) (*AddRegistrationFeeResponse, error)
 	mustEmbedUnimplementedBillingServiceServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedBillingServiceServer) GenerateInvoice(context.Context, *Gener
 }
 func (UnimplementedBillingServiceServer) PayInvoice(context.Context, *PayInvoiceRequest) (*PayInvoiceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PayInvoice not implemented")
+}
+func (UnimplementedBillingServiceServer) AddRegistrationFee(context.Context, *AddRegistrationFeeRequest) (*AddRegistrationFeeResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddRegistrationFee not implemented")
 }
 func (UnimplementedBillingServiceServer) mustEmbedUnimplementedBillingServiceServer() {}
 func (UnimplementedBillingServiceServer) testEmbeddedByValue()                        {}
@@ -138,6 +154,24 @@ func _BillingService_PayInvoice_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _BillingService_AddRegistrationFee_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddRegistrationFeeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).AddRegistrationFee(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_AddRegistrationFee_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).AddRegistrationFee(ctx, req.(*AddRegistrationFeeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // BillingService_ServiceDesc is the grpc.ServiceDesc for BillingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,7 +187,11 @@ var BillingService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "PayInvoice",
 			Handler:    _BillingService_PayInvoice_Handler,
 		},
+		{
+			MethodName: "AddRegistrationFee",
+			Handler:    _BillingService_AddRegistrationFee_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/billing/v1/billing.proto",
+	Metadata: "billing/v1/billing.proto",
 }

@@ -19,7 +19,8 @@ type BillingRepository interface {
 type BillingService interface {
 	AddActionItem(ctx context.Context, encounterNo, actionCode, description string, amount float64) error
 	AddMedicineItem(ctx context.Context, encounterNo, prescriptionID string, amount float64) error
+	AddRegistrationFee(ctx context.Context, encounterNo, departmentCode string, amount float64) (string, error)
 	
 	GenerateInvoice(ctx context.Context, encounterNo string) (*domain.Invoice, error)
-	PayInvoice(ctx context.Context, invoiceID string, amountPaid float64) error
+	PayInvoice(ctx context.Context, invoiceID string, amountPaid float64) (string, error)
 }

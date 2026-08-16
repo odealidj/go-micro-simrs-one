@@ -354,6 +354,9 @@ func (s *authServiceImpl) UpdateUserStatus(ctx context.Context, userID, status s
 	return s.repo.UpdateStatusAndRole(ctx, userID, status, role)
 }
 
-func (s *authServiceImpl) DeleteUser(ctx context.Context, userID, deletedBy string) error {
+func (s *authServiceImpl) DeleteUser(ctx context.Context, userID, deletedBy string, hardDelete bool) error {
+	if hardDelete {
+		return s.repo.HardDelete(ctx, userID)
+	}
 	return s.repo.SoftDelete(ctx, userID, deletedBy)
 }

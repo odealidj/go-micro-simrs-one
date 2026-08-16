@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: shared/proto/patient/v1/patient.proto
+// source: patient/v1/patient.proto
 
 package patientv1
 
@@ -21,6 +21,8 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	PatientService_RegisterPatient_FullMethodName = "/patient.v1.PatientService/RegisterPatient"
 	PatientService_GetPatientByMRN_FullMethodName = "/patient.v1.PatientService/GetPatientByMRN"
+	PatientService_SearchPatients_FullMethodName  = "/patient.v1.PatientService/SearchPatients"
+	PatientService_DeletePatient_FullMethodName   = "/patient.v1.PatientService/DeletePatient"
 )
 
 // PatientServiceClient is the client API for PatientService service.
@@ -29,6 +31,8 @@ const (
 type PatientServiceClient interface {
 	RegisterPatient(ctx context.Context, in *RegisterPatientRequest, opts ...grpc.CallOption) (*RegisterPatientResponse, error)
 	GetPatientByMRN(ctx context.Context, in *GetPatientByMRNRequest, opts ...grpc.CallOption) (*GetPatientByMRNResponse, error)
+	SearchPatients(ctx context.Context, in *SearchPatientsRequest, opts ...grpc.CallOption) (*SearchPatientsResponse, error)
+	DeletePatient(ctx context.Context, in *DeletePatientRequest, opts ...grpc.CallOption) (*DeletePatientResponse, error)
 }
 
 type patientServiceClient struct {
@@ -59,12 +63,34 @@ func (c *patientServiceClient) GetPatientByMRN(ctx context.Context, in *GetPatie
 	return out, nil
 }
 
+func (c *patientServiceClient) SearchPatients(ctx context.Context, in *SearchPatientsRequest, opts ...grpc.CallOption) (*SearchPatientsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchPatientsResponse)
+	err := c.cc.Invoke(ctx, PatientService_SearchPatients_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *patientServiceClient) DeletePatient(ctx context.Context, in *DeletePatientRequest, opts ...grpc.CallOption) (*DeletePatientResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePatientResponse)
+	err := c.cc.Invoke(ctx, PatientService_DeletePatient_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PatientServiceServer is the server API for PatientService service.
 // All implementations must embed UnimplementedPatientServiceServer
 // for forward compatibility.
 type PatientServiceServer interface {
 	RegisterPatient(context.Context, *RegisterPatientRequest) (*RegisterPatientResponse, error)
 	GetPatientByMRN(context.Context, *GetPatientByMRNRequest) (*GetPatientByMRNResponse, error)
+	SearchPatients(context.Context, *SearchPatientsRequest) (*SearchPatientsResponse, error)
+	DeletePatient(context.Context, *DeletePatientRequest) (*DeletePatientResponse, error)
 	mustEmbedUnimplementedPatientServiceServer()
 }
 
@@ -80,6 +106,12 @@ func (UnimplementedPatientServiceServer) RegisterPatient(context.Context, *Regis
 }
 func (UnimplementedPatientServiceServer) GetPatientByMRN(context.Context, *GetPatientByMRNRequest) (*GetPatientByMRNResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetPatientByMRN not implemented")
+}
+func (UnimplementedPatientServiceServer) SearchPatients(context.Context, *SearchPatientsRequest) (*SearchPatientsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchPatients not implemented")
+}
+func (UnimplementedPatientServiceServer) DeletePatient(context.Context, *DeletePatientRequest) (*DeletePatientResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeletePatient not implemented")
 }
 func (UnimplementedPatientServiceServer) mustEmbedUnimplementedPatientServiceServer() {}
 func (UnimplementedPatientServiceServer) testEmbeddedByValue()                        {}
@@ -138,6 +170,42 @@ func _PatientService_GetPatientByMRN_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PatientService_SearchPatients_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchPatientsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PatientServiceServer).SearchPatients(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PatientService_SearchPatients_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PatientServiceServer).SearchPatients(ctx, req.(*SearchPatientsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PatientService_DeletePatient_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePatientRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PatientServiceServer).DeletePatient(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PatientService_DeletePatient_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PatientServiceServer).DeletePatient(ctx, req.(*DeletePatientRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PatientService_ServiceDesc is the grpc.ServiceDesc for PatientService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -153,7 +221,15 @@ var PatientService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetPatientByMRN",
 			Handler:    _PatientService_GetPatientByMRN_Handler,
 		},
+		{
+			MethodName: "SearchPatients",
+			Handler:    _PatientService_SearchPatients_Handler,
+		},
+		{
+			MethodName: "DeletePatient",
+			Handler:    _PatientService_DeletePatient_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "shared/proto/patient/v1/patient.proto",
+	Metadata: "patient/v1/patient.proto",
 }

@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { RegistrationDashboard } from "./pages/RegistrationDashboard";
 import { NewRegistrationPage } from "./pages/NewRegistrationPage";
 import { QueueManagerPage } from "./pages/QueueManagerPage";
+import { DaftarKunjunganPage } from "./pages/DaftarKunjunganPage";
 
 export const registrationRoutes: RouteObject[] = [
   {
@@ -13,11 +14,15 @@ export const registrationRoutes: RouteObject[] = [
         element: <RegistrationDashboard />,
       },
       {
-        path: "registration/new",
+        path: "admisi/daftar",
+        element: <DaftarKunjunganPage />,
+      },
+      {
+        path: "admisi/baru",
         element: <NewRegistrationPage />,
       },
       {
-        path: "registration/queue",
+        path: "admisi/antrean",
         element: <QueueManagerPage />,
       },
     ],

@@ -1,5 +1,5 @@
-import { Users, UserPlus, Clock, Stethoscope, Activity } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, UserPlus, Clock, Stethoscope } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export function RegistrationDashboard() {
@@ -59,19 +59,6 @@ export function RegistrationDashboard() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="col-span-1 md:col-span-2 lg:col-span-3 bg-white border-slate-200 shadow-sm rounded-xl">
-          <CardHeader>
-            <CardTitle className="text-lg text-slate-800">Trend Kunjungan Poli</CardTitle>
-          </CardHeader>
-          <CardContent className="h-80 flex items-center justify-center border border-dashed border-slate-200 rounded-xl mx-6 mb-6">
-            <div className="flex flex-col items-center justify-center text-slate-400">
-              <Activity className="h-12 w-12 mb-4 text-slate-300" />
-              <p>Grafik Kunjungan (Comming Soon)</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }

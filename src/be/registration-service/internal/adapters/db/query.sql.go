@@ -140,6 +140,69 @@ func (q *Queries) GetPendingOutboxEvents(ctx context.Context) ([]OutboxEvent, er
 	return items, nil
 }
 
+const getTodayEncounters = `-- name: GetTodayEncounters :many
+SELECT encounter_no, mrn, department, doctor_id, status, created_at
+FROM encounters
+WHERE DATE(created_at) = $1
+  AND deleted_dt IS NULL
+ORDER BY created_at DESC
+`
+
+type GetTodayEncountersRow struct {
+	EncounterNo string
+	Mrn         string
+	Department  string
+	DoctorID    string
+	Status      string
+	CreatedAt   sql.NullTime
+}
+
+func (q *Queries) GetTodayEncounters(ctx context.Context, createdAt sql.NullTime) ([]GetTodayEncountersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getTodayEncounters, createdAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetTodayEncountersRow
+	for rows.Next() {
+		var i GetTodayEncountersRow
+		if err := rows.Scan(
+			&i.EncounterNo,
+			&i.Mrn,
+			&i.Department,
+			&i.DoctorID,
+			&i.Status,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateEncounterStatus = `-- name: UpdateEncounterStatus :exec
+UPDATE encounters
+SET status = $2
+WHERE encounter_no = $1
+`
+
+type UpdateEncounterStatusParams struct {
+	EncounterNo string
+	Status      string
+}
+
+func (q *Queries) UpdateEncounterStatus(ctx context.Context, arg UpdateEncounterStatusParams) error {
+	_, err := q.db.ExecContext(ctx, updateEncounterStatus, arg.EncounterNo, arg.Status)
+	return err
+}
+
 const updateOutboxEventStatus = `-- name: UpdateOutboxEventStatus :exec
 UPDATE outbox_events
 SET status = $2

@@ -41,7 +41,7 @@ func (s *patientServiceImpl) generateMRN(ctx context.Context) (string, error) {
 	return formattedMRN, nil
 }
 
-func (s *patientServiceImpl) RegisterPatient(ctx context.Context, name, nik, dob, userID string) (string, error) {
+func (s *patientServiceImpl) RegisterPatient(ctx context.Context, name, nik, dob, gender, birthPlace, address, photoURL, email, userID string) (string, error) {
 	if s.repo != nil {
 		existingPatient, err := s.repo.FindByNIK(ctx, nik)
 		if err == nil && existingPatient != nil {
@@ -55,12 +55,17 @@ func (s *patientServiceImpl) RegisterPatient(ctx context.Context, name, nik, dob
 	}
 
 	patient := &domain.Patient{
-		MRN:       mrn,
-		Name:      name,
-		NIK:       nik,
-		DOB:       dob,
-		UserID:    userID,
-		CreatedAt: time.Now(),
+		MRN:        mrn,
+		Name:       name,
+		NIK:        nik,
+		DOB:        dob,
+		Gender:     gender,
+		BirthPlace: birthPlace,
+		Address:    address,
+		PhotoURL:   photoURL,
+		Email:      email,
+		UserID:     userID,
+		CreatedAt:  time.Now(),
 	}
 
 	if s.repo != nil {
@@ -78,4 +83,27 @@ func (s *patientServiceImpl) GetPatientByMRN(ctx context.Context, mrn string) (*
 		return s.repo.FindByMRN(ctx, mrn)
 	}
 	return nil, fmt.Errorf("repository not initialized")
+}
+
+func (s *patientServiceImpl) SearchPatients(ctx context.Context, page, pageSize int, search string) ([]*domain.Patient, int, error) {
+	if s.repo == nil {
+		return nil, 0, fmt.Errorf("repository not initialized")
+	}
+	
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 10
+	}
+	
+	offset := (page - 1) * pageSize
+	return s.repo.ListPatients(ctx, pageSize, offset, search)
+}
+
+func (s *patientServiceImpl) DeletePatient(ctx context.Context, mrn string) error {
+	if s.repo == nil {
+		return fmt.Errorf("repository not initialized")
+	}
+	return s.repo.DeletePatient(ctx, mrn)
 }
