@@ -56,7 +56,7 @@ export function LoginPage() {
         });
 
         // Redirect based on role
-        if (role === "admin") {
+        if (role === "admin" || role === "super_admin") {
           navigate("/admin");
         } else if (role === "patient") {
           navigate("/patient");

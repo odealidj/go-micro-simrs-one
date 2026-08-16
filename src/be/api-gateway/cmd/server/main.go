@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -16,13 +17,16 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/health/grpc_health_v1"
 
 	"github.com/aliube/go-micro-simrs-one/api-gateway/internal/handlers"
 	"github.com/aliube/go-micro-simrs-one/api-gateway/internal/middleware"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/auth"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/circuitbreaker"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/db"
 	simrsmiddleware "github.com/aliube/go-micro-simrs-one/shared/pkg/middleware"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/response"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/shutdown"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/validator"
 	authpb "github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1"
@@ -62,9 +66,15 @@ func main() {
 	// 3. Custom Telemetry (trace_id) Middleware
 	r.Use(simrsmiddleware.TraceIDMiddleware)
 
-	// 4. Rate Limiter (60 req/s per IP, burst of 120)
+	// 4. Prometheus Metrics Middleware
+	r.Use(simrsmiddleware.PrometheusMiddleware)
+
+	// 5. Rate Limiter (60 req/s per IP, burst of 120)
 	rateLimiter := simrsmiddleware.NewRateLimiter(60, 120)
 	r.Use(rateLimiter.Middleware())
+
+	// Expose Prometheus metrics endpoint
+	r.Handle("/metrics", promhttp.Handler())
 
 	// Connect to Auth gRPC
 	authAddr := os.Getenv("AUTH_SERVICE_ADDR")
@@ -311,11 +321,326 @@ func main() {
 			
 			// Admin Dashboard Routes
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.RequireRole("admin"))
+				r.Use(middleware.RequireRole("admin", "super_admin"))
+
+				r.Get("/admin/system/health", func(w http.ResponseWriter, req *http.Request) {
+					checkHealth := func(conn *grpc.ClientConn) string {
+						client := grpc_health_v1.NewHealthClient(conn)
+						ctx, cancel := context.WithTimeout(req.Context(), 2*time.Second)
+						defer cancel()
+						res, err := client.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
+						if err != nil {
+							return "DOWN"
+						}
+						if res.Status == grpc_health_v1.HealthCheckResponse_SERVING {
+							return "SERVING"
+						}
+						return res.Status.String()
+					}
+
+					redisStatus := "SERVING"
+					ctx, cancel := context.WithTimeout(req.Context(), 2*time.Second)
+					defer cancel()
+					if err := rdb.Ping(ctx).Err(); err != nil {
+						redisStatus = "DOWN"
+					}
+
+					statusData := map[string]interface{}{
+						"api_gateway":          "SERVING",
+						"auth_service":         checkHealth(authConn),
+						"patient_service":      checkHealth(patientConn),
+						"registration_service": checkHealth(regConn),
+						"emr_service":          checkHealth(emrConn),
+						"pharmacy_service":     checkHealth(pharmacyConn),
+						"billing_service":      checkHealth(billingConn),
+						"redis":                redisStatus,
+					}
+
+					var emrPending, emrFailed, pharmacyPending, pharmacyFailed int
+					dbConn, err := db.ConnectPostgres("")
+					if err == nil {
+						defer dbConn.Close()
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM emr.outbox WHERE status = 'pending'").Scan(&emrPending)
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM emr.outbox WHERE status = 'failed'").Scan(&emrFailed)
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM pharmacy.outbox WHERE status = 'pending'").Scan(&pharmacyPending)
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM pharmacy.outbox WHERE status = 'failed'").Scan(&pharmacyFailed)
+					}
+
+					statusData["emr_outbox_unprocessed"] = emrPending
+					statusData["emr_outbox_failed"] = emrFailed
+					statusData["pharmacy_outbox_unprocessed"] = pharmacyPending
+					statusData["pharmacy_outbox_failed"] = pharmacyFailed
+
+					// Query Prometheus for Advanced Metrics
+					queryPrometheus := func(query string) string {
+						promURL := os.Getenv("PROMETHEUS_URL")
+						if promURL == "" {
+							promURL = "http://localhost:9090"
+						}
+						reqURL := promURL + "/api/v1/query?query=" + url.QueryEscape(query)
+						ctx, cancel := context.WithTimeout(req.Context(), 2*time.Second)
+						defer cancel()
+						req, _ := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
+						resp, err := http.DefaultClient.Do(req)
+						if err != nil {
+							return "N/A"
+						}
+						defer resp.Body.Close()
+						var promRes struct {
+							Data struct {
+								Result []struct {
+									Value []interface{} `json:"value"`
+								} `json:"result"`
+							} `json:"data"`
+						}
+						if err := json.NewDecoder(resp.Body).Decode(&promRes); err != nil || len(promRes.Data.Result) == 0 {
+							return "N/A"
+						}
+						val := promRes.Data.Result[0].Value
+						if len(val) > 1 {
+							if strVal, ok := val[1].(string); ok {
+								if parsed, err := strconv.ParseFloat(strVal, 64); err == nil {
+									return strconv.FormatFloat(parsed, 'f', 2, 64)
+								}
+								return strVal
+							}
+						}
+						return "N/A"
+					}
+
+					queryPrometheusList := func(query string) []map[string]string {
+						promURL := os.Getenv("PROMETHEUS_URL")
+						if promURL == "" {
+							promURL = "http://localhost:9090"
+						}
+						reqURL := promURL + "/api/v1/query?query=" + url.QueryEscape(query)
+						ctx, cancel := context.WithTimeout(req.Context(), 2*time.Second)
+						defer cancel()
+						req, _ := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
+						resp, err := http.DefaultClient.Do(req)
+						if err != nil {
+							return nil
+						}
+						defer resp.Body.Close()
+						var promRes struct {
+							Data struct {
+								Result []struct {
+									Metric map[string]string `json:"metric"`
+									Value  []interface{}     `json:"value"`
+								} `json:"result"`
+							} `json:"data"`
+						}
+						if err := json.NewDecoder(resp.Body).Decode(&promRes); err != nil {
+							return nil
+						}
+						
+						var out []map[string]string
+						for _, r := range promRes.Data.Result {
+							if len(r.Value) > 1 {
+								if strVal, ok := r.Value[1].(string); ok {
+									if parsed, err := strconv.ParseFloat(strVal, 64); err == nil {
+										strVal = strconv.FormatFloat(parsed, 'f', 2, 64)
+									}
+									item := r.Metric
+									if item == nil {
+										item = make(map[string]string)
+									}
+									item["value"] = strVal
+									out = append(out, item)
+								}
+							}
+						}
+						return out
+					}
+
+					statusData["sla_percent"] = queryPrometheus(`avg(avg_over_time(up[30d])) * 100`)
+					statusData["cpu_usage_percent"] = queryPrometheus(`sum(rate(process_cpu_seconds_total[5m])) * 100`)
+					statusData["ram_usage_mb"] = queryPrometheus(`sum(process_resident_memory_bytes) / 1024 / 1024`)
+					statusData["http_error_rate"] = queryPrometheus(`sum(rate(http_requests_total{code=~"5.."}[5m])) or vector(0)`)
+					
+					statusData["microservices_cpu"] = queryPrometheusList(`sum by (job) (rate(process_cpu_seconds_total{job!~".*exporter.*|podman-exporter"}[5m])) * 100`)
+					statusData["microservices_ram"] = queryPrometheusList(`sum by (job) (process_resident_memory_bytes{job!~".*exporter.*|podman-exporter"}) / 1024 / 1024`)
+
+					// Internal Database Metrics
+					statusData["redis_connected_clients"] = queryPrometheus(`redis_connected_clients or vector(0)`)
+					statusData["redis_memory_used_mb"] = queryPrometheus(`redis_memory_used_bytes / 1024 / 1024 or vector(0)`)
+					statusData["pg_active_connections"] = queryPrometheus(`sum(pg_stat_activity_count) or vector(0)`)
+					statusData["pg_xact_commit"] = queryPrometheus(`sum(rate(pg_stat_database_xact_commit[5m])) or vector(0)`)
+
+					// Hardware DB Metrics via prometheus-podman-exporter (kompatibel Podman & Docker)
+					// Join podman_container_cpu/mem dengan podman_container_info untuk mendapat label `name`
+					// Regex _postgres_|_redis_ memastikan hanya container DB asli (bukan exporter)
+					statusData["db_hw_cpu"] = queryPrometheusList(`rate(podman_container_cpu_seconds_total[5m]) * 100 * on(id) group_left(name) podman_container_info{name=~".*(go-micro-simrs-one_postgres_|go-micro-simrs-one_redis_).*"}`)
+					statusData["db_hw_ram"] = queryPrometheusList(`podman_container_mem_usage_bytes * on(id) group_left(name) podman_container_info{name=~".*(go-micro-simrs-one_postgres_|go-micro-simrs-one_redis_).*"} / 1024 / 1024`)
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "System health check completed",
+						Data:    statusData,
+					})
+				})
+
+				r.Get("/admin/system/master-metrics", func(w http.ResponseWriter, req *http.Request) {
+					ctx, cancel := context.WithTimeout(req.Context(), 5*time.Second)
+					defer cancel()
+
+					metricsData := map[string]interface{}{
+						"total_kbm":       0,
+						"total_icd10":     0,
+						"total_tindakan":  0,
+						"total_obat":      0,
+						"unmapped_kbm":    0,
+						"active_users":    0,
+						"today_encounter": 0,
+					}
+
+					dbConn, err := db.ConnectPostgres("")
+					if err == nil {
+						defer dbConn.Close()
+						
+						var totalKbm, totalIcd10, totalTindakan, unmappedKbm, totalObat, activeUsers, todayEncounter int
+
+						// EMR Schema Master Data
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM emr.kbm_catalog").Scan(&totalKbm)
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM emr.icd10_catalog").Scan(&totalIcd10)
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM emr.master_tindakan").Scan(&totalTindakan)
+						
+						// KBM Unmapped (Data Integrity)
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM emr.kbm_catalog WHERE kbm_code NOT IN (SELECT kbm_code FROM emr.kbm_icd10_mappings)").Scan(&unmappedKbm)
+
+						// Pharmacy Schema Master Data
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM pharmacy.inventory").Scan(&totalObat)
+
+						// Auth Schema (Active Users)
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM auth.users WHERE status = 'ACTIVE'").Scan(&activeUsers)
+
+						// Registration Schema (Today's Encounters)
+						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM registration.encounters WHERE DATE(created_at) = CURRENT_DATE").Scan(&todayEncounter)
+
+						type Breakdown struct {
+							Label string `json:"label"`
+							Count int    `json:"count"`
+						}
+
+						getBreakdown := func(query string) []Breakdown {
+							rows, err := dbConn.QueryContext(ctx, query)
+							var res []Breakdown
+							if err != nil {
+								return res
+							}
+							defer rows.Close()
+							for rows.Next() {
+								var b Breakdown
+								if err := rows.Scan(&b.Label, &b.Count); err == nil {
+									res = append(res, b)
+								}
+							}
+							return res
+						}
+
+						metricsData["total_kbm"] = totalKbm
+						metricsData["total_icd10"] = totalIcd10
+						metricsData["total_tindakan"] = totalTindakan
+						metricsData["unmapped_kbm"] = unmappedKbm
+						metricsData["total_obat"] = totalObat
+						metricsData["active_users"] = activeUsers
+						metricsData["today_encounter"] = todayEncounter
+
+						// Master Data Breakdowns
+						metricsData["kbm_breakdown"] = getBreakdown("SELECT polyclinic_code, COUNT(*) FROM emr.kbm_polyclinic_mappings GROUP BY polyclinic_code")
+						metricsData["icd10_breakdown"] = getBreakdown("SELECT polyclinic_code, COUNT(*) FROM emr.icd10_polyclinic_mappings GROUP BY polyclinic_code")
+						metricsData["tindakan_breakdown"] = getBreakdown("SELECT polyclinic_code, COUNT(*) FROM emr.tindakan_polyclinic_mappings GROUP BY polyclinic_code")
+						
+						metricsData["dokter_breakdown"] = getBreakdown("SELECT poli_code, COUNT(*) FROM auth.mapping_dokter_poli WHERE deleted_dt IS NULL AND CURRENT_DATE <= end_date GROUP BY poli_code")
+						metricsData["perawat_breakdown"] = getBreakdown("SELECT poli_code, COUNT(*) FROM auth.mapping_perawat_poli WHERE deleted_dt IS NULL AND CURRENT_DATE <= end_date GROUP BY poli_code")
+						
+						// User Demographics
+						metricsData["role_demographics"] = getBreakdown("SELECT role, COUNT(*) FROM auth.users GROUP BY role")
+
+						// Encounters Trend (Last 7 Days)
+						type Trend struct {
+							Date  string `json:"date"`
+							Count int    `json:"count"`
+						}
+						var encounterTrend []Trend
+						rows, err := dbConn.QueryContext(ctx, "SELECT TO_CHAR(DATE(created_at), 'YYYY-MM-DD'), COUNT(*) FROM registration.encounters GROUP BY DATE(created_at) ORDER BY DATE(created_at) DESC LIMIT 7")
+						if err == nil {
+							defer rows.Close()
+							for rows.Next() {
+								var t Trend
+								if err := rows.Scan(&t.Date, &t.Count); err == nil {
+									encounterTrend = append(encounterTrend, t)
+								}
+							}
+							// Reverse to make it chronological
+							for i, j := 0, len(encounterTrend)-1; i < j; i, j = i+1, j-1 {
+								encounterTrend[i], encounterTrend[j] = encounterTrend[j], encounterTrend[i]
+							}
+						}
+						metricsData["encounters_trend"] = encounterTrend
+
+						// Upcoming Expirations (< 30 days)
+						type Expiration struct {
+							Name     string `json:"name"`
+							Type     string `json:"type"` // Dokter / Perawat
+							Poli     string `json:"poli"`
+							EndDate  string `json:"end_date"`
+							DaysLeft int    `json:"days_left"`
+						}
+						var expirations []Expiration
+						
+						// Dokter Expirations
+						rowsD, errD := dbConn.QueryContext(ctx, `
+							SELECT u.username, m.poli_code, TO_CHAR(m.end_date, 'YYYY-MM-DD'), (m.end_date - CURRENT_DATE) as days_left
+							FROM auth.mapping_dokter_poli m
+							JOIN auth.profil_dokter p ON m.dokter_id = p.id
+							JOIN auth.users u ON p.user_id = u.id
+							WHERE m.deleted_dt IS NULL AND (m.end_date - CURRENT_DATE) BETWEEN 0 AND 30
+						`)
+						if errD == nil {
+							defer rowsD.Close()
+							for rowsD.Next() {
+								var e Expiration
+								e.Type = "Dokter"
+								if err := rowsD.Scan(&e.Name, &e.Poli, &e.EndDate, &e.DaysLeft); err == nil {
+									expirations = append(expirations, e)
+								}
+							}
+						}
+
+						// Perawat Expirations
+						rowsP, errP := dbConn.QueryContext(ctx, `
+							SELECT u.username, m.poli_code, TO_CHAR(m.end_date, 'YYYY-MM-DD'), (m.end_date - CURRENT_DATE) as days_left
+							FROM auth.mapping_perawat_poli m
+							JOIN auth.profil_perawat p ON m.perawat_id = p.id
+							JOIN auth.users u ON p.user_id = u.id
+							WHERE m.deleted_dt IS NULL AND (m.end_date - CURRENT_DATE) BETWEEN 0 AND 30
+						`)
+						if errP == nil {
+							defer rowsP.Close()
+							for rowsP.Next() {
+								var e Expiration
+								e.Type = "Perawat"
+								if err := rowsP.Scan(&e.Name, &e.Poli, &e.EndDate, &e.DaysLeft); err == nil {
+									expirations = append(expirations, e)
+								}
+							}
+						}
+						metricsData["upcoming_expirations"] = expirations
+					}
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Master Data Metrics fetched",
+						Data:    metricsData,
+					})
+				})
 
 				r.Get("/admin/users", func(w http.ResponseWriter, req *http.Request) {
-					page := 1
-					pageSize := 10
+					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					if page <= 0 { page = 1 }
+					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if pageSize <= 0 { pageSize = 50 }
 					statusFilter := req.URL.Query().Get("status")
 
 					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.ListUsersResponse, error) {
@@ -476,6 +801,70 @@ func main() {
 					if meta.PageSize < 1 { meta.PageSize = 10 }
 					if meta.TotalPages == 0 { meta.TotalPages = 1 }
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
+				})
+				
+				r.Post("/master/doctors/assign", func(w http.ResponseWriter, req *http.Request) {
+					var payload struct {
+						DokterID  string `json:"dokter_id"`
+						PoliCode  string `json:"poli_code"`
+						StartDate string `json:"start_date"`
+						EndDate   string `json:"end_date"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "invalid request body"})
+						return
+					}
+					
+					if payload.StartDate == "" || payload.EndDate == "" {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "start_date and end_date are required"})
+						return
+					}
+
+					_, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.AssignDoctorPoliResponse, error) {
+						return authClient.AssignDoctorPoli(req.Context(), &authpb.AssignDoctorPoliRequest{
+							DokterId:  payload.DokterID,
+							PoliCode:  payload.PoliCode,
+							StartDate: payload.StartDate,
+							EndDate:   payload.EndDate,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Doctor assigned successfully"})
+				})
+
+				r.Post("/master/nurses/assign", func(w http.ResponseWriter, req *http.Request) {
+					var payload struct {
+						PerawatID string `json:"perawat_id"`
+						PoliCode  string `json:"poli_code"`
+						StartDate string `json:"start_date"`
+						EndDate   string `json:"end_date"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "invalid request body"})
+						return
+					}
+
+					if payload.StartDate == "" || payload.EndDate == "" {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "start_date and end_date are required"})
+						return
+					}
+
+					_, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.AssignNursePoliResponse, error) {
+						return authClient.AssignNursePoli(req.Context(), &authpb.AssignNursePoliRequest{
+							PerawatId: payload.PerawatID,
+							PoliCode:  payload.PoliCode,
+							StartDate: payload.StartDate,
+							EndDate:   payload.EndDate,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Nurse assigned successfully"})
 				})
 
 				r.Get("/master/doctors/poli/{poli_code}", func(w http.ResponseWriter, req *http.Request) {
@@ -1169,7 +1558,7 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Addr:         ":" + port,
+		Addr:         "0.0.0.0:" + port,
 		Handler:      r,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,

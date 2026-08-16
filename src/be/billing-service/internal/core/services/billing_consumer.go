@@ -71,6 +71,4 @@ func StartBillingConsumers(ctx context.Context, rdb *redis.Client, billingServic
 	go pharmacyConsumer.Start(ctx)
 	
 	slog.Info("[Billing Consumers] Started listening to emr_stream and pharmacy_stream")
-	<-ctx.Done()
-	slog.Info("[Billing Consumers] Shutting down...")
 }

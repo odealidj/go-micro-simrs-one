@@ -13,6 +13,130 @@ import (
 	"github.com/google/uuid"
 )
 
+const assignDoctorToPoli = `-- name: AssignDoctorToPoli :one
+INSERT INTO mapping_dokter_poli (dokter_id, poli_code, start_date, end_date)
+VALUES ($1, $2, $3, $4)
+RETURNING id, dokter_id, poli_code, start_date, end_date
+`
+
+type AssignDoctorToPoliParams struct {
+	DokterID  uuid.UUID
+	PoliCode  string
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+type AssignDoctorToPoliRow struct {
+	ID        uuid.UUID
+	DokterID  uuid.UUID
+	PoliCode  string
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+func (q *Queries) AssignDoctorToPoli(ctx context.Context, arg AssignDoctorToPoliParams) (AssignDoctorToPoliRow, error) {
+	row := q.db.QueryRowContext(ctx, assignDoctorToPoli,
+		arg.DokterID,
+		arg.PoliCode,
+		arg.StartDate,
+		arg.EndDate,
+	)
+	var i AssignDoctorToPoliRow
+	err := row.Scan(
+		&i.ID,
+		&i.DokterID,
+		&i.PoliCode,
+		&i.StartDate,
+		&i.EndDate,
+	)
+	return i, err
+}
+
+const assignNurseToPoli = `-- name: AssignNurseToPoli :one
+INSERT INTO mapping_perawat_poli (perawat_id, poli_code, start_date, end_date)
+VALUES ($1, $2, $3, $4)
+RETURNING id, perawat_id, poli_code, start_date, end_date
+`
+
+type AssignNurseToPoliParams struct {
+	PerawatID uuid.UUID
+	PoliCode  string
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+type AssignNurseToPoliRow struct {
+	ID        uuid.UUID
+	PerawatID uuid.UUID
+	PoliCode  string
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+func (q *Queries) AssignNurseToPoli(ctx context.Context, arg AssignNurseToPoliParams) (AssignNurseToPoliRow, error) {
+	row := q.db.QueryRowContext(ctx, assignNurseToPoli,
+		arg.PerawatID,
+		arg.PoliCode,
+		arg.StartDate,
+		arg.EndDate,
+	)
+	var i AssignNurseToPoliRow
+	err := row.Scan(
+		&i.ID,
+		&i.PerawatID,
+		&i.PoliCode,
+		&i.StartDate,
+		&i.EndDate,
+	)
+	return i, err
+}
+
+const checkDoctorAssignmentOverlap = `-- name: CheckDoctorAssignmentOverlap :one
+SELECT EXISTS (
+    SELECT 1 FROM mapping_dokter_poli
+    WHERE dokter_id = $1
+      AND deleted_dt IS NULL
+      AND start_date <= $3
+      AND end_date >= $2
+)
+`
+
+type CheckDoctorAssignmentOverlapParams struct {
+	DokterID  uuid.UUID
+	EndDate   time.Time
+	StartDate time.Time
+}
+
+func (q *Queries) CheckDoctorAssignmentOverlap(ctx context.Context, arg CheckDoctorAssignmentOverlapParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkDoctorAssignmentOverlap, arg.DokterID, arg.EndDate, arg.StartDate)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const checkNurseAssignmentOverlap = `-- name: CheckNurseAssignmentOverlap :one
+SELECT EXISTS (
+    SELECT 1 FROM mapping_perawat_poli
+    WHERE perawat_id = $1
+      AND deleted_dt IS NULL
+      AND start_date <= $3
+      AND end_date >= $2
+)
+`
+
+type CheckNurseAssignmentOverlapParams struct {
+	PerawatID uuid.UUID
+	EndDate   time.Time
+	StartDate time.Time
+}
+
+func (q *Queries) CheckNurseAssignmentOverlap(ctx context.Context, arg CheckNurseAssignmentOverlapParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkNurseAssignmentOverlap, arg.PerawatID, arg.EndDate, arg.StartDate)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const countDoctors = `-- name: CountDoctors :one
 SELECT COUNT(d.id)
 FROM profil_dokter d
@@ -35,7 +159,7 @@ FROM mapping_dokter_poli m
 JOIN profil_dokter d ON m.dokter_id = d.id
 JOIN users u ON d.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
-WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL
+WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
 `
@@ -56,6 +180,7 @@ const countMasterRoles = `-- name: CountMasterRoles :one
 SELECT COUNT(id) 
 FROM master_role
 WHERE deleted_dt IS NULL
+  AND id != 'super_admin'
   AND ($1::text = '' OR id ILIKE '%' || $1 || '%' OR deskripsi ILIKE '%' || $1 || '%')
 `
 
@@ -88,7 +213,7 @@ FROM mapping_perawat_poli m
 JOIN profil_perawat p ON m.perawat_id = p.id
 JOIN users u ON p.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
-WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
 `
@@ -247,10 +372,11 @@ func (q *Queries) DeleteRefreshToken(ctx context.Context, tokenHash string) erro
 }
 
 const getDoctors = `-- name: GetDoctors :many
-SELECT d.id, u.username, s.nip, s.email, d.spesialisasi, d.sip, u.status
+SELECT d.id, u.username, s.nip, s.email, d.spesialisasi, d.sip, u.status, m.poli_code, m.start_date, m.end_date
 FROM profil_dokter d
 JOIN users u ON d.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
+LEFT JOIN mapping_dokter_poli m ON d.id = m.dokter_id AND CURRENT_DATE BETWEEN m.start_date AND m.end_date AND m.deleted_dt IS NULL
 WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL
   AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%')
 ORDER BY u.created_at DESC
@@ -271,6 +397,9 @@ type GetDoctorsRow struct {
 	Spesialisasi sql.NullString
 	Sip          sql.NullString
 	Status       sql.NullString
+	PoliCode     sql.NullString
+	StartDate    sql.NullTime
+	EndDate      sql.NullTime
 }
 
 func (q *Queries) GetDoctors(ctx context.Context, arg GetDoctorsParams) ([]GetDoctorsRow, error) {
@@ -290,6 +419,9 @@ func (q *Queries) GetDoctors(ctx context.Context, arg GetDoctorsParams) ([]GetDo
 			&i.Spesialisasi,
 			&i.Sip,
 			&i.Status,
+			&i.PoliCode,
+			&i.StartDate,
+			&i.EndDate,
 		); err != nil {
 			return nil, err
 		}
@@ -305,12 +437,12 @@ func (q *Queries) GetDoctors(ctx context.Context, arg GetDoctorsParams) ([]GetDo
 }
 
 const getDoctorsByPoli = `-- name: GetDoctorsByPoli :many
-SELECT d.id, u.username, s.nip, d.spesialisasi, m.poli_code
+SELECT d.id, u.username, s.nip, d.spesialisasi, m.poli_code, m.start_date, m.end_date
 FROM mapping_dokter_poli m
 JOIN profil_dokter d ON m.dokter_id = d.id
 JOIN users u ON d.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
-WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL
+WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
 ORDER BY u.username
@@ -330,6 +462,8 @@ type GetDoctorsByPoliRow struct {
 	Nip          sql.NullString
 	Spesialisasi sql.NullString
 	PoliCode     string
+	StartDate    time.Time
+	EndDate      time.Time
 }
 
 func (q *Queries) GetDoctorsByPoli(ctx context.Context, arg GetDoctorsByPoliParams) ([]GetDoctorsByPoliRow, error) {
@@ -352,6 +486,8 @@ func (q *Queries) GetDoctorsByPoli(ctx context.Context, arg GetDoctorsByPoliPara
 			&i.Nip,
 			&i.Spesialisasi,
 			&i.PoliCode,
+			&i.StartDate,
+			&i.EndDate,
 		); err != nil {
 			return nil, err
 		}
@@ -370,6 +506,7 @@ const getMasterRoles = `-- name: GetMasterRoles :many
 SELECT id, deskripsi 
 FROM master_role
 WHERE deleted_dt IS NULL
+  AND id != 'super_admin'
   AND ($1::text = '' OR id ILIKE '%' || $1 || '%' OR deskripsi ILIKE '%' || $1 || '%')
 ORDER BY id
 LIMIT $2 OFFSET $3
@@ -410,10 +547,11 @@ func (q *Queries) GetMasterRoles(ctx context.Context, arg GetMasterRolesParams) 
 }
 
 const getNurses = `-- name: GetNurses :many
-SELECT p.id, u.username, s.nip, s.email, p.str_perawat, u.status
+SELECT p.id, u.username, s.nip, s.email, p.str_perawat, u.status, m.poli_code, m.start_date, m.end_date
 FROM profil_perawat p
 JOIN users u ON p.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
+LEFT JOIN mapping_perawat_poli m ON p.id = m.perawat_id AND CURRENT_DATE BETWEEN m.start_date AND m.end_date AND m.deleted_dt IS NULL
 WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL
   AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%')
 ORDER BY u.created_at DESC
@@ -433,6 +571,9 @@ type GetNursesRow struct {
 	Email      sql.NullString
 	StrPerawat sql.NullString
 	Status     sql.NullString
+	PoliCode   sql.NullString
+	StartDate  sql.NullTime
+	EndDate    sql.NullTime
 }
 
 func (q *Queries) GetNurses(ctx context.Context, arg GetNursesParams) ([]GetNursesRow, error) {
@@ -451,6 +592,9 @@ func (q *Queries) GetNurses(ctx context.Context, arg GetNursesParams) ([]GetNurs
 			&i.Email,
 			&i.StrPerawat,
 			&i.Status,
+			&i.PoliCode,
+			&i.StartDate,
+			&i.EndDate,
 		); err != nil {
 			return nil, err
 		}
@@ -466,12 +610,12 @@ func (q *Queries) GetNurses(ctx context.Context, arg GetNursesParams) ([]GetNurs
 }
 
 const getNursesByPoli = `-- name: GetNursesByPoli :many
-SELECT p.id, u.username, s.nip, p.str_perawat, m.poli_code
+SELECT p.id, u.username, s.nip, p.str_perawat, m.poli_code, m.start_date, m.end_date
 FROM mapping_perawat_poli m
 JOIN profil_perawat p ON m.perawat_id = p.id
 JOIN users u ON p.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
-WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
 ORDER BY u.username
@@ -491,6 +635,8 @@ type GetNursesByPoliRow struct {
 	Nip        sql.NullString
 	StrPerawat sql.NullString
 	PoliCode   string
+	StartDate  time.Time
+	EndDate    time.Time
 }
 
 func (q *Queries) GetNursesByPoli(ctx context.Context, arg GetNursesByPoliParams) ([]GetNursesByPoliRow, error) {
@@ -513,6 +659,8 @@ func (q *Queries) GetNursesByPoli(ctx context.Context, arg GetNursesByPoliParams
 			&i.Nip,
 			&i.StrPerawat,
 			&i.PoliCode,
+			&i.StartDate,
+			&i.EndDate,
 		); err != nil {
 			return nil, err
 		}

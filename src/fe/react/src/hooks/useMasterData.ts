@@ -4,7 +4,8 @@ import { api } from "@/lib/api";
 export interface PaginatedMeta {
   page: number;
   page_size: number;
-  total_count: number;
+  total_count?: number;
+  total_data?: number;
   total_pages: number;
 }
 
@@ -52,7 +53,10 @@ export function useMasterData<T>(endpoint: string, options?: UseMasterDataOption
       });
       setData(response.data.data || []);
       if (response.data.meta) {
-        setMeta(response.data.meta);
+        setMeta({
+          ...response.data.meta,
+          total_count: response.data.meta.total_count ?? response.data.meta.total_data ?? 0
+        });
       }
     } catch (err: any) {
       console.error(`Error fetching ${endpoint}:`, err);

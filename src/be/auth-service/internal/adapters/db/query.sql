@@ -67,6 +67,7 @@ WHERE token_hash = $1;
 SELECT id, deskripsi 
 FROM master_role
 WHERE deleted_dt IS NULL
+  AND id != 'super_admin'
   AND ($1::text = '' OR id ILIKE '%' || $1 || '%' OR deskripsi ILIKE '%' || $1 || '%')
 ORDER BY id
 LIMIT $2 OFFSET $3;
@@ -75,13 +76,15 @@ LIMIT $2 OFFSET $3;
 SELECT COUNT(id) 
 FROM master_role
 WHERE deleted_dt IS NULL
+  AND id != 'super_admin'
   AND ($1::text = '' OR id ILIKE '%' || $1 || '%' OR deskripsi ILIKE '%' || $1 || '%');
 
 -- name: GetDoctors :many
-SELECT d.id, u.username, s.nip, s.email, d.spesialisasi, d.sip, u.status
+SELECT d.id, u.username, s.nip, s.email, d.spesialisasi, d.sip, u.status, m.poli_code, m.start_date, m.end_date
 FROM profil_dokter d
 JOIN users u ON d.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
+LEFT JOIN mapping_dokter_poli m ON d.id = m.dokter_id AND CURRENT_DATE BETWEEN m.start_date AND m.end_date AND m.deleted_dt IS NULL
 WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL
   AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%')
 ORDER BY u.created_at DESC
@@ -96,10 +99,11 @@ WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL
   AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%');
 
 -- name: GetNurses :many
-SELECT p.id, u.username, s.nip, s.email, p.str_perawat, u.status
+SELECT p.id, u.username, s.nip, s.email, p.str_perawat, u.status, m.poli_code, m.start_date, m.end_date
 FROM profil_perawat p
 JOIN users u ON p.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
+LEFT JOIN mapping_perawat_poli m ON p.id = m.perawat_id AND CURRENT_DATE BETWEEN m.start_date AND m.end_date AND m.deleted_dt IS NULL
 WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL
   AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%')
 ORDER BY u.created_at DESC
@@ -114,12 +118,12 @@ WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL
   AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%');
 
 -- name: GetDoctorsByPoli :many
-SELECT d.id, u.username, s.nip, d.spesialisasi, m.poli_code
+SELECT d.id, u.username, s.nip, d.spesialisasi, m.poli_code, m.start_date, m.end_date
 FROM mapping_dokter_poli m
 JOIN profil_dokter d ON m.dokter_id = d.id
 JOIN users u ON d.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
-WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL
+WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
 ORDER BY u.username
@@ -131,17 +135,17 @@ FROM mapping_dokter_poli m
 JOIN profil_dokter d ON m.dokter_id = d.id
 JOIN users u ON d.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
-WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL
+WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%');
 
 -- name: GetNursesByPoli :many
-SELECT p.id, u.username, s.nip, p.str_perawat, m.poli_code
+SELECT p.id, u.username, s.nip, p.str_perawat, m.poli_code, m.start_date, m.end_date
 FROM mapping_perawat_poli m
 JOIN profil_perawat p ON m.perawat_id = p.id
 JOIN users u ON p.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
-WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
 ORDER BY u.username
@@ -153,7 +157,34 @@ FROM mapping_perawat_poli m
 JOIN profil_perawat p ON m.perawat_id = p.id
 JOIN users u ON p.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
-WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%');
 
+-- name: CheckDoctorAssignmentOverlap :one
+SELECT EXISTS (
+    SELECT 1 FROM mapping_dokter_poli
+    WHERE dokter_id = $1
+      AND deleted_dt IS NULL
+      AND start_date <= $3
+      AND end_date >= $2
+);
+
+-- name: AssignDoctorToPoli :one
+INSERT INTO mapping_dokter_poli (dokter_id, poli_code, start_date, end_date)
+VALUES ($1, $2, $3, $4)
+RETURNING id, dokter_id, poli_code, start_date, end_date;
+
+-- name: CheckNurseAssignmentOverlap :one
+SELECT EXISTS (
+    SELECT 1 FROM mapping_perawat_poli
+    WHERE perawat_id = $1
+      AND deleted_dt IS NULL
+      AND start_date <= $3
+      AND end_date >= $2
+);
+
+-- name: AssignNurseToPoli :one
+INSERT INTO mapping_perawat_poli (perawat_id, poli_code, start_date, end_date)
+VALUES ($1, $2, $3, $4)
+RETURNING id, perawat_id, poli_code, start_date, end_date;

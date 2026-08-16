@@ -131,6 +131,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /admin/system/health:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+    get:
+      summary: Get system health status (admin only)
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: System health status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+  /admin/system/master-metrics:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+    get:
+      summary: Get master data and operations metrics (admin only)
+      tags:
+        - Admin
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Master metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
   /admin/users:
     parameters:
       - $ref: '#/components/parameters/RequestIdHeader'

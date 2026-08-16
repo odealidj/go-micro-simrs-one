@@ -10,8 +10,10 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+	"net/http"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/adapters/consumer"
 	adapterDB "github.com/aliube/go-micro-simrs-one/pharmacy-service/internal/adapters/db"
@@ -107,6 +109,16 @@ func main() {
 		slog.Info("Pharmacy Service (gRPC) is running", "port", port)
 		if err := grpcServer.Serve(listener); err != nil {
 			log.Fatalf("failed to serve gRPC: %v", err)
+		}
+	}()
+
+	// 7. Prometheus Metrics Server
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		slog.Info("Pharmacy Service Metrics running", "port", "9095")
+		if err := http.ListenAndServe(":9095", mux); err != nil {
+			slog.Error("failed to serve metrics", "error", err)
 		}
 	}()
 

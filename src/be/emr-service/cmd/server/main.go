@@ -10,8 +10,10 @@ import (
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+	"net/http"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/aliube/go-micro-simrs-one/emr-service/internal/adapters/broker"
 	adapterDB "github.com/aliube/go-micro-simrs-one/emr-service/internal/adapters/db"
@@ -108,6 +110,16 @@ func main() {
 		slog.Info("EMR Service (gRPC) is running", "port", port)
 		if err := grpcServer.Serve(listener); err != nil {
 			log.Fatalf("failed to serve gRPC: %v", err)
+		}
+	}()
+
+	// 7. Prometheus Metrics Server
+	go func() {
+		mux := http.NewServeMux()
+		mux.Handle("/metrics", promhttp.Handler())
+		slog.Info("EMR Service Metrics running", "port", "9094")
+		if err := http.ListenAndServe(":9094", mux); err != nil {
+			slog.Error("failed to serve metrics", "error", err)
 		}
 	}()
 

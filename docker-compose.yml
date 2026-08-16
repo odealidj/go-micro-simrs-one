@@ -32,6 +32,44 @@ services:
       - "4317:4317"   # OTLP gRPC
       - "4318:4318"   # OTLP HTTP
 
+  prometheus:
+    image: docker.io/prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+
+  postgres-exporter:
+    image: docker.io/prometheuscommunity/postgres-exporter:latest
+    environment:
+      DATA_SOURCE_NAME: "postgresql://root:secretpassword@postgres:5432/simrs_db?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+
+  redis-exporter:
+    image: docker.io/oliver006/redis_exporter:latest
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+
+  # prometheus-podman-exporter: Alternatif cAdvisor yang kompatibel dengan Podman Rootless & Docker
+  # Membaca metrik CPU/RAM per-container langsung dari Podman socket API
+  podman-exporter:
+    image: quay.io/navidys/prometheus-podman-exporter:latest
+    user: root
+    ports:
+      - "9882:9882"
+    environment:
+      - CONTAINER_HOST=unix:///run/podman/podman.sock
+    volumes:
+      - /run/user/1000/podman/podman.sock:/run/podman/podman.sock:ro
+
   auth-service:
     build:
       context: ./src/be
@@ -181,6 +219,7 @@ services:
       - billing-service
       - redis
       - jaeger
+      - prometheus
 
 volumes:
   postgres-data:
