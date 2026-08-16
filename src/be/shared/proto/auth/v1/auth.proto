@@ -151,6 +151,7 @@ message UpdateUserStatusResponse {
 message DeleteUserRequest {
   string user_id = 1;
   string deleted_by = 2;
+  bool hard_delete = 3;
 }
 
 message DeleteUserResponse {

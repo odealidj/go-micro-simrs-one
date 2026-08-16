@@ -25,3 +25,15 @@ WHERE department = $1
   AND status = 'REGISTERED'
   AND DATE(created_at) = CURRENT_DATE
   AND deleted_dt IS NULL;
+
+-- name: GetTodayEncounters :many
+SELECT encounter_no, mrn, department, doctor_id, status, created_at
+FROM encounters
+WHERE DATE(created_at) = $1
+  AND deleted_dt IS NULL
+ORDER BY created_at DESC;
+
+-- name: UpdateEncounterStatus :exec
+UPDATE encounters
+SET status = $2
+WHERE encounter_no = $1;

@@ -47,10 +47,17 @@ func (s *registrationServiceImpl) generateEncounterNo(ctx context.Context, deptC
 	return encounterNo, nil
 }
 
-func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID string) (string, error) {
+func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID, guarantor string) (string, error) {
 	encounterNo, err := s.generateEncounterNo(ctx, departmentCode)
 	if err != nil {
 		return "", err
+	}
+
+	status := "REGISTERED"
+	if guarantor == "Umum" {
+		status = "WAITING_FOR_PAYMENT"
+	} else if guarantor == "BPJS" {
+		status = "QUEUED_FOR_POLI"
 	}
 
 	encounter := &domain.Encounter{
@@ -58,7 +65,7 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 		MRN:         mrn,
 		Department:  departmentCode,
 		DoctorID:    doctorID,
-		Status:      "REGISTERED",
+		Status:      status,
 		CreatedAt:   time.Now(),
 	}
 
@@ -87,4 +94,41 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 	}
 
 	return encounterNo, nil
+}
+
+func (s *registrationServiceImpl) GetTodayEncounters(ctx context.Context, targetDate time.Time) ([]*domain.Encounter, error) {
+	if s.repo == nil {
+		return nil, fmt.Errorf("repository is not initialized")
+	}
+	return s.repo.GetTodayEncounters(ctx, targetDate)
+}
+
+func (s *registrationServiceImpl) CancelEncounter(ctx context.Context, encounterNo, reason string) error {
+	if s.repo == nil {
+		return fmt.Errorf("repository is not initialized")
+	}
+	
+	err := s.repo.UpdateEncounterStatus(ctx, encounterNo, "CANCELLED")
+	if err != nil {
+		return err
+	}
+
+	// Create Outbox Event
+	outboxEvent := &domain.OutboxEvent{
+		ID:        fmt.Sprintf("evt-%d", time.Now().UnixNano()),
+		Aggregate: "Encounter",
+		Type:      "EncounterCancelled",
+		Payload:   fmt.Sprintf(`{"encounter_no":"%s","reason":"%s"}`, encounterNo, reason),
+		Status:    "PENDING",
+		CreatedAt: time.Now(),
+	}
+
+	return s.repo.SaveOutboxEvent(ctx, outboxEvent)
+}
+
+func (s *registrationServiceImpl) UpdateEncounterStatus(ctx context.Context, encounterNo, status string) error {
+	if s.repo == nil {
+		return fmt.Errorf("repository is not initialized")
+	}
+	return s.repo.UpdateEncounterStatus(ctx, encounterNo, status)
 }

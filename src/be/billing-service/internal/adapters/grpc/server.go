@@ -53,8 +53,32 @@ func (s *BillingGrpcServer) PayInvoice(ctx context.Context, req *pb.PayInvoiceRe
 	if req.AmountPaid <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "amount_paid must be greater than zero")
 	}
-	if err := s.billingService.PayInvoice(ctx, req.InvoiceId, req.AmountPaid); err != nil {
+	encounterNo, err := s.billingService.PayInvoice(ctx, req.InvoiceId, req.AmountPaid)
+	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to pay invoice: %v", err)
 	}
-	return &pb.PayInvoiceResponse{Success: true, Message: "Invoice paid successfully"}, nil
+	return &pb.PayInvoiceResponse{Success: true, Message: "Invoice paid successfully", EncounterNo: encounterNo}, nil
+}
+
+func (s *BillingGrpcServer) AddRegistrationFee(ctx context.Context, req *pb.AddRegistrationFeeRequest) (*pb.AddRegistrationFeeResponse, error) {
+	if req.EncounterNo == "" {
+		return nil, status.Error(codes.InvalidArgument, "encounter_no is required")
+	}
+	if req.DepartmentCode == "" {
+		return nil, status.Error(codes.InvalidArgument, "department_code is required")
+	}
+	if req.Amount <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "amount must be greater than zero")
+	}
+
+	invoiceID, err := s.billingService.AddRegistrationFee(ctx, req.EncounterNo, req.DepartmentCode, req.Amount)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to add registration fee: %v", err)
+	}
+
+	return &pb.AddRegistrationFeeResponse{
+		Success:   true,
+		InvoiceId: invoiceID,
+		Message:   "Registration fee added successfully",
+	}, nil
 }

@@ -3,13 +3,19 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strconv"
 	"time"
+
+	"google.golang.org/genai"
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
@@ -1150,9 +1156,81 @@ func main() {
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 			})
-			// Patient (Admin, Nurse)
+			// Patient (Admin, Nurse, Admisi)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.RequireRole("admin", "nurse"))
+				r.Use(middleware.RequireRole("admin", "nurse", "admisi"))
+				
+				r.Get("/patients", func(w http.ResponseWriter, req *http.Request) {
+					search := req.URL.Query().Get("search")
+					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					if page <= 0 { page = 1 }
+					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if pageSize <= 0 { pageSize = 50 }
+					
+					res, err := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.SearchPatientsResponse, error) {
+						return patientClient.SearchPatients(req.Context(), &patientpb.SearchPatientsRequest{
+							Page:     int32(page),
+							PageSize: int32(pageSize),
+							Search:   search,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					
+					meta := response.Meta{
+						Page:       page,
+						PageSize:   pageSize,
+						TotalData: int(res.TotalCount),
+						TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize,
+					}
+					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Patients, Meta: meta})
+				})
+
+				// Static file server for patient photos
+				// Use absolute or relative to working directory, we will use /tmp for now or similar, let's just use local relative
+				// Or wait, let's just use a fixed local directory for simplicity
+				os.MkdirAll("uploads/patients", 0755)
+				r.Get("/uploads/patients/*", http.StripPrefix("/uploads/patients/", http.FileServer(http.Dir("uploads/patients"))).ServeHTTP)
+
+				r.Post("/patient/upload-photo", func(w http.ResponseWriter, req *http.Request) {
+					err := req.ParseMultipartForm(10 << 20) // 10MB
+					if err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "Failed to parse form: " + err.Error()})
+						return
+					}
+					file, handler, err := req.FormFile("photo")
+					if err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "Failed to get photo: " + err.Error()})
+						return
+					}
+					defer file.Close()
+
+					ext := filepath.Ext(handler.Filename)
+					filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
+					dstPath := filepath.Join("uploads", "patients", filename)
+					
+					dst, err := os.Create(dstPath)
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to create file on server: " + err.Error()})
+						return
+					}
+					defer dst.Close()
+
+					if _, err := io.Copy(dst, file); err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to save file on server: " + err.Error()})
+						return
+					}
+					
+					photoUrl := "/api/v1/uploads/patients/" + filename
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data: map[string]string{"photo_url": photoUrl},
+					})
+				})
+
 				r.Post("/patient/register", func(w http.ResponseWriter, req *http.Request) {
 					var payload patientpb.RegisterPatientRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
@@ -1186,8 +1264,6 @@ func main() {
 						return patientClient.RegisterPatient(req.Context(), &payload)
 					})
 					if err != nil {
-						// Note: If patient creation fails, we technically have an orphaned auth user.
-						// In a real system, we'd use saga pattern, but for now we just return error.
 						response.HandleGRPCError(w, err)
 						return
 					}
@@ -1201,26 +1277,268 @@ func main() {
 				r.Get("/patient/{mrn}", func(w http.ResponseWriter, req *http.Request) {
 					mrn := chi.URLParam(req, "mrn")
 					res, err := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {
-					return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: mrn})
-				})
-				if err != nil {
-					response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{
-						Success: false,
-						Message: err.Error(),
+						return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: mrn})
 					})
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
+				})
 			})
 
-			// Registration (Admin, Nurse)
+			// Registration (Admin, Nurse, Admisi)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.RequireRole("admin", "nurse"))
+				r.Use(middleware.RequireRole("admin", "nurse", "admisi"))
+				
+				r.Post("/registrations/ocr-ktp", func(w http.ResponseWriter, req *http.Request) {
+					err := req.ParseMultipartForm(10 << 20)
+					if err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "Failed to parse form: " + err.Error()})
+						return
+					}
+
+					file, fileHeader, err := req.FormFile("ktp")
+					if err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "Failed to get KTP image: " + err.Error()})
+						return
+					}
+					defer file.Close()
+
+					imgData, err := io.ReadAll(file)
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to read KTP image: " + err.Error()})
+						return
+					}
+
+					// Auto-detect MIME type from the uploaded file header
+					mimeType := fileHeader.Header.Get("Content-Type")
+					if mimeType == "" || mimeType == "application/octet-stream" {
+						// Fallback: detect from first bytes (magic bytes)
+						if len(imgData) > 3 && imgData[0] == 0x89 && imgData[1] == 0x50 {
+							mimeType = "image/png"
+						} else if len(imgData) > 2 && imgData[0] == 0xFF && imgData[1] == 0xD8 {
+							mimeType = "image/jpeg"
+						} else {
+							mimeType = "image/jpeg" // safe default
+						}
+					}
+					log.Printf("OCR-KTP: received file '%s', size=%d bytes, mimeType=%s", fileHeader.Filename, len(imgData), mimeType)
+
+					ctx := context.Background()
+					client, err := genai.NewClient(ctx, nil)
+					if err != nil {
+						log.Printf("ERROR OCR-KTP: failed to create GenAI client: %v", err)
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to create GenAI client: " + err.Error()})
+						return
+					}
+
+					config := &genai.GenerateContentConfig{
+						SystemInstruction: &genai.Content{
+							Parts: []*genai.Part{
+								genai.NewPartFromText("You are an expert OCR system for Indonesian Identity Cards (KTP). Extract the following fields from the KTP image: NIK (16-digit number), Name (Nama), Date of Birth in YYYY-MM-DD format (Tanggal Lahir), Gender as exactly 'Laki-laki' or 'Perempuan' (Jenis Kelamin), and full Address (Alamat). Return ONLY a valid JSON object with keys: nik, name, dob, gender, address. No markdown, no explanation."),
+							},
+						},
+						ResponseMIMEType: "application/json",
+					}
+
+					log.Printf("OCR-KTP: calling Gemini API (model=gemini-3.5-flash)...")
+					res, err := client.Models.GenerateContent(ctx, "gemini-3.5-flash", []*genai.Content{
+						{
+							Parts: []*genai.Part{
+								genai.NewPartFromBytes(imgData, mimeType),
+								genai.NewPartFromText("Please extract all KTP data fields from this image and return as JSON."),
+							},
+						},
+					}, config)
+					if err != nil {
+						log.Printf("ERROR OCR-KTP: GenAI call failed: %v", err)
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to process KTP: " + err.Error()})
+						return
+					}
+
+					log.Printf("OCR-KTP: Gemini responded, candidates=%d", len(res.Candidates))
+
+					var extractedData map[string]string
+					if len(res.Candidates) == 0 {
+						log.Printf("ERROR OCR-KTP: Gemini returned 0 candidates")
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Gemini returned empty response"})
+						return
+					}
+
+					candidate := res.Candidates[0]
+					if candidate.Content == nil || len(candidate.Content.Parts) == 0 {
+						log.Printf("ERROR OCR-KTP: Gemini candidate has no content, FinishReason=%v", candidate.FinishReason)
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Gemini returned no content"})
+						return
+					}
+
+					rawText := candidate.Content.Parts[0].Text
+					log.Printf("OCR-KTP: Gemini raw response text: %s", rawText)
+
+					if rawText == "" {
+						log.Printf("ERROR OCR-KTP: Gemini returned empty text")
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Gemini returned empty text"})
+						return
+					}
+
+					// Robust field extractor: parse each field individually from the raw text
+					// so stray characters outside key:value pairs don't break parsing.
+					fieldRe := regexp.MustCompile(`"(\w+)"\s*:\s*"([^"]*)"`)
+					matches := fieldRe.FindAllStringSubmatch(rawText, -1)
+					if len(matches) == 0 {
+						log.Printf("ERROR OCR-KTP: No key:value pairs found in response | raw: %s", rawText)
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Gemini response contained no extractable data"})
+						return
+					}
+					extractedData = make(map[string]string)
+					for _, m := range matches {
+						extractedData[m[1]] = m[2]
+					}
+					log.Printf("OCR-KTP: Extracted %d fields: %+v", len(extractedData), extractedData)
+
+					log.Printf("OCR-KTP: Successfully extracted data: %+v", extractedData)
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    extractedData,
+					})
+				})
+
+				r.Post("/registrations/new-patient", func(w http.ResponseWriter, req *http.Request) {
+					type NewPatientRegistrationPayload struct {
+						Name           string `json:"name"`
+						Nik            string `json:"nik"`
+						Dob            string `json:"dob"` // YYYY-MM-DD
+						Gender         string `json:"gender"`
+						BirthPlace     string `json:"birth_place"`
+						Address        string `json:"address"`
+						DepartmentCode string `json:"department_code"`
+						DoctorId       string `json:"doctor_id"`
+						Guarantor      string `json:"guarantor"` // Umum or BPJS
+					}
+
+					var payload NewPatientRegistrationPayload
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+
+					if err := validator.ValidateAll(map[string]func() error{
+						"name":            validator.NotEmpty(payload.Name),
+						"nik":             validator.NotEmpty(payload.Nik),
+						"dob":             validator.IsDate(payload.Dob),
+						"department_code": validator.NotEmpty(payload.DepartmentCode),
+						"guarantor":       validator.NotEmpty(payload.Guarantor),
+					}); err != nil {
+						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+
+					// SAGA: 1. Create User in Auth Service
+					authRes, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.RegisterPatientUserResponse, error) {
+						return authClient.RegisterPatientUser(req.Context(), &authpb.RegisterPatientUserRequest{
+							Username: payload.Nik,
+							Password: payload.Dob,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					// SAGA: 2. Create Patient in Patient Service
+					patientRes, err := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.RegisterPatientResponse, error) {
+						return patientClient.RegisterPatient(req.Context(), &patientpb.RegisterPatientRequest{
+							Name:       payload.Name,
+							Nik:        payload.Nik,
+							Dob:        payload.Dob,
+							Gender:     payload.Gender,
+							BirthPlace: payload.BirthPlace,
+							Address:    payload.Address,
+							UserId:     authRes.UserId,
+						})
+					})
+					
+					if err != nil {
+						// ROLLBACK User
+						log.Printf("SAGA: Rollback Auth User %s due to Patient creation failure", authRes.UserId)
+						_, _ = circuitbreaker.CallGRPC(cbAuth, func() (*authpb.DeleteUserResponse, error) {
+							return authClient.DeleteUser(context.Background(), &authpb.DeleteUserRequest{
+								UserId:     authRes.UserId,
+								HardDelete: true,
+							})
+						})
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					// SAGA: 3. Create Encounter in Registration Service
+					regRes, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.RegisterEncounterResponse, error) {
+						return regClient.RegisterEncounter(req.Context(), &regpb.RegisterEncounterRequest{
+							Mrn:            patientRes.Mrn,
+							DepartmentCode: payload.DepartmentCode,
+							DoctorId:       payload.DoctorId,
+							Guarantor:      payload.Guarantor,
+						})
+					})
+
+					if err != nil {
+						// ROLLBACK Patient
+						log.Printf("SAGA: Rollback Patient %s due to Encounter creation failure", patientRes.Mrn)
+						_, _ = circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.DeletePatientResponse, error) {
+							return patientClient.DeletePatient(context.Background(), &patientpb.DeletePatientRequest{
+								Mrn: patientRes.Mrn,
+							})
+						})
+						// ROLLBACK User
+						log.Printf("SAGA: Rollback Auth User %s due to Encounter creation failure", authRes.UserId)
+						_, _ = circuitbreaker.CallGRPC(cbAuth, func() (*authpb.DeleteUserResponse, error) {
+							return authClient.DeleteUser(context.Background(), &authpb.DeleteUserRequest{
+								UserId:     authRes.UserId,
+								HardDelete: true,
+							})
+						})
+						
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					if payload.Guarantor == "Umum" {
+						fee := 150000.0
+						if payload.DepartmentCode == "UMU" {
+							fee = 50000.0
+						}
+						
+						_, errBilling := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.AddRegistrationFeeResponse, error) {
+							return billingClient.AddRegistrationFee(req.Context(), &billingpb.AddRegistrationFeeRequest{
+								EncounterNo:    regRes.EncounterNo,
+								DepartmentCode: payload.DepartmentCode,
+								Amount:         fee,
+							})
+						})
+						
+						if errBilling != nil {
+							log.Printf("SAGA: Failed to add registration fee to billing: %v. Continuing since invoice can be recreated manually", errBilling)
+							// We could choose to rollback here, but billing creation failure might just be logged and retried later.
+						}
+					}
+
+					// Success!
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Patient & Encounter created successfully",
+						Data: map[string]interface{}{
+							"mrn":          patientRes.Mrn,
+							"encounter_no": regRes.EncounterNo,
+						},
+					})
+				})
+
 				r.Post("/registrations", func(w http.ResponseWriter, req *http.Request) {
 					var payload regpb.RegisterEncounterRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
@@ -1231,23 +1549,138 @@ func main() {
 						"mrn":             validator.NotEmpty(payload.Mrn),
 						"department_code": validator.NotEmpty(payload.DepartmentCode),
 						"doctor_id":       validator.NotEmpty(payload.DoctorId),
+						"guarantor":       validator.NotEmpty(payload.Guarantor),
 					}); err != nil {
 						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
 					res, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.RegisterEncounterResponse, error) {
-					return regClient.RegisterEncounter(req.Context(), &payload)
+						return regClient.RegisterEncounter(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					if payload.Guarantor == "Umum" {
+						fee := 150000.0
+						if payload.DepartmentCode == "UMU" {
+							fee = 50000.0
+						}
+						
+						_, errBilling := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.AddRegistrationFeeResponse, error) {
+							return billingClient.AddRegistrationFee(req.Context(), &billingpb.AddRegistrationFeeRequest{
+								EncounterNo:    res.EncounterNo,
+								DepartmentCode: payload.DepartmentCode,
+								Amount:         fee,
+							})
+						})
+						
+						if errBilling != nil {
+							log.Printf("SAGA: Failed to add registration fee to billing for %s: %v. Continuing...", res.EncounterNo, errBilling)
+						}
+					}
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
-				if err != nil {
-					response.HandleGRPCError(w, err)
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
+				r.Get("/registrations/today", func(w http.ResponseWriter, req *http.Request) {
+					dateStr := req.URL.Query().Get("date")
+					queueOnly := req.URL.Query().Get("queue_only") == "true"
+					
+					// 1. Get encounters from Registration Service
+					resReg, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetTodayEncountersResponse, error) {
+						return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 100, Date: dateStr})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					// 2. Map and enrich with Patient names and Status Pasien Baru/Lama
+					type EnrichedEncounter struct {
+						EncounterNo    string `json:"encounter_no"`
+						MRN            string `json:"mrn"`
+						PatientName    string `json:"patient_name"`
+						DepartmentCode string `json:"department_code"`
+						DoctorID       string `json:"doctor_id"`
+						Status         string `json:"status"`
+						StatusPasien   string `json:"status_pasien"` // "Baru RS" or "Lama RS"
+						RegisteredTime string `json:"registered_time"`
+					}
+					
+					var enriched []EnrichedEncounter
+					
+					for _, enc := range resReg.Encounters {
+						if queueOnly {
+							if enc.Status != "QUEUED" && enc.Status != "QUEUED_FOR_POLI" && enc.Status != "WAITING_FOR_TRIAGE" && enc.Status != "IN_PROGRESS" {
+								continue
+							}
+						}
+						// Fetch Patient Details for enrichment
+						var pName = "-"
+						var isNew = "Lama RS"
+						
+						resPat, errPat := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {
+							return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: enc.Mrn})
+						})
+						if errPat == nil && resPat != nil && resPat.Patient != nil {
+							pName = resPat.Patient.Name
+							isNew = "Lama RS"
+						} else {
+							isNew = "Baru RS"
+						}
+
+						enriched = append(enriched, EnrichedEncounter{
+							EncounterNo:    enc.EncounterNo,
+							MRN:            enc.Mrn,
+							PatientName:    pName,
+							DepartmentCode: enc.DepartmentCode,
+							DoctorID:       enc.DoctorId,
+							Status:         enc.Status,
+							StatusPasien:   isNew,
+							RegisteredTime: enc.RegisteredTime,
+						})
+					}
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data: map[string]interface{}{
+							"encounters": enriched,
+							"total":      len(enriched),
+						},
+					})
+				})
+
+				r.Post("/registrations/cancel", func(w http.ResponseWriter, req *http.Request) {
+					var payload regpb.CancelEncounterRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					if err := validator.ValidateAll(map[string]func() error{
+						"encounter_no": validator.NotEmpty(payload.EncounterNo),
+						"reason":       validator.NotEmpty(payload.Reason),
+					}); err != nil {
+						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.CancelEncounterResponse, error) {
+						return regClient.CancelEncounter(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
+				})
 			})
 
 			// EMR (Doctor, Nurse)
@@ -1541,18 +1974,32 @@ func main() {
 						return
 					}
 					res, err := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.PayInvoiceResponse, error) {
-					return billingClient.PayInvoice(req.Context(), &payload)
+						return billingClient.PayInvoice(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					
+					// 2. Notify Registration Service to update Encounter Status to QUEUED_FOR_POLI
+					if res.EncounterNo != "" {
+						_, errReg := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
+							return regClient.UpdateEncounterStatus(req.Context(), &regpb.UpdateEncounterStatusRequest{
+								EncounterNo: res.EncounterNo,
+								Status:      "QUEUED_FOR_POLI",
+							})
+						})
+						if errReg != nil {
+							slog.Warn("Failed to update encounter status after payment", "encounter_no", res.EncounterNo, "error", errReg)
+						}
+					}
+					
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
-				if err != nil {
-					response.HandleGRPCError(w, err)
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
 			})
 		})
 	})
@@ -1577,6 +2024,25 @@ func main() {
 		slog.Info("Starting API Gateway", "port", port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("API Gateway failed to start: %v", err)
+		}
+	}()
+
+	// Log available Gemini models at startup for diagnostics
+	go func() {
+		diagCtx := context.Background()
+		diagClient, err := genai.NewClient(diagCtx, nil)
+		if err != nil {
+			log.Printf("DIAG: Could not create genai client to list models: %v", err)
+			return
+		}
+		page, err := diagClient.Models.List(diagCtx, nil)
+		if err != nil {
+			log.Printf("DIAG: Could not list genai models: %v", err)
+			return
+		}
+		log.Println("DIAG: Available Gemini models:")
+		for _, m := range page.Items {
+			log.Printf("DIAG:   - %s", m.Name)
 		}
 	}()
 

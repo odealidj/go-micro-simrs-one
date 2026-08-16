@@ -173,6 +173,18 @@ func (r *userRepoSqlc) SoftDelete(ctx context.Context, userID, deletedBy string)
 	})
 }
 
+func (r *userRepoSqlc) HardDelete(ctx context.Context, userID string) error {
+	parsedID, err := uuid.Parse(userID)
+	if err != nil {
+		return errors.New("invalid user ID")
+	}
+	
+	// Assuming sqlc has a hard delete method, or we can use raw DB. 
+	// We'll use raw DB to avoid modifying sqlc queries for now.
+	_, err = r.dbConn.ExecContext(ctx, "DELETE FROM auth.users WHERE id = $1", parsedID)
+	return err
+}
+
 func (r *userRepoSqlc) FindByID(ctx context.Context, id string) (*domain.User, error) {
 	parsedID, err := uuid.Parse(id)
 	if err != nil {

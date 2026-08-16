@@ -12,27 +12,50 @@ import (
 	"github.com/google/uuid"
 )
 
+const countPatients = `-- name: CountPatients :one
+SELECT COUNT(*)
+FROM patients
+WHERE (name ILIKE $1 OR mrn ILIKE $1 OR nik ILIKE $1) AND deleted_dt IS NULL
+`
+
+func (q *Queries) CountPatients(ctx context.Context, name string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countPatients, name)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createPatient = `-- name: CreatePatient :one
-INSERT INTO patients (mrn, name, nik, dob, user_id)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING mrn, name, nik, dob, user_id, created_at
+INSERT INTO patients (mrn, name, nik, dob, user_id, gender, birth_place, address, photo_url, email)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING mrn, name, nik, dob, user_id, gender, birth_place, address, photo_url, email, created_at
 `
 
 type CreatePatientParams struct {
-	Mrn    string
-	Name   string
-	Nik    string
-	Dob    string
-	UserID uuid.NullUUID
+	Mrn        string
+	Name       string
+	Nik        string
+	Dob        string
+	UserID     uuid.NullUUID
+	Gender     sql.NullString
+	BirthPlace sql.NullString
+	Address    sql.NullString
+	PhotoUrl   sql.NullString
+	Email      sql.NullString
 }
 
 type CreatePatientRow struct {
-	Mrn       string
-	Name      string
-	Nik       string
-	Dob       string
-	UserID    uuid.NullUUID
-	CreatedAt sql.NullTime
+	Mrn        string
+	Name       string
+	Nik        string
+	Dob        string
+	UserID     uuid.NullUUID
+	Gender     sql.NullString
+	BirthPlace sql.NullString
+	Address    sql.NullString
+	PhotoUrl   sql.NullString
+	Email      sql.NullString
+	CreatedAt  sql.NullTime
 }
 
 func (q *Queries) CreatePatient(ctx context.Context, arg CreatePatientParams) (CreatePatientRow, error) {
@@ -42,6 +65,11 @@ func (q *Queries) CreatePatient(ctx context.Context, arg CreatePatientParams) (C
 		arg.Nik,
 		arg.Dob,
 		arg.UserID,
+		arg.Gender,
+		arg.BirthPlace,
+		arg.Address,
+		arg.PhotoUrl,
+		arg.Email,
 	)
 	var i CreatePatientRow
 	err := row.Scan(
@@ -50,24 +78,34 @@ func (q *Queries) CreatePatient(ctx context.Context, arg CreatePatientParams) (C
 		&i.Nik,
 		&i.Dob,
 		&i.UserID,
+		&i.Gender,
+		&i.BirthPlace,
+		&i.Address,
+		&i.PhotoUrl,
+		&i.Email,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getPatientByMRN = `-- name: GetPatientByMRN :one
-SELECT mrn, name, nik, dob, user_id, created_at
+SELECT mrn, name, nik, dob, user_id, gender, birth_place, address, photo_url, email, created_at
 FROM patients
 WHERE mrn = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
 type GetPatientByMRNRow struct {
-	Mrn       string
-	Name      string
-	Nik       string
-	Dob       string
-	UserID    uuid.NullUUID
-	CreatedAt sql.NullTime
+	Mrn        string
+	Name       string
+	Nik        string
+	Dob        string
+	UserID     uuid.NullUUID
+	Gender     sql.NullString
+	BirthPlace sql.NullString
+	Address    sql.NullString
+	PhotoUrl   sql.NullString
+	Email      sql.NullString
+	CreatedAt  sql.NullTime
 }
 
 func (q *Queries) GetPatientByMRN(ctx context.Context, mrn string) (GetPatientByMRNRow, error) {
@@ -79,24 +117,34 @@ func (q *Queries) GetPatientByMRN(ctx context.Context, mrn string) (GetPatientBy
 		&i.Nik,
 		&i.Dob,
 		&i.UserID,
+		&i.Gender,
+		&i.BirthPlace,
+		&i.Address,
+		&i.PhotoUrl,
+		&i.Email,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getPatientByNIK = `-- name: GetPatientByNIK :one
-SELECT mrn, name, nik, dob, user_id, created_at
+SELECT mrn, name, nik, dob, user_id, gender, birth_place, address, photo_url, email, created_at
 FROM patients
 WHERE nik = $1 AND deleted_dt IS NULL LIMIT 1
 `
 
 type GetPatientByNIKRow struct {
-	Mrn       string
-	Name      string
-	Nik       string
-	Dob       string
-	UserID    uuid.NullUUID
-	CreatedAt sql.NullTime
+	Mrn        string
+	Name       string
+	Nik        string
+	Dob        string
+	UserID     uuid.NullUUID
+	Gender     sql.NullString
+	BirthPlace sql.NullString
+	Address    sql.NullString
+	PhotoUrl   sql.NullString
+	Email      sql.NullString
+	CreatedAt  sql.NullTime
 }
 
 func (q *Queries) GetPatientByNIK(ctx context.Context, nik string) (GetPatientByNIKRow, error) {
@@ -108,9 +156,77 @@ func (q *Queries) GetPatientByNIK(ctx context.Context, nik string) (GetPatientBy
 		&i.Nik,
 		&i.Dob,
 		&i.UserID,
+		&i.Gender,
+		&i.BirthPlace,
+		&i.Address,
+		&i.PhotoUrl,
+		&i.Email,
 		&i.CreatedAt,
 	)
 	return i, err
+}
+
+const listPatients = `-- name: ListPatients :many
+SELECT mrn, name, nik, dob, user_id, gender, birth_place, address, photo_url, email, created_at
+FROM patients
+WHERE (name ILIKE $1 OR mrn ILIKE $1 OR nik ILIKE $1 OR email ILIKE $1) AND deleted_dt IS NULL
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type ListPatientsParams struct {
+	Name   string
+	Limit  int32
+	Offset int32
+}
+
+type ListPatientsRow struct {
+	Mrn        string
+	Name       string
+	Nik        string
+	Dob        string
+	UserID     uuid.NullUUID
+	Gender     sql.NullString
+	BirthPlace sql.NullString
+	Address    sql.NullString
+	PhotoUrl   sql.NullString
+	Email      sql.NullString
+	CreatedAt  sql.NullTime
+}
+
+func (q *Queries) ListPatients(ctx context.Context, arg ListPatientsParams) ([]ListPatientsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listPatients, arg.Name, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListPatientsRow
+	for rows.Next() {
+		var i ListPatientsRow
+		if err := rows.Scan(
+			&i.Mrn,
+			&i.Name,
+			&i.Nik,
+			&i.Dob,
+			&i.UserID,
+			&i.Gender,
+			&i.BirthPlace,
+			&i.Address,
+			&i.PhotoUrl,
+			&i.Email,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updatePatientUserID = `-- name: UpdatePatientUserID :exec

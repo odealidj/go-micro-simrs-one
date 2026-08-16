@@ -188,7 +188,7 @@ func (s *AuthGrpcServer) DeleteUser(ctx context.Context, req *pb.DeleteUserReque
 		return nil, status.Error(codes.InvalidArgument, "user_id is required")
 	}
 
-	err := s.authService.DeleteUser(ctx, req.UserId, req.DeletedBy)
+	err := s.authService.DeleteUser(ctx, req.UserId, req.DeletedBy, req.HardDelete)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to delete user: %v", err)
 	}

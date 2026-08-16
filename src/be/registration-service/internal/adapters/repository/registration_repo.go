@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"time"
 
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/adapters/db"
 	"github.com/aliube/go-micro-simrs-one/registration-service/internal/core/domain"
@@ -79,5 +80,32 @@ func (r *registrationRepoSqlc) MarkEventAsFailed(ctx context.Context, id string)
 	return r.q.UpdateOutboxEventStatus(ctx, db.UpdateOutboxEventStatusParams{
 		ID:     id,
 		Status: "FAILED",
+	})
+}
+
+func (r *registrationRepoSqlc) GetTodayEncounters(ctx context.Context, targetDate time.Time) ([]*domain.Encounter, error) {
+	nullDate := sql.NullTime{Time: targetDate, Valid: true}
+	rows, err := r.q.GetTodayEncounters(ctx, nullDate)
+	if err != nil {
+		return nil, err
+	}
+	var encounters []*domain.Encounter
+	for _, row := range rows {
+		encounters = append(encounters, &domain.Encounter{
+			EncounterNo: row.EncounterNo,
+			MRN:         row.Mrn,
+			Department:  row.Department,
+			DoctorID:    row.DoctorID,
+			Status:      row.Status,
+			CreatedAt:   row.CreatedAt.Time,
+		})
+	}
+	return encounters, nil
+}
+
+func (r *registrationRepoSqlc) UpdateEncounterStatus(ctx context.Context, encounterNo, status string) error {
+	return r.q.UpdateEncounterStatus(ctx, db.UpdateEncounterStatusParams{
+		EncounterNo: encounterNo,
+		Status:      status,
 	})
 }

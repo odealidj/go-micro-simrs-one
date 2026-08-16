@@ -516,8 +516,8 @@ export function AdminDashboard() {
             <CardContent className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={dbTrend.length > 0 ? dbTrend : [
-                  { time: 'T-1', activeConn: 0, tps: 0 },
-                  { time: 'T-0', activeConn: Number(systemHealth.pg_active_connections) || 0, tps: Number(systemHealth.pg_xact_commit) || 0 }
+                  { time: 'T-1', activeConn: 0, tps: 0, redisConn: 0, redisMem: 0 },
+                  { time: 'T-0', activeConn: Number(systemHealth.pg_active_connections) || 0, tps: Number(systemHealth.pg_xact_commit) || 0, redisConn: 0, redisMem: 0 }
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="time" tick={{ fontSize: 10 }} tickMargin={10} axisLine={false} tickLine={false} />
@@ -541,8 +541,8 @@ export function AdminDashboard() {
             <CardContent className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={dbTrend.length > 0 ? dbTrend : [
-                  { time: 'T-1', redisConn: 0, redisMem: 0 },
-                  { time: 'T-0', redisConn: Number(systemHealth.redis_connected_clients) || 0, redisMem: Number(systemHealth.redis_memory_used_mb) || 0 }
+                  { time: 'T-1', activeConn: 0, tps: 0, redisConn: 0, redisMem: 0 },
+                  { time: 'T-0', activeConn: 0, tps: 0, redisConn: Number(systemHealth.redis_connected_clients) || 0, redisMem: Number(systemHealth.redis_memory_used_mb) || 0 }
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="time" tick={{ fontSize: 10 }} tickMargin={10} axisLine={false} tickLine={false} />
