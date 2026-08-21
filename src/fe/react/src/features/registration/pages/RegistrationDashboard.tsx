@@ -192,7 +192,7 @@ export function RegistrationDashboard() {
                   <LineChart data={weeklyVisitsData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                     <XAxis dataKey="date" tick={{fontSize: 12}} tickLine={false} axisLine={false} />
-                    <YAxis tick={{fontSize: 12}} tickLine={false} axisLine={false} />
+                    <YAxis allowDecimals={false} tick={{fontSize: 12}} tickLine={false} axisLine={false} />
                     <RechartsTooltip 
                       contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                     />
