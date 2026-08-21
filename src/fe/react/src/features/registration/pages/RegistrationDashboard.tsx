@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Users, UserPlus, Clock, Stethoscope, Server, Activity, ArrowRight, UserCog, CalendarClock } from "lucide-react";
+import { Users, UserPlus, Clock, Stethoscope, Server, Activity, ArrowRight, UserCog, CalendarClock, CalendarDays } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
