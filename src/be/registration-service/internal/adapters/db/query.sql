@@ -59,7 +59,7 @@ WITH ValidEncounters AS (
     FROM encounters
     WHERE deleted_dt IS NULL
       AND status != 'CANCELLED'
-      AND ((guarantor = 'UMUM' AND payment_status = 'PAID') OR guarantor != 'UMUM')
+      AND ((COALESCE(guarantor, '') = 'UMUM' AND COALESCE(payment_status, '') = 'PAID') OR COALESCE(guarantor, '') != 'UMUM')
 ),
 PatientStats AS (
     SELECT 
@@ -79,7 +79,7 @@ FROM encounters
 WHERE deleted_dt IS NULL
   AND consultation_start_time IS NOT NULL
   AND status != 'CANCELLED'
-  AND ((guarantor = 'UMUM' AND payment_status = 'PAID') OR guarantor != 'UMUM')
+  AND ((COALESCE(guarantor, '') = 'UMUM' AND COALESCE(payment_status, '') = 'PAID') OR COALESCE(guarantor, '') != 'UMUM')
   AND created_at >= sqlc.arg(start_time) AND created_at < sqlc.arg(end_time)
 GROUP BY department;
 
@@ -88,7 +88,7 @@ SELECT TO_CHAR(created_at, 'YYYY-MM-DD') AS visit_date, COUNT(*)::INT as total_v
 FROM encounters
 WHERE deleted_dt IS NULL
   AND status != 'CANCELLED'
-  AND ((guarantor = 'UMUM' AND payment_status = 'PAID') OR guarantor != 'UMUM')
+  AND ((COALESCE(guarantor, '') = 'UMUM' AND COALESCE(payment_status, '') = 'PAID') OR COALESCE(guarantor, '') != 'UMUM')
   AND created_at >= sqlc.arg(start_time) AND created_at < sqlc.arg(end_time)
 GROUP BY visit_date
 ORDER BY visit_date;
