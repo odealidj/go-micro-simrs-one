@@ -34,7 +34,7 @@ func RunAggregation(repo *db.Queries) {
 
 	diagnoses := []string{"A09", "J06", "I10"}
 	doctors := []string{"DOC-1", "DOC-2"}
-	departments := []string{"POLI-UMUM", "POLI-GIGI"}
+	departments := []string{"01", "02"}
 	genders := []string{"L", "P"}
 	ageBrackets := []string{"Balita", "Anak-Anak", "Dewasa", "Lansia"}
 	isCompoundedFlags := []bool{true, false}

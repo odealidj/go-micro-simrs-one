@@ -35,13 +35,24 @@ func (s *registrationServiceImpl) generateEncounterNo(ctx context.Context, deptC
 		return "", err
 	}
 
-	// 3. Set expiry to 32 days if it's newly created, so Redis doesn't bloat
+	// 3. If seq is 1, it might be a new month or Redis restarted. Fallback to DB.
 	if seq == 1 {
-		s.redisClient.Expire(ctx, key, 32*24*time.Hour)
+		maxSeq, errRepo := s.repo.GetMaxSequenceForMonth(ctx, yearMonth)
+		if errRepo == nil && maxSeq > 0 {
+			// Sync Redis with maxSeq
+			err = s.redisClient.Set(ctx, key, maxSeq+1, 32*24*time.Hour).Err()
+			if err != nil {
+				return "", fmt.Errorf("failed to sync redis sequence: %w", err)
+			}
+			seq = int64(maxSeq + 1)
+		} else {
+			// Actually fresh, just set expiry
+			s.redisClient.Expire(ctx, key, 32*24*time.Hour)
+		}
 	}
 
 	// 4. Format Encounter No: YYYYMM + deptCode + 4 digit sequence
-	// Example: 202608 + IGD + 0001 => 202608IGD0001
+	// Example: 202608 + 01 + 0001 => 202608010001
 	encounterNo := fmt.Sprintf("%s%s%04d", yearMonth, deptCode, seq)
 	
 	return encounterNo, nil
@@ -132,3 +143,25 @@ func (s *registrationServiceImpl) UpdateEncounterStatus(ctx context.Context, enc
 	}
 	return s.repo.UpdateEncounterStatus(ctx, encounterNo, status)
 }
+
+func (s *registrationServiceImpl) GetDashboardMetrics(ctx context.Context, targetDate time.Time) (int32, int32, map[string]int32, map[string]int32, error) {
+	if s.repo == nil {
+		return 0, 0, nil, nil, fmt.Errorf("repository is not initialized")
+	}
+	return s.repo.GetDashboardMetrics(ctx, targetDate)
+}
+
+func (s *registrationServiceImpl) UpdateEncounterGuarantor(ctx context.Context, encounterNo, guarantor string) error {
+	if s.repo == nil {
+		return fmt.Errorf("repository is not initialized")
+	}
+	return s.repo.UpdateGuarantor(ctx, encounterNo, guarantor)
+}
+
+func (s *registrationServiceImpl) UpdatePaymentStatus(ctx context.Context, encounterNo, status string) error {
+	if s.repo == nil {
+		return fmt.Errorf("repository is not initialized")
+	}
+	return s.repo.UpdatePaymentStatus(ctx, encounterNo, status)
+}
+

@@ -33,6 +33,10 @@ func NewAuthService(repo ports.UserRepository, tm *auth.TokenManager) ports.Auth
 }
 
 func (s *authServiceImpl) Signup(ctx context.Context, nip, password, email, phone string) (string, error) {
+	if nip == "admin" || nip == "superadmin" || nip == "super_admin" {
+		return "", errors.New("Username tidak valid")
+	}
+
 	// 1. Check if user exists by NIP
 	_, err := s.repo.FindByUsername(ctx, nip)
 	if err == nil {
@@ -69,6 +73,10 @@ func (s *authServiceImpl) Signup(ctx context.Context, nip, password, email, phon
 }
 
 func (s *authServiceImpl) RegisterPatientUser(ctx context.Context, username, password string) (string, error) {
+	if username == "admin" || username == "superadmin" || username == "super_admin" {
+		return "", errors.New("Username tidak valid")
+	}
+
 	_, err := s.repo.FindByUsername(ctx, username)
 	if err == nil {
 		return "", errors.New("patient username already registered")
@@ -79,7 +87,7 @@ func (s *authServiceImpl) RegisterPatientUser(ctx context.Context, username, pas
 		return "", err
 	}
 
-	rolePatient := "patient"
+	rolePatient := "pasien"
 	user := &domain.User{
 		Username:            username,
 		PasswordHash:        string(hashedPassword),
@@ -88,7 +96,7 @@ func (s *authServiceImpl) RegisterPatientUser(ctx context.Context, username, pas
 		ForceChangePassword: true,
 	}
 
-	createdUser, err := s.repo.CreateWithProfile(ctx, user, &domain.StaffProfile{})
+	createdUser, err := s.repo.CreateWithProfile(ctx, user, nil)
 	if err != nil {
 		return "", err
 	}
@@ -118,6 +126,36 @@ func (s *authServiceImpl) BootstrapAdmin(ctx context.Context, nip, password, ema
 
 	profile := &domain.StaffProfile{
 		NIP:   nip,
+		Email: email,
+		Phone: phone,
+	}
+
+	_, err = s.repo.CreateWithProfile(ctx, user, profile)
+	return err
+}
+
+func (s *authServiceImpl) BootstrapSuperAdmin(ctx context.Context, username, password, email, phone string) error {
+	_, err := s.repo.FindByUsername(ctx, username)
+	if err == nil {
+		return errors.New("super admin already registered")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	roleSuperAdmin := "super_admin"
+	user := &domain.User{
+		Username:            username,
+		PasswordHash:        string(hashedPassword),
+		Role:                &roleSuperAdmin,
+		Status:              "ACTIVE",
+		ForceChangePassword: true,
+	}
+
+	profile := &domain.StaffProfile{
+		NIP:   username,
 		Email: email,
 		Phone: phone,
 	}

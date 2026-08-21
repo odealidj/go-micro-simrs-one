@@ -276,7 +276,7 @@ be-stop-local-billing-service:
 be-run-local-api-gateway:
 	@echo "Starting local api-gateway..."
 	@cd src/be/api-gateway && go build -o tmp-main cmd/server/main.go
-	@cd src/be/api-gateway && REDIS_HOST=$(LOCAL_REDIS_HOST) PROMETHEUS_URL=$(LOCAL_PROMETHEUS_URL) AUTH_SERVICE_ADDR=localhost:50051 PATIENT_SERVICE_ADDR=localhost:50052 REGISTRATION_SERVICE_ADDR=localhost:50053 EMR_SERVICE_ADDR=localhost:50054 PHARMACY_SERVICE_ADDR=localhost:50055 BILLING_SERVICE_ADDR=localhost:50056 PORT=8080 GOOGLE_API_KEY=$(GOOGLE_API_KEY) ./tmp-main > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/api-gateway && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) PROMETHEUS_URL=$(LOCAL_PROMETHEUS_URL) AUTH_SERVICE_ADDR=localhost:50051 PATIENT_SERVICE_ADDR=localhost:50052 REGISTRATION_SERVICE_ADDR=localhost:50053 EMR_SERVICE_ADDR=localhost:50054 PHARMACY_SERVICE_ADDR=localhost:50055 BILLING_SERVICE_ADDR=localhost:50056 PORT=8080 GOOGLE_API_KEY=$(GOOGLE_API_KEY) ./tmp-main > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-api-gateway:
 	@echo "Stopping local api-gateway..."
@@ -319,3 +319,23 @@ reset-data-master:
 	@echo "Resetting master data..."
 	@cd src/be/auth-service && go run ../scripts/seed.go ../scripts/reset_master_data.sql
 	@echo "Master data reset successfully."
+
+.PHONY: reset-transactions
+reset-transactions:
+	@echo "Resetting transaction data (preserving master data)..."
+	podman exec -i $$(podman ps --filter "name=postgres" -q | head -n 1) psql -U root -d simrs_db -c "\
+		TRUNCATE TABLE registration.encounters CASCADE; \
+		TRUNCATE TABLE registration.outbox_events CASCADE; \
+		TRUNCATE TABLE emr.medical_records CASCADE; \
+		TRUNCATE TABLE emr.medical_actions CASCADE; \
+		TRUNCATE TABLE emr.clinic_wait_time_aggregates CASCADE; \
+		TRUNCATE TABLE emr.outbox_events CASCADE; \
+		TRUNCATE TABLE pharmacy.prescriptions CASCADE; \
+		TRUNCATE TABLE pharmacy.prescription_items CASCADE; \
+		TRUNCATE TABLE pharmacy.encounter_payments CASCADE; \
+		TRUNCATE TABLE pharmacy.pharmacy_wait_time_aggregates CASCADE; \
+		TRUNCATE TABLE pharmacy.outbox_events CASCADE; \
+		TRUNCATE TABLE billing.invoices CASCADE; \
+		TRUNCATE TABLE billing.invoice_items CASCADE; \
+		TRUNCATE TABLE billing.outbox_events CASCADE;"
+	@echo "Transaction data reset successfully."

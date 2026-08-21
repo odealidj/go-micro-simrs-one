@@ -13,12 +13,14 @@ import (
 )
 
 type registrationRepoSqlc struct {
-	q *db.Queries
+	q  *db.Queries
+	db *sql.DB
 }
 
 func NewRegistrationRepository(d *sql.DB) ports.RegistrationRepository {
 	return &registrationRepoSqlc{
-		q: db.New(d),
+		q:  db.New(d),
+		db: d,
 	}
 }
 
@@ -45,7 +47,16 @@ func (r *registrationRepoSqlc) SaveOutboxEvent(ctx context.Context, event *domai
 }
 
 func (r *registrationRepoSqlc) CountActiveEncountersByDept(ctx context.Context, department string) (int64, error) {
-	return r.q.CountActiveEncountersByDept(ctx, department)
+	now := time.Now()
+	y, m, d := now.Date()
+	startOfDay := time.Date(y, m, d, 0, 0, 0, 0, now.Location())
+	startOfNextDay := startOfDay.AddDate(0, 0, 1)
+
+	return r.q.CountActiveEncountersByDept(ctx, db.CountActiveEncountersByDeptParams{
+		Department:  department,
+		CreatedAt:   sql.NullTime{Time: startOfDay, Valid: true},
+		CreatedAt_2: sql.NullTime{Time: startOfNextDay, Valid: true},
+	})
 }
 
 // --- outbox.Repository implementation (used by outbox.NewRelay) ---
@@ -84,21 +95,43 @@ func (r *registrationRepoSqlc) MarkEventAsFailed(ctx context.Context, id string)
 }
 
 func (r *registrationRepoSqlc) GetTodayEncounters(ctx context.Context, targetDate time.Time) ([]*domain.Encounter, error) {
-	nullDate := sql.NullTime{Time: targetDate, Valid: true}
-	rows, err := r.q.GetTodayEncounters(ctx, nullDate)
+	y, m, d := targetDate.Date()
+	startOfDay := time.Date(y, m, d, 0, 0, 0, 0, targetDate.Location())
+	startOfNextDay := startOfDay.AddDate(0, 0, 1)
+
+	rows, err := r.q.GetTodayEncounters(ctx, db.GetTodayEncountersParams{
+		CreatedAt:   sql.NullTime{Time: startOfDay, Valid: true},
+		CreatedAt_2: sql.NullTime{Time: startOfNextDay, Valid: true},
+	})
 	if err != nil {
 		return nil, err
 	}
 	var encounters []*domain.Encounter
 	for _, row := range rows {
-		encounters = append(encounters, &domain.Encounter{
+		enc := &domain.Encounter{
 			EncounterNo: row.EncounterNo,
 			MRN:         row.Mrn,
 			Department:  row.Department,
 			DoctorID:    row.DoctorID,
 			Status:      row.Status,
 			CreatedAt:   row.CreatedAt.Time,
-		})
+		}
+
+		// Determine if the patient is new (<= 1 valid encounter)
+		var count int
+		err := r.db.QueryRowContext(ctx, `
+			SELECT COUNT(*)
+			FROM encounters
+			WHERE mrn = $1
+			  AND deleted_dt IS NULL
+			  AND status != 'CANCELLED'
+			  AND ((guarantor = 'UMUM' AND payment_status = 'PAID') OR guarantor != 'UMUM')
+		`, row.Mrn).Scan(&count)
+		if err == nil && count <= 1 {
+			enc.IsNewPatient = true
+		}
+
+		encounters = append(encounters, enc)
 	}
 	return encounters, nil
 }
@@ -107,5 +140,70 @@ func (r *registrationRepoSqlc) UpdateEncounterStatus(ctx context.Context, encoun
 	return r.q.UpdateEncounterStatus(ctx, db.UpdateEncounterStatusParams{
 		EncounterNo: encounterNo,
 		Status:      status,
+	})
+}
+
+func (r *registrationRepoSqlc) GetMaxSequenceForMonth(ctx context.Context, prefix string) (int32, error) {
+	return r.q.GetMaxSequenceForMonth(ctx, prefix+"%")
+}
+
+func (r *registrationRepoSqlc) GetDashboardMetrics(ctx context.Context, targetDate time.Time) (newPatients int32, oldPatients int32, waitTimes map[string]int32, weeklyVisits map[string]int32, err error) {
+	y, m, d := targetDate.Date()
+	startOfDay := time.Date(y, m, d, 0, 0, 0, 0, targetDate.Location())
+	startOfNextDay := startOfDay.AddDate(0, 0, 1)
+
+	// 1. Patient Status Counts
+	patientCounts, err := r.q.GetPatientStatusCounts(ctx)
+	if err != nil && err != sql.ErrNoRows {
+		return 0, 0, nil, nil, err
+	}
+	newPatients = int32(patientCounts.NewPatients)
+	oldPatients = int32(patientCounts.OldPatients)
+
+	// 2. Average Wait Time Per Poli
+	waitTimesDB, err := r.q.GetAverageWaitTimePerPoli(ctx, db.GetAverageWaitTimePerPoliParams{
+		StartTime: sql.NullTime{Time: startOfDay, Valid: true},
+		EndTime:   sql.NullTime{Time: startOfNextDay, Valid: true},
+	})
+	if err != nil && err != sql.ErrNoRows {
+		return 0, 0, nil, nil, err
+	}
+	waitTimes = make(map[string]int32)
+	for _, w := range waitTimesDB {
+		waitTimes[w.PoliCode] = int32(w.AvgWaitMinutes)
+	}
+
+	// 3. Weekly Visits
+	startOfLast7Days := startOfDay.AddDate(0, 0, -6)
+	weeklyVisitsDB, err := r.q.GetWeeklyVisits(ctx, db.GetWeeklyVisitsParams{
+		StartTime: sql.NullTime{Time: startOfLast7Days, Valid: true},
+		EndTime:   sql.NullTime{Time: startOfNextDay, Valid: true},
+	})
+	if err != nil && err != sql.ErrNoRows {
+		return 0, 0, nil, nil, err
+	}
+	weeklyVisits = make(map[string]int32)
+	for i := 6; i >= 0; i-- {
+		dateStr := startOfDay.AddDate(0, 0, -i).Format("2006-01-02")
+		weeklyVisits[dateStr] = 0
+	}
+	for _, wv := range weeklyVisitsDB {
+		weeklyVisits[wv.VisitDate] = int32(wv.TotalVisits)
+	}
+
+	return newPatients, oldPatients, waitTimes, weeklyVisits, nil
+}
+
+func (r *registrationRepoSqlc) UpdatePaymentStatus(ctx context.Context, encounterNo, status string) error {
+	return r.q.UpdatePaymentStatus(ctx, db.UpdatePaymentStatusParams{
+		EncounterNo:   encounterNo,
+		PaymentStatus: sql.NullString{String: status, Valid: true},
+	})
+}
+
+func (r *registrationRepoSqlc) UpdateGuarantor(ctx context.Context, encounterNo, guarantor string) error {
+	return r.q.UpdateGuarantor(ctx, db.UpdateGuarantorParams{
+		EncounterNo: encounterNo,
+		Guarantor:   sql.NullString{String: guarantor, Valid: true},
 	})
 }

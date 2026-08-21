@@ -23,4 +23,5 @@ type BillingService interface {
 	
 	GenerateInvoice(ctx context.Context, encounterNo string) (*domain.Invoice, error)
 	PayInvoice(ctx context.Context, invoiceID string, amountPaid float64) (string, error)
+	CancelInvoice(ctx context.Context, invoiceID string) (string, error)
 }

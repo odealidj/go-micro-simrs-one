@@ -61,10 +61,10 @@ ON CONFLICT (item_code) DO UPDATE SET
 
 -- Seed Polyclinics (just in case they are missing)
 INSERT INTO emr.polyclinics (code, name) VALUES
-('UMUM', 'Poliklinik Umum'),
-('GIGI', 'Poliklinik Gigi'),
-('KANDUNGAN', 'Poliklinik Kandungan (Obgyn)'),
-('ANAK', 'Poliklinik Anak'),
+('01', 'Poliklinik Umum'),
+('02', 'Poliklinik Gigi'),
+('04', 'Poliklinik Kandungan (Obgyn)'),
+('03', 'Poliklinik Anak'),
 ('MATA', 'Poliklinik Mata')
 ON CONFLICT (code) DO NOTHING;
 
@@ -78,43 +78,43 @@ ON CONFLICT (kbm_code) DO NOTHING;
 
 -- Mappings EMR
 INSERT INTO emr.icd10_polyclinic_mappings (icd10_code, polyclinic_code) VALUES
-('A00', 'UMUM'),
-('A01', 'UMUM'),
-('A09', 'UMUM'),
-('E11', 'UMUM'),
-('I10', 'UMUM'),
-('J00', 'UMUM'),
-('J00', 'ANAK'),
-('J01', 'UMUM')
+('A00', '01'),
+('A01', '01'),
+('A09', '01'),
+('E11', '01'),
+('I10', '01'),
+('J00', '01'),
+('J00', '03'),
+('J01', '01')
 ON CONFLICT DO NOTHING;
 
 -- Seed KBM Polyclinic Mappings (Dummy Data for existing KBMs)
 INSERT INTO emr.kbm_polyclinic_mappings (kbm_code, polyclinic_code) VALUES
-('KBM-001', 'UMUM'),
-('KBM-001', 'ANAK'),
-('KBM-011', 'UMUM'),
-('KBM-011', 'ANAK'),
-('KBM-021', 'UMUM'),
-('KBM-031', 'UMUM')
+('KBM-001', '01'),
+('KBM-001', '03'),
+('KBM-011', '01'),
+('KBM-011', '03'),
+('KBM-021', '01'),
+('KBM-031', '01')
 ON CONFLICT DO NOTHING;
 
 INSERT INTO emr.tindakan_polyclinic_mappings (kode_tindakan, polyclinic_code) VALUES
-('TND-001', 'UMUM'),
-('TND-002', 'GIGI'),
-('TND-003', 'GIGI'),
-('TND-004', 'KANDUNGAN'),
-('TND-005', 'UMUM'),
-('TND-006', 'UMUM')
+('TND-001', '01'),
+('TND-002', '02'),
+('TND-003', '02'),
+('TND-004', '04'),
+('TND-005', '01'),
+('TND-006', '01')
 ON CONFLICT DO NOTHING;
 
 -- Mappings Pharmacy
 INSERT INTO pharmacy.inventory_polyclinic_mappings (item_code, polyclinic_code) VALUES
-('OBT-001', 'UMUM'),
-('OBT-001', 'ANAK'),
-('OBT-002', 'UMUM'),
-('OBT-003', 'UMUM'),
-('OBT-004', 'UMUM'),
-('OBT-005', 'UMUM')
+('OBT-001', '01'),
+('OBT-001', '03'),
+('OBT-002', '01'),
+('OBT-003', '01'),
+('OBT-004', '01'),
+('OBT-005', '01')
 ON CONFLICT DO NOTHING;
 
 -- ==========================================
@@ -151,15 +151,15 @@ SELECT id, 'STR-11223344' FROM auth.users WHERE username = 'perawat.andi'
 AND NOT EXISTS (SELECT 1 FROM auth.profil_perawat WHERE user_id = (SELECT id FROM auth.users WHERE username = 'perawat.andi'));
 
 -- Seed Mapping Dokter Poli
-INSERT INTO auth.mapping_dokter_poli (dokter_id, poli_code)
-SELECT (SELECT id FROM auth.profil_dokter WHERE user_id = (SELECT id FROM auth.users WHERE username = 'dokter.budi')), 'UMUM'
-WHERE NOT EXISTS (SELECT 1 FROM auth.mapping_dokter_poli WHERE dokter_id = (SELECT id FROM auth.profil_dokter WHERE user_id = (SELECT id FROM auth.users WHERE username = 'dokter.budi')) AND poli_code = 'UMUM');
+INSERT INTO auth.mapping_dokter_poli (dokter_id, poli_code, end_date)
+SELECT (SELECT id FROM auth.profil_dokter WHERE user_id = (SELECT id FROM auth.users WHERE username = 'dokter.budi')), '01', '2099-12-31'
+WHERE NOT EXISTS (SELECT 1 FROM auth.mapping_dokter_poli WHERE dokter_id = (SELECT id FROM auth.profil_dokter WHERE user_id = (SELECT id FROM auth.users WHERE username = 'dokter.budi')) AND poli_code = '01');
 
-INSERT INTO auth.mapping_dokter_poli (dokter_id, poli_code)
-SELECT (SELECT id FROM auth.profil_dokter WHERE user_id = (SELECT id FROM auth.users WHERE username = 'dokter.siti')), 'ANAK'
-WHERE NOT EXISTS (SELECT 1 FROM auth.mapping_dokter_poli WHERE dokter_id = (SELECT id FROM auth.profil_dokter WHERE user_id = (SELECT id FROM auth.users WHERE username = 'dokter.siti')) AND poli_code = 'ANAK');
+INSERT INTO auth.mapping_dokter_poli (dokter_id, poli_code, end_date)
+SELECT (SELECT id FROM auth.profil_dokter WHERE user_id = (SELECT id FROM auth.users WHERE username = 'dokter.siti')), '03', '2099-12-31'
+WHERE NOT EXISTS (SELECT 1 FROM auth.mapping_dokter_poli WHERE dokter_id = (SELECT id FROM auth.profil_dokter WHERE user_id = (SELECT id FROM auth.users WHERE username = 'dokter.siti')) AND poli_code = '03');
 
 -- Seed Mapping Perawat Poli
-INSERT INTO auth.mapping_perawat_poli (perawat_id, poli_code)
-SELECT (SELECT id FROM auth.profil_perawat WHERE user_id = (SELECT id FROM auth.users WHERE username = 'perawat.andi')), 'UMUM'
-WHERE NOT EXISTS (SELECT 1 FROM auth.mapping_perawat_poli WHERE perawat_id = (SELECT id FROM auth.profil_perawat WHERE user_id = (SELECT id FROM auth.users WHERE username = 'perawat.andi')) AND poli_code = 'UMUM');
+INSERT INTO auth.mapping_perawat_poli (perawat_id, poli_code, end_date)
+SELECT (SELECT id FROM auth.profil_perawat WHERE user_id = (SELECT id FROM auth.users WHERE username = 'perawat.andi')), '01', '2099-12-31'
+WHERE NOT EXISTS (SELECT 1 FROM auth.mapping_perawat_poli WHERE perawat_id = (SELECT id FROM auth.profil_perawat WHERE user_id = (SELECT id FROM auth.users WHERE username = 'perawat.andi')) AND poli_code = '01');

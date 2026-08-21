@@ -62,7 +62,15 @@ func main() {
 	authRepo := repository.NewUserRepository(dbConn)
 	authService := services.NewAuthService(authRepo, tokenManager)
 
-	// --- Bootstrapping Initial Admin ---
+	// --- Bootstrapping Initial Admin & SuperAdmin ---
+	_, err = dbConn.Exec(`
+		INSERT INTO auth.master_role (id, deskripsi) VALUES ('admin', 'Administrator'), ('super_admin', 'Super Administrator') 
+		ON CONFLICT DO NOTHING
+	`)
+	if err != nil {
+		slog.Error("Failed to seed initial roles", "error", err)
+	}
+
 	initAdminUser := os.Getenv("INITIAL_ADMIN_USERNAME")
 	initAdminPass := os.Getenv("INITIAL_ADMIN_PASSWORD")
 	if initAdminUser == "" {
@@ -81,6 +89,17 @@ func main() {
 		}
 	} else {
 		slog.Info("Initial admin user created successfully", "username", initAdminUser)
+	}
+
+	err = authService.BootstrapSuperAdmin(context.Background(), "superadmin", "admin123", "superadmin@example.com", "")
+	if err != nil {
+		if err.Error() == "super admin already registered" {
+			slog.Info("Initial superadmin user already exists", "username", "superadmin")
+		} else {
+			slog.Error("Failed to bootstrap initial superadmin user", "error", err)
+		}
+	} else {
+		slog.Info("Initial superadmin user created successfully", "username", "superadmin")
 	}
 	// -----------------------------------
 

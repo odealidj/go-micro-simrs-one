@@ -5,7 +5,7 @@ import {
   Users, LogOut, LayoutDashboard, ShieldCheck, 
   Stethoscope, UserRound, Building2, Map,
   BookOpen, Pill, Activity, Stethoscope as MapPin, ClipboardList,
-  ChevronLeft, ChevronRight, Bell
+  ChevronLeft, ChevronRight, Bell, Bot
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +26,7 @@ export function AdminLayout() {
         { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
         { name: "Users & Staff", path: "/admin/users", icon: Users },
         { name: "Role & Akses", path: "/admin/master/role", icon: ShieldCheck },
+        { name: "Pengaturan AI", path: "/admin/ai-settings", icon: Bot },
       ]
     },
     {

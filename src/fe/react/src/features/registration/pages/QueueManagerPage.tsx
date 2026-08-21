@@ -19,7 +19,6 @@ interface QueuePatient {
 export function QueueManagerPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [waitlist, setWaitlist] = useState<QueuePatient[]>([]);
-  const [loading, setLoading] = useState(false);
   const [activeCall, setActiveCall] = useState<{id: string, name: string} | null>(null);
   
   // Format current date to YYYY-MM-DD
@@ -75,8 +74,8 @@ export function QueueManagerPage() {
 
   const queueTabs = [
     { id: "all", label: "Semua Poli", activeCount: waitlist.length },
-    { id: "UMU", label: "Poli Umum", activeCount: waitlist.filter(w => w.departmentCode === "UMU").length },
-    { id: "GIG", label: "Poli Gigi", activeCount: waitlist.filter(w => w.departmentCode === "GIG").length },
+    { id: "01", label: "Poli Umum", activeCount: waitlist.filter(w => w.departmentCode === "01").length },
+    { id: "02", label: "Poli Gigi", activeCount: waitlist.filter(w => w.departmentCode === "02").length },
   ];
 
   const filteredWaitlist = activeTab === "all" ? waitlist : waitlist.filter(w => w.departmentCode === activeTab);

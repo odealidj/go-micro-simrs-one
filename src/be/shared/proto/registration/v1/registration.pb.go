@@ -21,6 +21,110 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type UpdateEncounterGuarantorRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EncounterNo   string                 `protobuf:"bytes,1,opt,name=encounter_no,json=encounterNo,proto3" json:"encounter_no,omitempty"`
+	Guarantor     string                 `protobuf:"bytes,2,opt,name=guarantor,proto3" json:"guarantor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateEncounterGuarantorRequest) Reset() {
+	*x = UpdateEncounterGuarantorRequest{}
+	mi := &file_registration_v1_registration_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateEncounterGuarantorRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateEncounterGuarantorRequest) ProtoMessage() {}
+
+func (x *UpdateEncounterGuarantorRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateEncounterGuarantorRequest.ProtoReflect.Descriptor instead.
+func (*UpdateEncounterGuarantorRequest) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *UpdateEncounterGuarantorRequest) GetEncounterNo() string {
+	if x != nil {
+		return x.EncounterNo
+	}
+	return ""
+}
+
+func (x *UpdateEncounterGuarantorRequest) GetGuarantor() string {
+	if x != nil {
+		return x.Guarantor
+	}
+	return ""
+}
+
+type UpdateEncounterGuarantorResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdateEncounterGuarantorResponse) Reset() {
+	*x = UpdateEncounterGuarantorResponse{}
+	mi := &file_registration_v1_registration_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdateEncounterGuarantorResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdateEncounterGuarantorResponse) ProtoMessage() {}
+
+func (x *UpdateEncounterGuarantorResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdateEncounterGuarantorResponse.ProtoReflect.Descriptor instead.
+func (*UpdateEncounterGuarantorResponse) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *UpdateEncounterGuarantorResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdateEncounterGuarantorResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 type RegisterEncounterRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Mrn            string                 `protobuf:"bytes,1,opt,name=mrn,proto3" json:"mrn,omitempty"`
@@ -33,7 +137,7 @@ type RegisterEncounterRequest struct {
 
 func (x *RegisterEncounterRequest) Reset() {
 	*x = RegisterEncounterRequest{}
-	mi := &file_registration_v1_registration_proto_msgTypes[0]
+	mi := &file_registration_v1_registration_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +149,7 @@ func (x *RegisterEncounterRequest) String() string {
 func (*RegisterEncounterRequest) ProtoMessage() {}
 
 func (x *RegisterEncounterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_registration_v1_registration_proto_msgTypes[0]
+	mi := &file_registration_v1_registration_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +162,7 @@ func (x *RegisterEncounterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterEncounterRequest.ProtoReflect.Descriptor instead.
 func (*RegisterEncounterRequest) Descriptor() ([]byte, []int) {
-	return file_registration_v1_registration_proto_rawDescGZIP(), []int{0}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *RegisterEncounterRequest) GetMrn() string {
@@ -100,7 +204,7 @@ type RegisterEncounterResponse struct {
 
 func (x *RegisterEncounterResponse) Reset() {
 	*x = RegisterEncounterResponse{}
-	mi := &file_registration_v1_registration_proto_msgTypes[1]
+	mi := &file_registration_v1_registration_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -112,7 +216,7 @@ func (x *RegisterEncounterResponse) String() string {
 func (*RegisterEncounterResponse) ProtoMessage() {}
 
 func (x *RegisterEncounterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_registration_v1_registration_proto_msgTypes[1]
+	mi := &file_registration_v1_registration_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -125,7 +229,7 @@ func (x *RegisterEncounterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterEncounterResponse.ProtoReflect.Descriptor instead.
 func (*RegisterEncounterResponse) Descriptor() ([]byte, []int) {
-	return file_registration_v1_registration_proto_rawDescGZIP(), []int{1}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *RegisterEncounterResponse) GetSuccess() bool {
@@ -161,7 +265,7 @@ type GetTodayEncountersRequest struct {
 
 func (x *GetTodayEncountersRequest) Reset() {
 	*x = GetTodayEncountersRequest{}
-	mi := &file_registration_v1_registration_proto_msgTypes[2]
+	mi := &file_registration_v1_registration_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -173,7 +277,7 @@ func (x *GetTodayEncountersRequest) String() string {
 func (*GetTodayEncountersRequest) ProtoMessage() {}
 
 func (x *GetTodayEncountersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_registration_v1_registration_proto_msgTypes[2]
+	mi := &file_registration_v1_registration_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -186,7 +290,7 @@ func (x *GetTodayEncountersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTodayEncountersRequest.ProtoReflect.Descriptor instead.
 func (*GetTodayEncountersRequest) Descriptor() ([]byte, []int) {
-	return file_registration_v1_registration_proto_rawDescGZIP(), []int{2}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetTodayEncountersRequest) GetPage() int32 {
@@ -231,7 +335,7 @@ type EncounterDetail struct {
 
 func (x *EncounterDetail) Reset() {
 	*x = EncounterDetail{}
-	mi := &file_registration_v1_registration_proto_msgTypes[3]
+	mi := &file_registration_v1_registration_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -243,7 +347,7 @@ func (x *EncounterDetail) String() string {
 func (*EncounterDetail) ProtoMessage() {}
 
 func (x *EncounterDetail) ProtoReflect() protoreflect.Message {
-	mi := &file_registration_v1_registration_proto_msgTypes[3]
+	mi := &file_registration_v1_registration_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -256,7 +360,7 @@ func (x *EncounterDetail) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EncounterDetail.ProtoReflect.Descriptor instead.
 func (*EncounterDetail) Descriptor() ([]byte, []int) {
-	return file_registration_v1_registration_proto_rawDescGZIP(), []int{3}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *EncounterDetail) GetEncounterNo() string {
@@ -311,7 +415,7 @@ type GetTodayEncountersResponse struct {
 
 func (x *GetTodayEncountersResponse) Reset() {
 	*x = GetTodayEncountersResponse{}
-	mi := &file_registration_v1_registration_proto_msgTypes[4]
+	mi := &file_registration_v1_registration_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -323,7 +427,7 @@ func (x *GetTodayEncountersResponse) String() string {
 func (*GetTodayEncountersResponse) ProtoMessage() {}
 
 func (x *GetTodayEncountersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_registration_v1_registration_proto_msgTypes[4]
+	mi := &file_registration_v1_registration_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -336,7 +440,7 @@ func (x *GetTodayEncountersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTodayEncountersResponse.ProtoReflect.Descriptor instead.
 func (*GetTodayEncountersResponse) Descriptor() ([]byte, []int) {
-	return file_registration_v1_registration_proto_rawDescGZIP(), []int{4}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetTodayEncountersResponse) GetEncounters() []*EncounterDetail {
@@ -363,7 +467,7 @@ type CancelEncounterRequest struct {
 
 func (x *CancelEncounterRequest) Reset() {
 	*x = CancelEncounterRequest{}
-	mi := &file_registration_v1_registration_proto_msgTypes[5]
+	mi := &file_registration_v1_registration_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -375,7 +479,7 @@ func (x *CancelEncounterRequest) String() string {
 func (*CancelEncounterRequest) ProtoMessage() {}
 
 func (x *CancelEncounterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_registration_v1_registration_proto_msgTypes[5]
+	mi := &file_registration_v1_registration_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -388,7 +492,7 @@ func (x *CancelEncounterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelEncounterRequest.ProtoReflect.Descriptor instead.
 func (*CancelEncounterRequest) Descriptor() ([]byte, []int) {
-	return file_registration_v1_registration_proto_rawDescGZIP(), []int{5}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CancelEncounterRequest) GetEncounterNo() string {
@@ -415,7 +519,7 @@ type CancelEncounterResponse struct {
 
 func (x *CancelEncounterResponse) Reset() {
 	*x = CancelEncounterResponse{}
-	mi := &file_registration_v1_registration_proto_msgTypes[6]
+	mi := &file_registration_v1_registration_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -427,7 +531,7 @@ func (x *CancelEncounterResponse) String() string {
 func (*CancelEncounterResponse) ProtoMessage() {}
 
 func (x *CancelEncounterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_registration_v1_registration_proto_msgTypes[6]
+	mi := &file_registration_v1_registration_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -440,7 +544,7 @@ func (x *CancelEncounterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelEncounterResponse.ProtoReflect.Descriptor instead.
 func (*CancelEncounterResponse) Descriptor() ([]byte, []int) {
-	return file_registration_v1_registration_proto_rawDescGZIP(), []int{6}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CancelEncounterResponse) GetSuccess() bool {
@@ -467,7 +571,7 @@ type UpdateEncounterStatusRequest struct {
 
 func (x *UpdateEncounterStatusRequest) Reset() {
 	*x = UpdateEncounterStatusRequest{}
-	mi := &file_registration_v1_registration_proto_msgTypes[7]
+	mi := &file_registration_v1_registration_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -479,7 +583,7 @@ func (x *UpdateEncounterStatusRequest) String() string {
 func (*UpdateEncounterStatusRequest) ProtoMessage() {}
 
 func (x *UpdateEncounterStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_registration_v1_registration_proto_msgTypes[7]
+	mi := &file_registration_v1_registration_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -492,7 +596,7 @@ func (x *UpdateEncounterStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEncounterStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateEncounterStatusRequest) Descriptor() ([]byte, []int) {
-	return file_registration_v1_registration_proto_rawDescGZIP(), []int{7}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *UpdateEncounterStatusRequest) GetEncounterNo() string {
@@ -519,7 +623,7 @@ type UpdateEncounterStatusResponse struct {
 
 func (x *UpdateEncounterStatusResponse) Reset() {
 	*x = UpdateEncounterStatusResponse{}
-	mi := &file_registration_v1_registration_proto_msgTypes[8]
+	mi := &file_registration_v1_registration_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -531,7 +635,7 @@ func (x *UpdateEncounterStatusResponse) String() string {
 func (*UpdateEncounterStatusResponse) ProtoMessage() {}
 
 func (x *UpdateEncounterStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_registration_v1_registration_proto_msgTypes[8]
+	mi := &file_registration_v1_registration_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -544,7 +648,7 @@ func (x *UpdateEncounterStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEncounterStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateEncounterStatusResponse) Descriptor() ([]byte, []int) {
-	return file_registration_v1_registration_proto_rawDescGZIP(), []int{8}
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *UpdateEncounterStatusResponse) GetSuccess() bool {
@@ -561,11 +665,225 @@ func (x *UpdateEncounterStatusResponse) GetMessage() string {
 	return ""
 }
 
+type GetDashboardMetricsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDashboardMetricsRequest) Reset() {
+	*x = GetDashboardMetricsRequest{}
+	mi := &file_registration_v1_registration_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDashboardMetricsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDashboardMetricsRequest) ProtoMessage() {}
+
+func (x *GetDashboardMetricsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDashboardMetricsRequest.ProtoReflect.Descriptor instead.
+func (*GetDashboardMetricsRequest) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{11}
+}
+
+type WaitTimeMetric struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	PoliCode               string                 `protobuf:"bytes,1,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
+	AverageWaitTimeMinutes int32                  `protobuf:"varint,2,opt,name=average_wait_time_minutes,json=averageWaitTimeMinutes,proto3" json:"average_wait_time_minutes,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *WaitTimeMetric) Reset() {
+	*x = WaitTimeMetric{}
+	mi := &file_registration_v1_registration_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WaitTimeMetric) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WaitTimeMetric) ProtoMessage() {}
+
+func (x *WaitTimeMetric) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WaitTimeMetric.ProtoReflect.Descriptor instead.
+func (*WaitTimeMetric) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *WaitTimeMetric) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
+func (x *WaitTimeMetric) GetAverageWaitTimeMinutes() int32 {
+	if x != nil {
+		return x.AverageWaitTimeMinutes
+	}
+	return 0
+}
+
+type WeeklyVisitMetric struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Date          string                 `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"` // "YYYY-MM-DD"
+	TotalVisits   int32                  `protobuf:"varint,2,opt,name=total_visits,json=totalVisits,proto3" json:"total_visits,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WeeklyVisitMetric) Reset() {
+	*x = WeeklyVisitMetric{}
+	mi := &file_registration_v1_registration_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WeeklyVisitMetric) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WeeklyVisitMetric) ProtoMessage() {}
+
+func (x *WeeklyVisitMetric) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WeeklyVisitMetric.ProtoReflect.Descriptor instead.
+func (*WeeklyVisitMetric) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *WeeklyVisitMetric) GetDate() string {
+	if x != nil {
+		return x.Date
+	}
+	return ""
+}
+
+func (x *WeeklyVisitMetric) GetTotalVisits() int32 {
+	if x != nil {
+		return x.TotalVisits
+	}
+	return 0
+}
+
+type GetDashboardMetricsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	NewPatients   int32                  `protobuf:"varint,1,opt,name=new_patients,json=newPatients,proto3" json:"new_patients,omitempty"`
+	OldPatients   int32                  `protobuf:"varint,2,opt,name=old_patients,json=oldPatients,proto3" json:"old_patients,omitempty"`
+	WaitTimes     []*WaitTimeMetric      `protobuf:"bytes,3,rep,name=wait_times,json=waitTimes,proto3" json:"wait_times,omitempty"`
+	WeeklyVisits  []*WeeklyVisitMetric   `protobuf:"bytes,4,rep,name=weekly_visits,json=weeklyVisits,proto3" json:"weekly_visits,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetDashboardMetricsResponse) Reset() {
+	*x = GetDashboardMetricsResponse{}
+	mi := &file_registration_v1_registration_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetDashboardMetricsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetDashboardMetricsResponse) ProtoMessage() {}
+
+func (x *GetDashboardMetricsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_registration_v1_registration_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetDashboardMetricsResponse.ProtoReflect.Descriptor instead.
+func (*GetDashboardMetricsResponse) Descriptor() ([]byte, []int) {
+	return file_registration_v1_registration_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetDashboardMetricsResponse) GetNewPatients() int32 {
+	if x != nil {
+		return x.NewPatients
+	}
+	return 0
+}
+
+func (x *GetDashboardMetricsResponse) GetOldPatients() int32 {
+	if x != nil {
+		return x.OldPatients
+	}
+	return 0
+}
+
+func (x *GetDashboardMetricsResponse) GetWaitTimes() []*WaitTimeMetric {
+	if x != nil {
+		return x.WaitTimes
+	}
+	return nil
+}
+
+func (x *GetDashboardMetricsResponse) GetWeeklyVisits() []*WeeklyVisitMetric {
+	if x != nil {
+		return x.WeeklyVisits
+	}
+	return nil
+}
+
 var File_registration_v1_registration_proto protoreflect.FileDescriptor
 
 const file_registration_v1_registration_proto_rawDesc = "" +
 	"\n" +
-	"\"registration/v1/registration.proto\x12\x0fregistration.v1\"\x90\x01\n" +
+	"\"registration/v1/registration.proto\x12\x0fregistration.v1\"b\n" +
+	"\x1fUpdateEncounterGuarantorRequest\x12!\n" +
+	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x1c\n" +
+	"\tguarantor\x18\x02 \x01(\tR\tguarantor\"V\n" +
+	" UpdateEncounterGuarantorResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\x90\x01\n" +
 	"\x18RegisterEncounterRequest\x12\x10\n" +
 	"\x03mrn\x18\x01 \x01(\tR\x03mrn\x12'\n" +
 	"\x0fdepartment_code\x18\x02 \x01(\tR\x0edepartmentCode\x12\x1b\n" +
@@ -604,12 +922,27 @@ const file_registration_v1_registration_proto_rawDesc = "" +
 	"\x06status\x18\x02 \x01(\tR\x06status\"S\n" +
 	"\x1dUpdateEncounterStatusResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2\xce\x03\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\x1c\n" +
+	"\x1aGetDashboardMetricsRequest\"h\n" +
+	"\x0eWaitTimeMetric\x12\x1b\n" +
+	"\tpoli_code\x18\x01 \x01(\tR\bpoliCode\x129\n" +
+	"\x19average_wait_time_minutes\x18\x02 \x01(\x05R\x16averageWaitTimeMinutes\"J\n" +
+	"\x11WeeklyVisitMetric\x12\x12\n" +
+	"\x04date\x18\x01 \x01(\tR\x04date\x12!\n" +
+	"\ftotal_visits\x18\x02 \x01(\x05R\vtotalVisits\"\xec\x01\n" +
+	"\x1bGetDashboardMetricsResponse\x12!\n" +
+	"\fnew_patients\x18\x01 \x01(\x05R\vnewPatients\x12!\n" +
+	"\fold_patients\x18\x02 \x01(\x05R\voldPatients\x12>\n" +
+	"\n" +
+	"wait_times\x18\x03 \x03(\v2\x1f.registration.v1.WaitTimeMetricR\twaitTimes\x12G\n" +
+	"\rweekly_visits\x18\x04 \x03(\v2\".registration.v1.WeeklyVisitMetricR\fweeklyVisits2\xc1\x05\n" +
 	"\x13RegistrationService\x12j\n" +
 	"\x11RegisterEncounter\x12).registration.v1.RegisterEncounterRequest\x1a*.registration.v1.RegisterEncounterResponse\x12m\n" +
 	"\x12GetTodayEncounters\x12*.registration.v1.GetTodayEncountersRequest\x1a+.registration.v1.GetTodayEncountersResponse\x12d\n" +
 	"\x0fCancelEncounter\x12'.registration.v1.CancelEncounterRequest\x1a(.registration.v1.CancelEncounterResponse\x12v\n" +
-	"\x15UpdateEncounterStatus\x12-.registration.v1.UpdateEncounterStatusRequest\x1a..registration.v1.UpdateEncounterStatusResponseBRZPgithub.com/aliube/go-micro-simrs-one/shared/proto/registration/v1;registrationv1b\x06proto3"
+	"\x15UpdateEncounterStatus\x12-.registration.v1.UpdateEncounterStatusRequest\x1a..registration.v1.UpdateEncounterStatusResponse\x12p\n" +
+	"\x13GetDashboardMetrics\x12+.registration.v1.GetDashboardMetricsRequest\x1a,.registration.v1.GetDashboardMetricsResponse\x12\x7f\n" +
+	"\x18UpdateEncounterGuarantor\x120.registration.v1.UpdateEncounterGuarantorRequest\x1a1.registration.v1.UpdateEncounterGuarantorResponseBRZPgithub.com/aliube/go-micro-simrs-one/shared/proto/registration/v1;registrationv1b\x06proto3"
 
 var (
 	file_registration_v1_registration_proto_rawDescOnce sync.Once
@@ -623,33 +956,45 @@ func file_registration_v1_registration_proto_rawDescGZIP() []byte {
 	return file_registration_v1_registration_proto_rawDescData
 }
 
-var file_registration_v1_registration_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_registration_v1_registration_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_registration_v1_registration_proto_goTypes = []any{
-	(*RegisterEncounterRequest)(nil),      // 0: registration.v1.RegisterEncounterRequest
-	(*RegisterEncounterResponse)(nil),     // 1: registration.v1.RegisterEncounterResponse
-	(*GetTodayEncountersRequest)(nil),     // 2: registration.v1.GetTodayEncountersRequest
-	(*EncounterDetail)(nil),               // 3: registration.v1.EncounterDetail
-	(*GetTodayEncountersResponse)(nil),    // 4: registration.v1.GetTodayEncountersResponse
-	(*CancelEncounterRequest)(nil),        // 5: registration.v1.CancelEncounterRequest
-	(*CancelEncounterResponse)(nil),       // 6: registration.v1.CancelEncounterResponse
-	(*UpdateEncounterStatusRequest)(nil),  // 7: registration.v1.UpdateEncounterStatusRequest
-	(*UpdateEncounterStatusResponse)(nil), // 8: registration.v1.UpdateEncounterStatusResponse
+	(*UpdateEncounterGuarantorRequest)(nil),  // 0: registration.v1.UpdateEncounterGuarantorRequest
+	(*UpdateEncounterGuarantorResponse)(nil), // 1: registration.v1.UpdateEncounterGuarantorResponse
+	(*RegisterEncounterRequest)(nil),         // 2: registration.v1.RegisterEncounterRequest
+	(*RegisterEncounterResponse)(nil),        // 3: registration.v1.RegisterEncounterResponse
+	(*GetTodayEncountersRequest)(nil),        // 4: registration.v1.GetTodayEncountersRequest
+	(*EncounterDetail)(nil),                  // 5: registration.v1.EncounterDetail
+	(*GetTodayEncountersResponse)(nil),       // 6: registration.v1.GetTodayEncountersResponse
+	(*CancelEncounterRequest)(nil),           // 7: registration.v1.CancelEncounterRequest
+	(*CancelEncounterResponse)(nil),          // 8: registration.v1.CancelEncounterResponse
+	(*UpdateEncounterStatusRequest)(nil),     // 9: registration.v1.UpdateEncounterStatusRequest
+	(*UpdateEncounterStatusResponse)(nil),    // 10: registration.v1.UpdateEncounterStatusResponse
+	(*GetDashboardMetricsRequest)(nil),       // 11: registration.v1.GetDashboardMetricsRequest
+	(*WaitTimeMetric)(nil),                   // 12: registration.v1.WaitTimeMetric
+	(*WeeklyVisitMetric)(nil),                // 13: registration.v1.WeeklyVisitMetric
+	(*GetDashboardMetricsResponse)(nil),      // 14: registration.v1.GetDashboardMetricsResponse
 }
 var file_registration_v1_registration_proto_depIdxs = []int32{
-	3, // 0: registration.v1.GetTodayEncountersResponse.encounters:type_name -> registration.v1.EncounterDetail
-	0, // 1: registration.v1.RegistrationService.RegisterEncounter:input_type -> registration.v1.RegisterEncounterRequest
-	2, // 2: registration.v1.RegistrationService.GetTodayEncounters:input_type -> registration.v1.GetTodayEncountersRequest
-	5, // 3: registration.v1.RegistrationService.CancelEncounter:input_type -> registration.v1.CancelEncounterRequest
-	7, // 4: registration.v1.RegistrationService.UpdateEncounterStatus:input_type -> registration.v1.UpdateEncounterStatusRequest
-	1, // 5: registration.v1.RegistrationService.RegisterEncounter:output_type -> registration.v1.RegisterEncounterResponse
-	4, // 6: registration.v1.RegistrationService.GetTodayEncounters:output_type -> registration.v1.GetTodayEncountersResponse
-	6, // 7: registration.v1.RegistrationService.CancelEncounter:output_type -> registration.v1.CancelEncounterResponse
-	8, // 8: registration.v1.RegistrationService.UpdateEncounterStatus:output_type -> registration.v1.UpdateEncounterStatusResponse
-	5, // [5:9] is the sub-list for method output_type
-	1, // [1:5] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	5,  // 0: registration.v1.GetTodayEncountersResponse.encounters:type_name -> registration.v1.EncounterDetail
+	12, // 1: registration.v1.GetDashboardMetricsResponse.wait_times:type_name -> registration.v1.WaitTimeMetric
+	13, // 2: registration.v1.GetDashboardMetricsResponse.weekly_visits:type_name -> registration.v1.WeeklyVisitMetric
+	2,  // 3: registration.v1.RegistrationService.RegisterEncounter:input_type -> registration.v1.RegisterEncounterRequest
+	4,  // 4: registration.v1.RegistrationService.GetTodayEncounters:input_type -> registration.v1.GetTodayEncountersRequest
+	7,  // 5: registration.v1.RegistrationService.CancelEncounter:input_type -> registration.v1.CancelEncounterRequest
+	9,  // 6: registration.v1.RegistrationService.UpdateEncounterStatus:input_type -> registration.v1.UpdateEncounterStatusRequest
+	11, // 7: registration.v1.RegistrationService.GetDashboardMetrics:input_type -> registration.v1.GetDashboardMetricsRequest
+	0,  // 8: registration.v1.RegistrationService.UpdateEncounterGuarantor:input_type -> registration.v1.UpdateEncounterGuarantorRequest
+	3,  // 9: registration.v1.RegistrationService.RegisterEncounter:output_type -> registration.v1.RegisterEncounterResponse
+	6,  // 10: registration.v1.RegistrationService.GetTodayEncounters:output_type -> registration.v1.GetTodayEncountersResponse
+	8,  // 11: registration.v1.RegistrationService.CancelEncounter:output_type -> registration.v1.CancelEncounterResponse
+	10, // 12: registration.v1.RegistrationService.UpdateEncounterStatus:output_type -> registration.v1.UpdateEncounterStatusResponse
+	14, // 13: registration.v1.RegistrationService.GetDashboardMetrics:output_type -> registration.v1.GetDashboardMetricsResponse
+	1,  // 14: registration.v1.RegistrationService.UpdateEncounterGuarantor:output_type -> registration.v1.UpdateEncounterGuarantorResponse
+	9,  // [9:15] is the sub-list for method output_type
+	3,  // [3:9] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_registration_v1_registration_proto_init() }
@@ -663,7 +1008,7 @@ func file_registration_v1_registration_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_registration_v1_registration_proto_rawDesc), len(file_registration_v1_registration_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

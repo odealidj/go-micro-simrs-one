@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RegistrationService_RegisterEncounter_FullMethodName     = "/registration.v1.RegistrationService/RegisterEncounter"
-	RegistrationService_GetTodayEncounters_FullMethodName    = "/registration.v1.RegistrationService/GetTodayEncounters"
-	RegistrationService_CancelEncounter_FullMethodName       = "/registration.v1.RegistrationService/CancelEncounter"
-	RegistrationService_UpdateEncounterStatus_FullMethodName = "/registration.v1.RegistrationService/UpdateEncounterStatus"
+	RegistrationService_RegisterEncounter_FullMethodName        = "/registration.v1.RegistrationService/RegisterEncounter"
+	RegistrationService_GetTodayEncounters_FullMethodName       = "/registration.v1.RegistrationService/GetTodayEncounters"
+	RegistrationService_CancelEncounter_FullMethodName          = "/registration.v1.RegistrationService/CancelEncounter"
+	RegistrationService_UpdateEncounterStatus_FullMethodName    = "/registration.v1.RegistrationService/UpdateEncounterStatus"
+	RegistrationService_GetDashboardMetrics_FullMethodName      = "/registration.v1.RegistrationService/GetDashboardMetrics"
+	RegistrationService_UpdateEncounterGuarantor_FullMethodName = "/registration.v1.RegistrationService/UpdateEncounterGuarantor"
 )
 
 // RegistrationServiceClient is the client API for RegistrationService service.
@@ -33,6 +35,10 @@ type RegistrationServiceClient interface {
 	GetTodayEncounters(ctx context.Context, in *GetTodayEncountersRequest, opts ...grpc.CallOption) (*GetTodayEncountersResponse, error)
 	CancelEncounter(ctx context.Context, in *CancelEncounterRequest, opts ...grpc.CallOption) (*CancelEncounterResponse, error)
 	UpdateEncounterStatus(ctx context.Context, in *UpdateEncounterStatusRequest, opts ...grpc.CallOption) (*UpdateEncounterStatusResponse, error)
+	// Metrics
+	GetDashboardMetrics(ctx context.Context, in *GetDashboardMetricsRequest, opts ...grpc.CallOption) (*GetDashboardMetricsResponse, error)
+	// New RPCs
+	UpdateEncounterGuarantor(ctx context.Context, in *UpdateEncounterGuarantorRequest, opts ...grpc.CallOption) (*UpdateEncounterGuarantorResponse, error)
 }
 
 type registrationServiceClient struct {
@@ -83,6 +89,26 @@ func (c *registrationServiceClient) UpdateEncounterStatus(ctx context.Context, i
 	return out, nil
 }
 
+func (c *registrationServiceClient) GetDashboardMetrics(ctx context.Context, in *GetDashboardMetricsRequest, opts ...grpc.CallOption) (*GetDashboardMetricsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetDashboardMetricsResponse)
+	err := c.cc.Invoke(ctx, RegistrationService_GetDashboardMetrics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *registrationServiceClient) UpdateEncounterGuarantor(ctx context.Context, in *UpdateEncounterGuarantorRequest, opts ...grpc.CallOption) (*UpdateEncounterGuarantorResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateEncounterGuarantorResponse)
+	err := c.cc.Invoke(ctx, RegistrationService_UpdateEncounterGuarantor_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RegistrationServiceServer is the server API for RegistrationService service.
 // All implementations must embed UnimplementedRegistrationServiceServer
 // for forward compatibility.
@@ -91,6 +117,10 @@ type RegistrationServiceServer interface {
 	GetTodayEncounters(context.Context, *GetTodayEncountersRequest) (*GetTodayEncountersResponse, error)
 	CancelEncounter(context.Context, *CancelEncounterRequest) (*CancelEncounterResponse, error)
 	UpdateEncounterStatus(context.Context, *UpdateEncounterStatusRequest) (*UpdateEncounterStatusResponse, error)
+	// Metrics
+	GetDashboardMetrics(context.Context, *GetDashboardMetricsRequest) (*GetDashboardMetricsResponse, error)
+	// New RPCs
+	UpdateEncounterGuarantor(context.Context, *UpdateEncounterGuarantorRequest) (*UpdateEncounterGuarantorResponse, error)
 	mustEmbedUnimplementedRegistrationServiceServer()
 }
 
@@ -112,6 +142,12 @@ func (UnimplementedRegistrationServiceServer) CancelEncounter(context.Context, *
 }
 func (UnimplementedRegistrationServiceServer) UpdateEncounterStatus(context.Context, *UpdateEncounterStatusRequest) (*UpdateEncounterStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateEncounterStatus not implemented")
+}
+func (UnimplementedRegistrationServiceServer) GetDashboardMetrics(context.Context, *GetDashboardMetricsRequest) (*GetDashboardMetricsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetDashboardMetrics not implemented")
+}
+func (UnimplementedRegistrationServiceServer) UpdateEncounterGuarantor(context.Context, *UpdateEncounterGuarantorRequest) (*UpdateEncounterGuarantorResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateEncounterGuarantor not implemented")
 }
 func (UnimplementedRegistrationServiceServer) mustEmbedUnimplementedRegistrationServiceServer() {}
 func (UnimplementedRegistrationServiceServer) testEmbeddedByValue()                             {}
@@ -206,6 +242,42 @@ func _RegistrationService_UpdateEncounterStatus_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RegistrationService_GetDashboardMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDashboardMetricsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RegistrationServiceServer).GetDashboardMetrics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RegistrationService_GetDashboardMetrics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RegistrationServiceServer).GetDashboardMetrics(ctx, req.(*GetDashboardMetricsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RegistrationService_UpdateEncounterGuarantor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateEncounterGuarantorRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RegistrationServiceServer).UpdateEncounterGuarantor(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RegistrationService_UpdateEncounterGuarantor_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RegistrationServiceServer).UpdateEncounterGuarantor(ctx, req.(*UpdateEncounterGuarantorRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RegistrationService_ServiceDesc is the grpc.ServiceDesc for RegistrationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +300,14 @@ var RegistrationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateEncounterStatus",
 			Handler:    _RegistrationService_UpdateEncounterStatus_Handler,
+		},
+		{
+			MethodName: "GetDashboardMetrics",
+			Handler:    _RegistrationService_GetDashboardMetrics_Handler,
+		},
+		{
+			MethodName: "UpdateEncounterGuarantor",
+			Handler:    _RegistrationService_UpdateEncounterGuarantor_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

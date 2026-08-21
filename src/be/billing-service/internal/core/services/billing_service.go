@@ -147,3 +147,28 @@ func (s *billingServiceImpl) PayInvoice(ctx context.Context, invoiceID string, a
 
 	return inv.EncounterNo, nil
 }
+
+func (s *billingServiceImpl) CancelInvoice(ctx context.Context, invoiceID string) (string, error) {
+	inv, err := s.repo.GetInvoice(ctx, invoiceID)
+	if err != nil {
+		return "", err
+	}
+
+	if inv.Status == "PAID" {
+		return "", fmt.Errorf("cannot cancel paid invoice")
+	}
+
+	err = s.repo.UpdateInvoiceStatus(ctx, invoiceID, "CANCELLED")
+	if err != nil {
+		return "", err
+	}
+
+	// Publish InvoiceCancelled event to Outbox
+	payload := fmt.Sprintf(`{"invoice_id":"%s","encounter_no":"%s"}`, invoiceID, inv.EncounterNo)
+	err = s.repo.CreateOutboxEvent(ctx, uuid.New().String(), "Invoice", "InvoiceCancelled", payload)
+	if err != nil {
+		slog.Warn("Failed to create outbox event for InvoiceCancelled", "error", err)
+	}
+
+	return inv.EncounterNo, nil
+}

@@ -4,7 +4,11 @@ import { useMasterData } from "@/hooks/useMasterData";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 
-export function AssignPerawatPoliPage() {
+interface AssignPerawatPoliPageProps {
+  readOnly?: boolean;
+}
+
+export function AssignPerawatPoliPage({ readOnly = false }: AssignPerawatPoliPageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
   const [selectedPoli, setSelectedPoli] = useState<string>("");
@@ -46,7 +50,7 @@ export function AssignPerawatPoliPage() {
         description="Pemetaan perawat ke poliklinik"
         endpoint="/master/nurses"
         requiresPoliFilter={true}
-        columns={["User ID / Username", "STR Perawat", "Poli Saat Ini", "Aksi"]}
+        columns={readOnly ? ["User ID / Username", "STR Perawat", "Poli Saat Ini"] : ["User ID / Username", "STR Perawat", "Poli Saat Ini", "Aksi"]}
         renderRow={(item, i) => {
           const poliName = item.poli_code 
             ? polyclinics?.find((p: any) => p.code === item.poli_code)?.name || item.poli_code
@@ -67,11 +71,13 @@ export function AssignPerawatPoliPage() {
                   </span>
                 )}
               </td>
-              <td className="px-6 py-4">
-                <Button size="sm" variant="outline" onClick={() => handleAssignClick(item)}>
-                  Assign Poli
-                </Button>
-              </td>
+              {!readOnly && (
+                <td className="px-6 py-4">
+                  <Button size="sm" variant="outline" onClick={() => handleAssignClick(item)}>
+                    Assign Poli
+                  </Button>
+                </td>
+              )}
             </tr>
           );
         }}

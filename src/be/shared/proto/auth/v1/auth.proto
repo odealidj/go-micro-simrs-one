@@ -40,6 +40,9 @@ service AuthService {
   rpc GetNursesByPoli (GetNursesByPoliRequest) returns (GetNursesByPoliResponse);
   rpc AssignDoctorPoli (AssignDoctorPoliRequest) returns (AssignDoctorPoliResponse);
   rpc AssignNursePoli (AssignNursePoliRequest) returns (AssignNursePoliResponse);
+  
+  // Metrics
+  rpc GetActivePersonnelMetrics (GetActivePersonnelMetricsRequest) returns (GetActivePersonnelMetricsResponse);
 }
 
 message LoginRequest {
@@ -290,5 +293,13 @@ message AssignNursePoliRequest {
 message AssignNursePoliResponse {
   bool success = 1;
   string message = 2;
+}
+
+message GetActivePersonnelMetricsRequest {}
+
+message GetActivePersonnelMetricsResponse {
+  int32 active_doctors = 1;
+  int32 active_nurses = 2;
+  int32 active_clinics = 3;
 }
 

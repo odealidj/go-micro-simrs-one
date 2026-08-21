@@ -26,12 +26,26 @@ func NewPatientService(repo ports.PatientRepository, rdb *redis.Client) ports.Pa
 func (s *patientServiceImpl) generateMRN(ctx context.Context) (string, error) {
 	// 1. Increment sequence in Redis
 	// Key: seq:patient:mrn
-	seq, err := s.redisClient.Incr(ctx, "seq:patient:mrn").Result()
+	key := "seq:patient:mrn"
+	seq, err := s.redisClient.Incr(ctx, key).Result()
 	if err != nil {
 		return "", err
 	}
 
-	// 2. Format MRN (10-XX-XX-XX)
+	// 2. If seq is 1, it might mean Redis restarted. Fallback to DB.
+	if seq == 1 && s.repo != nil {
+		maxSeq, errRepo := s.repo.GetMaxMRNSequence(ctx)
+		if errRepo == nil && maxSeq > 0 {
+			// Sync Redis with maxSeq
+			err = s.redisClient.Set(ctx, key, maxSeq+1, 0).Err()
+			if err != nil {
+				return "", fmt.Errorf("failed to sync redis sequence: %w", err)
+			}
+			seq = maxSeq + 1
+		}
+	}
+
+	// 3. Format MRN (10-XX-XX-XX)
 	// Base padding 7 digits, e.g., 0000001
 	// Prefix '1' means outpatient (rawat jalan), giving 10000001
 	// Formatted: 10-00-00-01

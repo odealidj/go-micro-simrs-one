@@ -12,14 +12,17 @@ import (
 )
 
 type Encounter struct {
-	EncounterNo string
-	Mrn         string
-	Department  string
-	DoctorID    string
-	Status      string
-	CreatedAt   sql.NullTime
-	DeletedDt   sql.NullTime
-	DeletedBy   uuid.NullUUID
+	EncounterNo           string
+	Mrn                   string
+	Department            string
+	DoctorID              string
+	Status                string
+	CreatedAt             sql.NullTime
+	DeletedDt             sql.NullTime
+	DeletedBy             uuid.NullUUID
+	ConsultationStartTime sql.NullTime
+	PaymentStatus         sql.NullString
+	Guarantor             sql.NullString
 }
 
 type OutboxEvent struct {

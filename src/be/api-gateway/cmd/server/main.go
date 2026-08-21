@@ -13,14 +13,15 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
-
-	"google.golang.org/genai"
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/redis/go-redis/v9"
+	"google.golang.org/api/iterator"
+	"google.golang.org/genai"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -57,7 +58,7 @@ func main() {
 	r.Use(chimiddleware.RealIP)
 	r.Use(chimiddleware.Logger)
 	r.Use(chimiddleware.Recoverer)
-	r.Use(chimiddleware.Timeout(60 * time.Second))
+	r.Use(chimiddleware.Timeout(120 * time.Second))
 
 	// 2. CORS
 	r.Use(cors.Handler(cors.Options{
@@ -325,6 +326,32 @@ func main() {
 			r.Use(middleware.AuthMiddleware(tokenManager))
 			r.Use(simrsmiddleware.IdempotencyMiddleware(rdb, 24*time.Hour))
 			
+			// Basic Health Status for any authenticated user (e.g. Admission Dashboard)
+			r.Get("/system/health/basic", func(w http.ResponseWriter, req *http.Request) {
+				checkHealth := func(conn *grpc.ClientConn) string {
+					client := grpc_health_v1.NewHealthClient(conn)
+					ctx, cancel := context.WithTimeout(req.Context(), 2*time.Second)
+					defer cancel()
+					res, err := client.Check(ctx, &grpc_health_v1.HealthCheckRequest{})
+					if err != nil {
+						return "DOWN"
+					}
+					if res.Status == grpc_health_v1.HealthCheckResponse_SERVING {
+						return "SERVING"
+					}
+					return res.Status.String()
+				}
+
+				statusData := map[string]interface{}{
+					"api_gateway":          "SERVING",
+					"patient_service":      checkHealth(patientConn),
+					"registration_service": checkHealth(regConn),
+					"billing_service":      checkHealth(billingConn),
+				}
+				response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: statusData})
+			})
+
+
 			// Admin Dashboard Routes
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireRole("admin", "super_admin"))
@@ -1346,8 +1373,21 @@ func main() {
 						ResponseMIMEType: "application/json",
 					}
 
-					log.Printf("OCR-KTP: calling Gemini API (model=gemini-3.5-flash)...")
-					res, err := client.Models.GenerateContent(ctx, "gemini-3.5-flash", []*genai.Content{
+					dbConn, dbErr := db.ConnectPostgres("")
+					var modelName string
+					if dbErr == nil {
+						defer dbConn.Close()
+						err = dbConn.QueryRowContext(ctx, "SELECT value FROM auth.system_settings WHERE key = $1", "gemini_ocr_model").Scan(&modelName)
+					} else {
+						err = dbErr
+					}
+					if err != nil {
+						log.Printf("OCR-KTP: failed to get model from DB, falling back to gemini-3.6-flash: %v", err)
+						modelName = "gemini-3.6-flash"
+					}
+
+					log.Printf("OCR-KTP: calling Gemini API (model=%s)...", modelName)
+					res, err := client.Models.GenerateContent(ctx, modelName, []*genai.Content{
 						{
 							Parts: []*genai.Part{
 								genai.NewPartFromBytes(imgData, mimeType),
@@ -1420,6 +1460,7 @@ func main() {
 						DepartmentCode string `json:"department_code"`
 						DoctorId       string `json:"doctor_id"`
 						Guarantor      string `json:"guarantor"` // Umum or BPJS
+						Email          string `json:"email"`
 					}
 
 					var payload NewPatientRegistrationPayload
@@ -1460,6 +1501,7 @@ func main() {
 							Gender:     payload.Gender,
 							BirthPlace: payload.BirthPlace,
 							Address:    payload.Address,
+							Email:      payload.Email,
 							UserId:     authRes.UserId,
 						})
 					})
@@ -1586,6 +1628,42 @@ func main() {
 						Data:    res,
 					})
 				})
+
+				r.Get("/registrations/dashboard/metrics", func(w http.ResponseWriter, req *http.Request) {
+					// 1. Get metrics from Registration Service
+					regMetrics, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetDashboardMetricsResponse, error) {
+						return regClient.GetDashboardMetrics(req.Context(), &regpb.GetDashboardMetricsRequest{})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					// 2. Get metrics from Auth Service
+					authMetrics, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetActivePersonnelMetricsResponse, error) {
+						return authClient.GetActivePersonnelMetrics(req.Context(), &authpb.GetActivePersonnelMetricsRequest{})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					// 3. Combine metrics
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Dashboard metrics fetched successfully",
+						Data: map[string]interface{}{
+							"new_patients":   regMetrics.NewPatients,
+							"old_patients":   regMetrics.OldPatients,
+							"wait_times":     regMetrics.WaitTimes,
+							"weekly_visits":  regMetrics.WeeklyVisits,
+							"active_polis":   authMetrics.ActiveClinics,
+							"active_doctors": authMetrics.ActiveDoctors,
+							"active_nurses":  authMetrics.ActiveNurses,
+						},
+					})
+				})
+
 				r.Get("/registrations/today", func(w http.ResponseWriter, req *http.Request) {
 					dateStr := req.URL.Query().Get("date")
 					queueOnly := req.URL.Query().Get("queue_only") == "true"
@@ -1604,6 +1682,8 @@ func main() {
 						EncounterNo    string `json:"encounter_no"`
 						MRN            string `json:"mrn"`
 						PatientName    string `json:"patient_name"`
+						Gender         string `json:"gender"`
+						DateOfBirth    string `json:"date_of_birth"`
 						DepartmentCode string `json:"department_code"`
 						DoctorID       string `json:"doctor_id"`
 						Status         string `json:"status"`
@@ -1621,15 +1701,23 @@ func main() {
 						}
 						// Fetch Patient Details for enrichment
 						var pName = "-"
-						var isNew = "Lama RS"
+						var pGender = "-"
+						var pDob = "-"
 						
 						resPat, errPat := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {
 							return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: enc.Mrn})
 						})
 						if errPat == nil && resPat != nil && resPat.Patient != nil {
 							pName = resPat.Patient.Name
-							isNew = "Lama RS"
-						} else {
+							pGender = resPat.Patient.Gender
+							pDob = resPat.Patient.Dob
+						}
+
+						// Extract RegisteredTime and IsNewPatient from enc.RegisteredTime
+						parts := strings.Split(enc.RegisteredTime, "|")
+						regTime := parts[0]
+						isNew := "Lama RS"
+						if len(parts) > 1 && parts[1] == "true" {
 							isNew = "Baru RS"
 						}
 
@@ -1637,11 +1725,13 @@ func main() {
 							EncounterNo:    enc.EncounterNo,
 							MRN:            enc.Mrn,
 							PatientName:    pName,
+							Gender:         pGender,
+							DateOfBirth:    pDob,
 							DepartmentCode: enc.DepartmentCode,
 							DoctorID:       enc.DoctorId,
 							Status:         enc.Status,
 							StatusPasien:   isNew,
-							RegisteredTime: enc.RegisteredTime,
+							RegisteredTime: regTime,
 						})
 					}
 
@@ -1680,6 +1770,116 @@ func main() {
 						Message: "Success",
 						Data:    res,
 					})
+				})
+
+				r.Put("/registrations/guarantor", func(w http.ResponseWriter, req *http.Request) {
+					var payload regpb.UpdateEncounterGuarantorRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					if err := validator.ValidateAll(map[string]func() error{
+						"encounter_no": validator.NotEmpty(payload.EncounterNo),
+						"guarantor":    validator.NotEmpty(payload.Guarantor),
+					}); err != nil {
+						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterGuarantorResponse, error) {
+						return regClient.UpdateEncounterGuarantor(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
+				})
+			})
+
+			// AI Admin Settings (Admin, Super Admin)
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireRole("admin", "super_admin"))
+
+				r.Get("/admin/ai/models", func(w http.ResponseWriter, req *http.Request) {
+					ctx := context.Background()
+					client, err := genai.NewClient(ctx, nil)
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to create GenAI client: " + err.Error()})
+						return
+					}
+
+					var models []string
+					iter, err := client.Models.List(ctx, nil)
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to list models: " + err.Error()})
+						return
+					}
+					for {
+						m, err := iter.Next(ctx)
+						if err == iterator.Done {
+							break
+						}
+						if err != nil {
+							log.Printf("Error fetching models: %v", err)
+							break
+						}
+						models = append(models, m.Name)
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: models})
+				})
+
+				r.Get("/admin/ai/settings", func(w http.ResponseWriter, req *http.Request) {
+					dbConn, dbErr := db.ConnectPostgres("")
+					var modelName string
+					var err error
+					if dbErr == nil {
+						defer dbConn.Close()
+						err = dbConn.QueryRowContext(req.Context(), "SELECT value FROM auth.system_settings WHERE key = $1", "gemini_ocr_model").Scan(&modelName)
+					} else {
+						err = dbErr
+					}
+					if err != nil {
+						modelName = "gemini-3.6-flash" // default fallback
+					}
+					data := map[string]string{"gemini_ocr_model": modelName}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: data})
+				})
+
+				r.Put("/admin/ai/settings", func(w http.ResponseWriter, req *http.Request) {
+					var payload struct {
+						ModelName string `json:"gemini_ocr_model"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "Invalid request body"})
+						return
+					}
+					if payload.ModelName == "" {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "gemini_ocr_model is required"})
+						return
+					}
+					dbConn, dbErr := db.ConnectPostgres("")
+					if dbErr != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Database connection failed"})
+						return
+					}
+					defer dbConn.Close()
+					
+					_, err := dbConn.ExecContext(req.Context(), `
+						INSERT INTO auth.system_settings (key, value, updated_by)
+						VALUES ($1, $2, $3)
+						ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW(), updated_by = EXCLUDED.updated_by
+					`, "gemini_ocr_model", payload.ModelName, "admin")
+					
+					if err != nil {
+						log.Printf("Failed to save settings: %v", err)
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to update settings"})
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Settings updated"})
 				})
 			})
 
@@ -2000,6 +2200,32 @@ func main() {
 						Data:    res,
 					})
 				})
+
+				r.Post("/cancel", func(w http.ResponseWriter, req *http.Request) {
+					var payload billingpb.CancelInvoiceRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					if err := validator.ValidateAll(map[string]func() error{
+						"invoice_id": validator.NotEmpty(payload.InvoiceId),
+					}); err != nil {
+						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.CancelInvoiceResponse, error) {
+						return billingClient.CancelInvoice(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
+				})
 			})
 		})
 	})
@@ -2011,9 +2237,9 @@ func main() {
 	srv := &http.Server{
 		Addr:         "0.0.0.0:" + port,
 		Handler:      r,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		ReadTimeout:  120 * time.Second,
+		WriteTimeout: 120 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
 
 	// Graceful Shutdown
