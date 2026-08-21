@@ -54,7 +54,7 @@ INSERT INTO kbm_catalog (kbm_code, kbm_name, description, body_system) VALUES
 ('KBM-064', 'Scabies',                   'Infeksi kulit oleh tungau Sarcoptes scabiei',                  'Sistem Integumen'),
 
 -- Umum
-('KBM-071', 'Demam Tidak Spesifik',      'Suhu tubuh >38°C tanpa penyebab yang jelas',                  'Umum'),
-('KBM-072', 'Anemia',                    'Kadar hemoglobin darah di bawah normal',                      'Umum'),
-('KBM-073', 'Dehidrasi',                 'Kekurangan cairan tubuh',                                     'Umum')
+('KBM-071', 'Demam Tidak Spesifik',      'Suhu tubuh >38°C tanpa penyebab yang jelas',                  '01'),
+('KBM-072', 'Anemia',                    'Kadar hemoglobin darah di bawah normal',                      '01'),
+('KBM-073', 'Dehidrasi',                 'Kekurangan cairan tubuh',                                     '01')
 ON CONFLICT (kbm_code) DO NOTHING;

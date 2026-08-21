@@ -4,6 +4,7 @@ import { RegistrationDashboard } from "./pages/RegistrationDashboard";
 import { NewRegistrationPage } from "./pages/NewRegistrationPage";
 import { QueueManagerPage } from "./pages/QueueManagerPage";
 import { DaftarKunjunganPage } from "./pages/DaftarKunjunganPage";
+import { JadwalDokterPerawatPage } from "./pages/JadwalDokterPerawatPage";
 
 export const registrationRoutes: RouteObject[] = [
   {
@@ -24,6 +25,10 @@ export const registrationRoutes: RouteObject[] = [
       {
         path: "admisi/antrean",
         element: <QueueManagerPage />,
+      },
+      {
+        path: "admisi/jadwal",
+        element: <JadwalDokterPerawatPage />,
       },
     ],
   },

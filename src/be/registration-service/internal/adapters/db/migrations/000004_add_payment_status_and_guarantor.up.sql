@@ -1,0 +1,2 @@
+ALTER TABLE encounters ADD COLUMN payment_status VARCHAR(50) DEFAULT 'UNPAID';
+ALTER TABLE encounters ADD COLUMN guarantor VARCHAR(100) DEFAULT 'UMUM';

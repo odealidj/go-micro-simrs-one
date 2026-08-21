@@ -60,6 +60,19 @@ func (s *BillingGrpcServer) PayInvoice(ctx context.Context, req *pb.PayInvoiceRe
 	return &pb.PayInvoiceResponse{Success: true, Message: "Invoice paid successfully", EncounterNo: encounterNo}, nil
 }
 
+func (s *BillingGrpcServer) CancelInvoice(ctx context.Context, req *pb.CancelInvoiceRequest) (*pb.CancelInvoiceResponse, error) {
+	if req.InvoiceId == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "InvoiceID is required")
+	}
+
+	_, err := s.billingService.CancelInvoice(ctx, req.InvoiceId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to cancel invoice: %v", err)
+	}
+
+	return &pb.CancelInvoiceResponse{Success: true, Message: "Invoice cancelled successfully"}, nil
+}
+
 func (s *BillingGrpcServer) AddRegistrationFee(ctx context.Context, req *pb.AddRegistrationFeeRequest) (*pb.AddRegistrationFeeResponse, error) {
 	if req.EncounterNo == "" {
 		return nil, status.Error(codes.InvalidArgument, "encounter_no is required")

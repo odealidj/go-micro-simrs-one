@@ -19,22 +19,23 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Login_FullMethodName               = "/auth.v1.AuthService/Login"
-	AuthService_Signup_FullMethodName              = "/auth.v1.AuthService/Signup"
-	AuthService_RegisterPatientUser_FullMethodName = "/auth.v1.AuthService/RegisterPatientUser"
-	AuthService_ValidateToken_FullMethodName       = "/auth.v1.AuthService/ValidateToken"
-	AuthService_RefreshToken_FullMethodName        = "/auth.v1.AuthService/RefreshToken"
-	AuthService_ExtractKTPData_FullMethodName      = "/auth.v1.AuthService/ExtractKTPData"
-	AuthService_ListUsers_FullMethodName           = "/auth.v1.AuthService/ListUsers"
-	AuthService_UpdateUserStatus_FullMethodName    = "/auth.v1.AuthService/UpdateUserStatus"
-	AuthService_DeleteUser_FullMethodName          = "/auth.v1.AuthService/DeleteUser"
-	AuthService_GetMasterRoles_FullMethodName      = "/auth.v1.AuthService/GetMasterRoles"
-	AuthService_GetDoctors_FullMethodName          = "/auth.v1.AuthService/GetDoctors"
-	AuthService_GetNurses_FullMethodName           = "/auth.v1.AuthService/GetNurses"
-	AuthService_GetDoctorsByPoli_FullMethodName    = "/auth.v1.AuthService/GetDoctorsByPoli"
-	AuthService_GetNursesByPoli_FullMethodName     = "/auth.v1.AuthService/GetNursesByPoli"
-	AuthService_AssignDoctorPoli_FullMethodName    = "/auth.v1.AuthService/AssignDoctorPoli"
-	AuthService_AssignNursePoli_FullMethodName     = "/auth.v1.AuthService/AssignNursePoli"
+	AuthService_Login_FullMethodName                     = "/auth.v1.AuthService/Login"
+	AuthService_Signup_FullMethodName                    = "/auth.v1.AuthService/Signup"
+	AuthService_RegisterPatientUser_FullMethodName       = "/auth.v1.AuthService/RegisterPatientUser"
+	AuthService_ValidateToken_FullMethodName             = "/auth.v1.AuthService/ValidateToken"
+	AuthService_RefreshToken_FullMethodName              = "/auth.v1.AuthService/RefreshToken"
+	AuthService_ExtractKTPData_FullMethodName            = "/auth.v1.AuthService/ExtractKTPData"
+	AuthService_ListUsers_FullMethodName                 = "/auth.v1.AuthService/ListUsers"
+	AuthService_UpdateUserStatus_FullMethodName          = "/auth.v1.AuthService/UpdateUserStatus"
+	AuthService_DeleteUser_FullMethodName                = "/auth.v1.AuthService/DeleteUser"
+	AuthService_GetMasterRoles_FullMethodName            = "/auth.v1.AuthService/GetMasterRoles"
+	AuthService_GetDoctors_FullMethodName                = "/auth.v1.AuthService/GetDoctors"
+	AuthService_GetNurses_FullMethodName                 = "/auth.v1.AuthService/GetNurses"
+	AuthService_GetDoctorsByPoli_FullMethodName          = "/auth.v1.AuthService/GetDoctorsByPoli"
+	AuthService_GetNursesByPoli_FullMethodName           = "/auth.v1.AuthService/GetNursesByPoli"
+	AuthService_AssignDoctorPoli_FullMethodName          = "/auth.v1.AuthService/AssignDoctorPoli"
+	AuthService_AssignNursePoli_FullMethodName           = "/auth.v1.AuthService/AssignNursePoli"
+	AuthService_GetActivePersonnelMetrics_FullMethodName = "/auth.v1.AuthService/GetActivePersonnelMetrics"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -67,6 +68,8 @@ type AuthServiceClient interface {
 	GetNursesByPoli(ctx context.Context, in *GetNursesByPoliRequest, opts ...grpc.CallOption) (*GetNursesByPoliResponse, error)
 	AssignDoctorPoli(ctx context.Context, in *AssignDoctorPoliRequest, opts ...grpc.CallOption) (*AssignDoctorPoliResponse, error)
 	AssignNursePoli(ctx context.Context, in *AssignNursePoliRequest, opts ...grpc.CallOption) (*AssignNursePoliResponse, error)
+	// Metrics
+	GetActivePersonnelMetrics(ctx context.Context, in *GetActivePersonnelMetricsRequest, opts ...grpc.CallOption) (*GetActivePersonnelMetricsResponse, error)
 }
 
 type authServiceClient struct {
@@ -237,6 +240,16 @@ func (c *authServiceClient) AssignNursePoli(ctx context.Context, in *AssignNurse
 	return out, nil
 }
 
+func (c *authServiceClient) GetActivePersonnelMetrics(ctx context.Context, in *GetActivePersonnelMetricsRequest, opts ...grpc.CallOption) (*GetActivePersonnelMetricsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetActivePersonnelMetricsResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetActivePersonnelMetrics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
@@ -267,6 +280,8 @@ type AuthServiceServer interface {
 	GetNursesByPoli(context.Context, *GetNursesByPoliRequest) (*GetNursesByPoliResponse, error)
 	AssignDoctorPoli(context.Context, *AssignDoctorPoliRequest) (*AssignDoctorPoliResponse, error)
 	AssignNursePoli(context.Context, *AssignNursePoliRequest) (*AssignNursePoliResponse, error)
+	// Metrics
+	GetActivePersonnelMetrics(context.Context, *GetActivePersonnelMetricsRequest) (*GetActivePersonnelMetricsResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -324,6 +339,9 @@ func (UnimplementedAuthServiceServer) AssignDoctorPoli(context.Context, *AssignD
 }
 func (UnimplementedAuthServiceServer) AssignNursePoli(context.Context, *AssignNursePoliRequest) (*AssignNursePoliResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AssignNursePoli not implemented")
+}
+func (UnimplementedAuthServiceServer) GetActivePersonnelMetrics(context.Context, *GetActivePersonnelMetricsRequest) (*GetActivePersonnelMetricsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetActivePersonnelMetrics not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -634,6 +652,24 @@ func _AuthService_AssignNursePoli_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GetActivePersonnelMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetActivePersonnelMetricsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetActivePersonnelMetrics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetActivePersonnelMetrics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetActivePersonnelMetrics(ctx, req.(*GetActivePersonnelMetricsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -704,6 +740,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AssignNursePoli",
 			Handler:    _AuthService_AssignNursePoli_Handler,
+		},
+		{
+			MethodName: "GetActivePersonnelMetrics",
+			Handler:    _AuthService_GetActivePersonnelMetrics_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

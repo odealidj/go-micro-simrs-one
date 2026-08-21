@@ -92,6 +92,13 @@ type StaffProfile struct {
 	DeletedBy uuid.NullUUID
 }
 
+type SystemSetting struct {
+	Key       string
+	Value     string
+	UpdatedAt sql.NullTime
+	UpdatedBy sql.NullString
+}
+
 type User struct {
 	ID                  uuid.UUID
 	Username            string

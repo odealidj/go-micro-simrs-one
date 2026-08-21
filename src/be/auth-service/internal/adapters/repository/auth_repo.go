@@ -70,14 +70,16 @@ func (r *userRepoSqlc) CreateWithProfile(ctx context.Context, user *domain.User,
 		return nil, err
 	}
 
-	_, err = qtx.CreateStaffProfile(ctx, db.CreateStaffProfileParams{
-		UserID: uuid.NullUUID{UUID: u.ID, Valid: true},
-		Nip:    profile.NIP,
-		Email:  sql.NullString{String: profile.Email, Valid: profile.Email != ""},
-		Phone:  sql.NullString{String: profile.Phone, Valid: profile.Phone != ""},
-	})
-	if err != nil {
-		return nil, err
+	if profile != nil {
+		_, err = qtx.CreateStaffProfile(ctx, db.CreateStaffProfileParams{
+			UserID: uuid.NullUUID{UUID: u.ID, Valid: true},
+			Nip:    profile.NIP,
+			Email:  sql.NullString{String: profile.Email, Valid: profile.Email != ""},
+			Phone:  sql.NullString{String: profile.Phone, Valid: profile.Phone != ""},
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -100,10 +102,10 @@ func (r *userRepoSqlc) ListUsers(ctx context.Context, page, pageSize int, status
 	offset := (page - 1) * pageSize
 
 	rows, err := r.q.ListUsersWithProfile(ctx, db.ListUsersWithProfileParams{
-		Column1: statusFilter,
-		Limit:   int32(pageSize),
-		Offset:  int32(offset),
-		Column4: search,
+		StatusFilter: statusFilter,
+		Limit:        int32(pageSize),
+		Offset:       int32(offset),
+		Search:       search,
 	})
 	if err != nil {
 		return nil, 0, err
@@ -131,8 +133,8 @@ func (r *userRepoSqlc) ListUsers(ctx context.Context, page, pageSize int, status
 	}
 
 	totalCount, err := r.q.CountUsersWithProfile(ctx, db.CountUsersWithProfileParams{
-		Column1: statusFilter,
-		Column2: search,
+		StatusFilter: statusFilter,
+		Search:       search,
 	})
 	if err != nil {
 		return nil, 0, err

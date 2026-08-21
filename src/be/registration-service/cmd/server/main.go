@@ -69,6 +69,12 @@ func main() {
 	go registrationRelay.Start(ctx)
 	slog.Info("Registration Outbox Relay started", "stream", "registration.events")
 
+	// 5.1 Start Outbox Consumer to listen to "billing_stream"
+	registrationConsumerSvc := services.NewRegistrationConsumer(registrationService)
+	consumer := outbox.NewConsumer(rdb, "billing_stream", "registration-group", "registration-consumer-1", registrationConsumerSvc.HandleInvoiceEvent)
+	go consumer.Start(ctx)
+	slog.Info("Registration Outbox Consumer started", "stream", "billing_stream")
+
 	// 6. Init gRPC Server
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(

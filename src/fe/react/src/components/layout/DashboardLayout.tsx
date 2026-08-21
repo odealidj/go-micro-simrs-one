@@ -39,7 +39,13 @@ export function DashboardLayout() {
         { icon: MonitorPlay, label: "Monitor Antrean", path: "/admisi/antrean" },
       ]
     },
-    { icon: Settings, label: "Master Data", path: "/settings", isRoot: true },
+    {
+      moduleLabel: "Master Data",
+      moduleIcon: Settings,
+      children: [
+        { icon: Settings, label: "Jadwal Praktek", path: "/admisi/jadwal" },
+      ]
+    },
   ];
 
   const handleLogout = () => {

@@ -24,18 +24,20 @@ SELECT u.id, u.username, u.role, u.status, u.created_at,
 FROM users u
 LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL
-  AND ($1::text = '' OR u.status = $1)
-  AND ($4::text = '' OR u.username ILIKE '%' || $4 || '%' OR s.nip ILIKE '%' || $4 || '%')
+  AND u.username NOT IN ('admin', 'superadmin')
+  AND (sqlc.arg(status_filter)::text = '' OR u.status = sqlc.arg(status_filter))
+  AND (sqlc.arg(search)::text = '' OR u.username ILIKE '%' || sqlc.arg(search) || '%' OR s.nip ILIKE '%' || sqlc.arg(search) || '%')
 ORDER BY u.created_at DESC
-LIMIT $2 OFFSET $3;
+LIMIT sqlc.arg('limit') OFFSET sqlc.arg('offset');
 
 -- name: CountUsersWithProfile :one
 SELECT COUNT(u.id)
 FROM users u
 LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL
-  AND ($1::text = '' OR u.status = $1)
-  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%');
+  AND u.username NOT IN ('admin', 'superadmin')
+  AND (sqlc.arg(status_filter)::text = '' OR u.status = sqlc.arg(status_filter))
+  AND (sqlc.arg(search)::text = '' OR u.username ILIKE '%' || sqlc.arg(search) || '%' OR s.nip ILIKE '%' || sqlc.arg(search) || '%');
 
 -- name: UpdateUserStatusAndRole :exec
 UPDATE users
@@ -191,3 +193,30 @@ SELECT EXISTS (
 INSERT INTO mapping_perawat_poli (perawat_id, poli_code, start_date, end_date)
 VALUES ($1, $2, $3, $4)
 RETURNING id, perawat_id, poli_code, start_date, end_date;
+
+-- name: CountActivePolis :one
+SELECT COUNT(DISTINCT p1.poli_code)
+FROM mapping_dokter_poli p1
+JOIN mapping_perawat_poli p2 ON p1.poli_code = p2.poli_code
+WHERE CURRENT_DATE BETWEEN p1.start_date AND p1.end_date
+  AND CURRENT_DATE BETWEEN p2.start_date AND p2.end_date
+  AND p1.deleted_dt IS NULL
+  AND p2.deleted_dt IS NULL;
+
+-- name: CountActiveDoctors :one
+SELECT COUNT(DISTINCT p1.dokter_id)
+FROM mapping_dokter_poli p1
+JOIN mapping_perawat_poli p2 ON p1.poli_code = p2.poli_code
+WHERE CURRENT_DATE BETWEEN p1.start_date AND p1.end_date
+  AND CURRENT_DATE BETWEEN p2.start_date AND p2.end_date
+  AND p1.deleted_dt IS NULL
+  AND p2.deleted_dt IS NULL;
+
+-- name: CountActiveNurses :one
+SELECT COUNT(DISTINCT p2.perawat_id)
+FROM mapping_dokter_poli p1
+JOIN mapping_perawat_poli p2 ON p1.poli_code = p2.poli_code
+WHERE CURRENT_DATE BETWEEN p1.start_date AND p1.end_date
+  AND CURRENT_DATE BETWEEN p2.start_date AND p2.end_date
+  AND p1.deleted_dt IS NULL
+  AND p2.deleted_dt IS NULL;

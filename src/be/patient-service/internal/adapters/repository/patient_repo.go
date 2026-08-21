@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/aliube/go-micro-simrs-one/patient-service/internal/adapters/db"
@@ -120,6 +122,42 @@ func (r *patientRepoSqlc) DeletePatient(ctx context.Context, mrn string) error {
 	// Execute hard delete for compensation flow
 	_, err := r.dbConn.ExecContext(ctx, "DELETE FROM patient.patients WHERE mrn = $1", mrn)
 	return err
+}
+
+func (r *patientRepoSqlc) GetMaxMRNSequence(ctx context.Context) (int64, error) {
+	var maxMRN sql.NullString
+	err := r.dbConn.QueryRowContext(ctx, "SELECT MAX(mrn) FROM patient.patients").Scan(&maxMRN)
+	if err != nil {
+		return 0, err
+	}
+	
+	if !maxMRN.Valid || maxMRN.String == "" {
+		return 0, nil
+	}
+
+	// MRN format: 10-00-00-03. We need to extract the sequence part.
+	// Actually, the sequence is the number generated before formatting.
+	// MRN string is formatted as: 10-00-00-01 from integer 10000001
+	// Wait, the formatting is:
+	// rawStr := fmt.Sprintf("1%07d", seq)
+	// mrn := "10-00-00-01"
+	// So we can remove the dashes, parse as int, and then modulo 10000000 or similar.
+	
+	cleanStr := strings.ReplaceAll(maxMRN.String, "-", "")
+	// "10000003"
+	
+	rawInt, err := strconv.ParseInt(cleanStr, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	
+	// "10000003" -> the prefix is '1', so we can just do:
+	// "1%07d" means the actual sequence is rawInt - 10000000
+	if rawInt > 10000000 {
+		return rawInt - 10000000, nil
+	}
+	
+	return 0, nil
 }
 
 func mapDBPatientToDomain(p interface{}) *domain.Patient {

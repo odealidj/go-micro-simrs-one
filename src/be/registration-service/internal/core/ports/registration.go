@@ -18,6 +18,10 @@ type RegistrationRepository interface {
 	MarkEventAsFailed(ctx context.Context, id string) error
 	GetTodayEncounters(ctx context.Context, targetDate time.Time) ([]*domain.Encounter, error)
 	UpdateEncounterStatus(ctx context.Context, encounterNo, status string) error
+	GetMaxSequenceForMonth(ctx context.Context, prefix string) (int32, error)
+	GetDashboardMetrics(ctx context.Context, targetDate time.Time) (newPatients int32, oldPatients int32, waitTimes map[string]int32, weeklyVisits map[string]int32, err error)
+	UpdatePaymentStatus(ctx context.Context, encounterNo, status string) error
+	UpdateGuarantor(ctx context.Context, encounterNo, guarantor string) error
 }
 
 type EventPublisher interface {
@@ -29,4 +33,7 @@ type RegistrationService interface {
 	GetTodayEncounters(ctx context.Context, targetDate time.Time) ([]*domain.Encounter, error)
 	CancelEncounter(ctx context.Context, encounterNo, reason string) error
 	UpdateEncounterStatus(ctx context.Context, encounterNo, status string) error
+	UpdateEncounterGuarantor(ctx context.Context, encounterNo, guarantor string) error
+	GetDashboardMetrics(ctx context.Context, targetDate time.Time) (newPatients int32, oldPatients int32, waitTimes map[string]int32, weeklyVisits map[string]int32, err error)
+	UpdatePaymentStatus(ctx context.Context, encounterNo, status string) error
 }

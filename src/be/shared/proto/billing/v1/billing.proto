@@ -8,6 +8,7 @@ service BillingService {
   rpc GenerateInvoice (GenerateInvoiceRequest) returns (GenerateInvoiceResponse);
   rpc PayInvoice (PayInvoiceRequest) returns (PayInvoiceResponse);
   rpc AddRegistrationFee (AddRegistrationFeeRequest) returns (AddRegistrationFeeResponse);
+  rpc CancelInvoice (CancelInvoiceRequest) returns (CancelInvoiceResponse);
 }
 
 message AddRegistrationFeeRequest {
@@ -49,4 +50,13 @@ message PayInvoiceResponse {
   bool success = 1;
   string message = 2;
   string encounter_no = 3;
+}
+
+message CancelInvoiceRequest {
+  string invoice_id = 1;
+}
+
+message CancelInvoiceResponse {
+  bool success = 1;
+  string message = 2;
 }

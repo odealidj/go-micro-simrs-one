@@ -45,9 +45,11 @@ export function PatientRegistrationList() {
   const fetchEncounters = async () => {
     setLoading(true);
     try {
+      // Avoid timezone mismatch: if filterDate is browser's today, let backend use its own time.Now()
+      const dateParam = filterDate === getTodayString() ? "" : filterDate;
       const response = await api.get('/registrations/today', {
         params: {
-          date: filterDate
+          date: dateParam
         }
       });
       if (response.data?.success) {
@@ -175,7 +177,7 @@ export function PatientRegistrationList() {
                   <TableCell>{getStatusBadge(encounter.status)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
-                      <DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                           <span className="sr-only">Buka menu</span>
                           <MoreHorizontal className="h-4 w-4" />

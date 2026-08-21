@@ -2461,6 +2461,102 @@ func (x *AssignNursePoliResponse) GetMessage() string {
 	return ""
 }
 
+type GetActivePersonnelMetricsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetActivePersonnelMetricsRequest) Reset() {
+	*x = GetActivePersonnelMetricsRequest{}
+	mi := &file_auth_v1_auth_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetActivePersonnelMetricsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetActivePersonnelMetricsRequest) ProtoMessage() {}
+
+func (x *GetActivePersonnelMetricsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetActivePersonnelMetricsRequest.ProtoReflect.Descriptor instead.
+func (*GetActivePersonnelMetricsRequest) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{38}
+}
+
+type GetActivePersonnelMetricsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ActiveDoctors int32                  `protobuf:"varint,1,opt,name=active_doctors,json=activeDoctors,proto3" json:"active_doctors,omitempty"`
+	ActiveNurses  int32                  `protobuf:"varint,2,opt,name=active_nurses,json=activeNurses,proto3" json:"active_nurses,omitempty"`
+	ActiveClinics int32                  `protobuf:"varint,3,opt,name=active_clinics,json=activeClinics,proto3" json:"active_clinics,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetActivePersonnelMetricsResponse) Reset() {
+	*x = GetActivePersonnelMetricsResponse{}
+	mi := &file_auth_v1_auth_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetActivePersonnelMetricsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetActivePersonnelMetricsResponse) ProtoMessage() {}
+
+func (x *GetActivePersonnelMetricsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_auth_v1_auth_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetActivePersonnelMetricsResponse.ProtoReflect.Descriptor instead.
+func (*GetActivePersonnelMetricsResponse) Descriptor() ([]byte, []int) {
+	return file_auth_v1_auth_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *GetActivePersonnelMetricsResponse) GetActiveDoctors() int32 {
+	if x != nil {
+		return x.ActiveDoctors
+	}
+	return 0
+}
+
+func (x *GetActivePersonnelMetricsResponse) GetActiveNurses() int32 {
+	if x != nil {
+		return x.ActiveNurses
+	}
+	return 0
+}
+
+func (x *GetActivePersonnelMetricsResponse) GetActiveClinics() int32 {
+	if x != nil {
+		return x.ActiveClinics
+	}
+	return 0
+}
+
 var File_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_auth_v1_auth_proto_rawDesc = "" +
@@ -2657,7 +2753,13 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\bend_date\x18\x04 \x01(\tR\aendDate\"M\n" +
 	"\x17AssignNursePoliResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage2\xf2\t\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\"\n" +
+	" GetActivePersonnelMetricsRequest\"\x96\x01\n" +
+	"!GetActivePersonnelMetricsResponse\x12%\n" +
+	"\x0eactive_doctors\x18\x01 \x01(\x05R\ractiveDoctors\x12#\n" +
+	"\ractive_nurses\x18\x02 \x01(\x05R\factiveNurses\x12%\n" +
+	"\x0eactive_clinics\x18\x03 \x01(\x05R\ractiveClinics2\xe6\n" +
+	"\n" +
 	"\vAuthService\x126\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\x129\n" +
 	"\x06Signup\x12\x16.auth.v1.SignupRequest\x1a\x17.auth.v1.SignupResponse\x12`\n" +
@@ -2676,7 +2778,8 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x10GetDoctorsByPoli\x12 .auth.v1.GetDoctorsByPoliRequest\x1a!.auth.v1.GetDoctorsByPoliResponse\x12T\n" +
 	"\x0fGetNursesByPoli\x12\x1f.auth.v1.GetNursesByPoliRequest\x1a .auth.v1.GetNursesByPoliResponse\x12W\n" +
 	"\x10AssignDoctorPoli\x12 .auth.v1.AssignDoctorPoliRequest\x1a!.auth.v1.AssignDoctorPoliResponse\x12T\n" +
-	"\x0fAssignNursePoli\x12\x1f.auth.v1.AssignNursePoliRequest\x1a .auth.v1.AssignNursePoliResponseBBZ@github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1;authv1b\x06proto3"
+	"\x0fAssignNursePoli\x12\x1f.auth.v1.AssignNursePoliRequest\x1a .auth.v1.AssignNursePoliResponse\x12r\n" +
+	"\x19GetActivePersonnelMetrics\x12).auth.v1.GetActivePersonnelMetricsRequest\x1a*.auth.v1.GetActivePersonnelMetricsResponseBBZ@github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1;authv1b\x06proto3"
 
 var (
 	file_auth_v1_auth_proto_rawDescOnce sync.Once
@@ -2690,46 +2793,48 @@ func file_auth_v1_auth_proto_rawDescGZIP() []byte {
 	return file_auth_v1_auth_proto_rawDescData
 }
 
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_auth_v1_auth_proto_goTypes = []any{
-	(*LoginRequest)(nil),                // 0: auth.v1.LoginRequest
-	(*LoginResponse)(nil),               // 1: auth.v1.LoginResponse
-	(*SignupRequest)(nil),               // 2: auth.v1.SignupRequest
-	(*SignupResponse)(nil),              // 3: auth.v1.SignupResponse
-	(*RegisterPatientUserRequest)(nil),  // 4: auth.v1.RegisterPatientUserRequest
-	(*RegisterPatientUserResponse)(nil), // 5: auth.v1.RegisterPatientUserResponse
-	(*ValidateTokenRequest)(nil),        // 6: auth.v1.ValidateTokenRequest
-	(*ValidateTokenResponse)(nil),       // 7: auth.v1.ValidateTokenResponse
-	(*RefreshTokenRequest)(nil),         // 8: auth.v1.RefreshTokenRequest
-	(*RefreshTokenResponse)(nil),        // 9: auth.v1.RefreshTokenResponse
-	(*ExtractKTPDataRequest)(nil),       // 10: auth.v1.ExtractKTPDataRequest
-	(*ExtractKTPDataResponse)(nil),      // 11: auth.v1.ExtractKTPDataResponse
-	(*UserData)(nil),                    // 12: auth.v1.UserData
-	(*ListUsersRequest)(nil),            // 13: auth.v1.ListUsersRequest
-	(*ListUsersResponse)(nil),           // 14: auth.v1.ListUsersResponse
-	(*UpdateUserStatusRequest)(nil),     // 15: auth.v1.UpdateUserStatusRequest
-	(*UpdateUserStatusResponse)(nil),    // 16: auth.v1.UpdateUserStatusResponse
-	(*DeleteUserRequest)(nil),           // 17: auth.v1.DeleteUserRequest
-	(*DeleteUserResponse)(nil),          // 18: auth.v1.DeleteUserResponse
-	(*GetMasterRolesRequest)(nil),       // 19: auth.v1.GetMasterRolesRequest
-	(*MasterRole)(nil),                  // 20: auth.v1.MasterRole
-	(*GetMasterRolesResponse)(nil),      // 21: auth.v1.GetMasterRolesResponse
-	(*GetDoctorsRequest)(nil),           // 22: auth.v1.GetDoctorsRequest
-	(*Doctor)(nil),                      // 23: auth.v1.Doctor
-	(*GetDoctorsResponse)(nil),          // 24: auth.v1.GetDoctorsResponse
-	(*GetNursesRequest)(nil),            // 25: auth.v1.GetNursesRequest
-	(*Nurse)(nil),                       // 26: auth.v1.Nurse
-	(*GetNursesResponse)(nil),           // 27: auth.v1.GetNursesResponse
-	(*GetDoctorsByPoliRequest)(nil),     // 28: auth.v1.GetDoctorsByPoliRequest
-	(*DoctorPoliMapping)(nil),           // 29: auth.v1.DoctorPoliMapping
-	(*GetDoctorsByPoliResponse)(nil),    // 30: auth.v1.GetDoctorsByPoliResponse
-	(*GetNursesByPoliRequest)(nil),      // 31: auth.v1.GetNursesByPoliRequest
-	(*NursePoliMapping)(nil),            // 32: auth.v1.NursePoliMapping
-	(*GetNursesByPoliResponse)(nil),     // 33: auth.v1.GetNursesByPoliResponse
-	(*AssignDoctorPoliRequest)(nil),     // 34: auth.v1.AssignDoctorPoliRequest
-	(*AssignDoctorPoliResponse)(nil),    // 35: auth.v1.AssignDoctorPoliResponse
-	(*AssignNursePoliRequest)(nil),      // 36: auth.v1.AssignNursePoliRequest
-	(*AssignNursePoliResponse)(nil),     // 37: auth.v1.AssignNursePoliResponse
+	(*LoginRequest)(nil),                      // 0: auth.v1.LoginRequest
+	(*LoginResponse)(nil),                     // 1: auth.v1.LoginResponse
+	(*SignupRequest)(nil),                     // 2: auth.v1.SignupRequest
+	(*SignupResponse)(nil),                    // 3: auth.v1.SignupResponse
+	(*RegisterPatientUserRequest)(nil),        // 4: auth.v1.RegisterPatientUserRequest
+	(*RegisterPatientUserResponse)(nil),       // 5: auth.v1.RegisterPatientUserResponse
+	(*ValidateTokenRequest)(nil),              // 6: auth.v1.ValidateTokenRequest
+	(*ValidateTokenResponse)(nil),             // 7: auth.v1.ValidateTokenResponse
+	(*RefreshTokenRequest)(nil),               // 8: auth.v1.RefreshTokenRequest
+	(*RefreshTokenResponse)(nil),              // 9: auth.v1.RefreshTokenResponse
+	(*ExtractKTPDataRequest)(nil),             // 10: auth.v1.ExtractKTPDataRequest
+	(*ExtractKTPDataResponse)(nil),            // 11: auth.v1.ExtractKTPDataResponse
+	(*UserData)(nil),                          // 12: auth.v1.UserData
+	(*ListUsersRequest)(nil),                  // 13: auth.v1.ListUsersRequest
+	(*ListUsersResponse)(nil),                 // 14: auth.v1.ListUsersResponse
+	(*UpdateUserStatusRequest)(nil),           // 15: auth.v1.UpdateUserStatusRequest
+	(*UpdateUserStatusResponse)(nil),          // 16: auth.v1.UpdateUserStatusResponse
+	(*DeleteUserRequest)(nil),                 // 17: auth.v1.DeleteUserRequest
+	(*DeleteUserResponse)(nil),                // 18: auth.v1.DeleteUserResponse
+	(*GetMasterRolesRequest)(nil),             // 19: auth.v1.GetMasterRolesRequest
+	(*MasterRole)(nil),                        // 20: auth.v1.MasterRole
+	(*GetMasterRolesResponse)(nil),            // 21: auth.v1.GetMasterRolesResponse
+	(*GetDoctorsRequest)(nil),                 // 22: auth.v1.GetDoctorsRequest
+	(*Doctor)(nil),                            // 23: auth.v1.Doctor
+	(*GetDoctorsResponse)(nil),                // 24: auth.v1.GetDoctorsResponse
+	(*GetNursesRequest)(nil),                  // 25: auth.v1.GetNursesRequest
+	(*Nurse)(nil),                             // 26: auth.v1.Nurse
+	(*GetNursesResponse)(nil),                 // 27: auth.v1.GetNursesResponse
+	(*GetDoctorsByPoliRequest)(nil),           // 28: auth.v1.GetDoctorsByPoliRequest
+	(*DoctorPoliMapping)(nil),                 // 29: auth.v1.DoctorPoliMapping
+	(*GetDoctorsByPoliResponse)(nil),          // 30: auth.v1.GetDoctorsByPoliResponse
+	(*GetNursesByPoliRequest)(nil),            // 31: auth.v1.GetNursesByPoliRequest
+	(*NursePoliMapping)(nil),                  // 32: auth.v1.NursePoliMapping
+	(*GetNursesByPoliResponse)(nil),           // 33: auth.v1.GetNursesByPoliResponse
+	(*AssignDoctorPoliRequest)(nil),           // 34: auth.v1.AssignDoctorPoliRequest
+	(*AssignDoctorPoliResponse)(nil),          // 35: auth.v1.AssignDoctorPoliResponse
+	(*AssignNursePoliRequest)(nil),            // 36: auth.v1.AssignNursePoliRequest
+	(*AssignNursePoliResponse)(nil),           // 37: auth.v1.AssignNursePoliResponse
+	(*GetActivePersonnelMetricsRequest)(nil),  // 38: auth.v1.GetActivePersonnelMetricsRequest
+	(*GetActivePersonnelMetricsResponse)(nil), // 39: auth.v1.GetActivePersonnelMetricsResponse
 }
 var file_auth_v1_auth_proto_depIdxs = []int32{
 	12, // 0: auth.v1.ListUsersResponse.users:type_name -> auth.v1.UserData
@@ -2754,24 +2859,26 @@ var file_auth_v1_auth_proto_depIdxs = []int32{
 	31, // 19: auth.v1.AuthService.GetNursesByPoli:input_type -> auth.v1.GetNursesByPoliRequest
 	34, // 20: auth.v1.AuthService.AssignDoctorPoli:input_type -> auth.v1.AssignDoctorPoliRequest
 	36, // 21: auth.v1.AuthService.AssignNursePoli:input_type -> auth.v1.AssignNursePoliRequest
-	1,  // 22: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	3,  // 23: auth.v1.AuthService.Signup:output_type -> auth.v1.SignupResponse
-	5,  // 24: auth.v1.AuthService.RegisterPatientUser:output_type -> auth.v1.RegisterPatientUserResponse
-	7,  // 25: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
-	9,  // 26: auth.v1.AuthService.RefreshToken:output_type -> auth.v1.RefreshTokenResponse
-	11, // 27: auth.v1.AuthService.ExtractKTPData:output_type -> auth.v1.ExtractKTPDataResponse
-	14, // 28: auth.v1.AuthService.ListUsers:output_type -> auth.v1.ListUsersResponse
-	16, // 29: auth.v1.AuthService.UpdateUserStatus:output_type -> auth.v1.UpdateUserStatusResponse
-	18, // 30: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
-	21, // 31: auth.v1.AuthService.GetMasterRoles:output_type -> auth.v1.GetMasterRolesResponse
-	24, // 32: auth.v1.AuthService.GetDoctors:output_type -> auth.v1.GetDoctorsResponse
-	27, // 33: auth.v1.AuthService.GetNurses:output_type -> auth.v1.GetNursesResponse
-	30, // 34: auth.v1.AuthService.GetDoctorsByPoli:output_type -> auth.v1.GetDoctorsByPoliResponse
-	33, // 35: auth.v1.AuthService.GetNursesByPoli:output_type -> auth.v1.GetNursesByPoliResponse
-	35, // 36: auth.v1.AuthService.AssignDoctorPoli:output_type -> auth.v1.AssignDoctorPoliResponse
-	37, // 37: auth.v1.AuthService.AssignNursePoli:output_type -> auth.v1.AssignNursePoliResponse
-	22, // [22:38] is the sub-list for method output_type
-	6,  // [6:22] is the sub-list for method input_type
+	38, // 22: auth.v1.AuthService.GetActivePersonnelMetrics:input_type -> auth.v1.GetActivePersonnelMetricsRequest
+	1,  // 23: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	3,  // 24: auth.v1.AuthService.Signup:output_type -> auth.v1.SignupResponse
+	5,  // 25: auth.v1.AuthService.RegisterPatientUser:output_type -> auth.v1.RegisterPatientUserResponse
+	7,  // 26: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
+	9,  // 27: auth.v1.AuthService.RefreshToken:output_type -> auth.v1.RefreshTokenResponse
+	11, // 28: auth.v1.AuthService.ExtractKTPData:output_type -> auth.v1.ExtractKTPDataResponse
+	14, // 29: auth.v1.AuthService.ListUsers:output_type -> auth.v1.ListUsersResponse
+	16, // 30: auth.v1.AuthService.UpdateUserStatus:output_type -> auth.v1.UpdateUserStatusResponse
+	18, // 31: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
+	21, // 32: auth.v1.AuthService.GetMasterRoles:output_type -> auth.v1.GetMasterRolesResponse
+	24, // 33: auth.v1.AuthService.GetDoctors:output_type -> auth.v1.GetDoctorsResponse
+	27, // 34: auth.v1.AuthService.GetNurses:output_type -> auth.v1.GetNursesResponse
+	30, // 35: auth.v1.AuthService.GetDoctorsByPoli:output_type -> auth.v1.GetDoctorsByPoliResponse
+	33, // 36: auth.v1.AuthService.GetNursesByPoli:output_type -> auth.v1.GetNursesByPoliResponse
+	35, // 37: auth.v1.AuthService.AssignDoctorPoli:output_type -> auth.v1.AssignDoctorPoliResponse
+	37, // 38: auth.v1.AuthService.AssignNursePoli:output_type -> auth.v1.AssignNursePoliResponse
+	39, // 39: auth.v1.AuthService.GetActivePersonnelMetrics:output_type -> auth.v1.GetActivePersonnelMetricsResponse
+	23, // [23:40] is the sub-list for method output_type
+	6,  // [6:23] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
 	6,  // [6:6] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name
@@ -2788,7 +2895,7 @@ func file_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   38,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

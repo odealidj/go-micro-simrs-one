@@ -51,13 +51,17 @@ func (s *RegistrationGrpcServer) GetTodayEncounters(ctx context.Context, req *pb
 
 	var pbEncounters []*pb.EncounterDetail
 	for _, enc := range encounters {
+		isNewStr := "false"
+		if enc.IsNewPatient {
+			isNewStr = "true"
+		}
 		pbEncounters = append(pbEncounters, &pb.EncounterDetail{
 			EncounterNo:    enc.EncounterNo,
 			Mrn:            enc.MRN,
 			DepartmentCode: enc.Department,
 			DoctorId:       enc.DoctorID,
 			Status:         enc.Status,
-			RegisteredTime: enc.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			RegisteredTime: enc.CreatedAt.Format("2006-01-02T15:04:05Z") + "|" + isNewStr,
 		})
 	}
 
@@ -83,6 +87,22 @@ func (s *RegistrationGrpcServer) CancelEncounter(ctx context.Context, req *pb.Ca
 	}, nil
 }
 
+func (s *RegistrationGrpcServer) UpdateEncounterGuarantor(ctx context.Context, req *pb.UpdateEncounterGuarantorRequest) (*pb.UpdateEncounterGuarantorResponse, error) {
+	if req.EncounterNo == "" || req.Guarantor == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "EncounterNo and Guarantor are required")
+	}
+
+	err := s.registrationService.UpdateEncounterGuarantor(ctx, req.EncounterNo, req.Guarantor)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Failed to update guarantor: %v", err)
+	}
+
+	return &pb.UpdateEncounterGuarantorResponse{
+		Success: true,
+		Message: "Guarantor updated successfully",
+	}, nil
+}
+
 func (s *RegistrationGrpcServer) UpdateEncounterStatus(ctx context.Context, req *pb.UpdateEncounterStatusRequest) (*pb.UpdateEncounterStatusResponse, error) {
 	if req.EncounterNo == "" {
 		return nil, status.Error(codes.InvalidArgument, "encounter_no is required")
@@ -101,3 +121,34 @@ func (s *RegistrationGrpcServer) UpdateEncounterStatus(ctx context.Context, req 
 		Message: "Encounter status updated successfully",
 	}, nil
 }
+
+func (s *RegistrationGrpcServer) GetDashboardMetrics(ctx context.Context, req *pb.GetDashboardMetricsRequest) (*pb.GetDashboardMetricsResponse, error) {
+	newPatients, oldPatients, waitTimes, weeklyVisits, err := s.registrationService.GetDashboardMetrics(ctx, time.Now())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get dashboard metrics: %v", err)
+	}
+
+	var pbWaitTimes []*pb.WaitTimeMetric
+	for k, v := range waitTimes {
+		pbWaitTimes = append(pbWaitTimes, &pb.WaitTimeMetric{
+			PoliCode:               k,
+			AverageWaitTimeMinutes: v,
+		})
+	}
+
+	var pbWeeklyVisits []*pb.WeeklyVisitMetric
+	for k, v := range weeklyVisits {
+		pbWeeklyVisits = append(pbWeeklyVisits, &pb.WeeklyVisitMetric{
+			Date:        k,
+			TotalVisits: v,
+		})
+	}
+
+	return &pb.GetDashboardMetricsResponse{
+		NewPatients:  newPatients,
+		OldPatients:  oldPatients,
+		WaitTimes:    pbWaitTimes,
+		WeeklyVisits: pbWeeklyVisits,
+	}, nil
+}
+

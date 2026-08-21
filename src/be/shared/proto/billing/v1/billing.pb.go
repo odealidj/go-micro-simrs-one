@@ -433,6 +433,102 @@ func (x *PayInvoiceResponse) GetEncounterNo() string {
 	return ""
 }
 
+type CancelInvoiceRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	InvoiceId     string                 `protobuf:"bytes,1,opt,name=invoice_id,json=invoiceId,proto3" json:"invoice_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelInvoiceRequest) Reset() {
+	*x = CancelInvoiceRequest{}
+	mi := &file_billing_v1_billing_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelInvoiceRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelInvoiceRequest) ProtoMessage() {}
+
+func (x *CancelInvoiceRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_billing_v1_billing_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelInvoiceRequest.ProtoReflect.Descriptor instead.
+func (*CancelInvoiceRequest) Descriptor() ([]byte, []int) {
+	return file_billing_v1_billing_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CancelInvoiceRequest) GetInvoiceId() string {
+	if x != nil {
+		return x.InvoiceId
+	}
+	return ""
+}
+
+type CancelInvoiceResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelInvoiceResponse) Reset() {
+	*x = CancelInvoiceResponse{}
+	mi := &file_billing_v1_billing_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelInvoiceResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelInvoiceResponse) ProtoMessage() {}
+
+func (x *CancelInvoiceResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_billing_v1_billing_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelInvoiceResponse.ProtoReflect.Descriptor instead.
+func (*CancelInvoiceResponse) Descriptor() ([]byte, []int) {
+	return file_billing_v1_billing_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *CancelInvoiceResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *CancelInvoiceResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_billing_v1_billing_proto protoreflect.FileDescriptor
 
 const file_billing_v1_billing_proto_rawDesc = "" +
@@ -469,12 +565,19 @@ const file_billing_v1_billing_proto_rawDesc = "" +
 	"\x12PayInvoiceResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12!\n" +
-	"\fencounter_no\x18\x03 \x01(\tR\vencounterNo2\x9e\x02\n" +
+	"\fencounter_no\x18\x03 \x01(\tR\vencounterNo\"5\n" +
+	"\x14CancelInvoiceRequest\x12\x1d\n" +
+	"\n" +
+	"invoice_id\x18\x01 \x01(\tR\tinvoiceId\"K\n" +
+	"\x15CancelInvoiceResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2\xf4\x02\n" +
 	"\x0eBillingService\x12Z\n" +
 	"\x0fGenerateInvoice\x12\".billing.v1.GenerateInvoiceRequest\x1a#.billing.v1.GenerateInvoiceResponse\x12K\n" +
 	"\n" +
 	"PayInvoice\x12\x1d.billing.v1.PayInvoiceRequest\x1a\x1e.billing.v1.PayInvoiceResponse\x12c\n" +
-	"\x12AddRegistrationFee\x12%.billing.v1.AddRegistrationFeeRequest\x1a&.billing.v1.AddRegistrationFeeResponseBHZFgithub.com/aliube/go-micro-simrs-one/shared/proto/billing/v1;billingv1b\x06proto3"
+	"\x12AddRegistrationFee\x12%.billing.v1.AddRegistrationFeeRequest\x1a&.billing.v1.AddRegistrationFeeResponse\x12T\n" +
+	"\rCancelInvoice\x12 .billing.v1.CancelInvoiceRequest\x1a!.billing.v1.CancelInvoiceResponseBHZFgithub.com/aliube/go-micro-simrs-one/shared/proto/billing/v1;billingv1b\x06proto3"
 
 var (
 	file_billing_v1_billing_proto_rawDescOnce sync.Once
@@ -488,7 +591,7 @@ func file_billing_v1_billing_proto_rawDescGZIP() []byte {
 	return file_billing_v1_billing_proto_rawDescData
 }
 
-var file_billing_v1_billing_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_billing_v1_billing_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_billing_v1_billing_proto_goTypes = []any{
 	(*AddRegistrationFeeRequest)(nil),  // 0: billing.v1.AddRegistrationFeeRequest
 	(*AddRegistrationFeeResponse)(nil), // 1: billing.v1.AddRegistrationFeeResponse
@@ -497,17 +600,21 @@ var file_billing_v1_billing_proto_goTypes = []any{
 	(*GenerateInvoiceResponse)(nil),    // 4: billing.v1.GenerateInvoiceResponse
 	(*PayInvoiceRequest)(nil),          // 5: billing.v1.PayInvoiceRequest
 	(*PayInvoiceResponse)(nil),         // 6: billing.v1.PayInvoiceResponse
+	(*CancelInvoiceRequest)(nil),       // 7: billing.v1.CancelInvoiceRequest
+	(*CancelInvoiceResponse)(nil),      // 8: billing.v1.CancelInvoiceResponse
 }
 var file_billing_v1_billing_proto_depIdxs = []int32{
 	2, // 0: billing.v1.GenerateInvoiceResponse.items:type_name -> billing.v1.InvoiceItem
 	3, // 1: billing.v1.BillingService.GenerateInvoice:input_type -> billing.v1.GenerateInvoiceRequest
 	5, // 2: billing.v1.BillingService.PayInvoice:input_type -> billing.v1.PayInvoiceRequest
 	0, // 3: billing.v1.BillingService.AddRegistrationFee:input_type -> billing.v1.AddRegistrationFeeRequest
-	4, // 4: billing.v1.BillingService.GenerateInvoice:output_type -> billing.v1.GenerateInvoiceResponse
-	6, // 5: billing.v1.BillingService.PayInvoice:output_type -> billing.v1.PayInvoiceResponse
-	1, // 6: billing.v1.BillingService.AddRegistrationFee:output_type -> billing.v1.AddRegistrationFeeResponse
-	4, // [4:7] is the sub-list for method output_type
-	1, // [1:4] is the sub-list for method input_type
+	7, // 4: billing.v1.BillingService.CancelInvoice:input_type -> billing.v1.CancelInvoiceRequest
+	4, // 5: billing.v1.BillingService.GenerateInvoice:output_type -> billing.v1.GenerateInvoiceResponse
+	6, // 6: billing.v1.BillingService.PayInvoice:output_type -> billing.v1.PayInvoiceResponse
+	1, // 7: billing.v1.BillingService.AddRegistrationFee:output_type -> billing.v1.AddRegistrationFeeResponse
+	8, // 8: billing.v1.BillingService.CancelInvoice:output_type -> billing.v1.CancelInvoiceResponse
+	5, // [5:9] is the sub-list for method output_type
+	1, // [1:5] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
@@ -524,7 +631,7 @@ func file_billing_v1_billing_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_billing_v1_billing_proto_rawDesc), len(file_billing_v1_billing_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

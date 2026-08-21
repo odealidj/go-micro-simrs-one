@@ -13,6 +13,7 @@ type PatientRepository interface {
 	UpdateUserID(ctx context.Context, mrn, userID string) error
 	ListPatients(ctx context.Context, limit, offset int, search string) ([]*domain.Patient, int, error)
 	DeletePatient(ctx context.Context, mrn string) error
+	GetMaxMRNSequence(ctx context.Context) (int64, error)
 }
 
 type PatientService interface {

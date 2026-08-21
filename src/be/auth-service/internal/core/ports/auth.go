@@ -40,6 +40,7 @@ type AuthService interface {
 	Signup(ctx context.Context, nip, password, email, phone string) (userID string, err error)
 	RegisterPatientUser(ctx context.Context, username, password string) (userID string, err error)
 	BootstrapAdmin(ctx context.Context, nip, password, email, phone string) error
+	BootstrapSuperAdmin(ctx context.Context, username, password, email, phone string) error
 	Login(ctx context.Context, username, password string) (tokenPair *TokenPair, role string, userID string, err error)
 	ValidateToken(ctx context.Context, token string) (isValid bool, role string, userID string, err error)
 	RefreshToken(ctx context.Context, refreshToken string) (tokenPair *TokenPair, err error)

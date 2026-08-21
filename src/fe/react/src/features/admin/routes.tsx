@@ -17,6 +17,7 @@ import { ICD10Page } from "./pages/master/ICD10Page";
 import { AssignICD10PoliPage } from "./pages/master/AssignICD10PoliPage";
 import { ObatPage } from "./pages/master/ObatPage";
 import { AssignObatPoliPage } from "./pages/master/AssignObatPoliPage";
+import { AdminAISettingsPage } from "./pages/AdminAISettingsPage";
 
 export const adminRoutes: RouteObject[] = [
   {
@@ -48,6 +49,7 @@ export const adminRoutes: RouteObject[] = [
           { path: "master/assign-icd10", element: <AssignICD10PoliPage /> },
           { path: "master/obat", element: <ObatPage /> },
           { path: "master/assign-obat", element: <AssignObatPoliPage /> },
+          { path: "ai-settings", element: <AdminAISettingsPage /> },
         ],
       },
     ],

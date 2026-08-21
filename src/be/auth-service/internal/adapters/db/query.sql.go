@@ -137,6 +137,57 @@ func (q *Queries) CheckNurseAssignmentOverlap(ctx context.Context, arg CheckNurs
 	return exists, err
 }
 
+const countActiveDoctors = `-- name: CountActiveDoctors :one
+SELECT COUNT(DISTINCT p1.dokter_id)
+FROM mapping_dokter_poli p1
+JOIN mapping_perawat_poli p2 ON p1.poli_code = p2.poli_code
+WHERE CURRENT_DATE BETWEEN p1.start_date AND p1.end_date
+  AND CURRENT_DATE BETWEEN p2.start_date AND p2.end_date
+  AND p1.deleted_dt IS NULL
+  AND p2.deleted_dt IS NULL
+`
+
+func (q *Queries) CountActiveDoctors(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countActiveDoctors)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countActiveNurses = `-- name: CountActiveNurses :one
+SELECT COUNT(DISTINCT p2.perawat_id)
+FROM mapping_dokter_poli p1
+JOIN mapping_perawat_poli p2 ON p1.poli_code = p2.poli_code
+WHERE CURRENT_DATE BETWEEN p1.start_date AND p1.end_date
+  AND CURRENT_DATE BETWEEN p2.start_date AND p2.end_date
+  AND p1.deleted_dt IS NULL
+  AND p2.deleted_dt IS NULL
+`
+
+func (q *Queries) CountActiveNurses(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countActiveNurses)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countActivePolis = `-- name: CountActivePolis :one
+SELECT COUNT(DISTINCT p1.poli_code)
+FROM mapping_dokter_poli p1
+JOIN mapping_perawat_poli p2 ON p1.poli_code = p2.poli_code
+WHERE CURRENT_DATE BETWEEN p1.start_date AND p1.end_date
+  AND CURRENT_DATE BETWEEN p2.start_date AND p2.end_date
+  AND p1.deleted_dt IS NULL
+  AND p2.deleted_dt IS NULL
+`
+
+func (q *Queries) CountActivePolis(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countActivePolis)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countDoctors = `-- name: CountDoctors :one
 SELECT COUNT(d.id)
 FROM profil_dokter d
@@ -235,17 +286,18 @@ SELECT COUNT(u.id)
 FROM users u
 LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL
+  AND u.username NOT IN ('admin', 'superadmin')
   AND ($1::text = '' OR u.status = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
 `
 
 type CountUsersWithProfileParams struct {
-	Column1 string
-	Column2 string
+	StatusFilter string
+	Search       string
 }
 
 func (q *Queries) CountUsersWithProfile(ctx context.Context, arg CountUsersWithProfileParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countUsersWithProfile, arg.Column1, arg.Column2)
+	row := q.db.QueryRowContext(ctx, countUsersWithProfile, arg.StatusFilter, arg.Search)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -777,17 +829,18 @@ SELECT u.id, u.username, u.role, u.status, u.created_at,
 FROM users u
 LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL
+  AND u.username NOT IN ('admin', 'superadmin')
   AND ($1::text = '' OR u.status = $1)
-  AND ($4::text = '' OR u.username ILIKE '%' || $4 || '%' OR s.nip ILIKE '%' || $4 || '%')
+  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
 ORDER BY u.created_at DESC
-LIMIT $2 OFFSET $3
+LIMIT $4 OFFSET $3
 `
 
 type ListUsersWithProfileParams struct {
-	Column1 string
-	Limit   int32
-	Offset  int32
-	Column4 string
+	StatusFilter string
+	Search       string
+	Offset       int32
+	Limit        int32
 }
 
 type ListUsersWithProfileRow struct {
@@ -803,10 +856,10 @@ type ListUsersWithProfileRow struct {
 
 func (q *Queries) ListUsersWithProfile(ctx context.Context, arg ListUsersWithProfileParams) ([]ListUsersWithProfileRow, error) {
 	rows, err := q.db.QueryContext(ctx, listUsersWithProfile,
-		arg.Column1,
-		arg.Limit,
+		arg.StatusFilter,
+		arg.Search,
 		arg.Offset,
-		arg.Column4,
+		arg.Limit,
 	)
 	if err != nil {
 		return nil, err

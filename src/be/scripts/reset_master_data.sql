@@ -19,8 +19,8 @@ TRUNCATE TABLE auth.profil_dokter CASCADE;
 TRUNCATE TABLE auth.profil_perawat CASCADE;
 TRUNCATE TABLE auth.staff_profiles CASCADE;
 
--- Hard delete all users except admin
-DELETE FROM auth.users WHERE role != 'admin' OR role IS NULL;
+-- Hard delete all users except admin and superadmin
+DELETE FROM auth.users WHERE role NOT IN ('admin', 'super_admin') OR role IS NULL;
 
--- Hard delete all roles except super_admin
-DELETE FROM auth.master_role WHERE id != 'super_admin';
+-- Hard delete all roles except super_admin and admin
+DELETE FROM auth.master_role WHERE id NOT IN ('super_admin', 'admin');

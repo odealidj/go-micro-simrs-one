@@ -547,3 +547,25 @@ func (s *AuthGrpcServer) AssignNursePoli(ctx context.Context, req *pb.AssignNurs
 	}, nil
 }
 
+func (s *AuthGrpcServer) GetActivePersonnelMetrics(ctx context.Context, req *pb.GetActivePersonnelMetricsRequest) (*pb.GetActivePersonnelMetricsResponse, error) {
+	activePolis, err := s.queries.CountActivePolis(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count active polis: %v", err)
+	}
+
+	activeDoctors, err := s.queries.CountActiveDoctors(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count active doctors: %v", err)
+	}
+
+	activeNurses, err := s.queries.CountActiveNurses(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count active nurses: %v", err)
+	}
+
+	return &pb.GetActivePersonnelMetricsResponse{
+		ActiveClinics: int32(activePolis),
+		ActiveDoctors: int32(activeDoctors),
+		ActiveNurses:  int32(activeNurses),
+	}, nil
+}

@@ -9,6 +9,22 @@ service RegistrationService {
   rpc GetTodayEncounters (GetTodayEncountersRequest) returns (GetTodayEncountersResponse);
   rpc CancelEncounter (CancelEncounterRequest) returns (CancelEncounterResponse);
   rpc UpdateEncounterStatus (UpdateEncounterStatusRequest) returns (UpdateEncounterStatusResponse);
+  
+  // Metrics
+  rpc GetDashboardMetrics (GetDashboardMetricsRequest) returns (GetDashboardMetricsResponse);
+  
+  // New RPCs
+  rpc UpdateEncounterGuarantor(UpdateEncounterGuarantorRequest) returns (UpdateEncounterGuarantorResponse);
+}
+
+message UpdateEncounterGuarantorRequest {
+  string encounter_no = 1;
+  string guarantor = 2;
+}
+
+message UpdateEncounterGuarantorResponse {
+  bool success = 1;
+  string message = 2;
 }
 
 message RegisterEncounterRequest {
@@ -63,5 +79,24 @@ message UpdateEncounterStatusRequest {
 message UpdateEncounterStatusResponse {
   bool success = 1;
   string message = 2;
+}
+
+message GetDashboardMetricsRequest {}
+
+message WaitTimeMetric {
+  string poli_code = 1;
+  int32 average_wait_time_minutes = 2;
+}
+
+message WeeklyVisitMetric {
+  string date = 1; // "YYYY-MM-DD"
+  int32 total_visits = 2;
+}
+
+message GetDashboardMetricsResponse {
+  int32 new_patients = 1;
+  int32 old_patients = 2;
+  repeated WaitTimeMetric wait_times = 3;
+  repeated WeeklyVisitMetric weekly_visits = 4;
 }
 
