@@ -173,17 +173,17 @@ func (r *registrationRepoSqlc) GetDashboardMetrics(ctx context.Context, targetDa
 		waitTimes[w.PoliCode] = int32(w.AvgWaitMinutes)
 	}
 
-	// 3. Weekly Visits
-	startOfLast7Days := startOfDay.AddDate(0, 0, -6)
+	// 3. Last 5 Days Visits
+	startOfLast5Days := startOfDay.AddDate(0, 0, -4)
 	weeklyVisitsDB, err := r.q.GetWeeklyVisits(ctx, db.GetWeeklyVisitsParams{
-		StartTime: sql.NullTime{Time: startOfLast7Days, Valid: true},
+		StartTime: sql.NullTime{Time: startOfLast5Days, Valid: true},
 		EndTime:   sql.NullTime{Time: startOfNextDay, Valid: true},
 	})
 	if err != nil && err != sql.ErrNoRows {
 		return 0, 0, nil, nil, err
 	}
 	weeklyVisits = make(map[string]int32)
-	for i := 6; i >= 0; i-- {
+	for i := 4; i >= 0; i-- {
 		dateStr := startOfDay.AddDate(0, 0, -i).Format("2006-01-02")
 		weeklyVisits[dateStr] = 0
 	}
