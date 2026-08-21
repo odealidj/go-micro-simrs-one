@@ -179,8 +179,8 @@ export function RegistrationDashboard() {
         <Card className="shadow-sm border-slate-200">
           <CardHeader>
             <CardTitle className="text-base font-semibold flex items-center">
-              <CalendarClock className="h-4 w-4 mr-2 text-blue-500" />
-              Grafik Kunjungan 7 Hari Terakhir
+              <CalendarDays className="h-4 w-4 mr-2 text-blue-500" />
+              Grafik Kunjungan 5 Hari Terakhir
             </CardTitle>
           </CardHeader>
           <CardContent>
