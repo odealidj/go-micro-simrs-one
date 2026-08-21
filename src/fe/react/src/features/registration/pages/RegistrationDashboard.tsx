@@ -115,10 +115,10 @@ export function RegistrationDashboard() {
     }
   ];
 
-  const weeklyVisitsData = metrics?.weekly_visits 
-    ? Object.keys(metrics.weekly_visits).sort().map(date => ({
-        date,
-        kunjungan: metrics.weekly_visits[date]
+  const weeklyVisitsData = Array.isArray(metrics?.weekly_visits)
+    ? metrics.weekly_visits.map((item: any) => ({
+        date: item.date,
+        kunjungan: item.total_visits || 0
       }))
     : [];
 
