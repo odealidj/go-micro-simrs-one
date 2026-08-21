@@ -116,10 +116,12 @@ export function RegistrationDashboard() {
   ];
 
   const weeklyVisitsData = Array.isArray(metrics?.weekly_visits)
-    ? metrics.weekly_visits.map((item: any) => ({
-        date: item.date,
-        kunjungan: item.total_visits || 0
-      }))
+    ? metrics.weekly_visits
+        .map((item: any) => ({
+          date: item.date,
+          kunjungan: item.total_visits || 0
+        }))
+        .sort((a: any, b: any) => a.date.localeCompare(b.date))
     : [];
 
   const waitTimesData = metrics?.wait_times
