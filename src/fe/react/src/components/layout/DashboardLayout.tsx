@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { 
   Activity, 
@@ -26,7 +26,7 @@ export function DashboardLayout() {
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({ Admisi: true });
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout, role, userId } = useAuth();
+  const { logout, role, userId, poliName, poliCode } = useAuth();
 
   const sidebarMenus = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", isRoot: true },
@@ -46,7 +46,39 @@ export function DashboardLayout() {
         { icon: Settings, label: "Jadwal Praktek", path: "/admisi/jadwal" },
       ]
     },
+    {
+      moduleLabel: "Poliklinik",
+      moduleIcon: Activity,
+      allowedRoles: ["dokter", "perawat"],
+      children: [
+        { icon: ListChecks, label: "Antrean Pasien", path: "/emr/queue" },
+      ]
+    },
   ];
+
+  // Filter menus based on user role
+  const filteredMenus = useMemo(() => {
+    return sidebarMenus.filter(menu => {
+      if (menu.allowedRoles && role) {
+        if (!menu.allowedRoles.includes(role)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [role, poliName, poliCode]);
+
+  // Automatically expand module that contains the active path
+  useEffect(() => {
+    filteredMenus.forEach(menu => {
+      if (menu.children?.some(child => location.pathname.startsWith(child.path))) {
+        setExpandedModules(prev => {
+          if (prev[menu.moduleLabel as string]) return prev;
+          return { ...prev, [menu.moduleLabel as string]: true };
+        });
+      }
+    });
+  }, [location.pathname, filteredMenus]);
 
   const handleLogout = () => {
     logout();
@@ -80,8 +112,19 @@ export function DashboardLayout() {
                 <Activity className="h-6 w-6 text-blue-600" />
               </div>
               <div className="leading-none">
-                <h1 className="font-bold text-lg text-slate-800 tracking-tight">Codina</h1>
-                <span className="text-[10px] font-semibold text-blue-600 tracking-wider uppercase">Mini SIMRS</span>
+                {(role === 'dokter' || role === 'perawat') ? (
+                  <>
+                    <h1 className="font-bold text-base text-slate-800 tracking-tight">MINI SIMRS</h1>
+                    <div className="mt-1 text-[11px] font-semibold text-blue-600 tracking-wider uppercase">
+                      Poli {poliName || poliCode || '(Belum Di-assign)'}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h1 className="font-bold text-lg text-slate-800 tracking-tight">Codina</h1>
+                    <span className="text-[10px] font-semibold text-blue-600 tracking-wider uppercase">Mini SIMRS</span>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -98,13 +141,13 @@ export function DashboardLayout() {
         </div>
 
         {/* Sidebar Navigation */}
-        <nav className="flex-1 py-4 px-3 space-y-2 overflow-y-auto">
-          {sidebarMenus.map((menu, idx) => {
+        <div className="flex-1 overflow-y-auto py-6 px-4 space-y-8 custom-scrollbar">
+          {filteredMenus.map((menu, index) => {
             if (menu.isRoot) {
               const isActive = location.pathname.startsWith(menu.path as string);
               return (
                 <Link
-                  key={menu.path || idx}
+                  key={menu.path || index}
                   to={menu.path as string}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors group relative cursor-pointer",
@@ -176,7 +219,7 @@ export function DashboardLayout() {
               </div>
             );
           })}
-        </nav>
+        </div>
 
 
       </aside>

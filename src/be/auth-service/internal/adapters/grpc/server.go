@@ -30,10 +30,12 @@ func (s *AuthGrpcServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.L
 	if req.Username == "" || req.Password == "" {
 		return nil, status.Error(codes.InvalidArgument, "username and password are required")
 	}
-	tokenPair, role, userID, err := s.authService.Login(ctx, req.Username, req.Password)
+
+	tokenPair, role, userID, poliCode, err := s.authService.Login(ctx, req.Username, req.Password)
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "%v", err)
 	}
+
 	return &pb.LoginResponse{
 		Success: true,
 		AccessToken: tokenPair.AccessToken,
@@ -42,6 +44,7 @@ func (s *AuthGrpcServer) Login(ctx context.Context, req *pb.LoginRequest) (*pb.L
 		RefreshTokenExpiresAt: tokenPair.RefreshTokenExpiresAt.Format(time.RFC3339),
 		Role:    role,
 		UserId:  userID,
+		PoliCode: poliCode,
 	}, nil
 }
 
@@ -64,12 +67,12 @@ func (s *AuthGrpcServer) RefreshToken(ctx context.Context, req *pb.RefreshTokenR
 
 func (s *AuthGrpcServer) Signup(ctx context.Context, req *pb.SignupRequest) (*pb.SignupResponse, error) {
 	if req.Username == "" || req.Password == "" {
-		return nil, status.Error(codes.InvalidArgument, "username (nip) and password are required")
+		return nil, status.Error(codes.InvalidArgument, "username and password are required")
 	}
 
-	userID, err := s.authService.Signup(ctx, req.Username, req.Password, req.Email, req.Phone)
+	userID, err := s.authService.Signup(ctx, req.Username, req.Password, req.Email, req.Phone, req.FullName, req.Nip, req.LabelProfesiId)
 	if err != nil {
-		if err.Error() == "NIP already registered" {
+		if err.Error() == "Username already registered" {
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
@@ -543,7 +546,31 @@ func (s *AuthGrpcServer) AssignNursePoli(ctx context.Context, req *pb.AssignNurs
 
 	return &pb.AssignNursePoliResponse{
 		Success: true,
-		Message: "Nurse assigned successfully",
+		Message: "Nurse successfully assigned to poli",
+	}, nil
+}
+
+func (s *AuthGrpcServer) GetAssignedPoli(ctx context.Context, req *pb.GetAssignedPoliRequest) (*pb.GetAssignedPoliResponse, error) {
+	if req.UserId == "" {
+		return nil, status.Error(codes.InvalidArgument, "user id is required")
+	}
+
+	uid, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid user id format")
+	}
+
+	poliCode, err := s.queries.GetAssignedPoli(ctx, uid)
+	if err != nil {
+		// It's possible the user is not assigned to any poli (e.g., admin, or doctor not on duty)
+		// Instead of returning error, just return empty poli_code
+		return &pb.GetAssignedPoliResponse{
+			PoliCode: "",
+		}, nil
+	}
+
+	return &pb.GetAssignedPoliResponse{
+		PoliCode: poliCode,
 	}, nil
 }
 
@@ -567,5 +594,44 @@ func (s *AuthGrpcServer) GetActivePersonnelMetrics(ctx context.Context, req *pb.
 		ActiveClinics: int32(activePolis),
 		ActiveDoctors: int32(activeDoctors),
 		ActiveNurses:  int32(activeNurses),
+	}, nil
+}
+
+func (s *AuthGrpcServer) ListLabelProfesi(ctx context.Context, req *pb.ListLabelProfesiRequest) (*pb.ListLabelProfesiResponse, error) {
+	page := int(req.Page)
+	if page <= 0 {
+		page = 1
+	}
+	pageSize := int(req.PageSize)
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+
+	labels, err := s.queries.GetMasterLabelProfesi(ctx, db.GetMasterLabelProfesiParams{
+		Column1: req.Search,
+		Limit:   int32(pageSize),
+		Offset:  int32((page - 1) * pageSize),
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	totalCount, err := s.queries.CountMasterLabelProfesi(ctx, req.Search)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	var pbLabels []*pb.LabelProfesi
+	for _, l := range labels {
+		pbLabels = append(pbLabels, &pb.LabelProfesi{
+			Id:        l.ID,
+			NamaLabel: l.NamaLabel,
+			IsActive:  l.IsActive,
+		})
+	}
+
+	return &pb.ListLabelProfesiResponse{
+		Data:       pbLabels,
+		TotalCount: int32(totalCount),
 	}, nil
 }

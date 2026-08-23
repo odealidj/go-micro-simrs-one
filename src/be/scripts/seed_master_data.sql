@@ -12,6 +12,7 @@ INSERT INTO auth.master_role (id, deskripsi) VALUES
 ('perawat', 'Perawat Poliklinik'),
 ('kasir', 'Kasir Pembayaran'),
 ('asisten_apoteker', 'Asisten Apoteker / Operator Farmasi'),
+('rekam_medis', 'Petugas Unit Rekam Medis (EMR)'),
 ('pasien', 'Pasien')
 ON CONFLICT (id) DO NOTHING;
 

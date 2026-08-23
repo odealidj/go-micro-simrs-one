@@ -44,6 +44,14 @@ type MappingPerawatPoli struct {
 	EndDate   time.Time
 }
 
+type MasterLabelProfesi struct {
+	ID        int32
+	NamaLabel string
+	IsActive  bool
+	DeletedDt sql.NullTime
+	DeletedBy uuid.NullUUID
+}
+
 type MasterRole struct {
 	ID        string
 	Deskripsi sql.NullString
@@ -81,15 +89,17 @@ type RefreshToken struct {
 }
 
 type StaffProfile struct {
-	ID        uuid.UUID
-	UserID    uuid.NullUUID
-	Nip       string
-	Email     sql.NullString
-	Phone     sql.NullString
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
-	DeletedDt sql.NullTime
-	DeletedBy uuid.NullUUID
+	ID             uuid.UUID
+	UserID         uuid.NullUUID
+	Nip            string
+	Email          sql.NullString
+	Phone          sql.NullString
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+	DeletedDt      sql.NullTime
+	DeletedBy      uuid.NullUUID
+	FullName       sql.NullString
+	LabelProfesiID sql.NullInt32
 }
 
 type SystemSetting struct {

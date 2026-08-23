@@ -48,8 +48,8 @@ export function LoginPage() {
 
       const result = response.data;
       if (result.success) {
-        const { access_token, refresh_token, role, user_id } = result.data;
-        login(access_token, refresh_token, role, user_id);
+        const { access_token, refresh_token, role, user_id, poli_code } = result.data;
+        login(access_token, refresh_token, role, user_id, poli_code);
         
         toast.success("Login berhasil!", {
           description: "Selamat datang kembali.",
@@ -58,10 +58,22 @@ export function LoginPage() {
         // Redirect based on role
         if (role === "admin" || role === "super_admin") {
           navigate("/admin");
-        } else if (role === "patient") {
-          navigate("/patient");
+        } else if (role === "admisi") {
+          navigate("/admisi");
+        } else if (role === "dokter") {
+          navigate("/dokter");
+        } else if (role === "perawat") {
+          navigate("/perawat");
+        } else if (role === "kasir") {
+          navigate("/kasir");
+        } else if (role === "asisten_apoteker") {
+          navigate("/apoteker");
+        } else if (role === "rekam_medis") {
+          navigate("/rekam-medis");
+        } else if (role === "pasien" || role === "patient") {
+          navigate("/pasien");
         } else {
-          navigate("/dashboard");
+          navigate("/unauthorized");
         }
       }
     } catch (error: any) {

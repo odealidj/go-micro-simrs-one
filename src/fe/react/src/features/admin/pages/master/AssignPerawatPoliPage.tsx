@@ -12,6 +12,7 @@ export function AssignPerawatPoliPage({ readOnly = false }: AssignPerawatPoliPag
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
   const [selectedPoli, setSelectedPoli] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -25,13 +26,15 @@ export function AssignPerawatPoliPage({ readOnly = false }: AssignPerawatPoliPag
   };
 
   const handleSave = async () => {
-    if (!selectedPoli || !selectedNurse) return;
+    if (!selectedPoli || !selectedNurse || !startDate) return;
     setIsSubmitting(true);
     setErrorMsg("");
     try {
       await api.post("/master/nurses/assign", {
         perawat_id: selectedNurse.id,
         poli_code: selectedPoli,
+        start_date: startDate,
+        end_date: "2099-12-31",
       });
       setIsModalOpen(false);
       window.location.reload(); // Simple reload to reflect changes
@@ -108,8 +111,18 @@ export function AssignPerawatPoliPage({ readOnly = false }: AssignPerawatPoliPag
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="py-2 mb-6">
+              <label className="block text-sm font-medium text-slate-700 mb-2">Tanggal Mulai Tugas</label>
+              <input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-700 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-colors"
+                required
+              />
               <p className="text-xs text-slate-500 mt-2">
-                Note: Mengubah poliklinik akan otomatis menutup riwayat (end_date) tugas di poliklinik sebelumnya dan memulai tugas di poliklinik baru.
+                Note: Mengubah poliklinik akan otomatis menutup riwayat (end_date) tugas di poliklinik sebelumnya dan memulai tugas di poliklinik baru hingga batas waktu tidak ditentukan.
               </p>
             </div>
             <div className="flex justify-end gap-3">

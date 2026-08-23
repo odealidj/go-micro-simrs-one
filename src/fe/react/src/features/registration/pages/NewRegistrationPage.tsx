@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { Search, CreditCard, UserCircle, Camera, UploadCloud, X, Loader2, ChevronLeft, ChevronRight, Check, Activity, Clock } from "lucide-react";
+import { Search, CreditCard, UserCircle, Camera, UploadCloud, X, Loader2, Check, Activity, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

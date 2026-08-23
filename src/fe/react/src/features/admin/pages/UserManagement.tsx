@@ -97,6 +97,7 @@ export function UserManagement() {
     { value: "dokter", label: "Dokter" },
     { value: "perawat", label: "Perawat" },
     { value: "asisten_apoteker", label: "Asisten Apoteker" },
+    { value: "rekam_medis", label: "Rekam Medis" },
     { value: "kasir", label: "Kasir" },
     { value: "admin", label: "Admin IT" },
     { value: "pasien", label: "Pasien" },

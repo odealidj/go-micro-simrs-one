@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.26.1
-// source: auth/v1/auth.proto
+// source: proto/auth/v1/auth.proto
 
 package authv1
 
@@ -31,7 +31,7 @@ type LoginRequest struct {
 
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[0]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[0]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{0}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *LoginRequest) GetUsername() string {
@@ -82,13 +82,14 @@ type LoginResponse struct {
 	RefreshTokenExpiresAt string                 `protobuf:"bytes,5,opt,name=refresh_token_expires_at,json=refreshTokenExpiresAt,proto3" json:"refresh_token_expires_at,omitempty"`
 	Role                  string                 `protobuf:"bytes,6,opt,name=role,proto3" json:"role,omitempty"`
 	UserId                string                 `protobuf:"bytes,7,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	PoliCode              string                 `protobuf:"bytes,8,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[1]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -100,7 +101,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[1]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -113,7 +114,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{1}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *LoginResponse) GetSuccess() bool {
@@ -165,19 +166,29 @@ func (x *LoginResponse) GetUserId() string {
 	return ""
 }
 
+func (x *LoginResponse) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
 type SignupRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
-	Phone         string                 `protobuf:"bytes,4,opt,name=phone,proto3" json:"phone,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Username       string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password       string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Email          string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	Phone          string                 `protobuf:"bytes,4,opt,name=phone,proto3" json:"phone,omitempty"`
+	FullName       string                 `protobuf:"bytes,5,opt,name=full_name,json=fullName,proto3" json:"full_name,omitempty"`
+	LabelProfesiId int32                  `protobuf:"varint,6,opt,name=label_profesi_id,json=labelProfesiId,proto3" json:"label_profesi_id,omitempty"`
+	Nip            string                 `protobuf:"bytes,7,opt,name=nip,proto3" json:"nip,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *SignupRequest) Reset() {
 	*x = SignupRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[2]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -189,7 +200,7 @@ func (x *SignupRequest) String() string {
 func (*SignupRequest) ProtoMessage() {}
 
 func (x *SignupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[2]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -202,7 +213,7 @@ func (x *SignupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignupRequest.ProtoReflect.Descriptor instead.
 func (*SignupRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{2}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *SignupRequest) GetUsername() string {
@@ -233,6 +244,27 @@ func (x *SignupRequest) GetPhone() string {
 	return ""
 }
 
+func (x *SignupRequest) GetFullName() string {
+	if x != nil {
+		return x.FullName
+	}
+	return ""
+}
+
+func (x *SignupRequest) GetLabelProfesiId() int32 {
+	if x != nil {
+		return x.LabelProfesiId
+	}
+	return 0
+}
+
+func (x *SignupRequest) GetNip() string {
+	if x != nil {
+		return x.Nip
+	}
+	return ""
+}
+
 type SignupResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -244,7 +276,7 @@ type SignupResponse struct {
 
 func (x *SignupResponse) Reset() {
 	*x = SignupResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[3]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -256,7 +288,7 @@ func (x *SignupResponse) String() string {
 func (*SignupResponse) ProtoMessage() {}
 
 func (x *SignupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[3]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -269,7 +301,7 @@ func (x *SignupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignupResponse.ProtoReflect.Descriptor instead.
 func (*SignupResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{3}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SignupResponse) GetSuccess() bool {
@@ -303,7 +335,7 @@ type RegisterPatientUserRequest struct {
 
 func (x *RegisterPatientUserRequest) Reset() {
 	*x = RegisterPatientUserRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[4]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -315,7 +347,7 @@ func (x *RegisterPatientUserRequest) String() string {
 func (*RegisterPatientUserRequest) ProtoMessage() {}
 
 func (x *RegisterPatientUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[4]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -328,7 +360,7 @@ func (x *RegisterPatientUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterPatientUserRequest.ProtoReflect.Descriptor instead.
 func (*RegisterPatientUserRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{4}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RegisterPatientUserRequest) GetUsername() string {
@@ -355,7 +387,7 @@ type RegisterPatientUserResponse struct {
 
 func (x *RegisterPatientUserResponse) Reset() {
 	*x = RegisterPatientUserResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[5]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -367,7 +399,7 @@ func (x *RegisterPatientUserResponse) String() string {
 func (*RegisterPatientUserResponse) ProtoMessage() {}
 
 func (x *RegisterPatientUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[5]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -380,7 +412,7 @@ func (x *RegisterPatientUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RegisterPatientUserResponse.ProtoReflect.Descriptor instead.
 func (*RegisterPatientUserResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{5}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *RegisterPatientUserResponse) GetSuccess() bool {
@@ -406,7 +438,7 @@ type ValidateTokenRequest struct {
 
 func (x *ValidateTokenRequest) Reset() {
 	*x = ValidateTokenRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[6]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -418,7 +450,7 @@ func (x *ValidateTokenRequest) String() string {
 func (*ValidateTokenRequest) ProtoMessage() {}
 
 func (x *ValidateTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[6]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -431,7 +463,7 @@ func (x *ValidateTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateTokenRequest.ProtoReflect.Descriptor instead.
 func (*ValidateTokenRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{6}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ValidateTokenRequest) GetToken() string {
@@ -452,7 +484,7 @@ type ValidateTokenResponse struct {
 
 func (x *ValidateTokenResponse) Reset() {
 	*x = ValidateTokenResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[7]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -464,7 +496,7 @@ func (x *ValidateTokenResponse) String() string {
 func (*ValidateTokenResponse) ProtoMessage() {}
 
 func (x *ValidateTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[7]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -477,7 +509,7 @@ func (x *ValidateTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValidateTokenResponse.ProtoReflect.Descriptor instead.
 func (*ValidateTokenResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{7}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ValidateTokenResponse) GetValid() bool {
@@ -510,7 +542,7 @@ type RefreshTokenRequest struct {
 
 func (x *RefreshTokenRequest) Reset() {
 	*x = RefreshTokenRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[8]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -522,7 +554,7 @@ func (x *RefreshTokenRequest) String() string {
 func (*RefreshTokenRequest) ProtoMessage() {}
 
 func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[8]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -535,7 +567,7 @@ func (x *RefreshTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshTokenRequest.ProtoReflect.Descriptor instead.
 func (*RefreshTokenRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{8}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *RefreshTokenRequest) GetRefreshToken() string {
@@ -558,7 +590,7 @@ type RefreshTokenResponse struct {
 
 func (x *RefreshTokenResponse) Reset() {
 	*x = RefreshTokenResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[9]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -570,7 +602,7 @@ func (x *RefreshTokenResponse) String() string {
 func (*RefreshTokenResponse) ProtoMessage() {}
 
 func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[9]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -583,7 +615,7 @@ func (x *RefreshTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RefreshTokenResponse.ProtoReflect.Descriptor instead.
 func (*RefreshTokenResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{9}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *RefreshTokenResponse) GetSuccess() bool {
@@ -630,7 +662,7 @@ type ExtractKTPDataRequest struct {
 
 func (x *ExtractKTPDataRequest) Reset() {
 	*x = ExtractKTPDataRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[10]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -642,7 +674,7 @@ func (x *ExtractKTPDataRequest) String() string {
 func (*ExtractKTPDataRequest) ProtoMessage() {}
 
 func (x *ExtractKTPDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[10]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -655,7 +687,7 @@ func (x *ExtractKTPDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExtractKTPDataRequest.ProtoReflect.Descriptor instead.
 func (*ExtractKTPDataRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{10}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ExtractKTPDataRequest) GetBase64Image() string {
@@ -678,7 +710,7 @@ type ExtractKTPDataResponse struct {
 
 func (x *ExtractKTPDataResponse) Reset() {
 	*x = ExtractKTPDataResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[11]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -690,7 +722,7 @@ func (x *ExtractKTPDataResponse) String() string {
 func (*ExtractKTPDataResponse) ProtoMessage() {}
 
 func (x *ExtractKTPDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[11]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -703,7 +735,7 @@ func (x *ExtractKTPDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExtractKTPDataResponse.ProtoReflect.Descriptor instead.
 func (*ExtractKTPDataResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{11}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ExtractKTPDataResponse) GetSuccess() bool {
@@ -757,7 +789,7 @@ type UserData struct {
 
 func (x *UserData) Reset() {
 	*x = UserData{}
-	mi := &file_auth_v1_auth_proto_msgTypes[12]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -769,7 +801,7 @@ func (x *UserData) String() string {
 func (*UserData) ProtoMessage() {}
 
 func (x *UserData) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[12]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -782,7 +814,7 @@ func (x *UserData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserData.ProtoReflect.Descriptor instead.
 func (*UserData) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{12}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *UserData) GetId() string {
@@ -853,7 +885,7 @@ type ListUsersRequest struct {
 
 func (x *ListUsersRequest) Reset() {
 	*x = ListUsersRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[13]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -865,7 +897,7 @@ func (x *ListUsersRequest) String() string {
 func (*ListUsersRequest) ProtoMessage() {}
 
 func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[13]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -878,7 +910,7 @@ func (x *ListUsersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersRequest.ProtoReflect.Descriptor instead.
 func (*ListUsersRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{13}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ListUsersRequest) GetPage() int32 {
@@ -919,7 +951,7 @@ type ListUsersResponse struct {
 
 func (x *ListUsersResponse) Reset() {
 	*x = ListUsersResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[14]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -931,7 +963,7 @@ func (x *ListUsersResponse) String() string {
 func (*ListUsersResponse) ProtoMessage() {}
 
 func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[14]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -944,7 +976,7 @@ func (x *ListUsersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListUsersResponse.ProtoReflect.Descriptor instead.
 func (*ListUsersResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{14}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ListUsersResponse) GetUsers() []*UserData {
@@ -972,7 +1004,7 @@ type UpdateUserStatusRequest struct {
 
 func (x *UpdateUserStatusRequest) Reset() {
 	*x = UpdateUserStatusRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[15]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -984,7 +1016,7 @@ func (x *UpdateUserStatusRequest) String() string {
 func (*UpdateUserStatusRequest) ProtoMessage() {}
 
 func (x *UpdateUserStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[15]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -997,7 +1029,7 @@ func (x *UpdateUserStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserStatusRequest.ProtoReflect.Descriptor instead.
 func (*UpdateUserStatusRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{15}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *UpdateUserStatusRequest) GetUserId() string {
@@ -1031,7 +1063,7 @@ type UpdateUserStatusResponse struct {
 
 func (x *UpdateUserStatusResponse) Reset() {
 	*x = UpdateUserStatusResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[16]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1043,7 +1075,7 @@ func (x *UpdateUserStatusResponse) String() string {
 func (*UpdateUserStatusResponse) ProtoMessage() {}
 
 func (x *UpdateUserStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[16]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1056,7 +1088,7 @@ func (x *UpdateUserStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateUserStatusResponse.ProtoReflect.Descriptor instead.
 func (*UpdateUserStatusResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{16}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UpdateUserStatusResponse) GetSuccess() bool {
@@ -1084,7 +1116,7 @@ type DeleteUserRequest struct {
 
 func (x *DeleteUserRequest) Reset() {
 	*x = DeleteUserRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[17]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1096,7 +1128,7 @@ func (x *DeleteUserRequest) String() string {
 func (*DeleteUserRequest) ProtoMessage() {}
 
 func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[17]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1109,7 +1141,7 @@ func (x *DeleteUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserRequest.ProtoReflect.Descriptor instead.
 func (*DeleteUserRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{17}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *DeleteUserRequest) GetUserId() string {
@@ -1143,7 +1175,7 @@ type DeleteUserResponse struct {
 
 func (x *DeleteUserResponse) Reset() {
 	*x = DeleteUserResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[18]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1155,7 +1187,7 @@ func (x *DeleteUserResponse) String() string {
 func (*DeleteUserResponse) ProtoMessage() {}
 
 func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[18]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1168,7 +1200,7 @@ func (x *DeleteUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteUserResponse.ProtoReflect.Descriptor instead.
 func (*DeleteUserResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{18}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *DeleteUserResponse) GetSuccess() bool {
@@ -1196,7 +1228,7 @@ type GetMasterRolesRequest struct {
 
 func (x *GetMasterRolesRequest) Reset() {
 	*x = GetMasterRolesRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[19]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1208,7 +1240,7 @@ func (x *GetMasterRolesRequest) String() string {
 func (*GetMasterRolesRequest) ProtoMessage() {}
 
 func (x *GetMasterRolesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[19]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1221,7 +1253,7 @@ func (x *GetMasterRolesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterRolesRequest.ProtoReflect.Descriptor instead.
 func (*GetMasterRolesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{19}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GetMasterRolesRequest) GetPage() int32 {
@@ -1255,7 +1287,7 @@ type MasterRole struct {
 
 func (x *MasterRole) Reset() {
 	*x = MasterRole{}
-	mi := &file_auth_v1_auth_proto_msgTypes[20]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1267,7 +1299,7 @@ func (x *MasterRole) String() string {
 func (*MasterRole) ProtoMessage() {}
 
 func (x *MasterRole) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[20]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1280,7 +1312,7 @@ func (x *MasterRole) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MasterRole.ProtoReflect.Descriptor instead.
 func (*MasterRole) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{20}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *MasterRole) GetId() string {
@@ -1307,7 +1339,7 @@ type GetMasterRolesResponse struct {
 
 func (x *GetMasterRolesResponse) Reset() {
 	*x = GetMasterRolesResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[21]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1319,7 +1351,7 @@ func (x *GetMasterRolesResponse) String() string {
 func (*GetMasterRolesResponse) ProtoMessage() {}
 
 func (x *GetMasterRolesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[21]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1332,7 +1364,7 @@ func (x *GetMasterRolesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterRolesResponse.ProtoReflect.Descriptor instead.
 func (*GetMasterRolesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{21}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetMasterRolesResponse) GetData() []*MasterRole {
@@ -1360,7 +1392,7 @@ type GetDoctorsRequest struct {
 
 func (x *GetDoctorsRequest) Reset() {
 	*x = GetDoctorsRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[22]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1372,7 +1404,7 @@ func (x *GetDoctorsRequest) String() string {
 func (*GetDoctorsRequest) ProtoMessage() {}
 
 func (x *GetDoctorsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[22]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1385,7 +1417,7 @@ func (x *GetDoctorsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDoctorsRequest.ProtoReflect.Descriptor instead.
 func (*GetDoctorsRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{22}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetDoctorsRequest) GetPage() int32 {
@@ -1427,7 +1459,7 @@ type Doctor struct {
 
 func (x *Doctor) Reset() {
 	*x = Doctor{}
-	mi := &file_auth_v1_auth_proto_msgTypes[23]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1439,7 +1471,7 @@ func (x *Doctor) String() string {
 func (*Doctor) ProtoMessage() {}
 
 func (x *Doctor) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[23]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1452,7 +1484,7 @@ func (x *Doctor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Doctor.ProtoReflect.Descriptor instead.
 func (*Doctor) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{23}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Doctor) GetId() string {
@@ -1535,7 +1567,7 @@ type GetDoctorsResponse struct {
 
 func (x *GetDoctorsResponse) Reset() {
 	*x = GetDoctorsResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[24]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1547,7 +1579,7 @@ func (x *GetDoctorsResponse) String() string {
 func (*GetDoctorsResponse) ProtoMessage() {}
 
 func (x *GetDoctorsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[24]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1560,7 +1592,7 @@ func (x *GetDoctorsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDoctorsResponse.ProtoReflect.Descriptor instead.
 func (*GetDoctorsResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{24}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetDoctorsResponse) GetData() []*Doctor {
@@ -1588,7 +1620,7 @@ type GetNursesRequest struct {
 
 func (x *GetNursesRequest) Reset() {
 	*x = GetNursesRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[25]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1600,7 +1632,7 @@ func (x *GetNursesRequest) String() string {
 func (*GetNursesRequest) ProtoMessage() {}
 
 func (x *GetNursesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[25]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1613,7 +1645,7 @@ func (x *GetNursesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNursesRequest.ProtoReflect.Descriptor instead.
 func (*GetNursesRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{25}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *GetNursesRequest) GetPage() int32 {
@@ -1654,7 +1686,7 @@ type Nurse struct {
 
 func (x *Nurse) Reset() {
 	*x = Nurse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[26]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1666,7 +1698,7 @@ func (x *Nurse) String() string {
 func (*Nurse) ProtoMessage() {}
 
 func (x *Nurse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[26]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1679,7 +1711,7 @@ func (x *Nurse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Nurse.ProtoReflect.Descriptor instead.
 func (*Nurse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{26}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *Nurse) GetId() string {
@@ -1755,7 +1787,7 @@ type GetNursesResponse struct {
 
 func (x *GetNursesResponse) Reset() {
 	*x = GetNursesResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[27]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1767,7 +1799,7 @@ func (x *GetNursesResponse) String() string {
 func (*GetNursesResponse) ProtoMessage() {}
 
 func (x *GetNursesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[27]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1780,7 +1812,7 @@ func (x *GetNursesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNursesResponse.ProtoReflect.Descriptor instead.
 func (*GetNursesResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{27}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *GetNursesResponse) GetData() []*Nurse {
@@ -1809,7 +1841,7 @@ type GetDoctorsByPoliRequest struct {
 
 func (x *GetDoctorsByPoliRequest) Reset() {
 	*x = GetDoctorsByPoliRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[28]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1821,7 +1853,7 @@ func (x *GetDoctorsByPoliRequest) String() string {
 func (*GetDoctorsByPoliRequest) ProtoMessage() {}
 
 func (x *GetDoctorsByPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[28]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1834,7 +1866,7 @@ func (x *GetDoctorsByPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDoctorsByPoliRequest.ProtoReflect.Descriptor instead.
 func (*GetDoctorsByPoliRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{28}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetDoctorsByPoliRequest) GetPage() int32 {
@@ -1880,7 +1912,7 @@ type DoctorPoliMapping struct {
 
 func (x *DoctorPoliMapping) Reset() {
 	*x = DoctorPoliMapping{}
-	mi := &file_auth_v1_auth_proto_msgTypes[29]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1892,7 +1924,7 @@ func (x *DoctorPoliMapping) String() string {
 func (*DoctorPoliMapping) ProtoMessage() {}
 
 func (x *DoctorPoliMapping) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[29]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1905,7 +1937,7 @@ func (x *DoctorPoliMapping) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DoctorPoliMapping.ProtoReflect.Descriptor instead.
 func (*DoctorPoliMapping) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{29}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *DoctorPoliMapping) GetId() string {
@@ -1967,7 +1999,7 @@ type GetDoctorsByPoliResponse struct {
 
 func (x *GetDoctorsByPoliResponse) Reset() {
 	*x = GetDoctorsByPoliResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[30]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1979,7 +2011,7 @@ func (x *GetDoctorsByPoliResponse) String() string {
 func (*GetDoctorsByPoliResponse) ProtoMessage() {}
 
 func (x *GetDoctorsByPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[30]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1992,7 +2024,7 @@ func (x *GetDoctorsByPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetDoctorsByPoliResponse.ProtoReflect.Descriptor instead.
 func (*GetDoctorsByPoliResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{30}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetDoctorsByPoliResponse) GetData() []*DoctorPoliMapping {
@@ -2021,7 +2053,7 @@ type GetNursesByPoliRequest struct {
 
 func (x *GetNursesByPoliRequest) Reset() {
 	*x = GetNursesByPoliRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[31]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2033,7 +2065,7 @@ func (x *GetNursesByPoliRequest) String() string {
 func (*GetNursesByPoliRequest) ProtoMessage() {}
 
 func (x *GetNursesByPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[31]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2046,7 +2078,7 @@ func (x *GetNursesByPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNursesByPoliRequest.ProtoReflect.Descriptor instead.
 func (*GetNursesByPoliRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{31}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetNursesByPoliRequest) GetPage() int32 {
@@ -2092,7 +2124,7 @@ type NursePoliMapping struct {
 
 func (x *NursePoliMapping) Reset() {
 	*x = NursePoliMapping{}
-	mi := &file_auth_v1_auth_proto_msgTypes[32]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2104,7 +2136,7 @@ func (x *NursePoliMapping) String() string {
 func (*NursePoliMapping) ProtoMessage() {}
 
 func (x *NursePoliMapping) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[32]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2117,7 +2149,7 @@ func (x *NursePoliMapping) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NursePoliMapping.ProtoReflect.Descriptor instead.
 func (*NursePoliMapping) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{32}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *NursePoliMapping) GetId() string {
@@ -2179,7 +2211,7 @@ type GetNursesByPoliResponse struct {
 
 func (x *GetNursesByPoliResponse) Reset() {
 	*x = GetNursesByPoliResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[33]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2191,7 +2223,7 @@ func (x *GetNursesByPoliResponse) String() string {
 func (*GetNursesByPoliResponse) ProtoMessage() {}
 
 func (x *GetNursesByPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[33]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2204,7 +2236,7 @@ func (x *GetNursesByPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetNursesByPoliResponse.ProtoReflect.Descriptor instead.
 func (*GetNursesByPoliResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{33}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetNursesByPoliResponse) GetData() []*NursePoliMapping {
@@ -2233,7 +2265,7 @@ type AssignDoctorPoliRequest struct {
 
 func (x *AssignDoctorPoliRequest) Reset() {
 	*x = AssignDoctorPoliRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[34]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2245,7 +2277,7 @@ func (x *AssignDoctorPoliRequest) String() string {
 func (*AssignDoctorPoliRequest) ProtoMessage() {}
 
 func (x *AssignDoctorPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[34]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2258,7 +2290,7 @@ func (x *AssignDoctorPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignDoctorPoliRequest.ProtoReflect.Descriptor instead.
 func (*AssignDoctorPoliRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{34}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *AssignDoctorPoliRequest) GetDokterId() string {
@@ -2299,7 +2331,7 @@ type AssignDoctorPoliResponse struct {
 
 func (x *AssignDoctorPoliResponse) Reset() {
 	*x = AssignDoctorPoliResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[35]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2311,7 +2343,7 @@ func (x *AssignDoctorPoliResponse) String() string {
 func (*AssignDoctorPoliResponse) ProtoMessage() {}
 
 func (x *AssignDoctorPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[35]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2324,7 +2356,7 @@ func (x *AssignDoctorPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignDoctorPoliResponse.ProtoReflect.Descriptor instead.
 func (*AssignDoctorPoliResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{35}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *AssignDoctorPoliResponse) GetSuccess() bool {
@@ -2353,7 +2385,7 @@ type AssignNursePoliRequest struct {
 
 func (x *AssignNursePoliRequest) Reset() {
 	*x = AssignNursePoliRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[36]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2365,7 +2397,7 @@ func (x *AssignNursePoliRequest) String() string {
 func (*AssignNursePoliRequest) ProtoMessage() {}
 
 func (x *AssignNursePoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[36]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2378,7 +2410,7 @@ func (x *AssignNursePoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignNursePoliRequest.ProtoReflect.Descriptor instead.
 func (*AssignNursePoliRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{36}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *AssignNursePoliRequest) GetPerawatId() string {
@@ -2419,7 +2451,7 @@ type AssignNursePoliResponse struct {
 
 func (x *AssignNursePoliResponse) Reset() {
 	*x = AssignNursePoliResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[37]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2431,7 +2463,7 @@ func (x *AssignNursePoliResponse) String() string {
 func (*AssignNursePoliResponse) ProtoMessage() {}
 
 func (x *AssignNursePoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[37]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2444,7 +2476,7 @@ func (x *AssignNursePoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignNursePoliResponse.ProtoReflect.Descriptor instead.
 func (*AssignNursePoliResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{37}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *AssignNursePoliResponse) GetSuccess() bool {
@@ -2461,6 +2493,94 @@ func (x *AssignNursePoliResponse) GetMessage() string {
 	return ""
 }
 
+type GetAssignedPoliRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAssignedPoliRequest) Reset() {
+	*x = GetAssignedPoliRequest{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[38]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAssignedPoliRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAssignedPoliRequest) ProtoMessage() {}
+
+func (x *GetAssignedPoliRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[38]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAssignedPoliRequest.ProtoReflect.Descriptor instead.
+func (*GetAssignedPoliRequest) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{38}
+}
+
+func (x *GetAssignedPoliRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type GetAssignedPoliResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PoliCode      string                 `protobuf:"bytes,1,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetAssignedPoliResponse) Reset() {
+	*x = GetAssignedPoliResponse{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetAssignedPoliResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAssignedPoliResponse) ProtoMessage() {}
+
+func (x *GetAssignedPoliResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAssignedPoliResponse.ProtoReflect.Descriptor instead.
+func (*GetAssignedPoliResponse) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *GetAssignedPoliResponse) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
 type GetActivePersonnelMetricsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -2469,7 +2589,7 @@ type GetActivePersonnelMetricsRequest struct {
 
 func (x *GetActivePersonnelMetricsRequest) Reset() {
 	*x = GetActivePersonnelMetricsRequest{}
-	mi := &file_auth_v1_auth_proto_msgTypes[38]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2481,7 +2601,7 @@ func (x *GetActivePersonnelMetricsRequest) String() string {
 func (*GetActivePersonnelMetricsRequest) ProtoMessage() {}
 
 func (x *GetActivePersonnelMetricsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[38]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2494,7 +2614,7 @@ func (x *GetActivePersonnelMetricsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetActivePersonnelMetricsRequest.ProtoReflect.Descriptor instead.
 func (*GetActivePersonnelMetricsRequest) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{38}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{40}
 }
 
 type GetActivePersonnelMetricsResponse struct {
@@ -2508,7 +2628,7 @@ type GetActivePersonnelMetricsResponse struct {
 
 func (x *GetActivePersonnelMetricsResponse) Reset() {
 	*x = GetActivePersonnelMetricsResponse{}
-	mi := &file_auth_v1_auth_proto_msgTypes[39]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2520,7 +2640,7 @@ func (x *GetActivePersonnelMetricsResponse) String() string {
 func (*GetActivePersonnelMetricsResponse) ProtoMessage() {}
 
 func (x *GetActivePersonnelMetricsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_auth_v1_auth_proto_msgTypes[39]
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2533,7 +2653,7 @@ func (x *GetActivePersonnelMetricsResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetActivePersonnelMetricsResponse.ProtoReflect.Descriptor instead.
 func (*GetActivePersonnelMetricsResponse) Descriptor() ([]byte, []int) {
-	return file_auth_v1_auth_proto_rawDescGZIP(), []int{39}
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetActivePersonnelMetricsResponse) GetActiveDoctors() int32 {
@@ -2557,14 +2677,186 @@ func (x *GetActivePersonnelMetricsResponse) GetActiveClinics() int32 {
 	return 0
 }
 
-var File_auth_v1_auth_proto protoreflect.FileDescriptor
+type ListLabelProfesiRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
 
-const file_auth_v1_auth_proto_rawDesc = "" +
+func (x *ListLabelProfesiRequest) Reset() {
+	*x = ListLabelProfesiRequest{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLabelProfesiRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLabelProfesiRequest) ProtoMessage() {}
+
+func (x *ListLabelProfesiRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLabelProfesiRequest.ProtoReflect.Descriptor instead.
+func (*ListLabelProfesiRequest) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *ListLabelProfesiRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *ListLabelProfesiRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *ListLabelProfesiRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+type LabelProfesi struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	NamaLabel     string                 `protobuf:"bytes,2,opt,name=nama_label,json=namaLabel,proto3" json:"nama_label,omitempty"`
+	IsActive      bool                   `protobuf:"varint,3,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LabelProfesi) Reset() {
+	*x = LabelProfesi{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LabelProfesi) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LabelProfesi) ProtoMessage() {}
+
+func (x *LabelProfesi) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LabelProfesi.ProtoReflect.Descriptor instead.
+func (*LabelProfesi) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *LabelProfesi) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *LabelProfesi) GetNamaLabel() string {
+	if x != nil {
+		return x.NamaLabel
+	}
+	return ""
+}
+
+func (x *LabelProfesi) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
+}
+
+type ListLabelProfesiResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*LabelProfesi        `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListLabelProfesiResponse) Reset() {
+	*x = ListLabelProfesiResponse{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListLabelProfesiResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListLabelProfesiResponse) ProtoMessage() {}
+
+func (x *ListLabelProfesiResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListLabelProfesiResponse.ProtoReflect.Descriptor instead.
+func (*ListLabelProfesiResponse) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *ListLabelProfesiResponse) GetData() []*LabelProfesi {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *ListLabelProfesiResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
+var File_proto_auth_v1_auth_proto protoreflect.FileDescriptor
+
+const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
-	"\x12auth/v1/auth.proto\x12\aauth.v1\"F\n" +
+	"\x18proto/auth/v1/auth.proto\x12\aauth.v1\"F\n" +
 	"\fLoginRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x8e\x02\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"\xab\x02\n" +
 	"\rLoginResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12!\n" +
 	"\faccess_token\x18\x02 \x01(\tR\vaccessToken\x12#\n" +
@@ -2572,12 +2864,16 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x17access_token_expires_at\x18\x04 \x01(\tR\x14accessTokenExpiresAt\x127\n" +
 	"\x18refresh_token_expires_at\x18\x05 \x01(\tR\x15refreshTokenExpiresAt\x12\x12\n" +
 	"\x04role\x18\x06 \x01(\tR\x04role\x12\x17\n" +
-	"\auser_id\x18\a \x01(\tR\x06userId\"s\n" +
+	"\auser_id\x18\a \x01(\tR\x06userId\x12\x1b\n" +
+	"\tpoli_code\x18\b \x01(\tR\bpoliCode\"\xcc\x01\n" +
 	"\rSignupRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\x12\x14\n" +
-	"\x05phone\x18\x04 \x01(\tR\x05phone\"]\n" +
+	"\x05phone\x18\x04 \x01(\tR\x05phone\x12\x1b\n" +
+	"\tfull_name\x18\x05 \x01(\tR\bfullName\x12(\n" +
+	"\x10label_profesi_id\x18\x06 \x01(\x05R\x0elabelProfesiId\x12\x10\n" +
+	"\x03nip\x18\a \x01(\tR\x03nip\"]\n" +
 	"\x0eSignupResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x18\n" +
@@ -2753,13 +3049,29 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\bend_date\x18\x04 \x01(\tR\aendDate\"M\n" +
 	"\x17AssignNursePoliResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\"\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"1\n" +
+	"\x16GetAssignedPoliRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"6\n" +
+	"\x17GetAssignedPoliResponse\x12\x1b\n" +
+	"\tpoli_code\x18\x01 \x01(\tR\bpoliCode\"\"\n" +
 	" GetActivePersonnelMetricsRequest\"\x96\x01\n" +
 	"!GetActivePersonnelMetricsResponse\x12%\n" +
 	"\x0eactive_doctors\x18\x01 \x01(\x05R\ractiveDoctors\x12#\n" +
 	"\ractive_nurses\x18\x02 \x01(\x05R\factiveNurses\x12%\n" +
-	"\x0eactive_clinics\x18\x03 \x01(\x05R\ractiveClinics2\xe6\n" +
+	"\x0eactive_clinics\x18\x03 \x01(\x05R\ractiveClinics\"b\n" +
+	"\x17ListLabelProfesiRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\"Z\n" +
+	"\fLabelProfesi\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x1d\n" +
 	"\n" +
+	"nama_label\x18\x02 \x01(\tR\tnamaLabel\x12\x1b\n" +
+	"\tis_active\x18\x03 \x01(\bR\bisActive\"f\n" +
+	"\x18ListLabelProfesiResponse\x12)\n" +
+	"\x04data\x18\x01 \x03(\v2\x15.auth.v1.LabelProfesiR\x04data\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount2\x95\f\n" +
 	"\vAuthService\x126\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\x129\n" +
 	"\x06Signup\x12\x16.auth.v1.SignupRequest\x1a\x17.auth.v1.SignupResponse\x12`\n" +
@@ -2778,23 +3090,25 @@ const file_auth_v1_auth_proto_rawDesc = "" +
 	"\x10GetDoctorsByPoli\x12 .auth.v1.GetDoctorsByPoliRequest\x1a!.auth.v1.GetDoctorsByPoliResponse\x12T\n" +
 	"\x0fGetNursesByPoli\x12\x1f.auth.v1.GetNursesByPoliRequest\x1a .auth.v1.GetNursesByPoliResponse\x12W\n" +
 	"\x10AssignDoctorPoli\x12 .auth.v1.AssignDoctorPoliRequest\x1a!.auth.v1.AssignDoctorPoliResponse\x12T\n" +
-	"\x0fAssignNursePoli\x12\x1f.auth.v1.AssignNursePoliRequest\x1a .auth.v1.AssignNursePoliResponse\x12r\n" +
+	"\x0fAssignNursePoli\x12\x1f.auth.v1.AssignNursePoliRequest\x1a .auth.v1.AssignNursePoliResponse\x12T\n" +
+	"\x0fGetAssignedPoli\x12\x1f.auth.v1.GetAssignedPoliRequest\x1a .auth.v1.GetAssignedPoliResponse\x12W\n" +
+	"\x10ListLabelProfesi\x12 .auth.v1.ListLabelProfesiRequest\x1a!.auth.v1.ListLabelProfesiResponse\x12r\n" +
 	"\x19GetActivePersonnelMetrics\x12).auth.v1.GetActivePersonnelMetricsRequest\x1a*.auth.v1.GetActivePersonnelMetricsResponseBBZ@github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1;authv1b\x06proto3"
 
 var (
-	file_auth_v1_auth_proto_rawDescOnce sync.Once
-	file_auth_v1_auth_proto_rawDescData []byte
+	file_proto_auth_v1_auth_proto_rawDescOnce sync.Once
+	file_proto_auth_v1_auth_proto_rawDescData []byte
 )
 
-func file_auth_v1_auth_proto_rawDescGZIP() []byte {
-	file_auth_v1_auth_proto_rawDescOnce.Do(func() {
-		file_auth_v1_auth_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)))
+func file_proto_auth_v1_auth_proto_rawDescGZIP() []byte {
+	file_proto_auth_v1_auth_proto_rawDescOnce.Do(func() {
+		file_proto_auth_v1_auth_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_auth_v1_auth_proto_rawDesc), len(file_proto_auth_v1_auth_proto_rawDesc)))
 	})
-	return file_auth_v1_auth_proto_rawDescData
+	return file_proto_auth_v1_auth_proto_rawDescData
 }
 
-var file_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
-var file_auth_v1_auth_proto_goTypes = []any{
+var file_proto_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_proto_auth_v1_auth_proto_goTypes = []any{
 	(*LoginRequest)(nil),                      // 0: auth.v1.LoginRequest
 	(*LoginResponse)(nil),                     // 1: auth.v1.LoginResponse
 	(*SignupRequest)(nil),                     // 2: auth.v1.SignupRequest
@@ -2833,77 +3147,87 @@ var file_auth_v1_auth_proto_goTypes = []any{
 	(*AssignDoctorPoliResponse)(nil),          // 35: auth.v1.AssignDoctorPoliResponse
 	(*AssignNursePoliRequest)(nil),            // 36: auth.v1.AssignNursePoliRequest
 	(*AssignNursePoliResponse)(nil),           // 37: auth.v1.AssignNursePoliResponse
-	(*GetActivePersonnelMetricsRequest)(nil),  // 38: auth.v1.GetActivePersonnelMetricsRequest
-	(*GetActivePersonnelMetricsResponse)(nil), // 39: auth.v1.GetActivePersonnelMetricsResponse
+	(*GetAssignedPoliRequest)(nil),            // 38: auth.v1.GetAssignedPoliRequest
+	(*GetAssignedPoliResponse)(nil),           // 39: auth.v1.GetAssignedPoliResponse
+	(*GetActivePersonnelMetricsRequest)(nil),  // 40: auth.v1.GetActivePersonnelMetricsRequest
+	(*GetActivePersonnelMetricsResponse)(nil), // 41: auth.v1.GetActivePersonnelMetricsResponse
+	(*ListLabelProfesiRequest)(nil),           // 42: auth.v1.ListLabelProfesiRequest
+	(*LabelProfesi)(nil),                      // 43: auth.v1.LabelProfesi
+	(*ListLabelProfesiResponse)(nil),          // 44: auth.v1.ListLabelProfesiResponse
 }
-var file_auth_v1_auth_proto_depIdxs = []int32{
+var file_proto_auth_v1_auth_proto_depIdxs = []int32{
 	12, // 0: auth.v1.ListUsersResponse.users:type_name -> auth.v1.UserData
 	20, // 1: auth.v1.GetMasterRolesResponse.data:type_name -> auth.v1.MasterRole
 	23, // 2: auth.v1.GetDoctorsResponse.data:type_name -> auth.v1.Doctor
 	26, // 3: auth.v1.GetNursesResponse.data:type_name -> auth.v1.Nurse
 	29, // 4: auth.v1.GetDoctorsByPoliResponse.data:type_name -> auth.v1.DoctorPoliMapping
 	32, // 5: auth.v1.GetNursesByPoliResponse.data:type_name -> auth.v1.NursePoliMapping
-	0,  // 6: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	2,  // 7: auth.v1.AuthService.Signup:input_type -> auth.v1.SignupRequest
-	4,  // 8: auth.v1.AuthService.RegisterPatientUser:input_type -> auth.v1.RegisterPatientUserRequest
-	6,  // 9: auth.v1.AuthService.ValidateToken:input_type -> auth.v1.ValidateTokenRequest
-	8,  // 10: auth.v1.AuthService.RefreshToken:input_type -> auth.v1.RefreshTokenRequest
-	10, // 11: auth.v1.AuthService.ExtractKTPData:input_type -> auth.v1.ExtractKTPDataRequest
-	13, // 12: auth.v1.AuthService.ListUsers:input_type -> auth.v1.ListUsersRequest
-	15, // 13: auth.v1.AuthService.UpdateUserStatus:input_type -> auth.v1.UpdateUserStatusRequest
-	17, // 14: auth.v1.AuthService.DeleteUser:input_type -> auth.v1.DeleteUserRequest
-	19, // 15: auth.v1.AuthService.GetMasterRoles:input_type -> auth.v1.GetMasterRolesRequest
-	22, // 16: auth.v1.AuthService.GetDoctors:input_type -> auth.v1.GetDoctorsRequest
-	25, // 17: auth.v1.AuthService.GetNurses:input_type -> auth.v1.GetNursesRequest
-	28, // 18: auth.v1.AuthService.GetDoctorsByPoli:input_type -> auth.v1.GetDoctorsByPoliRequest
-	31, // 19: auth.v1.AuthService.GetNursesByPoli:input_type -> auth.v1.GetNursesByPoliRequest
-	34, // 20: auth.v1.AuthService.AssignDoctorPoli:input_type -> auth.v1.AssignDoctorPoliRequest
-	36, // 21: auth.v1.AuthService.AssignNursePoli:input_type -> auth.v1.AssignNursePoliRequest
-	38, // 22: auth.v1.AuthService.GetActivePersonnelMetrics:input_type -> auth.v1.GetActivePersonnelMetricsRequest
-	1,  // 23: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	3,  // 24: auth.v1.AuthService.Signup:output_type -> auth.v1.SignupResponse
-	5,  // 25: auth.v1.AuthService.RegisterPatientUser:output_type -> auth.v1.RegisterPatientUserResponse
-	7,  // 26: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
-	9,  // 27: auth.v1.AuthService.RefreshToken:output_type -> auth.v1.RefreshTokenResponse
-	11, // 28: auth.v1.AuthService.ExtractKTPData:output_type -> auth.v1.ExtractKTPDataResponse
-	14, // 29: auth.v1.AuthService.ListUsers:output_type -> auth.v1.ListUsersResponse
-	16, // 30: auth.v1.AuthService.UpdateUserStatus:output_type -> auth.v1.UpdateUserStatusResponse
-	18, // 31: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
-	21, // 32: auth.v1.AuthService.GetMasterRoles:output_type -> auth.v1.GetMasterRolesResponse
-	24, // 33: auth.v1.AuthService.GetDoctors:output_type -> auth.v1.GetDoctorsResponse
-	27, // 34: auth.v1.AuthService.GetNurses:output_type -> auth.v1.GetNursesResponse
-	30, // 35: auth.v1.AuthService.GetDoctorsByPoli:output_type -> auth.v1.GetDoctorsByPoliResponse
-	33, // 36: auth.v1.AuthService.GetNursesByPoli:output_type -> auth.v1.GetNursesByPoliResponse
-	35, // 37: auth.v1.AuthService.AssignDoctorPoli:output_type -> auth.v1.AssignDoctorPoliResponse
-	37, // 38: auth.v1.AuthService.AssignNursePoli:output_type -> auth.v1.AssignNursePoliResponse
-	39, // 39: auth.v1.AuthService.GetActivePersonnelMetrics:output_type -> auth.v1.GetActivePersonnelMetricsResponse
-	23, // [23:40] is the sub-list for method output_type
-	6,  // [6:23] is the sub-list for method input_type
-	6,  // [6:6] is the sub-list for extension type_name
-	6,  // [6:6] is the sub-list for extension extendee
-	0,  // [0:6] is the sub-list for field type_name
+	43, // 6: auth.v1.ListLabelProfesiResponse.data:type_name -> auth.v1.LabelProfesi
+	0,  // 7: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	2,  // 8: auth.v1.AuthService.Signup:input_type -> auth.v1.SignupRequest
+	4,  // 9: auth.v1.AuthService.RegisterPatientUser:input_type -> auth.v1.RegisterPatientUserRequest
+	6,  // 10: auth.v1.AuthService.ValidateToken:input_type -> auth.v1.ValidateTokenRequest
+	8,  // 11: auth.v1.AuthService.RefreshToken:input_type -> auth.v1.RefreshTokenRequest
+	10, // 12: auth.v1.AuthService.ExtractKTPData:input_type -> auth.v1.ExtractKTPDataRequest
+	13, // 13: auth.v1.AuthService.ListUsers:input_type -> auth.v1.ListUsersRequest
+	15, // 14: auth.v1.AuthService.UpdateUserStatus:input_type -> auth.v1.UpdateUserStatusRequest
+	17, // 15: auth.v1.AuthService.DeleteUser:input_type -> auth.v1.DeleteUserRequest
+	19, // 16: auth.v1.AuthService.GetMasterRoles:input_type -> auth.v1.GetMasterRolesRequest
+	22, // 17: auth.v1.AuthService.GetDoctors:input_type -> auth.v1.GetDoctorsRequest
+	25, // 18: auth.v1.AuthService.GetNurses:input_type -> auth.v1.GetNursesRequest
+	28, // 19: auth.v1.AuthService.GetDoctorsByPoli:input_type -> auth.v1.GetDoctorsByPoliRequest
+	31, // 20: auth.v1.AuthService.GetNursesByPoli:input_type -> auth.v1.GetNursesByPoliRequest
+	34, // 21: auth.v1.AuthService.AssignDoctorPoli:input_type -> auth.v1.AssignDoctorPoliRequest
+	36, // 22: auth.v1.AuthService.AssignNursePoli:input_type -> auth.v1.AssignNursePoliRequest
+	38, // 23: auth.v1.AuthService.GetAssignedPoli:input_type -> auth.v1.GetAssignedPoliRequest
+	42, // 24: auth.v1.AuthService.ListLabelProfesi:input_type -> auth.v1.ListLabelProfesiRequest
+	40, // 25: auth.v1.AuthService.GetActivePersonnelMetrics:input_type -> auth.v1.GetActivePersonnelMetricsRequest
+	1,  // 26: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	3,  // 27: auth.v1.AuthService.Signup:output_type -> auth.v1.SignupResponse
+	5,  // 28: auth.v1.AuthService.RegisterPatientUser:output_type -> auth.v1.RegisterPatientUserResponse
+	7,  // 29: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
+	9,  // 30: auth.v1.AuthService.RefreshToken:output_type -> auth.v1.RefreshTokenResponse
+	11, // 31: auth.v1.AuthService.ExtractKTPData:output_type -> auth.v1.ExtractKTPDataResponse
+	14, // 32: auth.v1.AuthService.ListUsers:output_type -> auth.v1.ListUsersResponse
+	16, // 33: auth.v1.AuthService.UpdateUserStatus:output_type -> auth.v1.UpdateUserStatusResponse
+	18, // 34: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
+	21, // 35: auth.v1.AuthService.GetMasterRoles:output_type -> auth.v1.GetMasterRolesResponse
+	24, // 36: auth.v1.AuthService.GetDoctors:output_type -> auth.v1.GetDoctorsResponse
+	27, // 37: auth.v1.AuthService.GetNurses:output_type -> auth.v1.GetNursesResponse
+	30, // 38: auth.v1.AuthService.GetDoctorsByPoli:output_type -> auth.v1.GetDoctorsByPoliResponse
+	33, // 39: auth.v1.AuthService.GetNursesByPoli:output_type -> auth.v1.GetNursesByPoliResponse
+	35, // 40: auth.v1.AuthService.AssignDoctorPoli:output_type -> auth.v1.AssignDoctorPoliResponse
+	37, // 41: auth.v1.AuthService.AssignNursePoli:output_type -> auth.v1.AssignNursePoliResponse
+	39, // 42: auth.v1.AuthService.GetAssignedPoli:output_type -> auth.v1.GetAssignedPoliResponse
+	44, // 43: auth.v1.AuthService.ListLabelProfesi:output_type -> auth.v1.ListLabelProfesiResponse
+	41, // 44: auth.v1.AuthService.GetActivePersonnelMetrics:output_type -> auth.v1.GetActivePersonnelMetricsResponse
+	26, // [26:45] is the sub-list for method output_type
+	7,  // [7:26] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
-func init() { file_auth_v1_auth_proto_init() }
-func file_auth_v1_auth_proto_init() {
-	if File_auth_v1_auth_proto != nil {
+func init() { file_proto_auth_v1_auth_proto_init() }
+func file_proto_auth_v1_auth_proto_init() {
+	if File_proto_auth_v1_auth_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_auth_v1_auth_proto_rawDesc), len(file_auth_v1_auth_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_auth_v1_auth_proto_rawDesc), len(file_proto_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   40,
+			NumMessages:   45,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_auth_v1_auth_proto_goTypes,
-		DependencyIndexes: file_auth_v1_auth_proto_depIdxs,
-		MessageInfos:      file_auth_v1_auth_proto_msgTypes,
+		GoTypes:           file_proto_auth_v1_auth_proto_goTypes,
+		DependencyIndexes: file_proto_auth_v1_auth_proto_depIdxs,
+		MessageInfos:      file_proto_auth_v1_auth_proto_msgTypes,
 	}.Build()
-	File_auth_v1_auth_proto = out.File
-	file_auth_v1_auth_proto_goTypes = nil
-	file_auth_v1_auth_proto_depIdxs = nil
+	File_proto_auth_v1_auth_proto = out.File
+	file_proto_auth_v1_auth_proto_goTypes = nil
+	file_proto_auth_v1_auth_proto_depIdxs = nil
 }

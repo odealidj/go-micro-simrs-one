@@ -17,6 +17,7 @@ interface QueuePatient {
 }
 
 export function QueueManagerPage() {
+  const [_loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
   const [waitlist, setWaitlist] = useState<QueuePatient[]>([]);
   const [activeCall, setActiveCall] = useState<{id: string, name: string} | null>(null);
