@@ -14,12 +14,14 @@ type User struct {
 }
 
 type StaffProfile struct {
-	ID        string
-	UserID    string
-	NIP       string
-	Email     string
-	Phone     string
-	CreatedAt time.Time
+	ID             string
+	UserID         string
+	NIP            string
+	Email          string
+	Phone          string
+	FullName       string
+	LabelProfesiID *int32
+	CreatedAt      time.Time
 }
 
 type UserWithProfile struct {

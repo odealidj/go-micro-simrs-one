@@ -275,7 +275,7 @@ be-stop-local-billing-service:
 # ---- api-gateway (port 8080) ----
 be-run-local-api-gateway:
 	@echo "Starting local api-gateway..."
-	@cd src/be/api-gateway && go build -o tmp-main cmd/server/main.go
+	@cd src/be/api-gateway && go build -o tmp-main ./cmd/server
 	@cd src/be/api-gateway && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) PROMETHEUS_URL=$(LOCAL_PROMETHEUS_URL) AUTH_SERVICE_ADDR=localhost:50051 PATIENT_SERVICE_ADDR=localhost:50052 REGISTRATION_SERVICE_ADDR=localhost:50053 EMR_SERVICE_ADDR=localhost:50054 PHARMACY_SERVICE_ADDR=localhost:50055 BILLING_SERVICE_ADDR=localhost:50056 PORT=8080 GOOGLE_API_KEY=$(GOOGLE_API_KEY) ./tmp-main > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-api-gateway:

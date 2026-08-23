@@ -227,6 +227,20 @@ func (q *Queries) CountDoctorsByPoli(ctx context.Context, arg CountDoctorsByPoli
 	return count, err
 }
 
+const countMasterLabelProfesi = `-- name: CountMasterLabelProfesi :one
+SELECT COUNT(id)
+FROM master_label_profesi
+WHERE deleted_dt IS NULL
+  AND ($1::text = '' OR nama_label ILIKE '%' || $1 || '%')
+`
+
+func (q *Queries) CountMasterLabelProfesi(ctx context.Context, dollar_1 string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countMasterLabelProfesi, dollar_1)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countMasterRoles = `-- name: CountMasterRoles :one
 SELECT COUNT(id) 
 FROM master_role
@@ -303,6 +317,24 @@ func (q *Queries) CountUsersWithProfile(ctx context.Context, arg CountUsersWithP
 	return count, err
 }
 
+const createProfilDokter = `-- name: CreateProfilDokter :exec
+INSERT INTO profil_dokter (user_id) VALUES ($1) ON CONFLICT DO NOTHING
+`
+
+func (q *Queries) CreateProfilDokter(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, createProfilDokter, userID)
+	return err
+}
+
+const createProfilPerawat = `-- name: CreateProfilPerawat :exec
+INSERT INTO profil_perawat (user_id) VALUES ($1) ON CONFLICT DO NOTHING
+`
+
+func (q *Queries) CreateProfilPerawat(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, createProfilPerawat, userID)
+	return err
+}
+
 const createRefreshToken = `-- name: CreateRefreshToken :one
 INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
 VALUES ($1, $2, $3)
@@ -329,26 +361,30 @@ func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshToken
 }
 
 const createStaffProfile = `-- name: CreateStaffProfile :one
-INSERT INTO staff_profiles (user_id, nip, email, phone)
-VALUES ($1, $2, $3, $4)
-RETURNING id, user_id, nip, email, phone, created_at, updated_at
+INSERT INTO staff_profiles (user_id, nip, email, phone, full_name, label_profesi_id)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, user_id, nip, email, phone, full_name, label_profesi_id, created_at, updated_at
 `
 
 type CreateStaffProfileParams struct {
-	UserID uuid.NullUUID
-	Nip    string
-	Email  sql.NullString
-	Phone  sql.NullString
+	UserID         uuid.NullUUID
+	Nip            string
+	Email          sql.NullString
+	Phone          sql.NullString
+	FullName       sql.NullString
+	LabelProfesiID sql.NullInt32
 }
 
 type CreateStaffProfileRow struct {
-	ID        uuid.UUID
-	UserID    uuid.NullUUID
-	Nip       string
-	Email     sql.NullString
-	Phone     sql.NullString
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	ID             uuid.UUID
+	UserID         uuid.NullUUID
+	Nip            string
+	Email          sql.NullString
+	Phone          sql.NullString
+	FullName       sql.NullString
+	LabelProfesiID sql.NullInt32
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
 }
 
 func (q *Queries) CreateStaffProfile(ctx context.Context, arg CreateStaffProfileParams) (CreateStaffProfileRow, error) {
@@ -357,6 +393,8 @@ func (q *Queries) CreateStaffProfile(ctx context.Context, arg CreateStaffProfile
 		arg.Nip,
 		arg.Email,
 		arg.Phone,
+		arg.FullName,
+		arg.LabelProfesiID,
 	)
 	var i CreateStaffProfileRow
 	err := row.Scan(
@@ -365,6 +403,8 @@ func (q *Queries) CreateStaffProfile(ctx context.Context, arg CreateStaffProfile
 		&i.Nip,
 		&i.Email,
 		&i.Phone,
+		&i.FullName,
+		&i.LabelProfesiID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -428,6 +468,96 @@ WHERE token_hash = $1
 func (q *Queries) DeleteRefreshToken(ctx context.Context, tokenHash string) error {
 	_, err := q.db.ExecContext(ctx, deleteRefreshToken, tokenHash)
 	return err
+}
+
+const getActivePoliByDoctorUserId = `-- name: GetActivePoliByDoctorUserId :many
+SELECT m.poli_code
+FROM mapping_dokter_poli m
+JOIN profil_dokter p ON m.dokter_id = p.id
+WHERE p.user_id = $1
+  AND m.deleted_dt IS NULL
+  AND p.deleted_dt IS NULL
+  AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
+`
+
+func (q *Queries) GetActivePoliByDoctorUserId(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getActivePoliByDoctorUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var poli_code string
+		if err := rows.Scan(&poli_code); err != nil {
+			return nil, err
+		}
+		items = append(items, poli_code)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getActivePoliByNurseUserId = `-- name: GetActivePoliByNurseUserId :many
+SELECT m.poli_code
+FROM mapping_perawat_poli m
+JOIN profil_perawat p ON m.perawat_id = p.id
+WHERE p.user_id = $1
+  AND m.deleted_dt IS NULL
+  AND p.deleted_dt IS NULL
+  AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
+`
+
+func (q *Queries) GetActivePoliByNurseUserId(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getActivePoliByNurseUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var poli_code string
+		if err := rows.Scan(&poli_code); err != nil {
+			return nil, err
+		}
+		items = append(items, poli_code)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAssignedPoli = `-- name: GetAssignedPoli :one
+SELECT poli_code
+FROM mapping_dokter_poli m
+JOIN profil_dokter d ON m.dokter_id = d.id
+WHERE d.user_id = $1
+  AND m.deleted_dt IS NULL
+  AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
+UNION ALL
+SELECT poli_code
+FROM mapping_perawat_poli m
+JOIN profil_perawat p ON m.perawat_id = p.id
+WHERE p.user_id = $1
+  AND m.deleted_dt IS NULL
+  AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
+LIMIT 1
+`
+
+func (q *Queries) GetAssignedPoli(ctx context.Context, userID uuid.UUID) (string, error) {
+	row := q.db.QueryRowContext(ctx, getAssignedPoli, userID)
+	var poli_code string
+	err := row.Scan(&poli_code)
+	return poli_code, err
 }
 
 const getDoctors = `-- name: GetDoctors :many
@@ -548,6 +678,50 @@ func (q *Queries) GetDoctorsByPoli(ctx context.Context, arg GetDoctorsByPoliPara
 			&i.StartDate,
 			&i.EndDate,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMasterLabelProfesi = `-- name: GetMasterLabelProfesi :many
+SELECT id, nama_label, is_active
+FROM master_label_profesi
+WHERE deleted_dt IS NULL
+  AND ($1::text = '' OR nama_label ILIKE '%' || $1 || '%')
+ORDER BY id
+LIMIT $2 OFFSET $3
+`
+
+type GetMasterLabelProfesiParams struct {
+	Column1 string
+	Limit   int32
+	Offset  int32
+}
+
+type GetMasterLabelProfesiRow struct {
+	ID        int32
+	NamaLabel string
+	IsActive  bool
+}
+
+func (q *Queries) GetMasterLabelProfesi(ctx context.Context, arg GetMasterLabelProfesiParams) ([]GetMasterLabelProfesiRow, error) {
+	rows, err := q.db.QueryContext(ctx, getMasterLabelProfesi, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetMasterLabelProfesiRow
+	for rows.Next() {
+		var i GetMasterLabelProfesiRow
+		if err := rows.Scan(&i.ID, &i.NamaLabel, &i.IsActive); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

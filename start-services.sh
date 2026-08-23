@@ -46,7 +46,7 @@ for SVC in "${!SERVICES[@]}"; do
   PORT="${SERVICES[$SVC]}"
   DIR="$ROOT/src/be/$SVC"
   echo "  Building $SVC..."
-  cd "$DIR" && go build -o tmp-main cmd/server/main.go
+  cd "$DIR" && go build -o tmp-main ./cmd/server
   echo "  Starting $SVC on port $PORT..."
   DATABASE_URL="$DB_URL" REDIS_HOST="$REDIS" JAEGER_ENDPOINT="$JAEGER" PORT="$PORT" \
     nohup "$DIR/tmp-main" > "$DIR/run.log" 2>&1 &
@@ -56,7 +56,7 @@ done
 # Start api-gateway
 GW_DIR="$ROOT/src/be/api-gateway"
 echo "  Building api-gateway..."
-cd "$GW_DIR" && go build -o tmp-main cmd/server/main.go
+cd "$GW_DIR" && go build -o tmp-main ./cmd/server
 echo "  Starting api-gateway on port 8080..."
 REDIS_HOST="$REDIS" \
   AUTH_SERVICE_ADDR=localhost:50051 \
@@ -69,6 +69,8 @@ REDIS_HOST="$REDIS" \
   GOOGLE_API_KEY="$GOOGLE_API_KEY" \
   nohup "$GW_DIR/tmp-main" > "$GW_DIR/run.log" 2>&1 &
 echo $! > "$GW_DIR/run.pid"
+
+disown -a
 
 echo ""
 echo "Waiting for services to start..."

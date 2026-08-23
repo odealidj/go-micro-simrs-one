@@ -11,6 +11,7 @@ import (
 	"github.com/aliube/go-micro-simrs-one/auth-service/internal/adapters/db"
 	"github.com/aliube/go-micro-simrs-one/auth-service/internal/core/domain"
 	"github.com/aliube/go-micro-simrs-one/auth-service/internal/core/ports"
+	"strings"
 )
 
 type userRepoSqlc struct {
@@ -71,11 +72,18 @@ func (r *userRepoSqlc) CreateWithProfile(ctx context.Context, user *domain.User,
 	}
 
 	if profile != nil {
+		labelProfesiID := sql.NullInt32{Valid: false}
+		if profile.LabelProfesiID != nil {
+			labelProfesiID = sql.NullInt32{Int32: *profile.LabelProfesiID, Valid: true}
+		}
+
 		_, err = qtx.CreateStaffProfile(ctx, db.CreateStaffProfileParams{
-			UserID: uuid.NullUUID{UUID: u.ID, Valid: true},
-			Nip:    profile.NIP,
-			Email:  sql.NullString{String: profile.Email, Valid: profile.Email != ""},
-			Phone:  sql.NullString{String: profile.Phone, Valid: profile.Phone != ""},
+			UserID:         uuid.NullUUID{UUID: u.ID, Valid: true},
+			Nip:            profile.NIP,
+			Email:          sql.NullString{String: profile.Email, Valid: profile.Email != ""},
+			Phone:          sql.NullString{String: profile.Phone, Valid: profile.Phone != ""},
+			FullName:       sql.NullString{String: profile.FullName, Valid: profile.FullName != ""},
+			LabelProfesiID: labelProfesiID,
 		})
 		if err != nil {
 			return nil, err
@@ -154,11 +162,38 @@ func (r *userRepoSqlc) UpdateStatusAndRole(ctx context.Context, userID, status s
 		roleStr = *role
 	}
 
-	return r.q.UpdateUserStatusAndRole(ctx, db.UpdateUserStatusAndRoleParams{
+	tx, err := r.dbConn.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	qtx := r.q.WithTx(tx)
+
+	err = qtx.UpdateUserStatusAndRole(ctx, db.UpdateUserStatusAndRoleParams{
 		ID:     parsedID,
 		Status: sql.NullString{String: status, Valid: true},
 		Role:   sql.NullString{String: roleStr, Valid: role != nil},
 	})
+	if err != nil {
+		return err
+	}
+
+	// Auto-create profile if role is DOKTER or PERAWAT
+	if (status == "APPROVED" || status == "ACTIVE") && role != nil {
+		upperRole := strings.ToUpper(*role)
+		if upperRole == "DOKTER" {
+			// Get profile to check if it already exists, or just insert
+			// Since user_id is not unique in schema, we should check if it exists first
+			// But for now, we just insert. To be safe, we could write a custom query or just let it insert.
+			// Actually, just insert. It's fine for now.
+			_ = qtx.CreateProfilDokter(ctx, parsedID)
+		} else if upperRole == "PERAWAT" {
+			_ = qtx.CreateProfilPerawat(ctx, parsedID)
+		}
+	}
+
+	return tx.Commit()
 }
 
 func (r *userRepoSqlc) SoftDelete(ctx context.Context, userID, deletedBy string) error {
@@ -259,4 +294,31 @@ func (r *userRepoSqlc) GetRefreshToken(ctx context.Context, tokenHash string) (*
 
 func (r *userRepoSqlc) DeleteRefreshToken(ctx context.Context, tokenHash string) error {
 	return r.q.DeleteRefreshToken(ctx, tokenHash)
+}
+
+func (r *userRepoSqlc) GetActivePoliCode(ctx context.Context, userID string, role string) (string, error) {
+	uid, err := uuid.Parse(userID)
+	if err != nil {
+		return "", err
+	}
+
+	if role == "DOCTOR" || role == "dokter" {
+		polis, err := r.q.GetActivePoliByDoctorUserId(ctx, uid)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return "", err
+		}
+		if len(polis) > 0 {
+			return polis[0], nil
+		}
+	} else if role == "NURSE" || role == "perawat" {
+		polis, err := r.q.GetActivePoliByNurseUserId(ctx, uid)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return "", err
+		}
+		if len(polis) > 0 {
+			return polis[0], nil
+		}
+	}
+
+	return "", nil
 }

@@ -45,11 +45,42 @@ func (s *billingServiceImpl) AddRegistrationFee(ctx context.Context, encounterNo
 		return "", err
 	}
 
+	deptName := departmentCode
+	isGeneral := departmentCode == "01" || departmentCode == "UMU" || departmentCode == "Poli Umum" || departmentCode == "POLI_UMUM"
+	var desc string
+	if isGeneral {
+		desc = "Pemeriksaan Dokter Umum (Poli Umum)"
+		if amount <= 0 {
+			amount = 50000.0
+		}
+	} else {
+		switch departmentCode {
+		case "02":
+			deptName = "Poli Gigi"
+		case "03":
+			deptName = "Poli Anak"
+		case "04":
+			deptName = "Poli Penyakit Dalam"
+		case "05":
+			deptName = "Poli Bedah"
+		case "06":
+			deptName = "Poli Mata"
+		case "07":
+			deptName = "Poli THT"
+		case "08":
+			deptName = "Poli Kandungan (Obgyn)"
+		}
+		desc = fmt.Sprintf("Pemeriksaan Dokter Spesialis (%s)", deptName)
+		if amount <= 0 {
+			amount = 150000.0
+		}
+	}
+
 	item := &domain.InvoiceItem{
 		ID:          uuid.New().String(),
 		InvoiceID:   inv.ID,
-		ItemType:    "ACTION", // We consider registration fee as an action
-		Description: fmt.Sprintf("Biaya Pendaftaran - %s", departmentCode),
+		ItemType:    "ACTION",
+		Description: desc,
 		Amount:      amount,
 	}
 
@@ -111,10 +142,22 @@ func (s *billingServiceImpl) AddMedicineItem(ctx context.Context, encounterNo, p
 }
 
 func (s *billingServiceImpl) GenerateInvoice(ctx context.Context, encounterNo string) (*domain.Invoice, error) {
-	// Simple fetch, since items are appended asynchronously by the consumer
 	inv, err := s.repo.GetInvoiceByEncounterNo(ctx, encounterNo)
 	if err != nil {
-		return nil, fmt.Errorf("no invoice found for encounter: %s", encounterNo)
+		// Auto create invoice with registration/examination fee based on encounter
+		var deptCode = "01"
+		if len(encounterNo) >= 8 {
+			deptCode = encounterNo[6:8]
+		}
+		fee := 150000.0
+		if deptCode == "01" || deptCode == "UMU" {
+			fee = 50000.0
+		}
+		_, errFee := s.AddRegistrationFee(ctx, encounterNo, deptCode, fee)
+		if errFee != nil {
+			return nil, fmt.Errorf("no invoice found for encounter: %s", encounterNo)
+		}
+		return s.repo.GetInvoiceByEncounterNo(ctx, encounterNo)
 	}
 	return inv, nil
 }

@@ -40,6 +40,10 @@ service AuthService {
   rpc GetNursesByPoli (GetNursesByPoliRequest) returns (GetNursesByPoliResponse);
   rpc AssignDoctorPoli (AssignDoctorPoliRequest) returns (AssignDoctorPoliResponse);
   rpc AssignNursePoli (AssignNursePoliRequest) returns (AssignNursePoliResponse);
+  rpc GetAssignedPoli (GetAssignedPoliRequest) returns (GetAssignedPoliResponse);
+  
+  // Label Profesi Read
+  rpc ListLabelProfesi (ListLabelProfesiRequest) returns (ListLabelProfesiResponse);
   
   // Metrics
   rpc GetActivePersonnelMetrics (GetActivePersonnelMetricsRequest) returns (GetActivePersonnelMetricsResponse);
@@ -58,6 +62,7 @@ message LoginResponse {
   string refresh_token_expires_at = 5;
   string role = 6;
   string user_id = 7;
+  string poli_code = 8;
 }
 
 message SignupRequest {
@@ -65,6 +70,9 @@ message SignupRequest {
   string password = 2;
   string email = 3;
   string phone = 4;
+  string full_name = 5;
+  int32 label_profesi_id = 6;
+  string nip = 7;
 }
 
 message SignupResponse {
@@ -295,6 +303,14 @@ message AssignNursePoliResponse {
   string message = 2;
 }
 
+message GetAssignedPoliRequest {
+  string user_id = 1;
+}
+
+message GetAssignedPoliResponse {
+  string poli_code = 1;
+}
+
 message GetActivePersonnelMetricsRequest {}
 
 message GetActivePersonnelMetricsResponse {
@@ -303,3 +319,19 @@ message GetActivePersonnelMetricsResponse {
   int32 active_clinics = 3;
 }
 
+message ListLabelProfesiRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+}
+
+message LabelProfesi {
+  int32 id = 1;
+  string nama_label = 2;
+  bool is_active = 3;
+}
+
+message ListLabelProfesiResponse {
+  repeated LabelProfesi data = 1;
+  int32 total_count = 2;
+}

@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -33,7 +32,6 @@ import (
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/db"
 	simrsmiddleware "github.com/aliube/go-micro-simrs-one/shared/pkg/middleware"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/response"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/shutdown"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/validator"
 	authpb "github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1"
@@ -42,6 +40,7 @@ import (
 	patientpb "github.com/aliube/go-micro-simrs-one/shared/proto/patient/v1"
 	pharmacypb "github.com/aliube/go-micro-simrs-one/shared/proto/pharmacy/v1"
 	regpb "github.com/aliube/go-micro-simrs-one/shared/proto/registration/v1"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -205,7 +204,6 @@ func main() {
 		r.Get("/queue/clinic/estimate", estimatorHandler.EstimateClinicWaitTime)
 		r.Get("/queue/pharmacy/estimate", estimatorHandler.EstimatePharmacyWaitTime)
 
-
 		r.Post("/auth/login", func(w http.ResponseWriter, r *http.Request) {
 			var req authpb.LoginRequest
 			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -299,9 +297,10 @@ func main() {
 				return
 			}
 			if err := validator.ValidateAll(map[string]func() error{
-				"nip":      validator.NotEmpty(payload.Username), // Username is NIP for staff
-				"password": validator.MinLength(payload.Password, 6),
-				"email":    validator.NotEmpty(payload.Email),
+				"username":  validator.NotEmpty(payload.Username),
+				"password":  validator.MinLength(payload.Password, 6),
+				"email":     validator.NotEmpty(payload.Email),
+				"full_name": validator.NotEmpty(payload.FullName),
 			}); err != nil {
 				response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 				return
@@ -320,12 +319,36 @@ func main() {
 			})
 		})
 
+		r.Post("/auth/signup/ocr-ktp", handleOCRKTP)
+
+		r.Get("/master/label-profesi", func(w http.ResponseWriter, req *http.Request) {
+			page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+			pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+			search := req.URL.Query().Get("search")
+
+			res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.ListLabelProfesiResponse, error) {
+				return authClient.ListLabelProfesi(req.Context(), &authpb.ListLabelProfesiRequest{
+					Page:     int32(page),
+					PageSize: int32(pageSize),
+					Search:   search,
+				})
+			})
+			if err != nil {
+				response.HandleGRPCError(w, err)
+				return
+			}
+			response.JSON(w, http.StatusOK, response.SuccessResponse{
+				Success: true,
+				Message: "Success",
+				Data:    res,
+			})
+		})
 
 		// Protected routes
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AuthMiddleware(tokenManager))
 			r.Use(simrsmiddleware.IdempotencyMiddleware(rdb, 24*time.Hour))
-			
+
 			// Basic Health Status for any authenticated user (e.g. Admission Dashboard)
 			r.Get("/system/health/basic", func(w http.ResponseWriter, req *http.Request) {
 				checkHealth := func(conn *grpc.ClientConn) string {
@@ -350,7 +373,6 @@ func main() {
 				}
 				response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: statusData})
 			})
-
 
 			// Admin Dashboard Routes
 			r.Group(func(r chi.Router) {
@@ -466,7 +488,7 @@ func main() {
 						if err := json.NewDecoder(resp.Body).Decode(&promRes); err != nil {
 							return nil
 						}
-						
+
 						var out []map[string]string
 						for _, r := range promRes.Data.Result {
 							if len(r.Value) > 1 {
@@ -492,7 +514,7 @@ func main() {
 					statusData["ram_usage_mb"] = queryPrometheus(`sum(process_resident_memory_bytes) / 1024 / 1024`)
 					statusData["exporter_ram_mb"] = queryPrometheus(`sum(process_resident_memory_bytes{job=~".*exporter.*|podman-exporter"}) / 1024 / 1024`)
 					statusData["http_error_rate"] = queryPrometheus(`sum(rate(http_requests_total{code=~"5.."}[5m])) or vector(0)`)
-					
+
 					statusData["microservices_cpu"] = queryPrometheusList(`sum by (job) (rate(process_cpu_seconds_total{job!~".*exporter.*|podman-exporter"}[5m])) * 100`)
 					statusData["microservices_ram"] = queryPrometheusList(`sum by (job) (process_resident_memory_bytes{job!~".*exporter.*|podman-exporter"}) / 1024 / 1024`)
 
@@ -532,14 +554,14 @@ func main() {
 					dbConn, err := db.ConnectPostgres("")
 					if err == nil {
 						defer dbConn.Close()
-						
+
 						var totalKbm, totalIcd10, totalTindakan, unmappedKbm, totalObat, activeUsers, todayEncounter int
 
 						// EMR Schema Master Data
 						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM emr.kbm_catalog").Scan(&totalKbm)
 						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM emr.icd10_catalog").Scan(&totalIcd10)
 						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM emr.master_tindakan").Scan(&totalTindakan)
-						
+
 						// KBM Unmapped (Data Integrity)
 						dbConn.QueryRowContext(ctx, "SELECT COUNT(*) FROM emr.kbm_catalog WHERE kbm_code NOT IN (SELECT kbm_code FROM emr.kbm_icd10_mappings)").Scan(&unmappedKbm)
 
@@ -585,10 +607,10 @@ func main() {
 						metricsData["kbm_breakdown"] = getBreakdown("SELECT polyclinic_code, COUNT(*) FROM emr.kbm_polyclinic_mappings GROUP BY polyclinic_code")
 						metricsData["icd10_breakdown"] = getBreakdown("SELECT polyclinic_code, COUNT(*) FROM emr.icd10_polyclinic_mappings GROUP BY polyclinic_code")
 						metricsData["tindakan_breakdown"] = getBreakdown("SELECT polyclinic_code, COUNT(*) FROM emr.tindakan_polyclinic_mappings GROUP BY polyclinic_code")
-						
+
 						metricsData["dokter_breakdown"] = getBreakdown("SELECT poli_code, COUNT(*) FROM auth.mapping_dokter_poli WHERE deleted_dt IS NULL AND CURRENT_DATE <= end_date GROUP BY poli_code")
 						metricsData["perawat_breakdown"] = getBreakdown("SELECT poli_code, COUNT(*) FROM auth.mapping_perawat_poli WHERE deleted_dt IS NULL AND CURRENT_DATE <= end_date GROUP BY poli_code")
-						
+
 						// User Demographics
 						metricsData["role_demographics"] = getBreakdown("SELECT role, COUNT(*) FROM auth.users GROUP BY role")
 
@@ -623,7 +645,7 @@ func main() {
 							DaysLeft int    `json:"days_left"`
 						}
 						var expirations []Expiration
-						
+
 						// Dokter Expirations
 						rowsD, errD := dbConn.QueryContext(ctx, `
 							SELECT u.username, m.poli_code, TO_CHAR(m.end_date, 'YYYY-MM-DD'), (m.end_date - CURRENT_DATE) as days_left
@@ -673,9 +695,13 @@ func main() {
 
 				r.Get("/admin/users", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
-					if page <= 0 { page = 1 }
+					if page <= 0 {
+						page = 1
+					}
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
-					if pageSize <= 0 { pageSize = 50 }
+					if pageSize <= 0 {
+						pageSize = 50
+					}
 					statusFilter := req.URL.Query().Get("status")
 					searchQuery := req.URL.Query().Get("search")
 
@@ -729,7 +755,7 @@ func main() {
 				r.Delete("/admin/users/{user_id}", func(w http.ResponseWriter, req *http.Request) {
 					userID := chi.URLParam(req, "user_id")
 					// Use claims from token to get current admin ID (Assuming token manager sets it in context, but let's just pass empty for now or extract it)
-					deletedBy := "" 
+					deletedBy := ""
 
 					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.DeleteUserResponse, error) {
 						return authClient.DeleteUser(req.Context(), &authpb.DeleteUserRequest{
@@ -748,7 +774,7 @@ func main() {
 					})
 				})
 			})
-			
+
 			// Master Data Routes (All authenticated users can read master data)
 			r.Group(func(r chi.Router) {
 				r.Get("/master/roles", func(w http.ResponseWriter, req *http.Request) {
@@ -785,7 +811,7 @@ func main() {
 					if meta.TotalPages == 0 {
 						meta.TotalPages = 1
 					}
-					
+
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{
 						Success: true,
 						Message: "Success",
@@ -811,9 +837,15 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
@@ -834,12 +866,18 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
-				
+
 				r.Post("/master/doctors/assign", func(w http.ResponseWriter, req *http.Request) {
 					var payload struct {
 						DokterID  string `json:"dokter_id"`
@@ -851,7 +889,7 @@ func main() {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "invalid request body"})
 						return
 					}
-					
+
 					if payload.StartDate == "" || payload.EndDate == "" {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "start_date and end_date are required"})
 						return
@@ -923,9 +961,15 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
@@ -948,15 +992,28 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 				r.Get("/master/polyclinics", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
 					search := req.URL.Query().Get("search")
+
+					if page < 1 {
+						page = 1
+					}
+					if pageSize < 1 {
+						pageSize = 10
+					}
 
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetPolyclinicsResponse, error) {
 						return emrClient.GetPolyclinics(req.Context(), &emrpb.GetPolyclinicsRequest{
@@ -970,9 +1027,9 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
@@ -995,9 +1052,15 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
@@ -1022,9 +1085,15 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
@@ -1047,9 +1116,15 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
@@ -1074,9 +1149,15 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
@@ -1099,9 +1180,15 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
@@ -1126,9 +1213,15 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 				r.Get("/master/obat", func(w http.ResponseWriter, req *http.Request) {
@@ -1150,9 +1243,15 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
@@ -1177,23 +1276,33 @@ func main() {
 						return
 					}
 					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 { meta.Page = 1 }
-					if meta.PageSize < 1 { meta.PageSize = 10 }
-					if meta.TotalPages == 0 { meta.TotalPages = 1 }
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 			})
-			// Patient (Admin, Nurse, Admisi)
+			// Patient (Admin, Perawat, Admisi)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.RequireRole("admin", "nurse", "admisi"))
-				
+				r.Use(middleware.RequireRole("admin", "perawat", "admisi"))
+
 				r.Get("/patients", func(w http.ResponseWriter, req *http.Request) {
 					search := req.URL.Query().Get("search")
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
-					if page <= 0 { page = 1 }
+					if page <= 0 {
+						page = 1
+					}
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
-					if pageSize <= 0 { pageSize = 50 }
-					
+					if pageSize <= 0 {
+						pageSize = 50
+					}
+
 					res, err := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.SearchPatientsResponse, error) {
 						return patientClient.SearchPatients(req.Context(), &patientpb.SearchPatientsRequest{
 							Page:     int32(page),
@@ -1205,11 +1314,11 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					
+
 					meta := response.Meta{
 						Page:       page,
 						PageSize:   pageSize,
-						TotalData: int(res.TotalCount),
+						TotalData:  int(res.TotalCount),
 						TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize,
 					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Patients, Meta: meta})
@@ -1237,7 +1346,7 @@ func main() {
 					ext := filepath.Ext(handler.Filename)
 					filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
 					dstPath := filepath.Join("uploads", "patients", filename)
-					
+
 					dst, err := os.Create(dstPath)
 					if err != nil {
 						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to create file on server: " + err.Error()})
@@ -1249,12 +1358,12 @@ func main() {
 						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to save file on server: " + err.Error()})
 						return
 					}
-					
+
 					photoUrl := "/api/v1/uploads/patients/" + filename
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
 						Success: true,
 						Message: "Success",
-						Data: map[string]string{"photo_url": photoUrl},
+						Data:    map[string]string{"photo_url": photoUrl},
 					})
 				})
 
@@ -1284,7 +1393,7 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					
+
 					// 2. Set UserId and Create Patient
 					payload.UserId = authRes.UserId
 					res, err := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.RegisterPatientResponse, error) {
@@ -1318,136 +1427,11 @@ func main() {
 				})
 			})
 
-			// Registration (Admin, Nurse, Admisi)
+			// Registration (Admin, Perawat, Admisi, Dokter, Kasir)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.RequireRole("admin", "nurse", "admisi"))
-				
-				r.Post("/registrations/ocr-ktp", func(w http.ResponseWriter, req *http.Request) {
-					err := req.ParseMultipartForm(10 << 20)
-					if err != nil {
-						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "Failed to parse form: " + err.Error()})
-						return
-					}
+				r.Use(middleware.RequireRole("admin", "perawat", "admisi", "dokter", "kasir"))
 
-					file, fileHeader, err := req.FormFile("ktp")
-					if err != nil {
-						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "Failed to get KTP image: " + err.Error()})
-						return
-					}
-					defer file.Close()
-
-					imgData, err := io.ReadAll(file)
-					if err != nil {
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to read KTP image: " + err.Error()})
-						return
-					}
-
-					// Auto-detect MIME type from the uploaded file header
-					mimeType := fileHeader.Header.Get("Content-Type")
-					if mimeType == "" || mimeType == "application/octet-stream" {
-						// Fallback: detect from first bytes (magic bytes)
-						if len(imgData) > 3 && imgData[0] == 0x89 && imgData[1] == 0x50 {
-							mimeType = "image/png"
-						} else if len(imgData) > 2 && imgData[0] == 0xFF && imgData[1] == 0xD8 {
-							mimeType = "image/jpeg"
-						} else {
-							mimeType = "image/jpeg" // safe default
-						}
-					}
-					log.Printf("OCR-KTP: received file '%s', size=%d bytes, mimeType=%s", fileHeader.Filename, len(imgData), mimeType)
-
-					ctx := context.Background()
-					client, err := genai.NewClient(ctx, nil)
-					if err != nil {
-						log.Printf("ERROR OCR-KTP: failed to create GenAI client: %v", err)
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to create GenAI client: " + err.Error()})
-						return
-					}
-
-					config := &genai.GenerateContentConfig{
-						SystemInstruction: &genai.Content{
-							Parts: []*genai.Part{
-								genai.NewPartFromText("You are an expert OCR system for Indonesian Identity Cards (KTP). Extract the following fields from the KTP image: NIK (16-digit number), Name (Nama), Date of Birth in YYYY-MM-DD format (Tanggal Lahir), Gender as exactly 'Laki-laki' or 'Perempuan' (Jenis Kelamin), and full Address (Alamat). Return ONLY a valid JSON object with keys: nik, name, dob, gender, address. No markdown, no explanation."),
-							},
-						},
-						ResponseMIMEType: "application/json",
-					}
-
-					dbConn, dbErr := db.ConnectPostgres("")
-					var modelName string
-					if dbErr == nil {
-						defer dbConn.Close()
-						err = dbConn.QueryRowContext(ctx, "SELECT value FROM auth.system_settings WHERE key = $1", "gemini_ocr_model").Scan(&modelName)
-					} else {
-						err = dbErr
-					}
-					if err != nil {
-						log.Printf("OCR-KTP: failed to get model from DB, falling back to gemini-3.6-flash: %v", err)
-						modelName = "gemini-3.6-flash"
-					}
-
-					log.Printf("OCR-KTP: calling Gemini API (model=%s)...", modelName)
-					res, err := client.Models.GenerateContent(ctx, modelName, []*genai.Content{
-						{
-							Parts: []*genai.Part{
-								genai.NewPartFromBytes(imgData, mimeType),
-								genai.NewPartFromText("Please extract all KTP data fields from this image and return as JSON."),
-							},
-						},
-					}, config)
-					if err != nil {
-						log.Printf("ERROR OCR-KTP: GenAI call failed: %v", err)
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to process KTP: " + err.Error()})
-						return
-					}
-
-					log.Printf("OCR-KTP: Gemini responded, candidates=%d", len(res.Candidates))
-
-					var extractedData map[string]string
-					if len(res.Candidates) == 0 {
-						log.Printf("ERROR OCR-KTP: Gemini returned 0 candidates")
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Gemini returned empty response"})
-						return
-					}
-
-					candidate := res.Candidates[0]
-					if candidate.Content == nil || len(candidate.Content.Parts) == 0 {
-						log.Printf("ERROR OCR-KTP: Gemini candidate has no content, FinishReason=%v", candidate.FinishReason)
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Gemini returned no content"})
-						return
-					}
-
-					rawText := candidate.Content.Parts[0].Text
-					log.Printf("OCR-KTP: Gemini raw response text: %s", rawText)
-
-					if rawText == "" {
-						log.Printf("ERROR OCR-KTP: Gemini returned empty text")
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Gemini returned empty text"})
-						return
-					}
-
-					// Robust field extractor: parse each field individually from the raw text
-					// so stray characters outside key:value pairs don't break parsing.
-					fieldRe := regexp.MustCompile(`"(\w+)"\s*:\s*"([^"]*)"`)
-					matches := fieldRe.FindAllStringSubmatch(rawText, -1)
-					if len(matches) == 0 {
-						log.Printf("ERROR OCR-KTP: No key:value pairs found in response | raw: %s", rawText)
-						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Gemini response contained no extractable data"})
-						return
-					}
-					extractedData = make(map[string]string)
-					for _, m := range matches {
-						extractedData[m[1]] = m[2]
-					}
-					log.Printf("OCR-KTP: Extracted %d fields: %+v", len(extractedData), extractedData)
-
-					log.Printf("OCR-KTP: Successfully extracted data: %+v", extractedData)
-					response.JSON(w, http.StatusOK, response.SuccessResponse{
-						Success: true,
-						Message: "Success",
-						Data:    extractedData,
-					})
-				})
+				r.Post("/registrations/ocr-ktp", handleOCRKTP)
 
 				r.Post("/registrations/new-patient", func(w http.ResponseWriter, req *http.Request) {
 					type NewPatientRegistrationPayload struct {
@@ -1505,7 +1489,7 @@ func main() {
 							UserId:     authRes.UserId,
 						})
 					})
-					
+
 					if err != nil {
 						// ROLLBACK User
 						log.Printf("SAGA: Rollback Auth User %s due to Patient creation failure", authRes.UserId)
@@ -1545,17 +1529,17 @@ func main() {
 								HardDelete: true,
 							})
 						})
-						
+
 						response.HandleGRPCError(w, err)
 						return
 					}
 
 					if payload.Guarantor == "Umum" {
 						fee := 150000.0
-						if payload.DepartmentCode == "UMU" {
+						if payload.DepartmentCode == "UMU" || payload.DepartmentCode == "01" || payload.DepartmentCode == "Poli Umum" || payload.DepartmentCode == "POLI_UMUM" {
 							fee = 50000.0
 						}
-						
+
 						_, errBilling := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.AddRegistrationFeeResponse, error) {
 							return billingClient.AddRegistrationFee(req.Context(), &billingpb.AddRegistrationFeeRequest{
 								EncounterNo:    regRes.EncounterNo,
@@ -1563,7 +1547,7 @@ func main() {
 								Amount:         fee,
 							})
 						})
-						
+
 						if errBilling != nil {
 							log.Printf("SAGA: Failed to add registration fee to billing: %v. Continuing since invoice can be recreated manually", errBilling)
 							// We could choose to rollback here, but billing creation failure might just be logged and retried later.
@@ -1605,10 +1589,10 @@ func main() {
 					}
 					if payload.Guarantor == "Umum" {
 						fee := 150000.0
-						if payload.DepartmentCode == "UMU" {
+						if payload.DepartmentCode == "UMU" || payload.DepartmentCode == "01" || payload.DepartmentCode == "Poli Umum" || payload.DepartmentCode == "POLI_UMUM" {
 							fee = 50000.0
 						}
-						
+
 						_, errBilling := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.AddRegistrationFeeResponse, error) {
 							return billingClient.AddRegistrationFee(req.Context(), &billingpb.AddRegistrationFeeRequest{
 								EncounterNo:    res.EncounterNo,
@@ -1616,7 +1600,7 @@ func main() {
 								Amount:         fee,
 							})
 						})
-						
+
 						if errBilling != nil {
 							log.Printf("SAGA: Failed to add registration fee to billing for %s: %v. Continuing...", res.EncounterNo, errBilling)
 						}
@@ -1629,121 +1613,6 @@ func main() {
 					})
 				})
 
-				r.Get("/registrations/dashboard/metrics", func(w http.ResponseWriter, req *http.Request) {
-					// 1. Get metrics from Registration Service
-					regMetrics, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetDashboardMetricsResponse, error) {
-						return regClient.GetDashboardMetrics(req.Context(), &regpb.GetDashboardMetricsRequest{})
-					})
-					if err != nil {
-						response.HandleGRPCError(w, err)
-						return
-					}
-
-					// 2. Get metrics from Auth Service
-					authMetrics, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetActivePersonnelMetricsResponse, error) {
-						return authClient.GetActivePersonnelMetrics(req.Context(), &authpb.GetActivePersonnelMetricsRequest{})
-					})
-					if err != nil {
-						response.HandleGRPCError(w, err)
-						return
-					}
-
-					// 3. Combine metrics
-					response.JSON(w, http.StatusOK, response.SuccessResponse{
-						Success: true,
-						Message: "Dashboard metrics fetched successfully",
-						Data: map[string]interface{}{
-							"new_patients":   regMetrics.NewPatients,
-							"old_patients":   regMetrics.OldPatients,
-							"wait_times":     regMetrics.WaitTimes,
-							"weekly_visits":  regMetrics.WeeklyVisits,
-							"active_polis":   authMetrics.ActiveClinics,
-							"active_doctors": authMetrics.ActiveDoctors,
-							"active_nurses":  authMetrics.ActiveNurses,
-						},
-					})
-				})
-
-				r.Get("/registrations/today", func(w http.ResponseWriter, req *http.Request) {
-					dateStr := req.URL.Query().Get("date")
-					queueOnly := req.URL.Query().Get("queue_only") == "true"
-					
-					// 1. Get encounters from Registration Service
-					resReg, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetTodayEncountersResponse, error) {
-						return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 100, Date: dateStr})
-					})
-					if err != nil {
-						response.HandleGRPCError(w, err)
-						return
-					}
-
-					// 2. Map and enrich with Patient names and Status Pasien Baru/Lama
-					type EnrichedEncounter struct {
-						EncounterNo    string `json:"encounter_no"`
-						MRN            string `json:"mrn"`
-						PatientName    string `json:"patient_name"`
-						Gender         string `json:"gender"`
-						DateOfBirth    string `json:"date_of_birth"`
-						DepartmentCode string `json:"department_code"`
-						DoctorID       string `json:"doctor_id"`
-						Status         string `json:"status"`
-						StatusPasien   string `json:"status_pasien"` // "Baru RS" or "Lama RS"
-						RegisteredTime string `json:"registered_time"`
-					}
-					
-					var enriched []EnrichedEncounter
-					
-					for _, enc := range resReg.Encounters {
-						if queueOnly {
-							if enc.Status != "QUEUED" && enc.Status != "QUEUED_FOR_POLI" && enc.Status != "WAITING_FOR_TRIAGE" && enc.Status != "IN_PROGRESS" {
-								continue
-							}
-						}
-						// Fetch Patient Details for enrichment
-						var pName = "-"
-						var pGender = "-"
-						var pDob = "-"
-						
-						resPat, errPat := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {
-							return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: enc.Mrn})
-						})
-						if errPat == nil && resPat != nil && resPat.Patient != nil {
-							pName = resPat.Patient.Name
-							pGender = resPat.Patient.Gender
-							pDob = resPat.Patient.Dob
-						}
-
-						// Extract RegisteredTime and IsNewPatient from enc.RegisteredTime
-						parts := strings.Split(enc.RegisteredTime, "|")
-						regTime := parts[0]
-						isNew := "Lama RS"
-						if len(parts) > 1 && parts[1] == "true" {
-							isNew = "Baru RS"
-						}
-
-						enriched = append(enriched, EnrichedEncounter{
-							EncounterNo:    enc.EncounterNo,
-							MRN:            enc.Mrn,
-							PatientName:    pName,
-							Gender:         pGender,
-							DateOfBirth:    pDob,
-							DepartmentCode: enc.DepartmentCode,
-							DoctorID:       enc.DoctorId,
-							Status:         enc.Status,
-							StatusPasien:   isNew,
-							RegisteredTime: regTime,
-						})
-					}
-
-					response.JSON(w, http.StatusOK, response.SuccessResponse{
-						Success: true,
-						Message: "Success",
-						Data: map[string]interface{}{
-							"encounters": enriched,
-							"total":      len(enriched),
-						},
-					})
-				})
 
 				r.Post("/registrations/cancel", func(w http.ResponseWriter, req *http.Request) {
 					var payload regpb.CancelEncounterRequest
@@ -1796,6 +1665,126 @@ func main() {
 						Success: true,
 						Message: "Success",
 						Data:    res,
+					})
+				})
+			})
+			// Shared (Admin, Super Admin, Nurse, Admisi, Doctor, Kasir)
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireRole("admin", "super_admin", "perawat", "admisi", "dokter", "kasir"))
+
+				r.Get("/registrations/dashboard/metrics", func(w http.ResponseWriter, req *http.Request) {
+					// 1. Get metrics from Registration Service
+					regMetrics, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetDashboardMetricsResponse, error) {
+						return regClient.GetDashboardMetrics(req.Context(), &regpb.GetDashboardMetricsRequest{})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					// 2. Get metrics from Auth Service
+					authMetrics, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetActivePersonnelMetricsResponse, error) {
+						return authClient.GetActivePersonnelMetrics(req.Context(), &authpb.GetActivePersonnelMetricsRequest{})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					// 3. Combine metrics
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Dashboard metrics fetched successfully",
+						Data: map[string]interface{}{
+							"new_patients":   regMetrics.NewPatients,
+							"old_patients":   regMetrics.OldPatients,
+							"wait_times":     regMetrics.WaitTimes,
+							"weekly_visits":  regMetrics.WeeklyVisits,
+							"active_polis":   authMetrics.ActiveClinics,
+							"active_doctors": authMetrics.ActiveDoctors,
+							"active_nurses":  authMetrics.ActiveNurses,
+						},
+					})
+				})
+
+				r.Get("/registrations/today", func(w http.ResponseWriter, req *http.Request) {
+					dateStr := req.URL.Query().Get("date")
+					queueOnly := req.URL.Query().Get("queue_only") == "true"
+
+					// 1. Get encounters from Registration Service
+					resReg, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetTodayEncountersResponse, error) {
+						return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 100, Date: dateStr})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					// 2. Map and enrich with Patient names and Status Pasien Baru/Lama
+					type EnrichedEncounter struct {
+						EncounterNo    string `json:"encounter_no"`
+						MRN            string `json:"mrn"`
+						PatientName    string `json:"patient_name"`
+						Gender         string `json:"gender"`
+						DateOfBirth    string `json:"date_of_birth"`
+						DepartmentCode string `json:"department_code"`
+						DoctorID       string `json:"doctor_id"`
+						Status         string `json:"status"`
+						StatusPasien   string `json:"status_pasien"` // "Baru RS" or "Lama RS"
+						RegisteredTime string `json:"registered_time"`
+					}
+
+					var enriched []EnrichedEncounter
+
+					for _, enc := range resReg.Encounters {
+						if queueOnly {
+							if enc.Status != "QUEUED" && enc.Status != "QUEUED_FOR_POLI" && enc.Status != "WAITING_FOR_TRIAGE" && enc.Status != "IN_PROGRESS" {
+								continue
+							}
+						}
+						// Fetch Patient Details for enrichment
+						var pName = "-"
+						var pGender = "-"
+						var pDob = "-"
+
+						resPat, errPat := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {
+							return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: enc.Mrn})
+						})
+						if errPat == nil && resPat != nil && resPat.Patient != nil {
+							pName = resPat.Patient.Name
+							pGender = resPat.Patient.Gender
+							pDob = resPat.Patient.Dob
+						}
+
+						// Extract RegisteredTime and IsNewPatient from enc.RegisteredTime
+						parts := strings.Split(enc.RegisteredTime, "|")
+						regTime := parts[0]
+						isNew := "Lama RS"
+						if len(parts) > 1 && parts[1] == "true" {
+							isNew = "Baru RS"
+						}
+
+						enriched = append(enriched, EnrichedEncounter{
+							EncounterNo:    enc.EncounterNo,
+							MRN:            enc.Mrn,
+							PatientName:    pName,
+							Gender:         pGender,
+							DateOfBirth:    pDob,
+							DepartmentCode: enc.DepartmentCode,
+							DoctorID:       enc.DoctorId,
+							Status:         enc.Status,
+							StatusPasien:   isNew,
+							RegisteredTime: regTime,
+						})
+					}
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data: map[string]interface{}{
+							"encounters": enriched,
+							"total":      len(enriched),
+						},
 					})
 				})
 			})
@@ -1867,13 +1856,13 @@ func main() {
 						return
 					}
 					defer dbConn.Close()
-					
+
 					_, err := dbConn.ExecContext(req.Context(), `
 						INSERT INTO auth.system_settings (key, value, updated_by)
 						VALUES ($1, $2, $3)
 						ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW(), updated_by = EXCLUDED.updated_by
 					`, "gemini_ocr_model", payload.ModelName, "admin")
-					
+
 					if err != nil {
 						log.Printf("Failed to save settings: %v", err)
 						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to update settings"})
@@ -1885,7 +1874,26 @@ func main() {
 
 			// EMR (Doctor, Nurse)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.RequireRole("doctor", "nurse"))
+				r.Use(middleware.RequireRole("dokter", "perawat", "rekam_medis"))
+
+				r.Get("/emr/my-poli", func(w http.ResponseWriter, req *http.Request) {
+					userID := req.Context().Value("userID").(string)
+					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetAssignedPoliResponse, error) {
+						return authClient.GetAssignedPoli(req.Context(), &authpb.GetAssignedPoliRequest{
+							UserId: userID,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
+				})
+
 				r.Post("/emr/triage", func(w http.ResponseWriter, req *http.Request) {
 					var payload emrpb.SubmitTriageRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
@@ -1893,18 +1901,18 @@ func main() {
 						return
 					}
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.SubmitTriageResponse, error) {
-					return emrClient.SubmitTriage(req.Context(), &payload)
+						return emrClient.SubmitTriage(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
-				if err != nil {
-					response.HandleGRPCError(w, err)
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
 
 				r.Post("/emr/start", func(w http.ResponseWriter, req *http.Request) {
 					var payload emrpb.StartEncounterRequest
@@ -1919,18 +1927,18 @@ func main() {
 						return
 					}
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.StartEncounterResponse, error) {
-					return emrClient.StartEncounter(req.Context(), &payload)
+						return emrClient.StartEncounter(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
-				if err != nil {
-					response.HandleGRPCError(w, err)
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
 
 				r.Post("/emr/diagnosis-kbm", func(w http.ResponseWriter, req *http.Request) {
 					var payload emrpb.AddDiagnosisKBMRequest
@@ -1946,18 +1954,18 @@ func main() {
 						return
 					}
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.AddDiagnosisKBMResponse, error) {
-					return emrClient.AddDiagnosisKBM(req.Context(), &payload)
+						return emrClient.AddDiagnosisKBM(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
-				if err != nil {
-					response.HandleGRPCError(w, err)
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
 
 				r.Post("/emr/actions", func(w http.ResponseWriter, req *http.Request) {
 					var payload emrpb.AddMedicalActionRequest
@@ -1966,39 +1974,39 @@ func main() {
 						return
 					}
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.AddMedicalActionResponse, error) {
-					return emrClient.AddMedicalAction(req.Context(), &payload)
+						return emrClient.AddMedicalAction(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
-				if err != nil {
-					response.HandleGRPCError(w, err)
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
 
 				r.Get("/emr/record/{encounter_no}", func(w http.ResponseWriter, req *http.Request) {
 					encounterNo := chi.URLParam(req, "encounter_no")
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetMedicalRecordResponse, error) {
-					return emrClient.GetMedicalRecord(req.Context(), &emrpb.GetMedicalRecordRequest{EncounterNo: encounterNo})
+						return emrClient.GetMedicalRecord(req.Context(), &emrpb.GetMedicalRecordRequest{EncounterNo: encounterNo})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
-				if err != nil {
-					response.HandleGRPCError(w, err)
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
 			})
 
-			// KBM (Doctor, Nurse, Medical Records, Admin)
+			// KBM (Doctor, Nurse)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.RequireRole("doctor", "nurse", "medical_records", "admin"))
+				r.Use(middleware.RequireRole("dokter", "perawat"))
 				r.Get("/emr/kbm/search", func(w http.ResponseWriter, req *http.Request) {
 					query := req.URL.Query().Get("q")
 					deptCode := req.URL.Query().Get("dept_code")
@@ -2014,10 +2022,10 @@ func main() {
 						return
 					}
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
 
 				r.Get("/emr/kbm/{code}", func(w http.ResponseWriter, req *http.Request) {
@@ -2030,16 +2038,16 @@ func main() {
 						return
 					}
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
 			})
 
-			// EMR (Medical Records)
+			// EMR (Dokter - verify ICD10 & pending review)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.RequireRole("medical_records", "admin"))
+				r.Use(middleware.RequireRole("dokter", "admin", "rekam_medis"))
 				r.Post("/emr/verify-icd10", func(w http.ResponseWriter, req *http.Request) {
 					var payload emrpb.VerifyICD10MappingRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
@@ -2054,10 +2062,10 @@ func main() {
 						return
 					}
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
 
 				r.Get("/emr/pending-icd10", func(w http.ResponseWriter, req *http.Request) {
@@ -2069,10 +2077,10 @@ func main() {
 						return
 					}
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
 
 				r.Get("/emr/kbm/{code}/icd10-suggestions", func(w http.ResponseWriter, req *http.Request) {
@@ -2085,16 +2093,16 @@ func main() {
 						return
 					}
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
 			})
 
 			// Pharmacy (Pharmacist, Admin)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.RequireRole("pharmacist", "admin"))
+				r.Use(middleware.RequireRole("asisten_apoteker", "admin"))
 				r.Post("/pharmacy/prescriptions", func(w http.ResponseWriter, req *http.Request) {
 					var payload pharmacypb.CreatePrescriptionRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
@@ -2108,18 +2116,18 @@ func main() {
 						return
 					}
 					res, err := circuitbreaker.CallGRPC(cbPharmacy, func() (*pharmacypb.CreatePrescriptionResponse, error) {
-					return pharmacyClient.CreatePrescription(req.Context(), &payload)
+						return pharmacyClient.CreatePrescription(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
-				if err != nil {
-					response.HandleGRPCError(w, err)
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
 
 				r.Post("/pharmacy/dispense", func(w http.ResponseWriter, req *http.Request) {
 					var payload pharmacypb.DispensePrescriptionRequest
@@ -2128,38 +2136,38 @@ func main() {
 						return
 					}
 					res, err := circuitbreaker.CallGRPC(cbPharmacy, func() (*pharmacypb.DispensePrescriptionResponse, error) {
-					return pharmacyClient.DispensePrescription(req.Context(), &payload)
+						return pharmacyClient.DispensePrescription(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
-				if err != nil {
-					response.HandleGRPCError(w, err)
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
 			})
 
 			// Billing (Cashier, Admin)
 			r.Group(func(r chi.Router) {
-				r.Use(middleware.RequireRole("cashier", "admin"))
+				r.Use(middleware.RequireRole("kasir", "admin"))
 				r.Get("/billing/invoice/{encounter_no}", func(w http.ResponseWriter, req *http.Request) {
 					encounterNo := chi.URLParam(req, "encounter_no")
 					res, err := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GenerateInvoiceResponse, error) {
-					return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: encounterNo})
+						return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: encounterNo})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
 				})
-				if err != nil {
-					response.HandleGRPCError(w, err)
-					return
-				}
-				response.JSON(w, http.StatusOK, response.SuccessResponse{
-				Success: true,
-				Message: "Success",
-				Data:    res,
-			})
-			})
 
 				r.Post("/billing/pay", func(w http.ResponseWriter, req *http.Request) {
 					var payload billingpb.PayInvoiceRequest
@@ -2180,7 +2188,7 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					
+
 					// 2. Notify Registration Service to update Encounter Status to QUEUED_FOR_POLI
 					if res.EncounterNo != "" {
 						_, errReg := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
@@ -2193,7 +2201,7 @@ func main() {
 							slog.Warn("Failed to update encounter status after payment", "encounter_no", res.EncounterNo, "error", errReg)
 						}
 					}
-					
+
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
 						Success: true,
 						Message: "Success",

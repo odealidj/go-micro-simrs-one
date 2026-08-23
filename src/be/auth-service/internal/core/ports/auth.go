@@ -20,6 +20,8 @@ type UserRepository interface {
 	CreateRefreshToken(ctx context.Context, token *domain.RefreshToken) error
 	GetRefreshToken(ctx context.Context, tokenHash string) (*domain.RefreshToken, error)
 	DeleteRefreshToken(ctx context.Context, tokenHash string) error
+	
+	GetActivePoliCode(ctx context.Context, userID string, role string) (string, error)
 }
 
 type TokenPair struct {
@@ -37,11 +39,11 @@ type ExtractKTPDataResult struct {
 
 // AuthService is the Inbound Port
 type AuthService interface {
-	Signup(ctx context.Context, nip, password, email, phone string) (userID string, err error)
+	Signup(ctx context.Context, username, password, email, phone, fullName, nip string, labelProfesiID int32) (userID string, err error)
 	RegisterPatientUser(ctx context.Context, username, password string) (userID string, err error)
 	BootstrapAdmin(ctx context.Context, nip, password, email, phone string) error
 	BootstrapSuperAdmin(ctx context.Context, username, password, email, phone string) error
-	Login(ctx context.Context, username, password string) (tokenPair *TokenPair, role string, userID string, err error)
+	Login(ctx context.Context, username, password string) (tokenPair *TokenPair, role string, userID string, poliCode string, err error)
 	ValidateToken(ctx context.Context, token string) (isValid bool, role string, userID string, err error)
 	RefreshToken(ctx context.Context, refreshToken string) (tokenPair *TokenPair, err error)
 	ExtractKTPData(ctx context.Context, base64Image string) (*ExtractKTPDataResult, error)

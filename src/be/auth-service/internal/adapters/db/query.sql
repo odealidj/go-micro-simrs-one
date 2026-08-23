@@ -14,9 +14,9 @@ VALUES ($1, $2, $3, $4, $5)
 RETURNING id, username, password_hash, role, status, force_change_password, last_login_at, created_at, updated_at;
 
 -- name: CreateStaffProfile :one
-INSERT INTO staff_profiles (user_id, nip, email, phone)
-VALUES ($1, $2, $3, $4)
-RETURNING id, user_id, nip, email, phone, created_at, updated_at;
+INSERT INTO staff_profiles (user_id, nip, email, phone, full_name, label_profesi_id)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, user_id, nip, email, phone, full_name, label_profesi_id, created_at, updated_at;
 
 -- name: ListUsersWithProfile :many
 SELECT u.id, u.username, u.role, u.status, u.created_at, 
@@ -180,6 +180,22 @@ INSERT INTO mapping_dokter_poli (dokter_id, poli_code, start_date, end_date)
 VALUES ($1, $2, $3, $4)
 RETURNING id, dokter_id, poli_code, start_date, end_date;
 
+-- name: GetAssignedPoli :one
+SELECT poli_code
+FROM mapping_dokter_poli m
+JOIN profil_dokter d ON m.dokter_id = d.id
+WHERE d.user_id = $1
+  AND m.deleted_dt IS NULL
+  AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
+UNION ALL
+SELECT poli_code
+FROM mapping_perawat_poli m
+JOIN profil_perawat p ON m.perawat_id = p.id
+WHERE p.user_id = $1
+  AND m.deleted_dt IS NULL
+  AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
+LIMIT 1;
+
 -- name: CheckNurseAssignmentOverlap :one
 SELECT EXISTS (
     SELECT 1 FROM mapping_perawat_poli
@@ -220,3 +236,41 @@ WHERE CURRENT_DATE BETWEEN p1.start_date AND p1.end_date
   AND CURRENT_DATE BETWEEN p2.start_date AND p2.end_date
   AND p1.deleted_dt IS NULL
   AND p2.deleted_dt IS NULL;
+
+-- name: GetMasterLabelProfesi :many
+SELECT id, nama_label, is_active
+FROM master_label_profesi
+WHERE deleted_dt IS NULL
+  AND ($1::text = '' OR nama_label ILIKE '%' || $1 || '%')
+ORDER BY id
+LIMIT $2 OFFSET $3;
+
+-- name: CountMasterLabelProfesi :one
+SELECT COUNT(id)
+FROM master_label_profesi
+WHERE deleted_dt IS NULL
+  AND ($1::text = '' OR nama_label ILIKE '%' || $1 || '%');
+
+-- name: CreateProfilDokter :exec
+INSERT INTO profil_dokter (user_id) VALUES ($1) ON CONFLICT DO NOTHING;
+
+-- name: CreateProfilPerawat :exec
+INSERT INTO profil_perawat (user_id) VALUES ($1) ON CONFLICT DO NOTHING;
+
+-- name: GetActivePoliByDoctorUserId :many
+SELECT m.poli_code
+FROM mapping_dokter_poli m
+JOIN profil_dokter p ON m.dokter_id = p.id
+WHERE p.user_id = $1
+  AND m.deleted_dt IS NULL
+  AND p.deleted_dt IS NULL
+  AND CURRENT_DATE BETWEEN m.start_date AND m.end_date;
+
+-- name: GetActivePoliByNurseUserId :many
+SELECT m.poli_code
+FROM mapping_perawat_poli m
+JOIN profil_perawat p ON m.perawat_id = p.id
+WHERE p.user_id = $1
+  AND m.deleted_dt IS NULL
+  AND p.deleted_dt IS NULL
+  AND CURRENT_DATE BETWEEN m.start_date AND m.end_date;

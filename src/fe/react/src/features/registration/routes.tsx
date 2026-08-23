@@ -1,35 +1,43 @@
 import type { RouteObject } from "react-router-dom";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { ProtectedRoute } from "@/lib/ProtectedRoute";
+import { AdmisiLayout } from "./components/AdmisiLayout";
 import { RegistrationDashboard } from "./pages/RegistrationDashboard";
 import { NewRegistrationPage } from "./pages/NewRegistrationPage";
 import { QueueManagerPage } from "./pages/QueueManagerPage";
 import { DaftarKunjunganPage } from "./pages/DaftarKunjunganPage";
 import { JadwalDokterPerawatPage } from "./pages/JadwalDokterPerawatPage";
 
-export const registrationRoutes: RouteObject[] = [
+export const admisiRoutes: RouteObject[] = [
   {
-    element: <DashboardLayout />,
+    path: "/admisi",
+    element: <ProtectedRoute allowedRoles={["admisi", "admin", "super_admin"]} />,
     children: [
       {
-        path: "dashboard",
-        element: <RegistrationDashboard />,
-      },
-      {
-        path: "admisi/daftar",
-        element: <DaftarKunjunganPage />,
-      },
-      {
-        path: "admisi/baru",
-        element: <NewRegistrationPage />,
-      },
-      {
-        path: "admisi/antrean",
-        element: <QueueManagerPage />,
-      },
-      {
-        path: "admisi/jadwal",
-        element: <JadwalDokterPerawatPage />,
+        element: <AdmisiLayout />,
+        children: [
+          {
+            index: true,
+            element: <RegistrationDashboard />,
+          },
+          {
+            path: "kunjungan",
+            element: <DaftarKunjunganPage />,
+          },
+          {
+            path: "baru",
+            element: <NewRegistrationPage />,
+          },
+          {
+            path: "antrean",
+            element: <QueueManagerPage />,
+          },
+          {
+            path: "jadwal",
+            element: <JadwalDokterPerawatPage />,
+          },
+        ],
       },
     ],
   },
 ];
+

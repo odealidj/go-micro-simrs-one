@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: auth/v1/auth.proto
+// source: proto/auth/v1/auth.proto
 
 package authv1
 
@@ -35,6 +35,8 @@ const (
 	AuthService_GetNursesByPoli_FullMethodName           = "/auth.v1.AuthService/GetNursesByPoli"
 	AuthService_AssignDoctorPoli_FullMethodName          = "/auth.v1.AuthService/AssignDoctorPoli"
 	AuthService_AssignNursePoli_FullMethodName           = "/auth.v1.AuthService/AssignNursePoli"
+	AuthService_GetAssignedPoli_FullMethodName           = "/auth.v1.AuthService/GetAssignedPoli"
+	AuthService_ListLabelProfesi_FullMethodName          = "/auth.v1.AuthService/ListLabelProfesi"
 	AuthService_GetActivePersonnelMetrics_FullMethodName = "/auth.v1.AuthService/GetActivePersonnelMetrics"
 )
 
@@ -68,6 +70,9 @@ type AuthServiceClient interface {
 	GetNursesByPoli(ctx context.Context, in *GetNursesByPoliRequest, opts ...grpc.CallOption) (*GetNursesByPoliResponse, error)
 	AssignDoctorPoli(ctx context.Context, in *AssignDoctorPoliRequest, opts ...grpc.CallOption) (*AssignDoctorPoliResponse, error)
 	AssignNursePoli(ctx context.Context, in *AssignNursePoliRequest, opts ...grpc.CallOption) (*AssignNursePoliResponse, error)
+	GetAssignedPoli(ctx context.Context, in *GetAssignedPoliRequest, opts ...grpc.CallOption) (*GetAssignedPoliResponse, error)
+	// Label Profesi Read
+	ListLabelProfesi(ctx context.Context, in *ListLabelProfesiRequest, opts ...grpc.CallOption) (*ListLabelProfesiResponse, error)
 	// Metrics
 	GetActivePersonnelMetrics(ctx context.Context, in *GetActivePersonnelMetricsRequest, opts ...grpc.CallOption) (*GetActivePersonnelMetricsResponse, error)
 }
@@ -240,6 +245,26 @@ func (c *authServiceClient) AssignNursePoli(ctx context.Context, in *AssignNurse
 	return out, nil
 }
 
+func (c *authServiceClient) GetAssignedPoli(ctx context.Context, in *GetAssignedPoliRequest, opts ...grpc.CallOption) (*GetAssignedPoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAssignedPoliResponse)
+	err := c.cc.Invoke(ctx, AuthService_GetAssignedPoli_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ListLabelProfesi(ctx context.Context, in *ListLabelProfesiRequest, opts ...grpc.CallOption) (*ListLabelProfesiResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListLabelProfesiResponse)
+	err := c.cc.Invoke(ctx, AuthService_ListLabelProfesi_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) GetActivePersonnelMetrics(ctx context.Context, in *GetActivePersonnelMetricsRequest, opts ...grpc.CallOption) (*GetActivePersonnelMetricsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetActivePersonnelMetricsResponse)
@@ -280,6 +305,9 @@ type AuthServiceServer interface {
 	GetNursesByPoli(context.Context, *GetNursesByPoliRequest) (*GetNursesByPoliResponse, error)
 	AssignDoctorPoli(context.Context, *AssignDoctorPoliRequest) (*AssignDoctorPoliResponse, error)
 	AssignNursePoli(context.Context, *AssignNursePoliRequest) (*AssignNursePoliResponse, error)
+	GetAssignedPoli(context.Context, *GetAssignedPoliRequest) (*GetAssignedPoliResponse, error)
+	// Label Profesi Read
+	ListLabelProfesi(context.Context, *ListLabelProfesiRequest) (*ListLabelProfesiResponse, error)
 	// Metrics
 	GetActivePersonnelMetrics(context.Context, *GetActivePersonnelMetricsRequest) (*GetActivePersonnelMetricsResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
@@ -339,6 +367,12 @@ func (UnimplementedAuthServiceServer) AssignDoctorPoli(context.Context, *AssignD
 }
 func (UnimplementedAuthServiceServer) AssignNursePoli(context.Context, *AssignNursePoliRequest) (*AssignNursePoliResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AssignNursePoli not implemented")
+}
+func (UnimplementedAuthServiceServer) GetAssignedPoli(context.Context, *GetAssignedPoliRequest) (*GetAssignedPoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAssignedPoli not implemented")
+}
+func (UnimplementedAuthServiceServer) ListLabelProfesi(context.Context, *ListLabelProfesiRequest) (*ListLabelProfesiResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListLabelProfesi not implemented")
 }
 func (UnimplementedAuthServiceServer) GetActivePersonnelMetrics(context.Context, *GetActivePersonnelMetricsRequest) (*GetActivePersonnelMetricsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetActivePersonnelMetrics not implemented")
@@ -652,6 +686,42 @@ func _AuthService_AssignNursePoli_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_GetAssignedPoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAssignedPoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).GetAssignedPoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_GetAssignedPoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).GetAssignedPoli(ctx, req.(*GetAssignedPoliRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ListLabelProfesi_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListLabelProfesiRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ListLabelProfesi(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ListLabelProfesi_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ListLabelProfesi(ctx, req.(*ListLabelProfesiRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_GetActivePersonnelMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetActivePersonnelMetricsRequest)
 	if err := dec(in); err != nil {
@@ -742,10 +812,18 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AuthService_AssignNursePoli_Handler,
 		},
 		{
+			MethodName: "GetAssignedPoli",
+			Handler:    _AuthService_GetAssignedPoli_Handler,
+		},
+		{
+			MethodName: "ListLabelProfesi",
+			Handler:    _AuthService_ListLabelProfesi_Handler,
+		},
+		{
 			MethodName: "GetActivePersonnelMetrics",
 			Handler:    _AuthService_GetActivePersonnelMetrics_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "auth/v1/auth.proto",
+	Metadata: "proto/auth/v1/auth.proto",
 }

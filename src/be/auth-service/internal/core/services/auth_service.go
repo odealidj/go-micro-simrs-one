@@ -32,15 +32,15 @@ func NewAuthService(repo ports.UserRepository, tm *auth.TokenManager) ports.Auth
 	}
 }
 
-func (s *authServiceImpl) Signup(ctx context.Context, nip, password, email, phone string) (string, error) {
-	if nip == "admin" || nip == "superadmin" || nip == "super_admin" {
+func (s *authServiceImpl) Signup(ctx context.Context, username, password, email, phone, fullName, nip string, labelProfesiID int32) (string, error) {
+	if username == "admin" || username == "superadmin" || username == "super_admin" {
 		return "", errors.New("Username tidak valid")
 	}
 
-	// 1. Check if user exists by NIP
-	_, err := s.repo.FindByUsername(ctx, nip)
+	// 1. Check if user exists by username
+	_, err := s.repo.FindByUsername(ctx, username)
 	if err == nil {
-		return "", errors.New("NIP already registered")
+		return "", errors.New("Username already registered")
 	}
 
 	// 2. Hash password
@@ -51,17 +51,28 @@ func (s *authServiceImpl) Signup(ctx context.Context, nip, password, email, phon
 
 	// 3. Create user (Role is nil, Status is PENDING)
 	user := &domain.User{
-		Username:            nip, // NIP is used as username for staff
+		Username:            username,
 		PasswordHash:        string(hashedPassword),
 		Role:                nil,
 		Status:              "PENDING",
 		ForceChangePassword: true, // Force change password when first logging in if approved
 	}
 
+	var labelProfIDPtr *int32
+	if labelProfesiID > 0 {
+		labelProfIDPtr = &labelProfesiID
+	}
+
+	if nip == "" {
+		return "", errors.New("NIK/NIP harus diisi")
+	}
+
 	profile := &domain.StaffProfile{
-		NIP:   nip,
-		Email: email,
-		Phone: phone,
+		NIP:            nip,
+		Email:          email,
+		Phone:          phone,
+		FullName:       fullName,
+		LabelProfesiID: labelProfIDPtr,
 	}
 
 	createdUser, err := s.repo.CreateWithProfile(ctx, user, profile)
@@ -200,24 +211,24 @@ func (s *authServiceImpl) generateTokenPair(userID string, role string) (*ports.
 	}, nil
 }
 
-func (s *authServiceImpl) Login(ctx context.Context, username, password string) (*ports.TokenPair, string, string, error) {
+func (s *authServiceImpl) Login(ctx context.Context, username, password string) (*ports.TokenPair, string, string, string, error) {
 	// 1. Get user from repo
 	user, err := s.repo.FindByUsername(ctx, username)
 	if err != nil {
-		return nil, "", "", errors.New("invalid credentials")
+		return nil, "", "", "", errors.New("invalid credentials")
 	}
 
 	// 2. Validate password using bcrypt
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil { 
-		return nil, "", "", errors.New("invalid credentials")
+		return nil, "", "", "", errors.New("invalid credentials")
 	}
 
 	// 3. Check status
 	if user.Status == "PENDING" {
-		return nil, "", "", errors.New("account is pending approval by admin")
+		return nil, "", "", "", errors.New("account is pending approval by admin")
 	}
 	if user.Status == "REJECTED" || user.Status == "INACTIVE" {
-		return nil, "", "", errors.New("account is inactive or rejected")
+		return nil, "", "", "", errors.New("account is inactive or rejected")
 	}
 
 	var role string
@@ -228,10 +239,13 @@ func (s *authServiceImpl) Login(ctx context.Context, username, password string) 
 	// 4. Generate Token Pair
 	tokenPair, err := s.generateTokenPair(user.ID, role)
 	if err != nil {
-		return nil, "", "", err
+		return nil, "", "", "", err
 	}
 
-	return tokenPair, role, user.ID, nil
+	// 5. Get Poli Code
+	poliCode, _ := s.repo.GetActivePoliCode(ctx, user.ID, role)
+
+	return tokenPair, role, user.ID, poliCode, nil
 }
 
 func (s *authServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (*ports.TokenPair, error) {
