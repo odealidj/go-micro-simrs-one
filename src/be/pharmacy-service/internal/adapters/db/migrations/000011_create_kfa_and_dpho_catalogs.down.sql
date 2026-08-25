@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS inventory_kfa_mapping CASCADE;
+DROP TABLE IF EXISTS bpjs_dpho_catalog CASCADE;
+DROP TABLE IF EXISTS kfa_catalog CASCADE;

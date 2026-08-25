@@ -1297,7 +1297,7 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res.Suggestions})
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
 				})
 
 				r.Get("/master/snomed", func(w http.ResponseWriter, req *http.Request) {
@@ -1352,6 +1352,51 @@ func main() {
 					}
 					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
 				})
+
+				r.Get("/master/kbm/{code}/icd10-suggestions", func(w http.ResponseWriter, req *http.Request) {
+					kbmCode := chi.URLParam(req, "code")
+
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetICD10SuggestionsForKBMResponse, error) {
+						return emrClient.GetICD10SuggestionsForKBM(req.Context(), &emrpb.GetICD10SuggestionsForKBMRequest{
+							KbmCode: kbmCode,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Get("/master/icd10/{code}/mappings", func(w http.ResponseWriter, req *http.Request) {
+					code := chi.URLParam(req, "code")
+
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetICD10MappingDetailsResponse, error) {
+						return emrClient.GetICD10MappingDetails(req.Context(), &emrpb.GetICD10MappingDetailsRequest{
+							Icd10Code: code,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Get("/master/icd9/{code}/mappings", func(w http.ResponseWriter, req *http.Request) {
+					code := chi.URLParam(req, "code")
+
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetICD9MappingDetailsResponse, error) {
+						return emrClient.GetICD9MappingDetails(req.Context(), &emrpb.GetICD9MappingDetailsRequest{
+							Icd9Code: code,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
 				r.Get("/master/obat", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
@@ -1397,6 +1442,93 @@ func main() {
 							PageSize:   int32(pageSize),
 							SearchName: searchName,
 							SearchCode: searchCode,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
+					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
+				})
+
+				r.Get("/master/obat/{item_code}/mappings", func(w http.ResponseWriter, req *http.Request) {
+					itemCode := chi.URLParam(req, "item_code")
+					res, err := circuitbreaker.CallGRPC(cbPharmacy, func() (*pharmacypb.GetObatMappingDetailsResponse, error) {
+						return pharmacyClient.GetObatMappingDetails(req.Context(), &pharmacypb.GetObatMappingDetailsRequest{
+							ItemCode: itemCode,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Get("/master/kfa", func(w http.ResponseWriter, req *http.Request) {
+					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					search := req.URL.Query().Get("search")
+
+					res, err := circuitbreaker.CallGRPC(cbPharmacy, func() (*pharmacypb.GetMasterKFAResponse, error) {
+						return pharmacyClient.GetMasterKFA(req.Context(), &pharmacypb.GetMasterKFARequest{
+							Page:     int32(page),
+							PageSize: int32(pageSize),
+							Search:   search,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
+					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
+				})
+
+				r.Get("/master/dpho", func(w http.ResponseWriter, req *http.Request) {
+					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					search := req.URL.Query().Get("search")
+					fornasStr := req.URL.Query().Get("is_fornas")
+					prbStr := req.URL.Query().Get("is_prb")
+
+					var isFornasPtr *bool
+					if fornasStr != "" {
+						val := fornasStr == "true"
+						isFornasPtr = &val
+					}
+					var isPrbPtr *bool
+					if prbStr != "" {
+						val := prbStr == "true"
+						isPrbPtr = &val
+					}
+
+					res, err := circuitbreaker.CallGRPC(cbPharmacy, func() (*pharmacypb.GetMasterDPHOResponse, error) {
+						return pharmacyClient.GetMasterDPHO(req.Context(), &pharmacypb.GetMasterDPHORequest{
+							Page:     int32(page),
+							PageSize: int32(pageSize),
+							Search:   search,
+							IsFornas: isFornasPtr,
+							IsPrb:    isPrbPtr,
 						})
 					})
 					if err != nil {

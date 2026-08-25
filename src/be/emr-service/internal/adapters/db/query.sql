@@ -136,9 +136,12 @@ WHERE is_active = true AND deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR name ILIKE '%' || $1 || '%' OR code ILIKE '%' || $1 || '%');
 
 -- name: GetKBMs :many
-SELECT c.*, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT c.*, 
+       COALESCE(array_agg(DISTINCT m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT k.icd10_code)::int AS icd10_count
 FROM kbm_catalog c
 LEFT JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code AND m.deleted_dt IS NULL
+LEFT JOIN kbm_icd10_mappings k ON c.kbm_code = k.kbm_code
 WHERE c.is_active = true AND c.deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR c.kbm_name ILIKE '%' || $1 || '%' OR c.kbm_code ILIKE '%' || $1 || '%')
   AND ($2::text IS NULL OR $2::text = '' OR c.kbm_code ILIKE '%' || $2 || '%')
@@ -152,10 +155,13 @@ WHERE is_active = true AND deleted_dt IS NULL
   AND ($2::text IS NULL OR $2::text = '' OR kbm_code ILIKE '%' || $2 || '%');
 
 -- name: GetKBMsByPolyclinic :many
-SELECT c.*, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT c.*, 
+       COALESCE(array_agg(DISTINCT m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT k.icd10_code)::int AS icd10_count
 FROM kbm_catalog c
 JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
 LEFT JOIN kbm_polyclinic_mappings m2 ON c.kbm_code = m2.kbm_code AND m2.deleted_dt IS NULL
+LEFT JOIN kbm_icd10_mappings k ON c.kbm_code = k.kbm_code
 WHERE c.is_active = true AND c.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
   AND ($2::text IS NULL OR $2::text = '' OR c.kbm_name ILIKE '%' || $2 || '%' OR c.kbm_code ILIKE '%' || $2 || '%')
@@ -216,10 +222,12 @@ WHERE t.is_active = true AND t.deleted_dt IS NULL AND m.deleted_dt IS NULL
 -- name: GetICD10 :many
 SELECT i.*, 
        COALESCE(array_agg(DISTINCT m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
-       COUNT(DISTINCT k.kbm_code)::int AS kbm_count
+       COUNT(DISTINCT k.kbm_code)::int AS kbm_count,
+       COUNT(DISTINCT s.snomed_concept_id)::int AS snomed_count
 FROM icd10_catalog i
 LEFT JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code AND m.deleted_dt IS NULL
 LEFT JOIN kbm_icd10_mappings k ON i.icd10_code = k.icd10_code
+LEFT JOIN snomed_icd10_mapping s ON i.icd10_code = s.icd10_code
 WHERE i.deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR i.name_en ILIKE '%' || $1 || '%' OR i.name_id ILIKE '%' || $1 || '%' OR i.icd10_code ILIKE '%' || $1 || '%')
   AND ($2::text IS NULL OR $2::text = '' OR i.icd10_code ILIKE '%' || $2 || '%')
@@ -235,11 +243,13 @@ WHERE deleted_dt IS NULL
 -- name: GetICD10ByPolyclinic :many
 SELECT i.*, 
        COALESCE(array_agg(DISTINCT m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
-       COUNT(DISTINCT k.kbm_code)::int AS kbm_count
+       COUNT(DISTINCT k.kbm_code)::int AS kbm_count,
+       COUNT(DISTINCT s.snomed_concept_id)::int AS snomed_count
 FROM icd10_catalog i
 JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code
 LEFT JOIN icd10_polyclinic_mappings m2 ON i.icd10_code = m2.icd10_code AND m2.deleted_dt IS NULL
 LEFT JOIN kbm_icd10_mappings k ON i.icd10_code = k.icd10_code
+LEFT JOIN snomed_icd10_mapping s ON i.icd10_code = s.icd10_code
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND ($2::text IS NULL OR $2::text = '' OR i.name_en ILIKE '%' || $2 || '%' OR i.name_id ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
   AND ($3::text IS NULL OR $3::text = '' OR i.icd10_code ILIKE '%' || $3 || '%')
@@ -254,11 +264,19 @@ WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND ($3::text IS NULL OR $3::text = '' OR i.icd10_code ILIKE '%' || $3 || '%');
 
 -- name: GetICD9 :many
-SELECT * FROM icd9cm_catalog
-WHERE deleted_dt IS NULL
-  AND ($1::text IS NULL OR $1::text = '' OR name_en ILIKE '%' || $1 || '%' OR name_id ILIKE '%' || $1 || '%' OR icd9_code ILIKE '%' || $1 || '%')
-  AND ($2::text IS NULL OR $2::text = '' OR icd9_code ILIKE '%' || $2 || '%')
-ORDER BY icd9_code ASC LIMIT $3 OFFSET $4;
+SELECT i.*,
+       COUNT(DISTINCT s.snomed_concept_id)::int AS snomed_count,
+       COUNT(DISTINCT t.kode_tindakan)::int AS tindakan_count,
+       COALESCE(array_agg(DISTINCT p.polyclinic_code) FILTER (WHERE p.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+FROM icd9cm_catalog i
+LEFT JOIN snomed_icd9_mapping s ON i.icd9_code = s.icd9_code
+LEFT JOIN tindakan_icd9_mapping t ON i.icd9_code = t.icd9_code
+LEFT JOIN tindakan_polyclinic_mappings p ON t.kode_tindakan = p.kode_tindakan AND p.deleted_dt IS NULL
+WHERE i.deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR i.name_en ILIKE '%' || $1 || '%' OR i.name_id ILIKE '%' || $1 || '%' OR i.icd9_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR i.icd9_code ILIKE '%' || $2 || '%')
+GROUP BY i.icd9_code
+ORDER BY i.icd9_code ASC LIMIT $3 OFFSET $4;
 
 -- name: CountICD9 :one
 SELECT COUNT(*) FROM icd9cm_catalog
@@ -272,6 +290,63 @@ FROM icd9cm_catalog i
 JOIN tindakan_icd9_mapping m ON i.icd9_code = m.icd9_code
 WHERE m.kode_tindakan = $1 AND i.deleted_dt IS NULL
 ORDER BY m.is_primary DESC, i.icd9_code ASC;
+
+-- name: GetICD10SuggestionsForKBM :many
+SELECT i.icd10_code, i.name_id, i.name_en, i.chapter_code, i.block_code, m.is_primary, m.mapping_confidence
+FROM icd10_catalog i
+JOIN kbm_icd10_mappings m ON i.icd10_code = m.icd10_code
+WHERE m.kbm_code = $1 AND i.is_active = true AND i.deleted_dt IS NULL
+ORDER BY m.is_primary DESC, m.mapping_confidence DESC;
+
+-- name: GetSNOMEDForICD10 :many
+SELECT s.concept_id, s.fsn, s.term_id, s.semantic_tag, s.is_active, m.is_primary, m.map_advice
+FROM snomed_concepts s
+JOIN snomed_icd10_mapping m ON s.concept_id = m.snomed_concept_id
+WHERE m.icd10_code = $1 AND s.is_active = true AND s.deleted_dt IS NULL
+ORDER BY m.is_primary DESC;
+
+-- name: GetSNOMEDForICD9 :many
+SELECT s.concept_id, s.fsn, s.term_id, s.semantic_tag, s.is_active, m.is_primary
+FROM snomed_concepts s
+JOIN snomed_icd9_mapping m ON s.concept_id = m.snomed_concept_id
+WHERE m.icd9_code = $1 AND s.is_active = true AND s.deleted_dt IS NULL
+ORDER BY m.is_primary DESC;
+
+-- name: GetTindakanForICD9 :many
+SELECT t.kode_tindakan, t.nama_tindakan, t.base_price, m.is_primary
+FROM master_tindakan t
+JOIN tindakan_icd9_mapping m ON t.kode_tindakan = m.kode_tindakan
+WHERE m.icd9_code = $1 AND t.is_active = true AND t.deleted_dt IS NULL
+ORDER BY m.is_primary DESC;
+
+-- name: GetPolyclinicsForICD9 :many
+SELECT DISTINCT p.code, p.name
+FROM polyclinics p
+JOIN tindakan_polyclinic_mappings m ON p.code = m.polyclinic_code
+JOIN tindakan_icd9_mapping map ON m.kode_tindakan = map.kode_tindakan
+WHERE map.icd9_code = $1 AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+ORDER BY p.code ASC;
+
+-- name: GetPolyclinicsForICD10 :many
+SELECT p.code, p.name
+FROM polyclinics p
+JOIN icd10_polyclinic_mappings m ON p.code = m.polyclinic_code
+WHERE m.icd10_code = $1 AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+ORDER BY p.code ASC;
+
+-- name: GetPolyclinicsForTindakan :many
+SELECT p.code, p.name
+FROM polyclinics p
+JOIN tindakan_polyclinic_mappings m ON p.code = m.polyclinic_code
+WHERE m.kode_tindakan = $1 AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+ORDER BY p.code ASC;
+
+-- name: GetPolyclinicsForKBM :many
+SELECT p.code, p.name
+FROM polyclinics p
+JOIN kbm_polyclinic_mappings m ON p.code = m.polyclinic_code
+WHERE m.kbm_code = $1 AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+ORDER BY p.code ASC;
 
 
 -- name: GetEncounterTindakan :many

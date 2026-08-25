@@ -3,8 +3,8 @@ import { MasterDataTable } from "../../components/MasterDataTable";
 export function AssignObatPoliPage() {
   return (
     <MasterDataTable<any>
-      title="Assign Obat"
-      description="Data master"
+      title="Obat - Poliklinik"
+      description="Pemetaan ketersediaan obat ke poliklinik"
       endpoint="/master/obat"
       requiresPoliFilter={true}
       columns={["ID Obat","Nama Obat","Harga", "Stok", "Poliklinik"]}

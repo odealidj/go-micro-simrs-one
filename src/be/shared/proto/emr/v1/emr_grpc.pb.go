@@ -31,7 +31,9 @@ const (
 	EMRService_GetMasterTindakanByPoli_FullMethodName       = "/emr.v1.EMRService/GetMasterTindakanByPoli"
 	EMRService_GetMasterICD10_FullMethodName                = "/emr.v1.EMRService/GetMasterICD10"
 	EMRService_GetMasterICD10ByPoli_FullMethodName          = "/emr.v1.EMRService/GetMasterICD10ByPoli"
+	EMRService_GetICD10MappingDetails_FullMethodName        = "/emr.v1.EMRService/GetICD10MappingDetails"
 	EMRService_GetMasterICD9_FullMethodName                 = "/emr.v1.EMRService/GetMasterICD9"
+	EMRService_GetICD9MappingDetails_FullMethodName         = "/emr.v1.EMRService/GetICD9MappingDetails"
 	EMRService_GetICD9SuggestionsForTindakan_FullMethodName = "/emr.v1.EMRService/GetICD9SuggestionsForTindakan"
 	EMRService_GetMasterSNOMED_FullMethodName               = "/emr.v1.EMRService/GetMasterSNOMED"
 	EMRService_GetSNOMEDMappingDetails_FullMethodName       = "/emr.v1.EMRService/GetSNOMEDMappingDetails"
@@ -66,7 +68,9 @@ type EMRServiceClient interface {
 	GetMasterTindakanByPoli(ctx context.Context, in *GetMasterTindakanByPoliRequest, opts ...grpc.CallOption) (*GetMasterTindakanByPoliResponse, error)
 	GetMasterICD10(ctx context.Context, in *GetMasterICD10Request, opts ...grpc.CallOption) (*GetMasterICD10Response, error)
 	GetMasterICD10ByPoli(ctx context.Context, in *GetMasterICD10ByPoliRequest, opts ...grpc.CallOption) (*GetMasterICD10ByPoliResponse, error)
+	GetICD10MappingDetails(ctx context.Context, in *GetICD10MappingDetailsRequest, opts ...grpc.CallOption) (*GetICD10MappingDetailsResponse, error)
 	GetMasterICD9(ctx context.Context, in *GetMasterICD9Request, opts ...grpc.CallOption) (*GetMasterICD9Response, error)
+	GetICD9MappingDetails(ctx context.Context, in *GetICD9MappingDetailsRequest, opts ...grpc.CallOption) (*GetICD9MappingDetailsResponse, error)
 	GetICD9SuggestionsForTindakan(ctx context.Context, in *GetICD9SuggestionsForTindakanRequest, opts ...grpc.CallOption) (*GetICD9SuggestionsForTindakanResponse, error)
 	GetMasterSNOMED(ctx context.Context, in *GetMasterSNOMEDRequest, opts ...grpc.CallOption) (*GetMasterSNOMEDResponse, error)
 	GetSNOMEDMappingDetails(ctx context.Context, in *GetSNOMEDMappingDetailsRequest, opts ...grpc.CallOption) (*GetSNOMEDMappingDetailsResponse, error)
@@ -217,10 +221,30 @@ func (c *eMRServiceClient) GetMasterICD10ByPoli(ctx context.Context, in *GetMast
 	return out, nil
 }
 
+func (c *eMRServiceClient) GetICD10MappingDetails(ctx context.Context, in *GetICD10MappingDetailsRequest, opts ...grpc.CallOption) (*GetICD10MappingDetailsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetICD10MappingDetailsResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetICD10MappingDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *eMRServiceClient) GetMasterICD9(ctx context.Context, in *GetMasterICD9Request, opts ...grpc.CallOption) (*GetMasterICD9Response, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetMasterICD9Response)
 	err := c.cc.Invoke(ctx, EMRService_GetMasterICD9_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetICD9MappingDetails(ctx context.Context, in *GetICD9MappingDetailsRequest, opts ...grpc.CallOption) (*GetICD9MappingDetailsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetICD9MappingDetailsResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetICD9MappingDetails_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +418,9 @@ type EMRServiceServer interface {
 	GetMasterTindakanByPoli(context.Context, *GetMasterTindakanByPoliRequest) (*GetMasterTindakanByPoliResponse, error)
 	GetMasterICD10(context.Context, *GetMasterICD10Request) (*GetMasterICD10Response, error)
 	GetMasterICD10ByPoli(context.Context, *GetMasterICD10ByPoliRequest) (*GetMasterICD10ByPoliResponse, error)
+	GetICD10MappingDetails(context.Context, *GetICD10MappingDetailsRequest) (*GetICD10MappingDetailsResponse, error)
 	GetMasterICD9(context.Context, *GetMasterICD9Request) (*GetMasterICD9Response, error)
+	GetICD9MappingDetails(context.Context, *GetICD9MappingDetailsRequest) (*GetICD9MappingDetailsResponse, error)
 	GetICD9SuggestionsForTindakan(context.Context, *GetICD9SuggestionsForTindakanRequest) (*GetICD9SuggestionsForTindakanResponse, error)
 	GetMasterSNOMED(context.Context, *GetMasterSNOMEDRequest) (*GetMasterSNOMEDResponse, error)
 	GetSNOMEDMappingDetails(context.Context, *GetSNOMEDMappingDetailsRequest) (*GetSNOMEDMappingDetailsResponse, error)
@@ -461,8 +487,14 @@ func (UnimplementedEMRServiceServer) GetMasterICD10(context.Context, *GetMasterI
 func (UnimplementedEMRServiceServer) GetMasterICD10ByPoli(context.Context, *GetMasterICD10ByPoliRequest) (*GetMasterICD10ByPoliResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMasterICD10ByPoli not implemented")
 }
+func (UnimplementedEMRServiceServer) GetICD10MappingDetails(context.Context, *GetICD10MappingDetailsRequest) (*GetICD10MappingDetailsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetICD10MappingDetails not implemented")
+}
 func (UnimplementedEMRServiceServer) GetMasterICD9(context.Context, *GetMasterICD9Request) (*GetMasterICD9Response, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMasterICD9 not implemented")
+}
+func (UnimplementedEMRServiceServer) GetICD9MappingDetails(context.Context, *GetICD9MappingDetailsRequest) (*GetICD9MappingDetailsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetICD9MappingDetails not implemented")
 }
 func (UnimplementedEMRServiceServer) GetICD9SuggestionsForTindakan(context.Context, *GetICD9SuggestionsForTindakanRequest) (*GetICD9SuggestionsForTindakanResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetICD9SuggestionsForTindakan not implemented")
@@ -746,6 +778,24 @@ func _EMRService_GetMasterICD10ByPoli_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EMRService_GetICD10MappingDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetICD10MappingDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetICD10MappingDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetICD10MappingDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetICD10MappingDetails(ctx, req.(*GetICD10MappingDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _EMRService_GetMasterICD9_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetMasterICD9Request)
 	if err := dec(in); err != nil {
@@ -760,6 +810,24 @@ func _EMRService_GetMasterICD9_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EMRServiceServer).GetMasterICD9(ctx, req.(*GetMasterICD9Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetICD9MappingDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetICD9MappingDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetICD9MappingDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetICD9MappingDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetICD9MappingDetails(ctx, req.(*GetICD9MappingDetailsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1090,8 +1158,16 @@ var EMRService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EMRService_GetMasterICD10ByPoli_Handler,
 		},
 		{
+			MethodName: "GetICD10MappingDetails",
+			Handler:    _EMRService_GetICD10MappingDetails_Handler,
+		},
+		{
 			MethodName: "GetMasterICD9",
 			Handler:    _EMRService_GetMasterICD9_Handler,
+		},
+		{
+			MethodName: "GetICD9MappingDetails",
+			Handler:    _EMRService_GetICD9MappingDetails_Handler,
 		},
 		{
 			MethodName: "GetICD9SuggestionsForTindakan",

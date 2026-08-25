@@ -19,6 +19,8 @@ import { SNOMEDPage } from "./pages/master/SNOMEDPage";
 import { AssignICD10PoliPage } from "./pages/master/AssignICD10PoliPage";
 import { ObatPage } from "./pages/master/ObatPage";
 import { AssignObatPoliPage } from "./pages/master/AssignObatPoliPage";
+import { KFAPage } from "./pages/master/KFAPage";
+import { DPHOPage } from "./pages/master/DPHOPage";
 import { AdminAISettingsPage } from "./pages/AdminAISettingsPage";
 
 export const adminRoutes: RouteObject[] = [
@@ -52,6 +54,8 @@ export const adminRoutes: RouteObject[] = [
           { path: "master/snomed", element: <SNOMEDPage /> },
           { path: "master/assign-icd10", element: <AssignICD10PoliPage /> },
           { path: "master/obat", element: <ObatPage /> },
+          { path: "master/kfa", element: <KFAPage /> },
+          { path: "master/dpho", element: <DPHOPage /> },
           { path: "master/assign-obat", element: <AssignObatPoliPage /> },
           { path: "ai-settings", element: <AdminAISettingsPage /> },
         ],

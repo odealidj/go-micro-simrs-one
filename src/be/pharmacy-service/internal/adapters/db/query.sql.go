@@ -14,6 +14,40 @@ import (
 	"github.com/lib/pq"
 )
 
+const countDPHO = `-- name: CountDPHO :one
+SELECT COUNT(*) FROM bpjs_dpho_catalog
+WHERE deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR dpho_name ILIKE '%' || $1 || '%' OR dpho_code ILIKE '%' || $1 || '%')
+  AND ($2::bool IS NULL OR is_fornas = $2)
+  AND ($3::bool IS NULL OR is_prb = $3)
+`
+
+type CountDPHOParams struct {
+	Column1  string
+	IsFornas sql.NullBool
+	IsPrb    sql.NullBool
+}
+
+func (q *Queries) CountDPHO(ctx context.Context, arg CountDPHOParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countDPHO, arg.Column1, arg.IsFornas, arg.IsPrb)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
+const countKFA = `-- name: CountKFA :one
+SELECT COUNT(*) FROM kfa_catalog
+WHERE deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR name ILIKE '%' || $1 || '%' OR kfa_code ILIKE '%' || $1 || '%' OR active_substance ILIKE '%' || $1 || '%')
+`
+
+func (q *Queries) CountKFA(ctx context.Context, dollar_1 string) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countKFA, dollar_1)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countObat = `-- name: CountObat :one
 SELECT COUNT(*) FROM inventory
 WHERE deleted_dt IS NULL
@@ -173,6 +207,123 @@ func (q *Queries) CreatePrescriptionItem(ctx context.Context, arg CreatePrescrip
 	return i, err
 }
 
+const getDPHO = `-- name: GetDPHO :many
+SELECT d.dpho_code, d.dpho_name, d.is_fornas, d.is_prb, d.restriction, d.max_qty_per_claim, d.is_active,
+       COUNT(DISTINCT map.item_code)::int AS mapped_item_count
+FROM bpjs_dpho_catalog d
+LEFT JOIN inventory_kfa_mapping map ON d.dpho_code = map.dpho_code AND map.deleted_dt IS NULL
+WHERE d.deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR d.dpho_name ILIKE '%' || $1 || '%' OR d.dpho_code ILIKE '%' || $1 || '%')
+  AND ($4::bool IS NULL OR d.is_fornas = $4)
+  AND ($5::bool IS NULL OR d.is_prb = $5)
+GROUP BY d.dpho_code
+ORDER BY d.dpho_code ASC LIMIT $2 OFFSET $3
+`
+
+type GetDPHOParams struct {
+	Column1  string
+	Limit    int32
+	Offset   int32
+	IsFornas sql.NullBool
+	IsPrb    sql.NullBool
+}
+
+type GetDPHORow struct {
+	DphoCode        string
+	DphoName        string
+	IsFornas        bool
+	IsPrb           bool
+	Restriction     sql.NullString
+	MaxQtyPerClaim  int32
+	IsActive        bool
+	MappedItemCount int32
+}
+
+func (q *Queries) GetDPHO(ctx context.Context, arg GetDPHOParams) ([]GetDPHORow, error) {
+	rows, err := q.db.QueryContext(ctx, getDPHO,
+		arg.Column1,
+		arg.Limit,
+		arg.Offset,
+		arg.IsFornas,
+		arg.IsPrb,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDPHORow
+	for rows.Next() {
+		var i GetDPHORow
+		if err := rows.Scan(
+			&i.DphoCode,
+			&i.DphoName,
+			&i.IsFornas,
+			&i.IsPrb,
+			&i.Restriction,
+			&i.MaxQtyPerClaim,
+			&i.IsActive,
+			&i.MappedItemCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getDPHOMappingsForObat = `-- name: GetDPHOMappingsForObat :many
+SELECT d.dpho_code, d.dpho_name, d.is_fornas, d.is_prb, d.restriction, d.max_qty_per_claim
+FROM bpjs_dpho_catalog d
+JOIN inventory_kfa_mapping map ON d.dpho_code = map.dpho_code
+WHERE map.item_code = $1 AND d.deleted_dt IS NULL AND map.deleted_dt IS NULL
+ORDER BY map.is_primary DESC
+`
+
+type GetDPHOMappingsForObatRow struct {
+	DphoCode       string
+	DphoName       string
+	IsFornas       bool
+	IsPrb          bool
+	Restriction    sql.NullString
+	MaxQtyPerClaim int32
+}
+
+func (q *Queries) GetDPHOMappingsForObat(ctx context.Context, itemCode string) ([]GetDPHOMappingsForObatRow, error) {
+	rows, err := q.db.QueryContext(ctx, getDPHOMappingsForObat, itemCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDPHOMappingsForObatRow
+	for rows.Next() {
+		var i GetDPHOMappingsForObatRow
+		if err := rows.Scan(
+			&i.DphoCode,
+			&i.DphoName,
+			&i.IsFornas,
+			&i.IsPrb,
+			&i.Restriction,
+			&i.MaxQtyPerClaim,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getEncounterPayment = `-- name: GetEncounterPayment :one
 SELECT status
 FROM encounter_payments
@@ -236,11 +387,139 @@ func (q *Queries) GetInventoryItemForUpdate(ctx context.Context, itemCode string
 	return i, err
 }
 
+const getKFA = `-- name: GetKFA :many
+SELECT k.kfa_code, k.name, k.active_substance, k.dosage_form, k.strength, k.bpom_nie, k.atc_code, k.snomed_concept_id, k.is_active,
+       COUNT(DISTINCT map.item_code)::int AS mapped_item_count
+FROM kfa_catalog k
+LEFT JOIN inventory_kfa_mapping map ON k.kfa_code = map.kfa_code AND map.deleted_dt IS NULL
+WHERE k.deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR k.name ILIKE '%' || $1 || '%' OR k.kfa_code ILIKE '%' || $1 || '%' OR k.active_substance ILIKE '%' || $1 || '%')
+GROUP BY k.kfa_code
+ORDER BY k.kfa_code ASC LIMIT $2 OFFSET $3
+`
+
+type GetKFAParams struct {
+	Column1 string
+	Limit   int32
+	Offset  int32
+}
+
+type GetKFARow struct {
+	KfaCode         string
+	Name            string
+	ActiveSubstance sql.NullString
+	DosageForm      sql.NullString
+	Strength        sql.NullString
+	BpomNie         sql.NullString
+	AtcCode         sql.NullString
+	SnomedConceptID sql.NullString
+	IsActive        bool
+	MappedItemCount int32
+}
+
+func (q *Queries) GetKFA(ctx context.Context, arg GetKFAParams) ([]GetKFARow, error) {
+	rows, err := q.db.QueryContext(ctx, getKFA, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetKFARow
+	for rows.Next() {
+		var i GetKFARow
+		if err := rows.Scan(
+			&i.KfaCode,
+			&i.Name,
+			&i.ActiveSubstance,
+			&i.DosageForm,
+			&i.Strength,
+			&i.BpomNie,
+			&i.AtcCode,
+			&i.SnomedConceptID,
+			&i.IsActive,
+			&i.MappedItemCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getKFAMappingsForObat = `-- name: GetKFAMappingsForObat :many
+SELECT k.kfa_code, k.name, k.active_substance, k.dosage_form, k.strength, k.bpom_nie, k.atc_code, k.snomed_concept_id,
+       map.is_primary, map.mapping_confidence
+FROM kfa_catalog k
+JOIN inventory_kfa_mapping map ON k.kfa_code = map.kfa_code
+WHERE map.item_code = $1 AND k.deleted_dt IS NULL AND map.deleted_dt IS NULL
+ORDER BY map.is_primary DESC
+`
+
+type GetKFAMappingsForObatRow struct {
+	KfaCode           string
+	Name              string
+	ActiveSubstance   sql.NullString
+	DosageForm        sql.NullString
+	Strength          sql.NullString
+	BpomNie           sql.NullString
+	AtcCode           sql.NullString
+	SnomedConceptID   sql.NullString
+	IsPrimary         bool
+	MappingConfidence string
+}
+
+func (q *Queries) GetKFAMappingsForObat(ctx context.Context, itemCode string) ([]GetKFAMappingsForObatRow, error) {
+	rows, err := q.db.QueryContext(ctx, getKFAMappingsForObat, itemCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetKFAMappingsForObatRow
+	for rows.Next() {
+		var i GetKFAMappingsForObatRow
+		if err := rows.Scan(
+			&i.KfaCode,
+			&i.Name,
+			&i.ActiveSubstance,
+			&i.DosageForm,
+			&i.Strength,
+			&i.BpomNie,
+			&i.AtcCode,
+			&i.SnomedConceptID,
+			&i.IsPrimary,
+			&i.MappingConfidence,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getObat = `-- name: GetObat :many
-SELECT i.item_code, i.name, i.stock_quantity, i.price, i.deleted_dt, i.deleted_by, 
-       COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT i.item_code, i.name, i.stock_quantity, i.price, i.deleted_dt, i.deleted_by,
+       COALESCE(array_agg(DISTINCT m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT map.kfa_code)::int AS kfa_count,
+       COUNT(DISTINCT map.dpho_code)::int AS dpho_count,
+       COALESCE(BOOL_OR(d.is_fornas), false)::bool AS is_fornas,
+       COALESCE(MAX(CASE WHEN map.is_primary THEN map.kfa_code ELSE NULL END), MAX(map.kfa_code), '')::varchar AS kfa_code,
+       COALESCE(MAX(CASE WHEN map.is_primary THEN map.dpho_code ELSE NULL END), MAX(map.dpho_code), '')::varchar AS bpjs_dpho_code,
+       COALESCE(MAX(d.restriction), '')::varchar AS restriction
 FROM inventory i
 LEFT JOIN inventory_polyclinic_mappings m ON m.item_code = i.item_code AND m.deleted_dt IS NULL
+LEFT JOIN inventory_kfa_mapping map ON map.item_code = i.item_code AND map.deleted_dt IS NULL
+LEFT JOIN bpjs_dpho_catalog d ON d.dpho_code = map.dpho_code AND d.deleted_dt IS NULL
 WHERE i.deleted_dt IS NULL
   AND (i.name ILIKE '%' || $1 || '%' OR i.item_code ILIKE '%' || $2 || '%')
 GROUP BY i.item_code
@@ -262,6 +541,12 @@ type GetObatRow struct {
 	DeletedDt     sql.NullTime
 	DeletedBy     uuid.NullUUID
 	Polyclinics   []string
+	KfaCount      int32
+	DphoCount     int32
+	IsFornas      bool
+	KfaCode       string
+	BpjsDphoCode  string
+	Restriction   string
 }
 
 // Master Data Queries
@@ -287,6 +572,12 @@ func (q *Queries) GetObat(ctx context.Context, arg GetObatParams) ([]GetObatRow,
 			&i.DeletedDt,
 			&i.DeletedBy,
 			pq.Array(&i.Polyclinics),
+			&i.KfaCount,
+			&i.DphoCount,
+			&i.IsFornas,
+			&i.KfaCode,
+			&i.BpjsDphoCode,
+			&i.Restriction,
 		); err != nil {
 			return nil, err
 		}
@@ -302,11 +593,19 @@ func (q *Queries) GetObat(ctx context.Context, arg GetObatParams) ([]GetObatRow,
 }
 
 const getObatByPolyclinic = `-- name: GetObatByPolyclinic :many
-SELECT i.item_code, i.name, i.stock_quantity, i.price, i.deleted_dt, i.deleted_by, 
-       COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT i.item_code, i.name, i.stock_quantity, i.price, i.deleted_dt, i.deleted_by,
+       COALESCE(array_agg(DISTINCT m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT map.kfa_code)::int AS kfa_count,
+       COUNT(DISTINCT map.dpho_code)::int AS dpho_count,
+       COALESCE(BOOL_OR(d.is_fornas), false)::bool AS is_fornas,
+       COALESCE(MAX(CASE WHEN map.is_primary THEN map.kfa_code ELSE NULL END), MAX(map.kfa_code), '')::varchar AS kfa_code,
+       COALESCE(MAX(CASE WHEN map.is_primary THEN map.dpho_code ELSE NULL END), MAX(map.dpho_code), '')::varchar AS bpjs_dpho_code,
+       COALESCE(MAX(d.restriction), '')::varchar AS restriction
 FROM inventory i
 JOIN inventory_polyclinic_mappings m ON i.item_code = m.item_code
 LEFT JOIN inventory_polyclinic_mappings m2 ON m2.item_code = i.item_code AND m2.deleted_dt IS NULL
+LEFT JOIN inventory_kfa_mapping map ON map.item_code = i.item_code AND map.deleted_dt IS NULL
+LEFT JOIN bpjs_dpho_catalog d ON d.dpho_code = map.dpho_code AND d.deleted_dt IS NULL
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND (i.name ILIKE '%' || $2 || '%' OR i.item_code ILIKE '%' || $3 || '%')
 GROUP BY i.item_code
@@ -329,6 +628,12 @@ type GetObatByPolyclinicRow struct {
 	DeletedDt     sql.NullTime
 	DeletedBy     uuid.NullUUID
 	Polyclinics   []string
+	KfaCount      int32
+	DphoCount     int32
+	IsFornas      bool
+	KfaCode       string
+	BpjsDphoCode  string
+	Restriction   string
 }
 
 func (q *Queries) GetObatByPolyclinic(ctx context.Context, arg GetObatByPolyclinicParams) ([]GetObatByPolyclinicRow, error) {
@@ -354,6 +659,12 @@ func (q *Queries) GetObatByPolyclinic(ctx context.Context, arg GetObatByPolyclin
 			&i.DeletedDt,
 			&i.DeletedBy,
 			pq.Array(&i.Polyclinics),
+			&i.KfaCount,
+			&i.DphoCount,
+			&i.IsFornas,
+			&i.KfaCode,
+			&i.BpjsDphoCode,
+			&i.Restriction,
 		); err != nil {
 			return nil, err
 		}
@@ -464,6 +775,36 @@ func (q *Queries) GetPharmacyWaitAggregateWithoutDiagnosis(ctx context.Context, 
 	var avg_wait_minutes float64
 	err := row.Scan(&avg_wait_minutes)
 	return avg_wait_minutes, err
+}
+
+const getPolyclinicsForObat = `-- name: GetPolyclinicsForObat :many
+SELECT DISTINCT polyclinic_code
+FROM inventory_polyclinic_mappings
+WHERE item_code = $1 AND deleted_dt IS NULL
+ORDER BY polyclinic_code ASC
+`
+
+func (q *Queries) GetPolyclinicsForObat(ctx context.Context, itemCode string) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getPolyclinicsForObat, itemCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var polyclinic_code string
+		if err := rows.Scan(&polyclinic_code); err != nil {
+			return nil, err
+		}
+		items = append(items, polyclinic_code)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPrescription = `-- name: GetPrescription :one

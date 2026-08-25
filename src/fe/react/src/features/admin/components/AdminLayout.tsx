@@ -42,21 +42,23 @@ export function AdminLayout() {
     {
       title: "Medis (EMR)",
       items: [
-        { name: "Diagnosa / KBM", path: "/admin/master/kbm", icon: BookOpen },
-        { name: "Mapping KBM", path: "/admin/master/assign-kbm", icon: Map },
+        { name: "KBM", path: "/admin/master/kbm", icon: BookOpen },
+        { name: "KBM - Poliklinik", path: "/admin/master/assign-kbm", icon: Map },
         { name: "Katalog ICD-10", path: "/admin/master/icd10", icon: ClipboardList },
-        { name: "Mapping ICD-10", path: "/admin/master/assign-icd10", icon: Map },
+        { name: "Katalog ICD10 - Poliklinik", path: "/admin/master/assign-icd10", icon: Map },
         { name: "Katalog ICD-9", path: "/admin/master/icd9", icon: ClipboardList },
         { name: "Katalog SNOMED-CT", path: "/admin/master/snomed", icon: GitFork },
         { name: "Tindakan & Tarif", path: "/admin/master/tindakan", icon: Activity },
-        { name: "Mapping Tindakan", path: "/admin/master/assign-tindakan", icon: Map },
+        { name: "Tindakan - Poliklinik", path: "/admin/master/assign-tindakan", icon: Map },
       ]
     },
     {
       title: "Farmasi",
       items: [
         { name: "Inventaris Obat", path: "/admin/master/obat", icon: Pill },
-        { name: "Mapping Obat", path: "/admin/master/assign-obat", icon: Map },
+        { name: "Katalog KFA (Kemenkes)", path: "/admin/master/kfa", icon: BookOpen },
+        { name: "Katalog DPHO / FORNAS (BPJS)", path: "/admin/master/dpho", icon: ShieldCheck },
+        { name: "Obat - Poliklinik", path: "/admin/master/assign-obat", icon: Map },
       ]
     }
   ];
