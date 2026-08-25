@@ -92,6 +92,7 @@ SELECT i.item_code, i.name, i.stock_quantity, i.price, i.deleted_dt, i.deleted_b
        COUNT(DISTINCT map.kfa_code)::int AS kfa_count,
        COUNT(DISTINCT map.dpho_code)::int AS dpho_count,
        COALESCE(BOOL_OR(d.is_fornas), false)::bool AS is_fornas,
+       COALESCE(BOOL_OR(d.is_prb), false)::bool AS is_prb,
        COALESCE(MAX(CASE WHEN map.is_primary THEN map.kfa_code ELSE NULL END), MAX(map.kfa_code), '')::varchar AS kfa_code,
        COALESCE(MAX(CASE WHEN map.is_primary THEN map.dpho_code ELSE NULL END), MAX(map.dpho_code), '')::varchar AS bpjs_dpho_code,
        COALESCE(MAX(d.restriction), '')::varchar AS restriction
@@ -115,6 +116,7 @@ SELECT i.item_code, i.name, i.stock_quantity, i.price, i.deleted_dt, i.deleted_b
        COUNT(DISTINCT map.kfa_code)::int AS kfa_count,
        COUNT(DISTINCT map.dpho_code)::int AS dpho_count,
        COALESCE(BOOL_OR(d.is_fornas), false)::bool AS is_fornas,
+       COALESCE(BOOL_OR(d.is_prb), false)::bool AS is_prb,
        COALESCE(MAX(CASE WHEN map.is_primary THEN map.kfa_code ELSE NULL END), MAX(map.kfa_code), '')::varchar AS kfa_code,
        COALESCE(MAX(CASE WHEN map.is_primary THEN map.dpho_code ELSE NULL END), MAX(map.dpho_code), '')::varchar AS bpjs_dpho_code,
        COALESCE(MAX(d.restriction), '')::varchar AS restriction
