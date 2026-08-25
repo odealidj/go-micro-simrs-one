@@ -544,12 +544,12 @@ export function ObatPage() {
                 )}
               </div>
 
-              {/* Section 3: Poliklinik / Depo Terkait */}
+              {/* Section 3: Poliklinik Terkait */}
               <div>
                 <div className="flex items-center gap-2 mb-2.5">
-                  <Building2 className="h-5 w-5 text-indigo-600" />
+                  <Building2 className="h-5 w-5 text-purple-600" />
                   <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
-                    3. Ketersediaan Poliklinik / Depo
+                    3. Poliklinik Terkait
                   </h4>
                 </div>
                 {loadingMap ? (
@@ -563,9 +563,9 @@ export function ObatPage() {
                       return (
                         <div
                           key={code}
-                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-indigo-200 text-indigo-800 shadow-2xs text-sm"
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-purple-200 text-purple-800 shadow-2xs text-sm"
                         >
-                          <span className="font-mono font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs">
+                          <span className="font-mono font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs">
                             {code}
                           </span>
                           <span className="font-medium text-slate-800">{poliName}</span>
@@ -574,8 +574,8 @@ export function ObatPage() {
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-5 bg-slate-50 rounded-xl border border-slate-100 text-slate-400 text-sm">
-                    Tersedia di semua unit / belum dikhususkan ke poliklinik tertentu
+                  <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 text-center text-sm text-slate-400">
+                    Belum di-assign ke Poliklinik manapun.
                   </div>
                 )}
               </div>

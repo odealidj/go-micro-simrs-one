@@ -295,12 +295,12 @@ export function SNOMEDPage() {
                 </div>
               ) : (
                 <div className="space-y-5">
-                  {/* ICD-10 Mappings Section */}
+                  {/* 1. ICD-10 Mappings Section */}
                   <div>
                     <div className="flex items-center gap-2 mb-2.5">
                       <Layers className="h-5 w-5 text-emerald-600" />
                       <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
-                        Pemetaan ICD-10 (Diagnosis Medis)
+                        1. Pemetaan ICD-10 (Diagnosis Medis)
                       </h4>
                     </div>
                     {mappingDetails?.icd10_mappings && mappingDetails.icd10_mappings.length > 0 ? (
@@ -349,12 +349,12 @@ export function SNOMEDPage() {
                     )}
                   </div>
 
-                  {/* ICD-9 Mappings Section */}
+                  {/* 2. ICD-9 Mappings Section */}
                   <div>
                     <div className="flex items-center gap-2 mb-2.5">
                       <Tag className="h-5 w-5 text-teal-600" />
                       <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
-                        Pemetaan ICD-9-CM (Prosedur / Tindakan)
+                        2. Pemetaan ICD-9-CM (Prosedur / Tindakan)
                       </h4>
                     </div>
                     {mappingDetails?.icd9_mappings && mappingDetails.icd9_mappings.length > 0 ? (
