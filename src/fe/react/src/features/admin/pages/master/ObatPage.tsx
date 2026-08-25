@@ -206,7 +206,7 @@ export function ObatPage() {
             <thead className="bg-slate-50/80 text-slate-700 uppercase font-semibold text-xs border-b border-slate-100">
               <tr>
                 <th className="px-4 py-3 rounded-l-lg">Kode Obat</th>
-                <th className="px-4 py-3">Nama Obat & Standar</th>
+                <th className="px-4 py-3">Nama Obat</th>
                 <th className="px-4 py-3">Tarif / Harga</th>
                 <th className="px-4 py-3 text-center">Stok</th>
                 <th className="px-4 py-3 text-center">Pemetaan Standar</th>
@@ -235,44 +235,20 @@ export function ObatPage() {
               ) : (
                 filteredData.map((item) => (
                   <tr key={item.item_code} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3 font-mono font-bold text-blue-600 align-top">
+                    <td className="px-4 py-3.5 font-mono font-bold text-blue-600 align-middle">
                       {item.item_code}
                     </td>
-                    <td className="px-4 py-3 align-top">
-                      <div className="font-semibold text-slate-900">{item.name}</div>
-                      
-                      {/* Sub metadata KFA & DPHO */}
-                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                        {item.kfa_code && (
-                          <span className="font-mono text-[11px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-                            KFA: {item.kfa_code}
-                          </span>
-                        )}
-                        {item.bpjs_dpho_code && (
-                          <span className="font-mono text-[11px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                            DPHO: {item.bpjs_dpho_code}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Restriksi BPJS Note */}
-                      {item.restriction ? (
-                        <div className="mt-1.5 flex items-start gap-1 text-xs text-amber-800 bg-amber-50/70 p-1.5 rounded-md border border-amber-200/60 max-w-md">
-                          <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                          <span className="line-clamp-2">
-                            <strong>Restriksi BPJS:</strong> {item.restriction}
-                          </span>
-                        </div>
-                      ) : null}
+                    <td className="px-4 py-3.5 font-medium text-slate-900 align-middle">
+                      {item.name}
                     </td>
-                    <td className="px-4 py-3 font-mono font-bold text-slate-800 align-top">
+                    <td className="px-4 py-3.5 font-mono font-semibold text-slate-800 align-middle">
                       {Number(item.price || 0).toLocaleString("id-ID", {
                         style: "currency",
                         currency: "IDR",
                         maximumFractionDigits: 0,
                       })}
                     </td>
-                    <td className="px-4 py-3 text-center align-top">
+                    <td className="px-4 py-3.5 text-center align-middle">
                       <span
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
                           (item.stock_quantity ?? 0) > 50
@@ -285,7 +261,7 @@ export function ObatPage() {
                         {item.stock_quantity ?? 0} unit
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center align-top">
+                    <td className="px-4 py-3.5 text-center align-middle">
                       <div className="flex flex-col items-center gap-1">
                         {item.kfa_count && item.kfa_count > 0 ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
@@ -317,7 +293,7 @@ export function ObatPage() {
                           )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right align-top">
+                    <td className="px-4 py-3.5 text-right align-middle">
                       <Button
                         variant="outline"
                         size="sm"
