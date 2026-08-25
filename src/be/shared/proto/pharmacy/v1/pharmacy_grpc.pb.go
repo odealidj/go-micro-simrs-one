@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: pharmacy/v1/pharmacy.proto
+// source: pharmacy.proto
 
 package pharmacyv1
 
@@ -19,12 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PharmacyService_CreatePrescription_FullMethodName   = "/pharmacy.v1.PharmacyService/CreatePrescription"
-	PharmacyService_DispensePrescription_FullMethodName = "/pharmacy.v1.PharmacyService/DispensePrescription"
-	PharmacyService_RollbackPrescription_FullMethodName = "/pharmacy.v1.PharmacyService/RollbackPrescription"
-	PharmacyService_GetEstimatedWaitTime_FullMethodName = "/pharmacy.v1.PharmacyService/GetEstimatedWaitTime"
-	PharmacyService_GetMasterObat_FullMethodName        = "/pharmacy.v1.PharmacyService/GetMasterObat"
-	PharmacyService_GetMasterObatByPoli_FullMethodName  = "/pharmacy.v1.PharmacyService/GetMasterObatByPoli"
+	PharmacyService_CreatePrescription_FullMethodName    = "/pharmacy.v1.PharmacyService/CreatePrescription"
+	PharmacyService_DispensePrescription_FullMethodName  = "/pharmacy.v1.PharmacyService/DispensePrescription"
+	PharmacyService_RollbackPrescription_FullMethodName  = "/pharmacy.v1.PharmacyService/RollbackPrescription"
+	PharmacyService_GetEstimatedWaitTime_FullMethodName  = "/pharmacy.v1.PharmacyService/GetEstimatedWaitTime"
+	PharmacyService_GetMasterObat_FullMethodName         = "/pharmacy.v1.PharmacyService/GetMasterObat"
+	PharmacyService_GetMasterObatByPoli_FullMethodName   = "/pharmacy.v1.PharmacyService/GetMasterObatByPoli"
+	PharmacyService_GetMasterKFA_FullMethodName          = "/pharmacy.v1.PharmacyService/GetMasterKFA"
+	PharmacyService_GetMasterDPHO_FullMethodName         = "/pharmacy.v1.PharmacyService/GetMasterDPHO"
+	PharmacyService_GetObatMappingDetails_FullMethodName = "/pharmacy.v1.PharmacyService/GetObatMappingDetails"
 )
 
 // PharmacyServiceClient is the client API for PharmacyService service.
@@ -42,6 +45,9 @@ type PharmacyServiceClient interface {
 	// Master Data
 	GetMasterObat(ctx context.Context, in *GetMasterObatRequest, opts ...grpc.CallOption) (*GetMasterObatResponse, error)
 	GetMasterObatByPoli(ctx context.Context, in *GetMasterObatByPoliRequest, opts ...grpc.CallOption) (*GetMasterObatByPoliResponse, error)
+	GetMasterKFA(ctx context.Context, in *GetMasterKFARequest, opts ...grpc.CallOption) (*GetMasterKFAResponse, error)
+	GetMasterDPHO(ctx context.Context, in *GetMasterDPHORequest, opts ...grpc.CallOption) (*GetMasterDPHOResponse, error)
+	GetObatMappingDetails(ctx context.Context, in *GetObatMappingDetailsRequest, opts ...grpc.CallOption) (*GetObatMappingDetailsResponse, error)
 }
 
 type pharmacyServiceClient struct {
@@ -112,6 +118,36 @@ func (c *pharmacyServiceClient) GetMasterObatByPoli(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *pharmacyServiceClient) GetMasterKFA(ctx context.Context, in *GetMasterKFARequest, opts ...grpc.CallOption) (*GetMasterKFAResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterKFAResponse)
+	err := c.cc.Invoke(ctx, PharmacyService_GetMasterKFA_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pharmacyServiceClient) GetMasterDPHO(ctx context.Context, in *GetMasterDPHORequest, opts ...grpc.CallOption) (*GetMasterDPHOResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterDPHOResponse)
+	err := c.cc.Invoke(ctx, PharmacyService_GetMasterDPHO_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pharmacyServiceClient) GetObatMappingDetails(ctx context.Context, in *GetObatMappingDetailsRequest, opts ...grpc.CallOption) (*GetObatMappingDetailsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetObatMappingDetailsResponse)
+	err := c.cc.Invoke(ctx, PharmacyService_GetObatMappingDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PharmacyServiceServer is the server API for PharmacyService service.
 // All implementations must embed UnimplementedPharmacyServiceServer
 // for forward compatibility.
@@ -127,6 +163,9 @@ type PharmacyServiceServer interface {
 	// Master Data
 	GetMasterObat(context.Context, *GetMasterObatRequest) (*GetMasterObatResponse, error)
 	GetMasterObatByPoli(context.Context, *GetMasterObatByPoliRequest) (*GetMasterObatByPoliResponse, error)
+	GetMasterKFA(context.Context, *GetMasterKFARequest) (*GetMasterKFAResponse, error)
+	GetMasterDPHO(context.Context, *GetMasterDPHORequest) (*GetMasterDPHOResponse, error)
+	GetObatMappingDetails(context.Context, *GetObatMappingDetailsRequest) (*GetObatMappingDetailsResponse, error)
 	mustEmbedUnimplementedPharmacyServiceServer()
 }
 
@@ -154,6 +193,15 @@ func (UnimplementedPharmacyServiceServer) GetMasterObat(context.Context, *GetMas
 }
 func (UnimplementedPharmacyServiceServer) GetMasterObatByPoli(context.Context, *GetMasterObatByPoliRequest) (*GetMasterObatByPoliResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMasterObatByPoli not implemented")
+}
+func (UnimplementedPharmacyServiceServer) GetMasterKFA(context.Context, *GetMasterKFARequest) (*GetMasterKFAResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterKFA not implemented")
+}
+func (UnimplementedPharmacyServiceServer) GetMasterDPHO(context.Context, *GetMasterDPHORequest) (*GetMasterDPHOResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterDPHO not implemented")
+}
+func (UnimplementedPharmacyServiceServer) GetObatMappingDetails(context.Context, *GetObatMappingDetailsRequest) (*GetObatMappingDetailsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetObatMappingDetails not implemented")
 }
 func (UnimplementedPharmacyServiceServer) mustEmbedUnimplementedPharmacyServiceServer() {}
 func (UnimplementedPharmacyServiceServer) testEmbeddedByValue()                         {}
@@ -284,6 +332,60 @@ func _PharmacyService_GetMasterObatByPoli_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PharmacyService_GetMasterKFA_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterKFARequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PharmacyServiceServer).GetMasterKFA(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PharmacyService_GetMasterKFA_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PharmacyServiceServer).GetMasterKFA(ctx, req.(*GetMasterKFARequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PharmacyService_GetMasterDPHO_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterDPHORequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PharmacyServiceServer).GetMasterDPHO(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PharmacyService_GetMasterDPHO_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PharmacyServiceServer).GetMasterDPHO(ctx, req.(*GetMasterDPHORequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PharmacyService_GetObatMappingDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetObatMappingDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PharmacyServiceServer).GetObatMappingDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PharmacyService_GetObatMappingDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PharmacyServiceServer).GetObatMappingDetails(ctx, req.(*GetObatMappingDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PharmacyService_ServiceDesc is the grpc.ServiceDesc for PharmacyService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -315,7 +417,19 @@ var PharmacyService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetMasterObatByPoli",
 			Handler:    _PharmacyService_GetMasterObatByPoli_Handler,
 		},
+		{
+			MethodName: "GetMasterKFA",
+			Handler:    _PharmacyService_GetMasterKFA_Handler,
+		},
+		{
+			MethodName: "GetMasterDPHO",
+			Handler:    _PharmacyService_GetMasterDPHO_Handler,
+		},
+		{
+			MethodName: "GetObatMappingDetails",
+			Handler:    _PharmacyService_GetObatMappingDetails_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "pharmacy/v1/pharmacy.proto",
+	Metadata: "pharmacy.proto",
 }

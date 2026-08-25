@@ -12,6 +12,20 @@ import (
 	"github.com/google/uuid"
 )
 
+type BpjsDphoCatalog struct {
+	DphoCode       string
+	DphoName       string
+	IsFornas       bool
+	IsPrb          bool
+	Restriction    sql.NullString
+	MaxQtyPerClaim int32
+	IsActive       bool
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+	DeletedDt      sql.NullTime
+	DeletedBy      uuid.NullUUID
+}
+
 type EncounterPayment struct {
 	EncounterNo string
 	Status      string
@@ -30,12 +44,40 @@ type Inventory struct {
 	DeletedBy     uuid.NullUUID
 }
 
+type InventoryKfaMapping struct {
+	ItemCode          string
+	KfaCode           string
+	DphoCode          sql.NullString
+	IsPrimary         bool
+	MappingConfidence string
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+	DeletedDt         sql.NullTime
+	DeletedBy         uuid.NullUUID
+}
+
 type InventoryPolyclinicMapping struct {
 	ItemCode       string
 	PolyclinicCode string
 	CreatedAt      sql.NullTime
 	DeletedDt      sql.NullTime
 	DeletedBy      uuid.NullUUID
+}
+
+type KfaCatalog struct {
+	KfaCode         string
+	Name            string
+	ActiveSubstance sql.NullString
+	DosageForm      sql.NullString
+	Strength        sql.NullString
+	BpomNie         sql.NullString
+	AtcCode         sql.NullString
+	SnomedConceptID sql.NullString
+	IsActive        bool
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+	DeletedDt       sql.NullTime
+	DeletedBy       uuid.NullUUID
 }
 
 type OutboxEvent struct {

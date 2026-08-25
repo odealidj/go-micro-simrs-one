@@ -451,6 +451,7 @@ type KBMItem struct {
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	BodySystem    string                 `protobuf:"bytes,4,opt,name=body_system,json=bodySystem,proto3" json:"body_system,omitempty"`
 	Polyclinics   []string               `protobuf:"bytes,5,rep,name=polyclinics,proto3" json:"polyclinics,omitempty"`
+	Icd10Count    int32                  `protobuf:"varint,6,opt,name=icd10_count,json=icd10Count,proto3" json:"icd10_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -518,6 +519,13 @@ func (x *KBMItem) GetPolyclinics() []string {
 		return x.Polyclinics
 	}
 	return nil
+}
+
+func (x *KBMItem) GetIcd10Count() int32 {
+	if x != nil {
+		return x.Icd10Count
+	}
+	return 0
 }
 
 type SearchKBMResponse struct {
@@ -705,11 +713,13 @@ func (x *GetICD10SuggestionsForKBMRequest) GetKbmCode() string {
 }
 
 type ICD10Suggestion struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Icd10Code     string                 `protobuf:"bytes,1,opt,name=icd10_code,json=icd10Code,proto3" json:"icd10_code,omitempty"`
-	IsPrimary     bool                   `protobuf:"varint,2,opt,name=is_primary,json=isPrimary,proto3" json:"is_primary,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Icd10Code         string                 `protobuf:"bytes,1,opt,name=icd10_code,json=icd10Code,proto3" json:"icd10_code,omitempty"`
+	Icd10Name         string                 `protobuf:"bytes,2,opt,name=icd10_name,json=icd10Name,proto3" json:"icd10_name,omitempty"`
+	IsPrimary         bool                   `protobuf:"varint,3,opt,name=is_primary,json=isPrimary,proto3" json:"is_primary,omitempty"`
+	MappingConfidence string                 `protobuf:"bytes,4,opt,name=mapping_confidence,json=mappingConfidence,proto3" json:"mapping_confidence,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ICD10Suggestion) Reset() {
@@ -749,6 +759,13 @@ func (x *ICD10Suggestion) GetIcd10Code() string {
 	return ""
 }
 
+func (x *ICD10Suggestion) GetIcd10Name() string {
+	if x != nil {
+		return x.Icd10Name
+	}
+	return ""
+}
+
 func (x *ICD10Suggestion) GetIsPrimary() bool {
 	if x != nil {
 		return x.IsPrimary
@@ -756,9 +773,17 @@ func (x *ICD10Suggestion) GetIsPrimary() bool {
 	return false
 }
 
+func (x *ICD10Suggestion) GetMappingConfidence() string {
+	if x != nil {
+		return x.MappingConfidence
+	}
+	return ""
+}
+
 type GetICD10SuggestionsForKBMResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Suggestions   []*ICD10Suggestion     `protobuf:"bytes,1,rep,name=suggestions,proto3" json:"suggestions,omitempty"`
+	Polyclinics   []*Polyclinic          `protobuf:"bytes,2,rep,name=polyclinics,proto3" json:"polyclinics,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -796,6 +821,13 @@ func (*GetICD10SuggestionsForKBMResponse) Descriptor() ([]byte, []int) {
 func (x *GetICD10SuggestionsForKBMResponse) GetSuggestions() []*ICD10Suggestion {
 	if x != nil {
 		return x.Suggestions
+	}
+	return nil
+}
+
+func (x *GetICD10SuggestionsForKBMResponse) GetPolyclinics() []*Polyclinic {
+	if x != nil {
+		return x.Polyclinics
 	}
 	return nil
 }
@@ -3367,6 +3399,7 @@ type MasterICD10 struct {
 	IsActive      bool                   `protobuf:"varint,6,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
 	Polyclinics   []string               `protobuf:"bytes,7,rep,name=polyclinics,proto3" json:"polyclinics,omitempty"`
 	KbmCount      int32                  `protobuf:"varint,8,opt,name=kbm_count,json=kbmCount,proto3" json:"kbm_count,omitempty"`
+	SnomedCount   int32                  `protobuf:"varint,9,opt,name=snomed_count,json=snomedCount,proto3" json:"snomed_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3453,6 +3486,13 @@ func (x *MasterICD10) GetPolyclinics() []string {
 func (x *MasterICD10) GetKbmCount() int32 {
 	if x != nil {
 		return x.KbmCount
+	}
+	return 0
+}
+
+func (x *MasterICD10) GetSnomedCount() int32 {
+	if x != nil {
+		return x.SnomedCount
 	}
 	return 0
 }
@@ -3646,6 +3686,8 @@ type ICD9Item struct {
 	BlockCode     string                 `protobuf:"bytes,5,opt,name=block_code,json=blockCode,proto3" json:"block_code,omitempty"`
 	IsActive      bool                   `protobuf:"varint,6,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
 	Polyclinics   []string               `protobuf:"bytes,7,rep,name=polyclinics,proto3" json:"polyclinics,omitempty"`
+	SnomedCount   int32                  `protobuf:"varint,8,opt,name=snomed_count,json=snomedCount,proto3" json:"snomed_count,omitempty"`
+	TindakanCount int32                  `protobuf:"varint,9,opt,name=tindakan_count,json=tindakanCount,proto3" json:"tindakan_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3727,6 +3769,20 @@ func (x *ICD9Item) GetPolyclinics() []string {
 		return x.Polyclinics
 	}
 	return nil
+}
+
+func (x *ICD9Item) GetSnomedCount() int32 {
+	if x != nil {
+		return x.SnomedCount
+	}
+	return 0
+}
+
+func (x *ICD9Item) GetTindakanCount() int32 {
+	if x != nil {
+		return x.TindakanCount
+	}
+	return 0
 }
 
 type GetMasterICD9Request struct {
@@ -3948,6 +4004,7 @@ func (x *GetICD9SuggestionsForTindakanRequest) GetKodeTindakan() string {
 type GetICD9SuggestionsForTindakanResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Suggestions   []*ICD9Suggestion      `protobuf:"bytes,1,rep,name=suggestions,proto3" json:"suggestions,omitempty"`
+	Polyclinics   []*Polyclinic          `protobuf:"bytes,2,rep,name=polyclinics,proto3" json:"polyclinics,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -3985,6 +4042,13 @@ func (*GetICD9SuggestionsForTindakanResponse) Descriptor() ([]byte, []int) {
 func (x *GetICD9SuggestionsForTindakanResponse) GetSuggestions() []*ICD9Suggestion {
 	if x != nil {
 		return x.Suggestions
+	}
+	return nil
+}
+
+func (x *GetICD9SuggestionsForTindakanResponse) GetPolyclinics() []*Polyclinic {
+	if x != nil {
+		return x.Polyclinics
 	}
 	return nil
 }
@@ -4497,6 +4561,298 @@ func (x *GetSNOMEDMappingDetailsResponse) GetIcd9Mappings() []*SNOMEDICD9MapDeta
 	return nil
 }
 
+type GetICD10MappingDetailsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Icd10Code     string                 `protobuf:"bytes,1,opt,name=icd10_code,json=icd10Code,proto3" json:"icd10_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetICD10MappingDetailsRequest) Reset() {
+	*x = GetICD10MappingDetailsRequest{}
+	mi := &file_emr_proto_msgTypes[71]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetICD10MappingDetailsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetICD10MappingDetailsRequest) ProtoMessage() {}
+
+func (x *GetICD10MappingDetailsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_emr_proto_msgTypes[71]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetICD10MappingDetailsRequest.ProtoReflect.Descriptor instead.
+func (*GetICD10MappingDetailsRequest) Descriptor() ([]byte, []int) {
+	return file_emr_proto_rawDescGZIP(), []int{71}
+}
+
+func (x *GetICD10MappingDetailsRequest) GetIcd10Code() string {
+	if x != nil {
+		return x.Icd10Code
+	}
+	return ""
+}
+
+type GetICD10MappingDetailsResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Icd10Code      string                 `protobuf:"bytes,1,opt,name=icd10_code,json=icd10Code,proto3" json:"icd10_code,omitempty"`
+	KbmMappings    []*KBMSuggestion       `protobuf:"bytes,2,rep,name=kbm_mappings,json=kbmMappings,proto3" json:"kbm_mappings,omitempty"`
+	SnomedMappings []*SNOMEDItem          `protobuf:"bytes,3,rep,name=snomed_mappings,json=snomedMappings,proto3" json:"snomed_mappings,omitempty"`
+	Polyclinics    []*Polyclinic          `protobuf:"bytes,4,rep,name=polyclinics,proto3" json:"polyclinics,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetICD10MappingDetailsResponse) Reset() {
+	*x = GetICD10MappingDetailsResponse{}
+	mi := &file_emr_proto_msgTypes[72]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetICD10MappingDetailsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetICD10MappingDetailsResponse) ProtoMessage() {}
+
+func (x *GetICD10MappingDetailsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_emr_proto_msgTypes[72]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetICD10MappingDetailsResponse.ProtoReflect.Descriptor instead.
+func (*GetICD10MappingDetailsResponse) Descriptor() ([]byte, []int) {
+	return file_emr_proto_rawDescGZIP(), []int{72}
+}
+
+func (x *GetICD10MappingDetailsResponse) GetIcd10Code() string {
+	if x != nil {
+		return x.Icd10Code
+	}
+	return ""
+}
+
+func (x *GetICD10MappingDetailsResponse) GetKbmMappings() []*KBMSuggestion {
+	if x != nil {
+		return x.KbmMappings
+	}
+	return nil
+}
+
+func (x *GetICD10MappingDetailsResponse) GetSnomedMappings() []*SNOMEDItem {
+	if x != nil {
+		return x.SnomedMappings
+	}
+	return nil
+}
+
+func (x *GetICD10MappingDetailsResponse) GetPolyclinics() []*Polyclinic {
+	if x != nil {
+		return x.Polyclinics
+	}
+	return nil
+}
+
+type GetICD9MappingDetailsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Icd9Code      string                 `protobuf:"bytes,1,opt,name=icd9_code,json=icd9Code,proto3" json:"icd9_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetICD9MappingDetailsRequest) Reset() {
+	*x = GetICD9MappingDetailsRequest{}
+	mi := &file_emr_proto_msgTypes[73]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetICD9MappingDetailsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetICD9MappingDetailsRequest) ProtoMessage() {}
+
+func (x *GetICD9MappingDetailsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_emr_proto_msgTypes[73]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetICD9MappingDetailsRequest.ProtoReflect.Descriptor instead.
+func (*GetICD9MappingDetailsRequest) Descriptor() ([]byte, []int) {
+	return file_emr_proto_rawDescGZIP(), []int{73}
+}
+
+func (x *GetICD9MappingDetailsRequest) GetIcd9Code() string {
+	if x != nil {
+		return x.Icd9Code
+	}
+	return ""
+}
+
+type ICD9TindakanMapDetail struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	KodeTindakan  string                 `protobuf:"bytes,1,opt,name=kode_tindakan,json=kodeTindakan,proto3" json:"kode_tindakan,omitempty"`
+	NamaTindakan  string                 `protobuf:"bytes,2,opt,name=nama_tindakan,json=namaTindakan,proto3" json:"nama_tindakan,omitempty"`
+	BasePrice     float64                `protobuf:"fixed64,3,opt,name=base_price,json=basePrice,proto3" json:"base_price,omitempty"`
+	IsPrimary     bool                   `protobuf:"varint,4,opt,name=is_primary,json=isPrimary,proto3" json:"is_primary,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ICD9TindakanMapDetail) Reset() {
+	*x = ICD9TindakanMapDetail{}
+	mi := &file_emr_proto_msgTypes[74]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ICD9TindakanMapDetail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ICD9TindakanMapDetail) ProtoMessage() {}
+
+func (x *ICD9TindakanMapDetail) ProtoReflect() protoreflect.Message {
+	mi := &file_emr_proto_msgTypes[74]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ICD9TindakanMapDetail.ProtoReflect.Descriptor instead.
+func (*ICD9TindakanMapDetail) Descriptor() ([]byte, []int) {
+	return file_emr_proto_rawDescGZIP(), []int{74}
+}
+
+func (x *ICD9TindakanMapDetail) GetKodeTindakan() string {
+	if x != nil {
+		return x.KodeTindakan
+	}
+	return ""
+}
+
+func (x *ICD9TindakanMapDetail) GetNamaTindakan() string {
+	if x != nil {
+		return x.NamaTindakan
+	}
+	return ""
+}
+
+func (x *ICD9TindakanMapDetail) GetBasePrice() float64 {
+	if x != nil {
+		return x.BasePrice
+	}
+	return 0
+}
+
+func (x *ICD9TindakanMapDetail) GetIsPrimary() bool {
+	if x != nil {
+		return x.IsPrimary
+	}
+	return false
+}
+
+type GetICD9MappingDetailsResponse struct {
+	state            protoimpl.MessageState   `protogen:"open.v1"`
+	Icd9Code         string                   `protobuf:"bytes,1,opt,name=icd9_code,json=icd9Code,proto3" json:"icd9_code,omitempty"`
+	SnomedMappings   []*SNOMEDItem            `protobuf:"bytes,2,rep,name=snomed_mappings,json=snomedMappings,proto3" json:"snomed_mappings,omitempty"`
+	TindakanMappings []*ICD9TindakanMapDetail `protobuf:"bytes,3,rep,name=tindakan_mappings,json=tindakanMappings,proto3" json:"tindakan_mappings,omitempty"`
+	Polyclinics      []*Polyclinic            `protobuf:"bytes,4,rep,name=polyclinics,proto3" json:"polyclinics,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *GetICD9MappingDetailsResponse) Reset() {
+	*x = GetICD9MappingDetailsResponse{}
+	mi := &file_emr_proto_msgTypes[75]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetICD9MappingDetailsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetICD9MappingDetailsResponse) ProtoMessage() {}
+
+func (x *GetICD9MappingDetailsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_emr_proto_msgTypes[75]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetICD9MappingDetailsResponse.ProtoReflect.Descriptor instead.
+func (*GetICD9MappingDetailsResponse) Descriptor() ([]byte, []int) {
+	return file_emr_proto_rawDescGZIP(), []int{75}
+}
+
+func (x *GetICD9MappingDetailsResponse) GetIcd9Code() string {
+	if x != nil {
+		return x.Icd9Code
+	}
+	return ""
+}
+
+func (x *GetICD9MappingDetailsResponse) GetSnomedMappings() []*SNOMEDItem {
+	if x != nil {
+		return x.SnomedMappings
+	}
+	return nil
+}
+
+func (x *GetICD9MappingDetailsResponse) GetTindakanMappings() []*ICD9TindakanMapDetail {
+	if x != nil {
+		return x.TindakanMappings
+	}
+	return nil
+}
+
+func (x *GetICD9MappingDetailsResponse) GetPolyclinics() []*Polyclinic {
+	if x != nil {
+		return x.Polyclinics
+	}
+	return nil
+}
+
 var File_emr_proto protoreflect.FileDescriptor
 
 const file_emr_proto_rawDesc = "" +
@@ -4532,14 +4888,16 @@ const file_emr_proto_rawDesc = "" +
 	"bodySystem\x12\x14\n" +
 	"\x05limit\x18\x03 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x04 \x01(\x05R\x06offset\x12'\n" +
-	"\x0fdepartment_code\x18\x05 \x01(\tR\x0edepartmentCode\"\xa4\x01\n" +
+	"\x0fdepartment_code\x18\x05 \x01(\tR\x0edepartmentCode\"\xc5\x01\n" +
 	"\aKBMItem\x12\x19\n" +
 	"\bkbm_code\x18\x01 \x01(\tR\akbmCode\x12\x19\n" +
 	"\bkbm_name\x18\x02 \x01(\tR\akbmName\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x1f\n" +
 	"\vbody_system\x18\x04 \x01(\tR\n" +
 	"bodySystem\x12 \n" +
-	"\vpolyclinics\x18\x05 \x03(\tR\vpolyclinics\"P\n" +
+	"\vpolyclinics\x18\x05 \x03(\tR\vpolyclinics\x12\x1f\n" +
+	"\vicd10_count\x18\x06 \x01(\x05R\n" +
+	"icd10Count\"P\n" +
 	"\x11SearchKBMResponse\x12%\n" +
 	"\x05items\x18\x01 \x03(\v2\x0f.emr.v1.KBMItemR\x05items\x12\x14\n" +
 	"\x05total\x18\x02 \x01(\x05R\x05total\"0\n" +
@@ -4548,14 +4906,18 @@ const file_emr_proto_rawDesc = "" +
 	"\x14GetKBMDetailResponse\x12#\n" +
 	"\x04item\x18\x01 \x01(\v2\x0f.emr.v1.KBMItemR\x04item\"=\n" +
 	" GetICD10SuggestionsForKBMRequest\x12\x19\n" +
-	"\bkbm_code\x18\x01 \x01(\tR\akbmCode\"O\n" +
+	"\bkbm_code\x18\x01 \x01(\tR\akbmCode\"\x9d\x01\n" +
 	"\x0fICD10Suggestion\x12\x1d\n" +
 	"\n" +
 	"icd10_code\x18\x01 \x01(\tR\ticd10Code\x12\x1d\n" +
 	"\n" +
-	"is_primary\x18\x02 \x01(\bR\tisPrimary\"^\n" +
+	"icd10_name\x18\x02 \x01(\tR\ticd10Name\x12\x1d\n" +
+	"\n" +
+	"is_primary\x18\x03 \x01(\bR\tisPrimary\x12-\n" +
+	"\x12mapping_confidence\x18\x04 \x01(\tR\x11mappingConfidence\"\x94\x01\n" +
 	"!GetICD10SuggestionsForKBMResponse\x129\n" +
-	"\vsuggestions\x18\x01 \x03(\v2\x17.emr.v1.ICD10SuggestionR\vsuggestions\"\xf0\x02\n" +
+	"\vsuggestions\x18\x01 \x03(\v2\x17.emr.v1.ICD10SuggestionR\vsuggestions\x124\n" +
+	"\vpolyclinics\x18\x02 \x03(\v2\x12.emr.v1.PolyclinicR\vpolyclinics\"\xf0\x02\n" +
 	"\x1cAddEncounterDiagnosisRequest\x12!\n" +
 	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x1d\n" +
 	"\n" +
@@ -4768,7 +5130,7 @@ const file_emr_proto_rawDesc = "" +
 	"\vsearch_name\x18\x03 \x01(\tR\n" +
 	"searchName\x12\x1f\n" +
 	"\vsearch_code\x18\x04 \x01(\tR\n" +
-	"searchCode\"\xfc\x01\n" +
+	"searchCode\"\x9f\x02\n" +
 	"\vMasterICD10\x12\x1d\n" +
 	"\n" +
 	"icd10_code\x18\x01 \x01(\tR\ticd10Code\x12\x17\n" +
@@ -4779,7 +5141,8 @@ const file_emr_proto_rawDesc = "" +
 	"block_code\x18\x05 \x01(\tR\tblockCode\x12\x1b\n" +
 	"\tis_active\x18\x06 \x01(\bR\bisActive\x12 \n" +
 	"\vpolyclinics\x18\a \x03(\tR\vpolyclinics\x12\x1b\n" +
-	"\tkbm_count\x18\b \x01(\x05R\bkbmCount\"b\n" +
+	"\tkbm_count\x18\b \x01(\x05R\bkbmCount\x12!\n" +
+	"\fsnomed_count\x18\t \x01(\x05R\vsnomedCount\"b\n" +
 	"\x16GetMasterICD10Response\x12'\n" +
 	"\x04data\x18\x01 \x03(\v2\x13.emr.v1.MasterICD10R\x04data\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x05R\n" +
@@ -4795,7 +5158,7 @@ const file_emr_proto_rawDesc = "" +
 	"\x1cGetMasterICD10ByPoliResponse\x12'\n" +
 	"\x04data\x18\x01 \x03(\v2\x13.emr.v1.MasterICD10R\x04data\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x05R\n" +
-	"totalCount\"\xda\x01\n" +
+	"totalCount\"\xa4\x02\n" +
 	"\bICD9Item\x12\x1b\n" +
 	"\ticd9_code\x18\x01 \x01(\tR\bicd9Code\x12\x17\n" +
 	"\aname_en\x18\x02 \x01(\tR\x06nameEn\x12\x17\n" +
@@ -4804,7 +5167,9 @@ const file_emr_proto_rawDesc = "" +
 	"\n" +
 	"block_code\x18\x05 \x01(\tR\tblockCode\x12\x1b\n" +
 	"\tis_active\x18\x06 \x01(\bR\bisActive\x12 \n" +
-	"\vpolyclinics\x18\a \x03(\tR\vpolyclinics\"\\\n" +
+	"\vpolyclinics\x18\a \x03(\tR\vpolyclinics\x12!\n" +
+	"\fsnomed_count\x18\b \x01(\x05R\vsnomedCount\x12%\n" +
+	"\x0etindakan_count\x18\t \x01(\x05R\rtindakanCount\"\\\n" +
 	"\x14GetMasterICD9Request\x12\x16\n" +
 	"\x06search\x18\x01 \x01(\tR\x06search\x12\x14\n" +
 	"\x05limit\x18\x02 \x01(\x05R\x05limit\x12\x16\n" +
@@ -4818,9 +5183,10 @@ const file_emr_proto_rawDesc = "" +
 	"\n" +
 	"is_primary\x18\x03 \x01(\bR\tisPrimary\"K\n" +
 	"$GetICD9SuggestionsForTindakanRequest\x12#\n" +
-	"\rkode_tindakan\x18\x01 \x01(\tR\fkodeTindakan\"a\n" +
+	"\rkode_tindakan\x18\x01 \x01(\tR\fkodeTindakan\"\x97\x01\n" +
 	"%GetICD9SuggestionsForTindakanResponse\x128\n" +
-	"\vsuggestions\x18\x01 \x03(\v2\x16.emr.v1.ICD9SuggestionR\vsuggestions\"\xd6\x01\n" +
+	"\vsuggestions\x18\x01 \x03(\v2\x16.emr.v1.ICD9SuggestionR\vsuggestions\x124\n" +
+	"\vpolyclinics\x18\x02 \x03(\v2\x12.emr.v1.PolyclinicR\vpolyclinics\"\xd6\x01\n" +
 	"\n" +
 	"SNOMEDItem\x12\x1d\n" +
 	"\n" +
@@ -4874,7 +5240,30 @@ const file_emr_proto_rawDesc = "" +
 	"\n" +
 	"concept_id\x18\x01 \x01(\tR\tconceptId\x12C\n" +
 	"\x0eicd10_mappings\x18\x02 \x03(\v2\x1c.emr.v1.SNOMEDICD10MapDetailR\ricd10Mappings\x12@\n" +
-	"\ricd9_mappings\x18\x03 \x03(\v2\x1b.emr.v1.SNOMEDICD9MapDetailR\ficd9Mappings2\xd9\x14\n" +
+	"\ricd9_mappings\x18\x03 \x03(\v2\x1b.emr.v1.SNOMEDICD9MapDetailR\ficd9Mappings\">\n" +
+	"\x1dGetICD10MappingDetailsRequest\x12\x1d\n" +
+	"\n" +
+	"icd10_code\x18\x01 \x01(\tR\ticd10Code\"\xec\x01\n" +
+	"\x1eGetICD10MappingDetailsResponse\x12\x1d\n" +
+	"\n" +
+	"icd10_code\x18\x01 \x01(\tR\ticd10Code\x128\n" +
+	"\fkbm_mappings\x18\x02 \x03(\v2\x15.emr.v1.KBMSuggestionR\vkbmMappings\x12;\n" +
+	"\x0fsnomed_mappings\x18\x03 \x03(\v2\x12.emr.v1.SNOMEDItemR\x0esnomedMappings\x124\n" +
+	"\vpolyclinics\x18\x04 \x03(\v2\x12.emr.v1.PolyclinicR\vpolyclinics\";\n" +
+	"\x1cGetICD9MappingDetailsRequest\x12\x1b\n" +
+	"\ticd9_code\x18\x01 \x01(\tR\bicd9Code\"\x9f\x01\n" +
+	"\x15ICD9TindakanMapDetail\x12#\n" +
+	"\rkode_tindakan\x18\x01 \x01(\tR\fkodeTindakan\x12#\n" +
+	"\rnama_tindakan\x18\x02 \x01(\tR\fnamaTindakan\x12\x1d\n" +
+	"\n" +
+	"base_price\x18\x03 \x01(\x01R\tbasePrice\x12\x1d\n" +
+	"\n" +
+	"is_primary\x18\x04 \x01(\bR\tisPrimary\"\xfb\x01\n" +
+	"\x1dGetICD9MappingDetailsResponse\x12\x1b\n" +
+	"\ticd9_code\x18\x01 \x01(\tR\bicd9Code\x12;\n" +
+	"\x0fsnomed_mappings\x18\x02 \x03(\v2\x12.emr.v1.SNOMEDItemR\x0esnomedMappings\x12J\n" +
+	"\x11tindakan_mappings\x18\x03 \x03(\v2\x1d.emr.v1.ICD9TindakanMapDetailR\x10tindakanMappings\x124\n" +
+	"\vpolyclinics\x18\x04 \x03(\v2\x12.emr.v1.PolyclinicR\vpolyclinics2\xa8\x16\n" +
 	"\n" +
 	"EMRService\x12I\n" +
 	"\fSubmitTriage\x12\x1b.emr.v1.SubmitTriageRequest\x1a\x1c.emr.v1.SubmitTriageResponse\x12U\n" +
@@ -4888,8 +5277,10 @@ const file_emr_proto_rawDesc = "" +
 	"\x11GetMasterTindakan\x12 .emr.v1.GetMasterTindakanRequest\x1a!.emr.v1.GetMasterTindakanResponse\x12j\n" +
 	"\x17GetMasterTindakanByPoli\x12&.emr.v1.GetMasterTindakanByPoliRequest\x1a'.emr.v1.GetMasterTindakanByPoliResponse\x12O\n" +
 	"\x0eGetMasterICD10\x12\x1d.emr.v1.GetMasterICD10Request\x1a\x1e.emr.v1.GetMasterICD10Response\x12a\n" +
-	"\x14GetMasterICD10ByPoli\x12#.emr.v1.GetMasterICD10ByPoliRequest\x1a$.emr.v1.GetMasterICD10ByPoliResponse\x12L\n" +
-	"\rGetMasterICD9\x12\x1c.emr.v1.GetMasterICD9Request\x1a\x1d.emr.v1.GetMasterICD9Response\x12|\n" +
+	"\x14GetMasterICD10ByPoli\x12#.emr.v1.GetMasterICD10ByPoliRequest\x1a$.emr.v1.GetMasterICD10ByPoliResponse\x12g\n" +
+	"\x16GetICD10MappingDetails\x12%.emr.v1.GetICD10MappingDetailsRequest\x1a&.emr.v1.GetICD10MappingDetailsResponse\x12L\n" +
+	"\rGetMasterICD9\x12\x1c.emr.v1.GetMasterICD9Request\x1a\x1d.emr.v1.GetMasterICD9Response\x12d\n" +
+	"\x15GetICD9MappingDetails\x12$.emr.v1.GetICD9MappingDetailsRequest\x1a%.emr.v1.GetICD9MappingDetailsResponse\x12|\n" +
 	"\x1dGetICD9SuggestionsForTindakan\x12,.emr.v1.GetICD9SuggestionsForTindakanRequest\x1a-.emr.v1.GetICD9SuggestionsForTindakanResponse\x12R\n" +
 	"\x0fGetMasterSNOMED\x12\x1e.emr.v1.GetMasterSNOMEDRequest\x1a\x1f.emr.v1.GetMasterSNOMEDResponse\x12j\n" +
 	"\x17GetSNOMEDMappingDetails\x12&.emr.v1.GetSNOMEDMappingDetailsRequest\x1a'.emr.v1.GetSNOMEDMappingDetailsResponse\x12@\n" +
@@ -4918,7 +5309,7 @@ func file_emr_proto_rawDescGZIP() []byte {
 	return file_emr_proto_rawDescData
 }
 
-var file_emr_proto_msgTypes = make([]protoimpl.MessageInfo, 71)
+var file_emr_proto_msgTypes = make([]protoimpl.MessageInfo, 76)
 var file_emr_proto_goTypes = []any{
 	(*GetEstimatedWaitTimeRequest)(nil),           // 0: emr.v1.GetEstimatedWaitTimeRequest
 	(*GetEstimatedWaitTimeResponse)(nil),          // 1: emr.v1.GetEstimatedWaitTimeResponse
@@ -4991,91 +5382,108 @@ var file_emr_proto_goTypes = []any{
 	(*SNOMEDICD9MapDetail)(nil),                   // 68: emr.v1.SNOMEDICD9MapDetail
 	(*GetSNOMEDMappingDetailsRequest)(nil),        // 69: emr.v1.GetSNOMEDMappingDetailsRequest
 	(*GetSNOMEDMappingDetailsResponse)(nil),       // 70: emr.v1.GetSNOMEDMappingDetailsResponse
+	(*GetICD10MappingDetailsRequest)(nil),         // 71: emr.v1.GetICD10MappingDetailsRequest
+	(*GetICD10MappingDetailsResponse)(nil),        // 72: emr.v1.GetICD10MappingDetailsResponse
+	(*GetICD9MappingDetailsRequest)(nil),          // 73: emr.v1.GetICD9MappingDetailsRequest
+	(*ICD9TindakanMapDetail)(nil),                 // 74: emr.v1.ICD9TindakanMapDetail
+	(*GetICD9MappingDetailsResponse)(nil),         // 75: emr.v1.GetICD9MappingDetailsResponse
 }
 var file_emr_proto_depIdxs = []int32{
 	7,  // 0: emr.v1.SearchKBMResponse.items:type_name -> emr.v1.KBMItem
 	7,  // 1: emr.v1.GetKBMDetailResponse.item:type_name -> emr.v1.KBMItem
 	12, // 2: emr.v1.GetICD10SuggestionsForKBMResponse.suggestions:type_name -> emr.v1.ICD10Suggestion
-	36, // 3: emr.v1.AddEncounterDiagnosisResponse.data:type_name -> emr.v1.EncounterDiagnosis
-	21, // 4: emr.v1.GetKBMSuggestionsForICD10Response.suggestions:type_name -> emr.v1.KBMSuggestion
-	35, // 5: emr.v1.GetMedicalRecordResponse.triage:type_name -> emr.v1.TriageData
-	36, // 6: emr.v1.GetMedicalRecordResponse.diagnoses:type_name -> emr.v1.EncounterDiagnosis
-	34, // 7: emr.v1.GetMedicalRecordResponse.actions:type_name -> emr.v1.MedicalAction
-	37, // 8: emr.v1.GetMedicalRecordResponse.checklist:type_name -> emr.v1.ClinicalChecklist
-	37, // 9: emr.v1.CompleteEncounterResponse.checklist:type_name -> emr.v1.ClinicalChecklist
-	42, // 10: emr.v1.GetPolyclinicsResponse.data:type_name -> emr.v1.Polyclinic
-	7,  // 11: emr.v1.GetMasterKBMsResponse.data:type_name -> emr.v1.KBMItem
-	7,  // 12: emr.v1.GetMasterKBMsByPoliResponse.data:type_name -> emr.v1.KBMItem
-	49, // 13: emr.v1.GetMasterTindakanResponse.data:type_name -> emr.v1.MasterTindakan
-	49, // 14: emr.v1.GetMasterTindakanByPoliResponse.data:type_name -> emr.v1.MasterTindakan
-	54, // 15: emr.v1.GetMasterICD10Response.data:type_name -> emr.v1.MasterICD10
-	54, // 16: emr.v1.GetMasterICD10ByPoliResponse.data:type_name -> emr.v1.MasterICD10
-	58, // 17: emr.v1.GetMasterICD9Response.items:type_name -> emr.v1.ICD9Item
-	61, // 18: emr.v1.GetICD9SuggestionsForTindakanResponse.suggestions:type_name -> emr.v1.ICD9Suggestion
-	64, // 19: emr.v1.GetMasterSNOMEDResponse.data:type_name -> emr.v1.SNOMEDItem
-	67, // 20: emr.v1.GetSNOMEDMappingDetailsResponse.icd10_mappings:type_name -> emr.v1.SNOMEDICD10MapDetail
-	68, // 21: emr.v1.GetSNOMEDMappingDetailsResponse.icd9_mappings:type_name -> emr.v1.SNOMEDICD9MapDetail
-	4,  // 22: emr.v1.EMRService.SubmitTriage:input_type -> emr.v1.SubmitTriageRequest
-	31, // 23: emr.v1.EMRService.AddMedicalAction:input_type -> emr.v1.AddMedicalActionRequest
-	33, // 24: emr.v1.EMRService.GetMedicalRecord:input_type -> emr.v1.GetMedicalRecordRequest
-	2,  // 25: emr.v1.EMRService.StartEncounter:input_type -> emr.v1.StartEncounterRequest
-	0,  // 26: emr.v1.EMRService.GetEstimatedWaitTime:input_type -> emr.v1.GetEstimatedWaitTimeRequest
-	41, // 27: emr.v1.EMRService.GetPolyclinics:input_type -> emr.v1.GetPolyclinicsRequest
-	44, // 28: emr.v1.EMRService.GetMasterKBMs:input_type -> emr.v1.GetMasterKBMsRequest
-	46, // 29: emr.v1.EMRService.GetMasterKBMsByPoli:input_type -> emr.v1.GetMasterKBMsByPoliRequest
-	48, // 30: emr.v1.EMRService.GetMasterTindakan:input_type -> emr.v1.GetMasterTindakanRequest
-	51, // 31: emr.v1.EMRService.GetMasterTindakanByPoli:input_type -> emr.v1.GetMasterTindakanByPoliRequest
-	53, // 32: emr.v1.EMRService.GetMasterICD10:input_type -> emr.v1.GetMasterICD10Request
-	56, // 33: emr.v1.EMRService.GetMasterICD10ByPoli:input_type -> emr.v1.GetMasterICD10ByPoliRequest
-	59, // 34: emr.v1.EMRService.GetMasterICD9:input_type -> emr.v1.GetMasterICD9Request
-	62, // 35: emr.v1.EMRService.GetICD9SuggestionsForTindakan:input_type -> emr.v1.GetICD9SuggestionsForTindakanRequest
-	65, // 36: emr.v1.EMRService.GetMasterSNOMED:input_type -> emr.v1.GetMasterSNOMEDRequest
-	69, // 37: emr.v1.EMRService.GetSNOMEDMappingDetails:input_type -> emr.v1.GetSNOMEDMappingDetailsRequest
-	6,  // 38: emr.v1.EMRService.SearchKBM:input_type -> emr.v1.SearchKBMRequest
-	9,  // 39: emr.v1.EMRService.GetKBMDetail:input_type -> emr.v1.GetKBMDetailRequest
-	11, // 40: emr.v1.EMRService.GetICD10SuggestionsForKBM:input_type -> emr.v1.GetICD10SuggestionsForKBMRequest
-	14, // 41: emr.v1.EMRService.AddEncounterDiagnosis:input_type -> emr.v1.AddEncounterDiagnosisRequest
-	16, // 42: emr.v1.EMRService.UpdateEncounterDiagnosis:input_type -> emr.v1.UpdateEncounterDiagnosisRequest
-	18, // 43: emr.v1.EMRService.RemoveEncounterDiagnosis:input_type -> emr.v1.RemoveEncounterDiagnosisRequest
-	20, // 44: emr.v1.EMRService.GetKBMSuggestionsForICD10:input_type -> emr.v1.GetKBMSuggestionsForICD10Request
-	23, // 45: emr.v1.EMRService.ListPendingKBMVerifications:input_type -> emr.v1.ListPendingKBMVerificationsRequest
-	25, // 46: emr.v1.EMRService.VerifyKBMMapping:input_type -> emr.v1.VerifyKBMMappingRequest
-	27, // 47: emr.v1.EMRService.FinalizeSeverity:input_type -> emr.v1.FinalizeSeverityRequest
-	39, // 48: emr.v1.EMRService.CompleteEncounter:input_type -> emr.v1.CompleteEncounterRequest
-	29, // 49: emr.v1.EMRService.FinalizeMedicalRecord:input_type -> emr.v1.FinalizeMedicalRecordRequest
-	5,  // 50: emr.v1.EMRService.SubmitTriage:output_type -> emr.v1.SubmitTriageResponse
-	32, // 51: emr.v1.EMRService.AddMedicalAction:output_type -> emr.v1.AddMedicalActionResponse
-	38, // 52: emr.v1.EMRService.GetMedicalRecord:output_type -> emr.v1.GetMedicalRecordResponse
-	3,  // 53: emr.v1.EMRService.StartEncounter:output_type -> emr.v1.StartEncounterResponse
-	1,  // 54: emr.v1.EMRService.GetEstimatedWaitTime:output_type -> emr.v1.GetEstimatedWaitTimeResponse
-	43, // 55: emr.v1.EMRService.GetPolyclinics:output_type -> emr.v1.GetPolyclinicsResponse
-	45, // 56: emr.v1.EMRService.GetMasterKBMs:output_type -> emr.v1.GetMasterKBMsResponse
-	47, // 57: emr.v1.EMRService.GetMasterKBMsByPoli:output_type -> emr.v1.GetMasterKBMsByPoliResponse
-	50, // 58: emr.v1.EMRService.GetMasterTindakan:output_type -> emr.v1.GetMasterTindakanResponse
-	52, // 59: emr.v1.EMRService.GetMasterTindakanByPoli:output_type -> emr.v1.GetMasterTindakanByPoliResponse
-	55, // 60: emr.v1.EMRService.GetMasterICD10:output_type -> emr.v1.GetMasterICD10Response
-	57, // 61: emr.v1.EMRService.GetMasterICD10ByPoli:output_type -> emr.v1.GetMasterICD10ByPoliResponse
-	60, // 62: emr.v1.EMRService.GetMasterICD9:output_type -> emr.v1.GetMasterICD9Response
-	63, // 63: emr.v1.EMRService.GetICD9SuggestionsForTindakan:output_type -> emr.v1.GetICD9SuggestionsForTindakanResponse
-	66, // 64: emr.v1.EMRService.GetMasterSNOMED:output_type -> emr.v1.GetMasterSNOMEDResponse
-	70, // 65: emr.v1.EMRService.GetSNOMEDMappingDetails:output_type -> emr.v1.GetSNOMEDMappingDetailsResponse
-	8,  // 66: emr.v1.EMRService.SearchKBM:output_type -> emr.v1.SearchKBMResponse
-	10, // 67: emr.v1.EMRService.GetKBMDetail:output_type -> emr.v1.GetKBMDetailResponse
-	13, // 68: emr.v1.EMRService.GetICD10SuggestionsForKBM:output_type -> emr.v1.GetICD10SuggestionsForKBMResponse
-	15, // 69: emr.v1.EMRService.AddEncounterDiagnosis:output_type -> emr.v1.AddEncounterDiagnosisResponse
-	17, // 70: emr.v1.EMRService.UpdateEncounterDiagnosis:output_type -> emr.v1.UpdateEncounterDiagnosisResponse
-	19, // 71: emr.v1.EMRService.RemoveEncounterDiagnosis:output_type -> emr.v1.RemoveEncounterDiagnosisResponse
-	22, // 72: emr.v1.EMRService.GetKBMSuggestionsForICD10:output_type -> emr.v1.GetKBMSuggestionsForICD10Response
-	24, // 73: emr.v1.EMRService.ListPendingKBMVerifications:output_type -> emr.v1.ListPendingKBMVerificationsResponse
-	26, // 74: emr.v1.EMRService.VerifyKBMMapping:output_type -> emr.v1.VerifyKBMMappingResponse
-	28, // 75: emr.v1.EMRService.FinalizeSeverity:output_type -> emr.v1.FinalizeSeverityResponse
-	40, // 76: emr.v1.EMRService.CompleteEncounter:output_type -> emr.v1.CompleteEncounterResponse
-	30, // 77: emr.v1.EMRService.FinalizeMedicalRecord:output_type -> emr.v1.FinalizeMedicalRecordResponse
-	50, // [50:78] is the sub-list for method output_type
-	22, // [22:50] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	42, // 3: emr.v1.GetICD10SuggestionsForKBMResponse.polyclinics:type_name -> emr.v1.Polyclinic
+	36, // 4: emr.v1.AddEncounterDiagnosisResponse.data:type_name -> emr.v1.EncounterDiagnosis
+	21, // 5: emr.v1.GetKBMSuggestionsForICD10Response.suggestions:type_name -> emr.v1.KBMSuggestion
+	35, // 6: emr.v1.GetMedicalRecordResponse.triage:type_name -> emr.v1.TriageData
+	36, // 7: emr.v1.GetMedicalRecordResponse.diagnoses:type_name -> emr.v1.EncounterDiagnosis
+	34, // 8: emr.v1.GetMedicalRecordResponse.actions:type_name -> emr.v1.MedicalAction
+	37, // 9: emr.v1.GetMedicalRecordResponse.checklist:type_name -> emr.v1.ClinicalChecklist
+	37, // 10: emr.v1.CompleteEncounterResponse.checklist:type_name -> emr.v1.ClinicalChecklist
+	42, // 11: emr.v1.GetPolyclinicsResponse.data:type_name -> emr.v1.Polyclinic
+	7,  // 12: emr.v1.GetMasterKBMsResponse.data:type_name -> emr.v1.KBMItem
+	7,  // 13: emr.v1.GetMasterKBMsByPoliResponse.data:type_name -> emr.v1.KBMItem
+	49, // 14: emr.v1.GetMasterTindakanResponse.data:type_name -> emr.v1.MasterTindakan
+	49, // 15: emr.v1.GetMasterTindakanByPoliResponse.data:type_name -> emr.v1.MasterTindakan
+	54, // 16: emr.v1.GetMasterICD10Response.data:type_name -> emr.v1.MasterICD10
+	54, // 17: emr.v1.GetMasterICD10ByPoliResponse.data:type_name -> emr.v1.MasterICD10
+	58, // 18: emr.v1.GetMasterICD9Response.items:type_name -> emr.v1.ICD9Item
+	61, // 19: emr.v1.GetICD9SuggestionsForTindakanResponse.suggestions:type_name -> emr.v1.ICD9Suggestion
+	42, // 20: emr.v1.GetICD9SuggestionsForTindakanResponse.polyclinics:type_name -> emr.v1.Polyclinic
+	64, // 21: emr.v1.GetMasterSNOMEDResponse.data:type_name -> emr.v1.SNOMEDItem
+	67, // 22: emr.v1.GetSNOMEDMappingDetailsResponse.icd10_mappings:type_name -> emr.v1.SNOMEDICD10MapDetail
+	68, // 23: emr.v1.GetSNOMEDMappingDetailsResponse.icd9_mappings:type_name -> emr.v1.SNOMEDICD9MapDetail
+	21, // 24: emr.v1.GetICD10MappingDetailsResponse.kbm_mappings:type_name -> emr.v1.KBMSuggestion
+	64, // 25: emr.v1.GetICD10MappingDetailsResponse.snomed_mappings:type_name -> emr.v1.SNOMEDItem
+	42, // 26: emr.v1.GetICD10MappingDetailsResponse.polyclinics:type_name -> emr.v1.Polyclinic
+	64, // 27: emr.v1.GetICD9MappingDetailsResponse.snomed_mappings:type_name -> emr.v1.SNOMEDItem
+	74, // 28: emr.v1.GetICD9MappingDetailsResponse.tindakan_mappings:type_name -> emr.v1.ICD9TindakanMapDetail
+	42, // 29: emr.v1.GetICD9MappingDetailsResponse.polyclinics:type_name -> emr.v1.Polyclinic
+	4,  // 30: emr.v1.EMRService.SubmitTriage:input_type -> emr.v1.SubmitTriageRequest
+	31, // 31: emr.v1.EMRService.AddMedicalAction:input_type -> emr.v1.AddMedicalActionRequest
+	33, // 32: emr.v1.EMRService.GetMedicalRecord:input_type -> emr.v1.GetMedicalRecordRequest
+	2,  // 33: emr.v1.EMRService.StartEncounter:input_type -> emr.v1.StartEncounterRequest
+	0,  // 34: emr.v1.EMRService.GetEstimatedWaitTime:input_type -> emr.v1.GetEstimatedWaitTimeRequest
+	41, // 35: emr.v1.EMRService.GetPolyclinics:input_type -> emr.v1.GetPolyclinicsRequest
+	44, // 36: emr.v1.EMRService.GetMasterKBMs:input_type -> emr.v1.GetMasterKBMsRequest
+	46, // 37: emr.v1.EMRService.GetMasterKBMsByPoli:input_type -> emr.v1.GetMasterKBMsByPoliRequest
+	48, // 38: emr.v1.EMRService.GetMasterTindakan:input_type -> emr.v1.GetMasterTindakanRequest
+	51, // 39: emr.v1.EMRService.GetMasterTindakanByPoli:input_type -> emr.v1.GetMasterTindakanByPoliRequest
+	53, // 40: emr.v1.EMRService.GetMasterICD10:input_type -> emr.v1.GetMasterICD10Request
+	56, // 41: emr.v1.EMRService.GetMasterICD10ByPoli:input_type -> emr.v1.GetMasterICD10ByPoliRequest
+	71, // 42: emr.v1.EMRService.GetICD10MappingDetails:input_type -> emr.v1.GetICD10MappingDetailsRequest
+	59, // 43: emr.v1.EMRService.GetMasterICD9:input_type -> emr.v1.GetMasterICD9Request
+	73, // 44: emr.v1.EMRService.GetICD9MappingDetails:input_type -> emr.v1.GetICD9MappingDetailsRequest
+	62, // 45: emr.v1.EMRService.GetICD9SuggestionsForTindakan:input_type -> emr.v1.GetICD9SuggestionsForTindakanRequest
+	65, // 46: emr.v1.EMRService.GetMasterSNOMED:input_type -> emr.v1.GetMasterSNOMEDRequest
+	69, // 47: emr.v1.EMRService.GetSNOMEDMappingDetails:input_type -> emr.v1.GetSNOMEDMappingDetailsRequest
+	6,  // 48: emr.v1.EMRService.SearchKBM:input_type -> emr.v1.SearchKBMRequest
+	9,  // 49: emr.v1.EMRService.GetKBMDetail:input_type -> emr.v1.GetKBMDetailRequest
+	11, // 50: emr.v1.EMRService.GetICD10SuggestionsForKBM:input_type -> emr.v1.GetICD10SuggestionsForKBMRequest
+	14, // 51: emr.v1.EMRService.AddEncounterDiagnosis:input_type -> emr.v1.AddEncounterDiagnosisRequest
+	16, // 52: emr.v1.EMRService.UpdateEncounterDiagnosis:input_type -> emr.v1.UpdateEncounterDiagnosisRequest
+	18, // 53: emr.v1.EMRService.RemoveEncounterDiagnosis:input_type -> emr.v1.RemoveEncounterDiagnosisRequest
+	20, // 54: emr.v1.EMRService.GetKBMSuggestionsForICD10:input_type -> emr.v1.GetKBMSuggestionsForICD10Request
+	23, // 55: emr.v1.EMRService.ListPendingKBMVerifications:input_type -> emr.v1.ListPendingKBMVerificationsRequest
+	25, // 56: emr.v1.EMRService.VerifyKBMMapping:input_type -> emr.v1.VerifyKBMMappingRequest
+	27, // 57: emr.v1.EMRService.FinalizeSeverity:input_type -> emr.v1.FinalizeSeverityRequest
+	39, // 58: emr.v1.EMRService.CompleteEncounter:input_type -> emr.v1.CompleteEncounterRequest
+	29, // 59: emr.v1.EMRService.FinalizeMedicalRecord:input_type -> emr.v1.FinalizeMedicalRecordRequest
+	5,  // 60: emr.v1.EMRService.SubmitTriage:output_type -> emr.v1.SubmitTriageResponse
+	32, // 61: emr.v1.EMRService.AddMedicalAction:output_type -> emr.v1.AddMedicalActionResponse
+	38, // 62: emr.v1.EMRService.GetMedicalRecord:output_type -> emr.v1.GetMedicalRecordResponse
+	3,  // 63: emr.v1.EMRService.StartEncounter:output_type -> emr.v1.StartEncounterResponse
+	1,  // 64: emr.v1.EMRService.GetEstimatedWaitTime:output_type -> emr.v1.GetEstimatedWaitTimeResponse
+	43, // 65: emr.v1.EMRService.GetPolyclinics:output_type -> emr.v1.GetPolyclinicsResponse
+	45, // 66: emr.v1.EMRService.GetMasterKBMs:output_type -> emr.v1.GetMasterKBMsResponse
+	47, // 67: emr.v1.EMRService.GetMasterKBMsByPoli:output_type -> emr.v1.GetMasterKBMsByPoliResponse
+	50, // 68: emr.v1.EMRService.GetMasterTindakan:output_type -> emr.v1.GetMasterTindakanResponse
+	52, // 69: emr.v1.EMRService.GetMasterTindakanByPoli:output_type -> emr.v1.GetMasterTindakanByPoliResponse
+	55, // 70: emr.v1.EMRService.GetMasterICD10:output_type -> emr.v1.GetMasterICD10Response
+	57, // 71: emr.v1.EMRService.GetMasterICD10ByPoli:output_type -> emr.v1.GetMasterICD10ByPoliResponse
+	72, // 72: emr.v1.EMRService.GetICD10MappingDetails:output_type -> emr.v1.GetICD10MappingDetailsResponse
+	60, // 73: emr.v1.EMRService.GetMasterICD9:output_type -> emr.v1.GetMasterICD9Response
+	75, // 74: emr.v1.EMRService.GetICD9MappingDetails:output_type -> emr.v1.GetICD9MappingDetailsResponse
+	63, // 75: emr.v1.EMRService.GetICD9SuggestionsForTindakan:output_type -> emr.v1.GetICD9SuggestionsForTindakanResponse
+	66, // 76: emr.v1.EMRService.GetMasterSNOMED:output_type -> emr.v1.GetMasterSNOMEDResponse
+	70, // 77: emr.v1.EMRService.GetSNOMEDMappingDetails:output_type -> emr.v1.GetSNOMEDMappingDetailsResponse
+	8,  // 78: emr.v1.EMRService.SearchKBM:output_type -> emr.v1.SearchKBMResponse
+	10, // 79: emr.v1.EMRService.GetKBMDetail:output_type -> emr.v1.GetKBMDetailResponse
+	13, // 80: emr.v1.EMRService.GetICD10SuggestionsForKBM:output_type -> emr.v1.GetICD10SuggestionsForKBMResponse
+	15, // 81: emr.v1.EMRService.AddEncounterDiagnosis:output_type -> emr.v1.AddEncounterDiagnosisResponse
+	17, // 82: emr.v1.EMRService.UpdateEncounterDiagnosis:output_type -> emr.v1.UpdateEncounterDiagnosisResponse
+	19, // 83: emr.v1.EMRService.RemoveEncounterDiagnosis:output_type -> emr.v1.RemoveEncounterDiagnosisResponse
+	22, // 84: emr.v1.EMRService.GetKBMSuggestionsForICD10:output_type -> emr.v1.GetKBMSuggestionsForICD10Response
+	24, // 85: emr.v1.EMRService.ListPendingKBMVerifications:output_type -> emr.v1.ListPendingKBMVerificationsResponse
+	26, // 86: emr.v1.EMRService.VerifyKBMMapping:output_type -> emr.v1.VerifyKBMMappingResponse
+	28, // 87: emr.v1.EMRService.FinalizeSeverity:output_type -> emr.v1.FinalizeSeverityResponse
+	40, // 88: emr.v1.EMRService.CompleteEncounter:output_type -> emr.v1.CompleteEncounterResponse
+	30, // 89: emr.v1.EMRService.FinalizeMedicalRecord:output_type -> emr.v1.FinalizeMedicalRecordResponse
+	60, // [60:90] is the sub-list for method output_type
+	30, // [30:60] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_emr_proto_init() }
@@ -5089,7 +5497,7 @@ func file_emr_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_emr_proto_rawDesc), len(file_emr_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   71,
+			NumMessages:   76,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -753,10 +753,12 @@ func (q *Queries) GetEncounterTindakan(ctx context.Context, encounterNo string) 
 const getICD10 = `-- name: GetICD10 :many
 SELECT i.icd10_code, i.name_en, i.name_id, i.chapter_code, i.block_code, i.is_active, i.created_at, i.updated_at, i.deleted_dt, i.coding_rule, 
        COALESCE(array_agg(DISTINCT m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
-       COUNT(DISTINCT k.kbm_code)::int AS kbm_count
+       COUNT(DISTINCT k.kbm_code)::int AS kbm_count,
+       COUNT(DISTINCT s.snomed_concept_id)::int AS snomed_count
 FROM icd10_catalog i
 LEFT JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code AND m.deleted_dt IS NULL
 LEFT JOIN kbm_icd10_mappings k ON i.icd10_code = k.icd10_code
+LEFT JOIN snomed_icd10_mapping s ON i.icd10_code = s.icd10_code
 WHERE i.deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR i.name_en ILIKE '%' || $1 || '%' OR i.name_id ILIKE '%' || $1 || '%' OR i.icd10_code ILIKE '%' || $1 || '%')
   AND ($2::text IS NULL OR $2::text = '' OR i.icd10_code ILIKE '%' || $2 || '%')
@@ -784,6 +786,7 @@ type GetICD10Row struct {
 	CodingRule  sql.NullString
 	Polyclinics []string
 	KbmCount    int32
+	SnomedCount int32
 }
 
 func (q *Queries) GetICD10(ctx context.Context, arg GetICD10Params) ([]GetICD10Row, error) {
@@ -813,6 +816,7 @@ func (q *Queries) GetICD10(ctx context.Context, arg GetICD10Params) ([]GetICD10R
 			&i.CodingRule,
 			pq.Array(&i.Polyclinics),
 			&i.KbmCount,
+			&i.SnomedCount,
 		); err != nil {
 			return nil, err
 		}
@@ -830,11 +834,13 @@ func (q *Queries) GetICD10(ctx context.Context, arg GetICD10Params) ([]GetICD10R
 const getICD10ByPolyclinic = `-- name: GetICD10ByPolyclinic :many
 SELECT i.icd10_code, i.name_en, i.name_id, i.chapter_code, i.block_code, i.is_active, i.created_at, i.updated_at, i.deleted_dt, i.coding_rule, 
        COALESCE(array_agg(DISTINCT m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
-       COUNT(DISTINCT k.kbm_code)::int AS kbm_count
+       COUNT(DISTINCT k.kbm_code)::int AS kbm_count,
+       COUNT(DISTINCT s.snomed_concept_id)::int AS snomed_count
 FROM icd10_catalog i
 JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code
 LEFT JOIN icd10_polyclinic_mappings m2 ON i.icd10_code = m2.icd10_code AND m2.deleted_dt IS NULL
 LEFT JOIN kbm_icd10_mappings k ON i.icd10_code = k.icd10_code
+LEFT JOIN snomed_icd10_mapping s ON i.icd10_code = s.icd10_code
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND ($2::text IS NULL OR $2::text = '' OR i.name_en ILIKE '%' || $2 || '%' OR i.name_id ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
   AND ($3::text IS NULL OR $3::text = '' OR i.icd10_code ILIKE '%' || $3 || '%')
@@ -863,6 +869,7 @@ type GetICD10ByPolyclinicRow struct {
 	CodingRule  sql.NullString
 	Polyclinics []string
 	KbmCount    int32
+	SnomedCount int32
 }
 
 func (q *Queries) GetICD10ByPolyclinic(ctx context.Context, arg GetICD10ByPolyclinicParams) ([]GetICD10ByPolyclinicRow, error) {
@@ -893,6 +900,56 @@ func (q *Queries) GetICD10ByPolyclinic(ctx context.Context, arg GetICD10ByPolycl
 			&i.CodingRule,
 			pq.Array(&i.Polyclinics),
 			&i.KbmCount,
+			&i.SnomedCount,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getICD10SuggestionsForKBM = `-- name: GetICD10SuggestionsForKBM :many
+SELECT i.icd10_code, i.name_id, i.name_en, i.chapter_code, i.block_code, m.is_primary, m.mapping_confidence
+FROM icd10_catalog i
+JOIN kbm_icd10_mappings m ON i.icd10_code = m.icd10_code
+WHERE m.kbm_code = $1 AND i.is_active = true AND i.deleted_dt IS NULL
+ORDER BY m.is_primary DESC, m.mapping_confidence DESC
+`
+
+type GetICD10SuggestionsForKBMRow struct {
+	Icd10Code         string
+	NameID            string
+	NameEn            string
+	ChapterCode       sql.NullString
+	BlockCode         sql.NullString
+	IsPrimary         sql.NullBool
+	MappingConfidence sql.NullString
+}
+
+func (q *Queries) GetICD10SuggestionsForKBM(ctx context.Context, kbmCode string) ([]GetICD10SuggestionsForKBMRow, error) {
+	rows, err := q.db.QueryContext(ctx, getICD10SuggestionsForKBM, kbmCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetICD10SuggestionsForKBMRow
+	for rows.Next() {
+		var i GetICD10SuggestionsForKBMRow
+		if err := rows.Scan(
+			&i.Icd10Code,
+			&i.NameID,
+			&i.NameEn,
+			&i.ChapterCode,
+			&i.BlockCode,
+			&i.IsPrimary,
+			&i.MappingConfidence,
 		); err != nil {
 			return nil, err
 		}
@@ -908,11 +965,19 @@ func (q *Queries) GetICD10ByPolyclinic(ctx context.Context, arg GetICD10ByPolycl
 }
 
 const getICD9 = `-- name: GetICD9 :many
-SELECT icd9_code, name_en, name_id, category, is_active, created_at, updated_at, deleted_dt FROM icd9cm_catalog
-WHERE deleted_dt IS NULL
-  AND ($1::text IS NULL OR $1::text = '' OR name_en ILIKE '%' || $1 || '%' OR name_id ILIKE '%' || $1 || '%' OR icd9_code ILIKE '%' || $1 || '%')
-  AND ($2::text IS NULL OR $2::text = '' OR icd9_code ILIKE '%' || $2 || '%')
-ORDER BY icd9_code ASC LIMIT $3 OFFSET $4
+SELECT i.icd9_code, i.name_en, i.name_id, i.category, i.is_active, i.created_at, i.updated_at, i.deleted_dt,
+       COUNT(DISTINCT s.snomed_concept_id)::int AS snomed_count,
+       COUNT(DISTINCT t.kode_tindakan)::int AS tindakan_count,
+       COALESCE(array_agg(DISTINCT p.polyclinic_code) FILTER (WHERE p.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+FROM icd9cm_catalog i
+LEFT JOIN snomed_icd9_mapping s ON i.icd9_code = s.icd9_code
+LEFT JOIN tindakan_icd9_mapping t ON i.icd9_code = t.icd9_code
+LEFT JOIN tindakan_polyclinic_mappings p ON t.kode_tindakan = p.kode_tindakan AND p.deleted_dt IS NULL
+WHERE i.deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR i.name_en ILIKE '%' || $1 || '%' OR i.name_id ILIKE '%' || $1 || '%' OR i.icd9_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR i.icd9_code ILIKE '%' || $2 || '%')
+GROUP BY i.icd9_code
+ORDER BY i.icd9_code ASC LIMIT $3 OFFSET $4
 `
 
 type GetICD9Params struct {
@@ -922,7 +987,21 @@ type GetICD9Params struct {
 	Offset  int32
 }
 
-func (q *Queries) GetICD9(ctx context.Context, arg GetICD9Params) ([]Icd9cmCatalog, error) {
+type GetICD9Row struct {
+	Icd9Code      string
+	NameEn        string
+	NameID        sql.NullString
+	Category      sql.NullString
+	IsActive      sql.NullBool
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+	DeletedDt     sql.NullTime
+	SnomedCount   int32
+	TindakanCount int32
+	Polyclinics   []string
+}
+
+func (q *Queries) GetICD9(ctx context.Context, arg GetICD9Params) ([]GetICD9Row, error) {
 	rows, err := q.db.QueryContext(ctx, getICD9,
 		arg.Column1,
 		arg.Column2,
@@ -933,9 +1012,9 @@ func (q *Queries) GetICD9(ctx context.Context, arg GetICD9Params) ([]Icd9cmCatal
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Icd9cmCatalog
+	var items []GetICD9Row
 	for rows.Next() {
-		var i Icd9cmCatalog
+		var i GetICD9Row
 		if err := rows.Scan(
 			&i.Icd9Code,
 			&i.NameEn,
@@ -945,6 +1024,9 @@ func (q *Queries) GetICD9(ctx context.Context, arg GetICD9Params) ([]Icd9cmCatal
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedDt,
+			&i.SnomedCount,
+			&i.TindakanCount,
+			pq.Array(&i.Polyclinics),
 		); err != nil {
 			return nil, err
 		}
@@ -1092,9 +1174,12 @@ func (q *Queries) GetKBMSuggestionsForICD10(ctx context.Context, icd10Code strin
 }
 
 const getKBMs = `-- name: GetKBMs :many
-SELECT c.kbm_code, c.kbm_name, c.description, c.body_system, c.is_active, c.created_at, c.updated_at, c.deleted_dt, c.deleted_by, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT c.kbm_code, c.kbm_name, c.description, c.body_system, c.is_active, c.created_at, c.updated_at, c.deleted_dt, c.deleted_by, 
+       COALESCE(array_agg(DISTINCT m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT k.icd10_code)::int AS icd10_count
 FROM kbm_catalog c
 LEFT JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code AND m.deleted_dt IS NULL
+LEFT JOIN kbm_icd10_mappings k ON c.kbm_code = k.kbm_code
 WHERE c.is_active = true AND c.deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR c.kbm_name ILIKE '%' || $1 || '%' OR c.kbm_code ILIKE '%' || $1 || '%')
   AND ($2::text IS NULL OR $2::text = '' OR c.kbm_code ILIKE '%' || $2 || '%')
@@ -1120,6 +1205,7 @@ type GetKBMsRow struct {
 	DeletedDt   sql.NullTime
 	DeletedBy   uuid.NullUUID
 	Polyclinics []string
+	Icd10Count  int32
 }
 
 func (q *Queries) GetKBMs(ctx context.Context, arg GetKBMsParams) ([]GetKBMsRow, error) {
@@ -1147,6 +1233,7 @@ func (q *Queries) GetKBMs(ctx context.Context, arg GetKBMsParams) ([]GetKBMsRow,
 			&i.DeletedDt,
 			&i.DeletedBy,
 			pq.Array(&i.Polyclinics),
+			&i.Icd10Count,
 		); err != nil {
 			return nil, err
 		}
@@ -1162,10 +1249,13 @@ func (q *Queries) GetKBMs(ctx context.Context, arg GetKBMsParams) ([]GetKBMsRow,
 }
 
 const getKBMsByPolyclinic = `-- name: GetKBMsByPolyclinic :many
-SELECT c.kbm_code, c.kbm_name, c.description, c.body_system, c.is_active, c.created_at, c.updated_at, c.deleted_dt, c.deleted_by, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT c.kbm_code, c.kbm_name, c.description, c.body_system, c.is_active, c.created_at, c.updated_at, c.deleted_dt, c.deleted_by, 
+       COALESCE(array_agg(DISTINCT m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT k.icd10_code)::int AS icd10_count
 FROM kbm_catalog c
 JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
 LEFT JOIN kbm_polyclinic_mappings m2 ON c.kbm_code = m2.kbm_code AND m2.deleted_dt IS NULL
+LEFT JOIN kbm_icd10_mappings k ON c.kbm_code = k.kbm_code
 WHERE c.is_active = true AND c.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
   AND ($2::text IS NULL OR $2::text = '' OR c.kbm_name ILIKE '%' || $2 || '%' OR c.kbm_code ILIKE '%' || $2 || '%')
@@ -1193,6 +1283,7 @@ type GetKBMsByPolyclinicRow struct {
 	DeletedDt   sql.NullTime
 	DeletedBy   uuid.NullUUID
 	Polyclinics []string
+	Icd10Count  int32
 }
 
 func (q *Queries) GetKBMsByPolyclinic(ctx context.Context, arg GetKBMsByPolyclinicParams) ([]GetKBMsByPolyclinicRow, error) {
@@ -1221,6 +1312,7 @@ func (q *Queries) GetKBMsByPolyclinic(ctx context.Context, arg GetKBMsByPolyclin
 			&i.DeletedDt,
 			&i.DeletedBy,
 			pq.Array(&i.Polyclinics),
+			&i.Icd10Count,
 		); err != nil {
 			return nil, err
 		}
@@ -1395,6 +1487,151 @@ func (q *Queries) GetPolyclinics(ctx context.Context, arg GetPolyclinicsParams) 
 	return items, nil
 }
 
+const getPolyclinicsForICD10 = `-- name: GetPolyclinicsForICD10 :many
+SELECT p.code, p.name
+FROM polyclinics p
+JOIN icd10_polyclinic_mappings m ON p.code = m.polyclinic_code
+WHERE m.icd10_code = $1 AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+ORDER BY p.code ASC
+`
+
+type GetPolyclinicsForICD10Row struct {
+	Code string
+	Name string
+}
+
+func (q *Queries) GetPolyclinicsForICD10(ctx context.Context, icd10Code string) ([]GetPolyclinicsForICD10Row, error) {
+	rows, err := q.db.QueryContext(ctx, getPolyclinicsForICD10, icd10Code)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPolyclinicsForICD10Row
+	for rows.Next() {
+		var i GetPolyclinicsForICD10Row
+		if err := rows.Scan(&i.Code, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPolyclinicsForICD9 = `-- name: GetPolyclinicsForICD9 :many
+SELECT DISTINCT p.code, p.name
+FROM polyclinics p
+JOIN tindakan_polyclinic_mappings m ON p.code = m.polyclinic_code
+JOIN tindakan_icd9_mapping map ON m.kode_tindakan = map.kode_tindakan
+WHERE map.icd9_code = $1 AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+ORDER BY p.code ASC
+`
+
+type GetPolyclinicsForICD9Row struct {
+	Code string
+	Name string
+}
+
+func (q *Queries) GetPolyclinicsForICD9(ctx context.Context, icd9Code string) ([]GetPolyclinicsForICD9Row, error) {
+	rows, err := q.db.QueryContext(ctx, getPolyclinicsForICD9, icd9Code)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPolyclinicsForICD9Row
+	for rows.Next() {
+		var i GetPolyclinicsForICD9Row
+		if err := rows.Scan(&i.Code, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPolyclinicsForKBM = `-- name: GetPolyclinicsForKBM :many
+SELECT p.code, p.name
+FROM polyclinics p
+JOIN kbm_polyclinic_mappings m ON p.code = m.polyclinic_code
+WHERE m.kbm_code = $1 AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+ORDER BY p.code ASC
+`
+
+type GetPolyclinicsForKBMRow struct {
+	Code string
+	Name string
+}
+
+func (q *Queries) GetPolyclinicsForKBM(ctx context.Context, kbmCode string) ([]GetPolyclinicsForKBMRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPolyclinicsForKBM, kbmCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPolyclinicsForKBMRow
+	for rows.Next() {
+		var i GetPolyclinicsForKBMRow
+		if err := rows.Scan(&i.Code, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPolyclinicsForTindakan = `-- name: GetPolyclinicsForTindakan :many
+SELECT p.code, p.name
+FROM polyclinics p
+JOIN tindakan_polyclinic_mappings m ON p.code = m.polyclinic_code
+WHERE m.kode_tindakan = $1 AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL
+ORDER BY p.code ASC
+`
+
+type GetPolyclinicsForTindakanRow struct {
+	Code string
+	Name string
+}
+
+func (q *Queries) GetPolyclinicsForTindakan(ctx context.Context, kodeTindakan string) ([]GetPolyclinicsForTindakanRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPolyclinicsForTindakan, kodeTindakan)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPolyclinicsForTindakanRow
+	for rows.Next() {
+		var i GetPolyclinicsForTindakanRow
+		if err := rows.Scan(&i.Code, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getSNOMEDConcepts = `-- name: GetSNOMEDConcepts :many
 SELECT c.concept_id, c.fsn, c.term_id, c.semantic_tag, c.is_active, c.created_at, c.deleted_dt, c.deleted_by,
        COUNT(DISTINCT m10.icd10_code)::int AS icd10_count,
@@ -1454,6 +1691,102 @@ func (q *Queries) GetSNOMEDConcepts(ctx context.Context, arg GetSNOMEDConceptsPa
 			&i.DeletedBy,
 			&i.Icd10Count,
 			&i.Icd9Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSNOMEDForICD10 = `-- name: GetSNOMEDForICD10 :many
+SELECT s.concept_id, s.fsn, s.term_id, s.semantic_tag, s.is_active, m.is_primary, m.map_advice
+FROM snomed_concepts s
+JOIN snomed_icd10_mapping m ON s.concept_id = m.snomed_concept_id
+WHERE m.icd10_code = $1 AND s.is_active = true AND s.deleted_dt IS NULL
+ORDER BY m.is_primary DESC
+`
+
+type GetSNOMEDForICD10Row struct {
+	ConceptID   string
+	Fsn         string
+	TermID      string
+	SemanticTag string
+	IsActive    bool
+	IsPrimary   bool
+	MapAdvice   string
+}
+
+func (q *Queries) GetSNOMEDForICD10(ctx context.Context, icd10Code string) ([]GetSNOMEDForICD10Row, error) {
+	rows, err := q.db.QueryContext(ctx, getSNOMEDForICD10, icd10Code)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSNOMEDForICD10Row
+	for rows.Next() {
+		var i GetSNOMEDForICD10Row
+		if err := rows.Scan(
+			&i.ConceptID,
+			&i.Fsn,
+			&i.TermID,
+			&i.SemanticTag,
+			&i.IsActive,
+			&i.IsPrimary,
+			&i.MapAdvice,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSNOMEDForICD9 = `-- name: GetSNOMEDForICD9 :many
+SELECT s.concept_id, s.fsn, s.term_id, s.semantic_tag, s.is_active, m.is_primary
+FROM snomed_concepts s
+JOIN snomed_icd9_mapping m ON s.concept_id = m.snomed_concept_id
+WHERE m.icd9_code = $1 AND s.is_active = true AND s.deleted_dt IS NULL
+ORDER BY m.is_primary DESC
+`
+
+type GetSNOMEDForICD9Row struct {
+	ConceptID   string
+	Fsn         string
+	TermID      string
+	SemanticTag string
+	IsActive    bool
+	IsPrimary   bool
+}
+
+func (q *Queries) GetSNOMEDForICD9(ctx context.Context, icd9Code string) ([]GetSNOMEDForICD9Row, error) {
+	rows, err := q.db.QueryContext(ctx, getSNOMEDForICD9, icd9Code)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSNOMEDForICD9Row
+	for rows.Next() {
+		var i GetSNOMEDForICD9Row
+		if err := rows.Scan(
+			&i.ConceptID,
+			&i.Fsn,
+			&i.TermID,
+			&i.SemanticTag,
+			&i.IsActive,
+			&i.IsPrimary,
 		); err != nil {
 			return nil, err
 		}
@@ -1716,6 +2049,49 @@ func (q *Queries) GetTindakanByPolyclinic(ctx context.Context, arg GetTindakanBy
 			&i.InternalCategory,
 			pq.Array(&i.Polyclinics),
 			&i.Icd9Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTindakanForICD9 = `-- name: GetTindakanForICD9 :many
+SELECT t.kode_tindakan, t.nama_tindakan, t.base_price, m.is_primary
+FROM master_tindakan t
+JOIN tindakan_icd9_mapping m ON t.kode_tindakan = m.kode_tindakan
+WHERE m.icd9_code = $1 AND t.is_active = true AND t.deleted_dt IS NULL
+ORDER BY m.is_primary DESC
+`
+
+type GetTindakanForICD9Row struct {
+	KodeTindakan string
+	NamaTindakan string
+	BasePrice    string
+	IsPrimary    sql.NullBool
+}
+
+func (q *Queries) GetTindakanForICD9(ctx context.Context, icd9Code string) ([]GetTindakanForICD9Row, error) {
+	rows, err := q.db.QueryContext(ctx, getTindakanForICD9, icd9Code)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetTindakanForICD9Row
+	for rows.Next() {
+		var i GetTindakanForICD9Row
+		if err := rows.Scan(
+			&i.KodeTindakan,
+			&i.NamaTindakan,
+			&i.BasePrice,
+			&i.IsPrimary,
 		); err != nil {
 			return nil, err
 		}

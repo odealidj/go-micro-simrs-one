@@ -3,7 +3,7 @@ import { MasterDataTable } from "../../components/MasterDataTable";
 export function AssignTindakanPoliPage() {
   return (
     <MasterDataTable<any>
-      title="Mapping Tindakan"
+      title="Tindakan - Poliklinik"
       description="Pemetaan tindakan medis ke poliklinik"
       endpoint="/master/tindakan"
       requiresPoliFilter={true}

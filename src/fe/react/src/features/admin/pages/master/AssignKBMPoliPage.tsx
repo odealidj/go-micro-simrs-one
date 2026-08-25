@@ -3,7 +3,7 @@ import { MasterDataTable } from "../../components/MasterDataTable";
 export function AssignKBMPoliPage() {
   return (
     <MasterDataTable<any>
-      title="Mapping KBM"
+      title="KBM - Poliklinik"
       description="Pemetaan KBM ke poliklinik"
       endpoint="/master/kbm"
       requiresPoliFilter={true}

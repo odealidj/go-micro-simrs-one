@@ -208,7 +208,7 @@ export function SNOMEDPage() {
                         onClick={() => handleViewMapping(item)}
                       >
                         <GitFork className="h-3.5 w-3.5" />
-                        Detail Cross-Map
+                        Detail Map
                       </Button>
                     </td>
                   </tr>
@@ -219,118 +219,120 @@ export function SNOMEDPage() {
         </div>
 
         {/* Pagination */}
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-slate-100">
-          <span className="text-xs text-slate-500">
-            Menampilkan {data.length} dari {meta.total_count ?? meta.total_data ?? 0} konsep SNOMED-CT
-          </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-              className="text-xs h-8"
-            >
-              Sebelumnya
-            </Button>
-            <span className="text-xs font-medium px-2">
-              Halaman {page} dari {meta.total_pages || 1}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= (meta.total_pages || 1)}
-              onClick={() => setPage(page + 1)}
-              className="text-xs h-8"
-            >
-              Selanjutnya
-            </Button>
+        {meta && (
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-4">
+            <div className="text-sm text-slate-500">
+              Menampilkan <span className="font-medium text-slate-700">{data.length}</span> dari <span className="font-medium text-slate-700">{meta.total_count ?? meta.total_data ?? 0}</span> data
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage(p => p - 1)}
+                className="text-xs h-8"
+              >
+                Sebelumnya
+              </Button>
+              <div className="text-xs font-medium px-2">
+                Halaman {page} dari {meta.total_pages || 1}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= (meta.total_pages || 1)}
+                onClick={() => setPage(p => p + 1)}
+                className="text-xs h-8"
+              >
+                Selanjutnya
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Modal Detail Cross-Map SNOMED-CT */}
+      {/* Modal Detail Map SNOMED-CT */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="sm:max-w-4xl max-w-[95vw] max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-blue-50 text-blue-600">
-                <GitFork className="h-5 w-5" />
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
+                <GitFork className="h-6 w-6" />
               </div>
               <div>
-                <DialogTitle className="text-lg font-bold text-slate-800">
-                  Pemetaan Cross-Map SNOMED-CT
+                <DialogTitle className="text-xl font-bold text-slate-800">
+                  Detail Pemetaan SNOMED-CT
                 </DialogTitle>
-                <DialogDescription className="text-xs text-slate-500">
-                  Relasi bawaan standar SNOMED International ke klasifikasi ICD-10 (Diagnosis) & ICD-9-CM (Prosedur)
+                <DialogDescription className="text-sm text-slate-500 mt-0.5">
+                  Relasi pemetaan standar SNOMED-CT ke klasifikasi ICD-10 (Diagnosis) & ICD-9-CM (Prosedur)
                 </DialogDescription>
               </div>
             </div>
           </DialogHeader>
 
           {selectedConcept && (
-            <div className="mt-2 space-y-4">
+            <div className="mt-4 space-y-5">
               {/* Concept Info Card */}
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-sm font-bold text-blue-700">
+                  <span className="font-mono text-base font-bold text-blue-700">
                     SCTID: {selectedConcept.concept_id}
                   </span>
                   {getSemanticTagBadge(selectedConcept.semantic_tag)}
                 </div>
-                <h4 className="text-sm font-semibold text-slate-800 mt-1">
+                <h4 className="text-base font-semibold text-slate-800 mt-1.5">
                   {selectedConcept.fsn}
                 </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Istilah Klinis: <span className="text-slate-700 font-medium">{selectedConcept.term_id}</span>
+                <p className="text-sm text-slate-500 mt-1">
+                  Istilah Klinis: <span className="text-slate-800 font-semibold">{selectedConcept.term_id}</span>
                 </p>
               </div>
 
               {/* Mappings Content */}
               {loadingMapping ? (
-                <div className="text-center py-6 text-slate-400 text-sm">
+                <div className="text-center py-8 text-slate-400 text-sm">
                   Mengambil relasi pemetaan...
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {/* ICD-10 Mappings Section */}
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Layers className="h-4 w-4 text-emerald-600" />
-                      <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <Layers className="h-5 w-5 text-emerald-600" />
+                      <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
                         Pemetaan ICD-10 (Diagnosis Medis)
                       </h4>
                     </div>
                     {mappingDetails?.icd10_mappings && mappingDetails.icd10_mappings.length > 0 ? (
-                      <div className="border border-slate-200 rounded-lg overflow-hidden">
-                        <table className="w-full text-xs text-left">
-                          <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                      <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
                             <tr>
-                              <th className="px-3 py-2">Kode ICD-10</th>
-                              <th className="px-3 py-2">Nama Diagnosis</th>
-                              <th className="px-3 py-2">Map Advice</th>
-                              <th className="px-3 py-2 text-center">Tipe</th>
+                              <th className="px-4 py-3">Kode ICD-10</th>
+                              <th className="px-4 py-3">Nama Diagnosis</th>
+                              <th className="px-4 py-3">Map Advice</th>
+                              <th className="px-4 py-3 text-center">Tipe</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {mappingDetails.icd10_mappings.map((m) => (
                               <tr key={m.icd10_code} className="hover:bg-slate-50/50">
-                                <td className="px-3 py-2 font-mono font-bold text-emerald-700">
+                                <td className="px-4 py-3 font-mono font-bold text-emerald-700">
                                   {m.icd10_code}
                                 </td>
-                                <td className="px-3 py-2 text-slate-800">
+                                <td className="px-4 py-3 text-slate-800 font-medium">
                                   {m.icd10_name_id || m.icd10_name_en}
                                 </td>
-                                <td className="px-3 py-2 text-slate-500 font-mono">
+                                <td className="px-4 py-3 text-slate-500 font-mono text-xs">
                                   {m.map_advice || "ALWAYS"}
                                 </td>
-                                <td className="px-3 py-2 text-center">
+                                <td className="px-4 py-3 text-center">
                                   {m.is_primary ? (
-                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                    <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800">
                                       PRIMARY
                                     </span>
                                   ) : (
-                                    <span className="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600">
+                                    <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
                                       SECONDARY
                                     </span>
                                   )}
@@ -341,7 +343,7 @@ export function SNOMEDPage() {
                         </table>
                       </div>
                     ) : (
-                      <div className="bg-slate-50 p-3 rounded-lg border border-dashed border-slate-200 text-center text-xs text-slate-400">
+                      <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 text-center text-sm text-slate-400">
                         Tidak ada target pemetaan ICD-10 untuk konsep ini (umumnya untuk konsep non-disorder/prosedur).
                       </div>
                     )}
@@ -349,42 +351,42 @@ export function SNOMEDPage() {
 
                   {/* ICD-9 Mappings Section */}
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Tag className="h-4 w-4 text-teal-600" />
-                      <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <Tag className="h-5 w-5 text-teal-600" />
+                      <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
                         Pemetaan ICD-9-CM (Prosedur / Tindakan)
                       </h4>
                     </div>
                     {mappingDetails?.icd9_mappings && mappingDetails.icd9_mappings.length > 0 ? (
-                      <div className="border border-slate-200 rounded-lg overflow-hidden">
-                        <table className="w-full text-xs text-left">
-                          <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                      <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
                             <tr>
-                              <th className="px-3 py-2">Kode ICD-9</th>
-                              <th className="px-3 py-2">Nama Prosedur</th>
-                              <th className="px-3 py-2">Kategori</th>
-                              <th className="px-3 py-2 text-center">Tipe</th>
+                              <th className="px-4 py-3">Kode ICD-9</th>
+                              <th className="px-4 py-3">Nama Prosedur</th>
+                              <th className="px-4 py-3">Kategori</th>
+                              <th className="px-4 py-3 text-center">Tipe</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
                             {mappingDetails.icd9_mappings.map((m) => (
                               <tr key={m.icd9_code} className="hover:bg-slate-50/50">
-                                <td className="px-3 py-2 font-mono font-bold text-teal-700">
+                                <td className="px-4 py-3 font-mono font-bold text-teal-700">
                                   {m.icd9_code}
                                 </td>
-                                <td className="px-3 py-2 text-slate-800">
+                                <td className="px-4 py-3 text-slate-800 font-medium">
                                   {m.icd9_name_id || m.icd9_name_en}
                                 </td>
-                                <td className="px-3 py-2 text-slate-500 font-mono">
+                                <td className="px-4 py-3 text-slate-600 font-mono text-xs">
                                   {m.category || "-"}
                                 </td>
-                                <td className="px-3 py-2 text-center">
+                                <td className="px-4 py-3 text-center">
                                   {m.is_primary ? (
-                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-800">
+                                    <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-teal-100 text-teal-800">
                                       PRIMARY
                                     </span>
                                   ) : (
-                                    <span className="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600">
+                                    <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
                                       SECONDARY
                                     </span>
                                   )}
@@ -395,8 +397,8 @@ export function SNOMEDPage() {
                         </table>
                       </div>
                     ) : (
-                      <div className="bg-slate-50 p-3 rounded-lg border border-dashed border-slate-200 text-center text-xs text-slate-400">
-                        Tidak ada target pemetaan ICD-9-CM untuk konsep ini (umumnya untuk konsep disorder/diagnosa murni).
+                      <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 text-center text-sm text-slate-400">
+                        Tidak ada target pemetaan ICD-9 untuk konsep ini (umumnya untuk konsep disorder/finding).
                       </div>
                     )}
                   </div>

@@ -363,6 +363,7 @@ func (s *EMRGrpcServer) GetMasterKBMs(ctx context.Context, req *pb.GetMasterKBMs
 			Description: k.Description.String,
 			BodySystem:  k.BodySystem.String,
 			Polyclinics: k.Polyclinics,
+			Icd10Count:  k.Icd10Count,
 		})
 	}
 	return &pb.GetMasterKBMsResponse{Data: data, TotalCount: int32(count)}, nil
@@ -406,6 +407,7 @@ func (s *EMRGrpcServer) GetMasterKBMsByPoli(ctx context.Context, req *pb.GetMast
 			Description: k.Description.String,
 			BodySystem:  k.BodySystem.String,
 			Polyclinics: k.Polyclinics,
+			Icd10Count:  k.Icd10Count,
 		})
 	}
 	return &pb.GetMasterKBMsByPoliResponse{Data: data, TotalCount: int32(count)}, nil
@@ -536,6 +538,7 @@ func (s *EMRGrpcServer) GetMasterICD10(ctx context.Context, req *pb.GetMasterICD
 			IsActive:    i.IsActive.Bool,
 			Polyclinics: i.Polyclinics,
 			KbmCount:    i.KbmCount,
+			SnomedCount: i.SnomedCount,
 		})
 	}
 	return &pb.GetMasterICD10Response{Data: data, TotalCount: int32(count)}, nil
@@ -582,6 +585,7 @@ func (s *EMRGrpcServer) GetMasterICD10ByPoli(ctx context.Context, req *pb.GetMas
 			IsActive:    i.IsActive.Bool,
 			Polyclinics: i.Polyclinics,
 			KbmCount:    i.KbmCount,
+			SnomedCount: i.SnomedCount,
 		})
 	}
 	return &pb.GetMasterICD10ByPoliResponse{Data: data, TotalCount: int32(count)}, nil
@@ -618,21 +622,171 @@ func (s *EMRGrpcServer) GetMasterICD9(ctx context.Context, req *pb.GetMasterICD9
 	var data []*pb.ICD9Item
 	for _, i := range res {
 		data = append(data, &pb.ICD9Item{
-			Icd9Code:    i.Icd9Code,
-			NameEn:      i.NameEn,
-			NameId:      i.NameID.String,
-			ChapterCode: i.Category.String, // map category to ChapterCode for now
-			BlockCode:   "",                // no block code in icd9
-			IsActive:    i.IsActive.Bool,
+			Icd9Code:      i.Icd9Code,
+			NameEn:        i.NameEn,
+			NameId:        i.NameID.String,
+			ChapterCode:   i.Category.String, // map category to ChapterCode for now
+			BlockCode:     "",                // no block code in icd9
+			IsActive:      i.IsActive.Bool,
+			Polyclinics:   i.Polyclinics,
+			SnomedCount:   i.SnomedCount,
+			TindakanCount: i.TindakanCount,
 		})
 	}
 	return &pb.GetMasterICD9Response{Items: data, Total: int32(count)}, nil
+}
+
+func (s *EMRGrpcServer) GetICD10SuggestionsForKBM(ctx context.Context, req *pb.GetICD10SuggestionsForKBMRequest) (*pb.GetICD10SuggestionsForKBMResponse, error) {
+	res, err := s.queries.GetICD10SuggestionsForKBM(ctx, req.KbmCode)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get icd10 suggestions for kbm: %v", err)
+	}
+
+	polis, err := s.queries.GetPolyclinicsForKBM(ctx, req.KbmCode)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get polyclinics for kbm: %v", err)
+	}
+
+	var suggestions []*pb.ICD10Suggestion
+	for _, i := range res {
+		suggestions = append(suggestions, &pb.ICD10Suggestion{
+			Icd10Code:         i.Icd10Code,
+			Icd10Name:         i.NameID,
+			IsPrimary:         i.IsPrimary.Bool,
+			MappingConfidence: i.MappingConfidence.String,
+		})
+	}
+
+	var polyclinics []*pb.Polyclinic
+	for _, p := range polis {
+		polyclinics = append(polyclinics, &pb.Polyclinic{
+			Code: p.Code,
+			Name: p.Name,
+		})
+	}
+
+	return &pb.GetICD10SuggestionsForKBMResponse{
+		Suggestions: suggestions,
+		Polyclinics: polyclinics,
+	}, nil
+}
+
+func (s *EMRGrpcServer) GetICD10MappingDetails(ctx context.Context, req *pb.GetICD10MappingDetailsRequest) (*pb.GetICD10MappingDetailsResponse, error) {
+	kbmRes, err := s.queries.GetKBMSuggestionsForICD10(ctx, req.Icd10Code)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get kbm suggestions: %v", err)
+	}
+
+	snomedRes, err := s.queries.GetSNOMEDForICD10(ctx, req.Icd10Code)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get snomed for icd10: %v", err)
+	}
+
+	polis, err := s.queries.GetPolyclinicsForICD10(ctx, req.Icd10Code)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get polyclinics for icd10: %v", err)
+	}
+
+	var kbmMappings []*pb.KBMSuggestion
+	for _, k := range kbmRes {
+		kbmMappings = append(kbmMappings, &pb.KBMSuggestion{
+			KbmCode:           k.KbmCode,
+			KbmName:           k.KbmName,
+			IsPrimary:         k.IsPrimary.Bool,
+			MappingConfidence: k.MappingConfidence.String,
+		})
+	}
+
+	var snomedMappings []*pb.SNOMEDItem
+	for _, sItem := range snomedRes {
+		snomedMappings = append(snomedMappings, &pb.SNOMEDItem{
+			ConceptId:   sItem.ConceptID,
+			Fsn:         sItem.Fsn,
+			TermId:      sItem.TermID,
+			SemanticTag: sItem.SemanticTag,
+			IsActive:    sItem.IsActive,
+		})
+	}
+
+	var polyclinics []*pb.Polyclinic
+	for _, p := range polis {
+		polyclinics = append(polyclinics, &pb.Polyclinic{
+			Code: p.Code,
+			Name: p.Name,
+		})
+	}
+
+	return &pb.GetICD10MappingDetailsResponse{
+		Icd10Code:      req.Icd10Code,
+		KbmMappings:    kbmMappings,
+		SnomedMappings: snomedMappings,
+		Polyclinics:    polyclinics,
+	}, nil
+}
+
+func (s *EMRGrpcServer) GetICD9MappingDetails(ctx context.Context, req *pb.GetICD9MappingDetailsRequest) (*pb.GetICD9MappingDetailsResponse, error) {
+	snomedRes, err := s.queries.GetSNOMEDForICD9(ctx, req.Icd9Code)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get snomed for icd9: %v", err)
+	}
+
+	tindakanRes, err := s.queries.GetTindakanForICD9(ctx, req.Icd9Code)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get tindakan for icd9: %v", err)
+	}
+
+	polis, err := s.queries.GetPolyclinicsForICD9(ctx, req.Icd9Code)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get polyclinics for icd9: %v", err)
+	}
+
+	var snomedMappings []*pb.SNOMEDItem
+	for _, sItem := range snomedRes {
+		snomedMappings = append(snomedMappings, &pb.SNOMEDItem{
+			ConceptId:   sItem.ConceptID,
+			Fsn:         sItem.Fsn,
+			TermId:      sItem.TermID,
+			SemanticTag: sItem.SemanticTag,
+			IsActive:    sItem.IsActive,
+		})
+	}
+
+	var tindakanMappings []*pb.ICD9TindakanMapDetail
+	for _, t := range tindakanRes {
+		price, _ := strconv.ParseFloat(t.BasePrice, 64)
+		tindakanMappings = append(tindakanMappings, &pb.ICD9TindakanMapDetail{
+			KodeTindakan: t.KodeTindakan,
+			NamaTindakan: t.NamaTindakan,
+			BasePrice:    price,
+			IsPrimary:    t.IsPrimary.Bool,
+		})
+	}
+
+	var polyclinics []*pb.Polyclinic
+	for _, p := range polis {
+		polyclinics = append(polyclinics, &pb.Polyclinic{
+			Code: p.Code,
+			Name: p.Name,
+		})
+	}
+
+	return &pb.GetICD9MappingDetailsResponse{
+		Icd9Code:         req.Icd9Code,
+		SnomedMappings:   snomedMappings,
+		TindakanMappings: tindakanMappings,
+		Polyclinics:      polyclinics,
+	}, nil
 }
 
 func (s *EMRGrpcServer) GetICD9SuggestionsForTindakan(ctx context.Context, req *pb.GetICD9SuggestionsForTindakanRequest) (*pb.GetICD9SuggestionsForTindakanResponse, error) {
 	res, err := s.queries.GetICD9SuggestionsForTindakan(ctx, req.KodeTindakan)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get icd9 suggestions: %v", err)
+	}
+
+	polis, err := s.queries.GetPolyclinicsForTindakan(ctx, req.KodeTindakan)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get polyclinics for tindakan: %v", err)
 	}
 
 	var suggestions []*pb.ICD9Suggestion
@@ -643,7 +797,19 @@ func (s *EMRGrpcServer) GetICD9SuggestionsForTindakan(ctx context.Context, req *
 			IsPrimary: i.IsPrimary.Bool,
 		})
 	}
-	return &pb.GetICD9SuggestionsForTindakanResponse{Suggestions: suggestions}, nil
+
+	var polyclinics []*pb.Polyclinic
+	for _, p := range polis {
+		polyclinics = append(polyclinics, &pb.Polyclinic{
+			Code: p.Code,
+			Name: p.Name,
+		})
+	}
+
+	return &pb.GetICD9SuggestionsForTindakanResponse{
+		Suggestions: suggestions,
+		Polyclinics: polyclinics,
+	}, nil
 }
 
 func (s *EMRGrpcServer) FinalizeMedicalRecord(ctx context.Context, req *pb.FinalizeMedicalRecordRequest) (*pb.FinalizeMedicalRecordResponse, error) {

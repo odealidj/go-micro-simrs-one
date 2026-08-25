@@ -1,9 +1,18 @@
-import { Search, Activity, Book } from "lucide-react";
+import { Search, GitFork, Tag, Stethoscope, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useMasterData } from "@/hooks/useMasterData";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useEffect, useState } from "react";
+import { getICD9Mappings, type ICD9MappingDetailsResponse } from "@/features/emr/api/emrApi";
 
 interface ICD9Data {
   icd9_code: string;
@@ -12,11 +21,19 @@ interface ICD9Data {
   chapter_code: string;
   block_code: string;
   is_active: boolean;
+  polyclinics?: string[];
+  snomed_count?: number;
+  tindakan_count?: number;
 }
 
 export function ICD9Page() {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 500);
+
+  const [selectedIcd9, setSelectedIcd9] = useState<ICD9Data | null>(null);
+  const [mappingDetails, setMappingDetails] = useState<ICD9MappingDetailsResponse | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data, loading, error, page, setPage, setSearch, meta } =
     useMasterData<ICD9Data>("/master/icd9");
@@ -26,13 +43,35 @@ export function ICD9Page() {
     setPage(1);
   }, [debouncedSearch, setSearch, setPage]);
 
+  const handleViewDetailMap = async (item: ICD9Data) => {
+    setSelectedIcd9(item);
+    setMappingDetails(null);
+    setIsModalOpen(true);
+    setLoadingDetails(true);
+    try {
+      const details = await getICD9Mappings(item.icd9_code);
+      setMappingDetails(details);
+    } catch (e) {
+      console.error("Failed to load ICD-9 mapping details", e);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h2 className="text-xl font-bold text-slate-800">Katalog ICD-9</h2>
-            <p className="text-slate-500 text-sm mt-1">Katalog klasifikasi prosedur dan tindakan</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-slate-800">Katalog ICD-9-CM</h2>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                Prosedur & Tindakan
+              </span>
+            </div>
+            <p className="text-slate-500 text-sm mt-1">
+              Katalog klasifikasi prosedur dan tindakan medis standar klaim INA-CBGs & Kemenkes
+            </p>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -56,66 +95,82 @@ export function ICD9Page() {
               <tr>
                 <th className="px-6 py-4">Kode ICD-9</th>
                 <th className="px-6 py-4">Prosedur (ID / EN)</th>
-                <th className="px-6 py-4">Kategori (Chapter / Block)</th>
-                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Kategori</th>
+                <th className="px-6 py-4 text-center">Pemetaan</th>
+                <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12">
-                    <div className="flex flex-col items-center justify-center text-slate-400 space-y-2">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                      <p>Memuat katalog...</p>
-                    </div>
+                  <td colSpan={6} className="text-center py-12 text-slate-400">
+                    Memuat data ICD-9...
                   </td>
                 </tr>
               ) : data.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center py-12">
-                    <div className="flex flex-col items-center justify-center text-slate-400 space-y-2">
-                      <Book className="h-12 w-12 text-slate-200" />
-                      <p>Tidak ada data ditemukan</p>
-                    </div>
+                  <td colSpan={6} className="text-center py-8 text-slate-400">
+                    Tidak ada data prosedur ICD-9 yang ditemukan.
                   </td>
                 </tr>
               ) : (
                 data.map((item, i) => (
                   <tr key={item.icd9_code || i} className="hover:bg-slate-50/70 transition-colors group">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-blue-600 bg-blue-50/50 inline-flex px-2.5 py-1 rounded-md border border-blue-100 group-hover:bg-blue-100/50 transition-colors">
+                      <span className="font-mono font-bold text-blue-600 bg-blue-50/70 px-2.5 py-1 rounded border border-blue-100">
                         {item.icd9_code || "-"}
-                      </div>
+                      </span>
                     </td>
                     <td className="px-6 py-4 max-w-md">
-                      <div className="flex flex-col space-y-1">
-                        <span className="font-medium text-slate-900">{item.name_id || "-"}</span>
-                        <span className="text-xs text-slate-500 italic">{item.name_en || "-"}</span>
+                      <div className="flex flex-col space-y-0.5">
+                        <span className="font-medium text-slate-900">{item.name_id || item.name_en || "-"}</span>
+                        {item.name_id && item.name_en && (
+                          <span className="text-xs text-slate-400 italic">{item.name_en}</span>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {(item.chapter_code || item.block_code) ? (
-                        <div className="flex flex-col space-y-1.5">
-                          {item.chapter_code && (
-                            <Badge variant="outline" className="w-fit bg-slate-50 text-slate-600 border-slate-200">
-                              Chapter {item.chapter_code}
-                            </Badge>
-                          )}
-                          {item.block_code && (
-                            <span className="text-xs text-slate-500 flex items-center gap-1">
-                              <Activity className="w-3 h-3" />
-                              Block {item.block_code}
-                            </span>
-                          )}
-                        </div>
+                      {item.chapter_code ? (
+                        <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200 text-xs">
+                          {item.chapter_code}
+                        </Badge>
                       ) : (
-                        <span className="text-slate-400">-</span>
+                        <span className="text-slate-400 text-xs">-</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        {item.snomed_count && item.snomed_count > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                            <Tag className="w-3 h-3" /> {item.snomed_count} SNOMED
+                          </span>
+                        ) : null}
+                        {item.tindakan_count && item.tindakan_count > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <Stethoscope className="w-3 h-3" /> {item.tindakan_count} Tindakan
+                          </span>
+                        ) : null}
+                        {(!item.snomed_count || item.snomed_count === 0) && (!item.tindakan_count || item.tindakan_count === 0) ? (
+                          <span className="text-xs text-slate-400">Belum Ada Map</span>
+                        ) : null}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
                       <Badge variant={item.is_active ? "default" : "secondary"} className={item.is_active ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100" : "bg-slate-100 text-slate-500"}>
                         {item.is_active ? "Aktif" : "Non-Aktif"}
                       </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8 gap-1.5 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
+                        onClick={() => handleViewDetailMap(item)}
+                      >
+                        <GitFork className="w-3.5 h-3.5" />
+                        Detail Map
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -127,30 +182,218 @@ export function ICD9Page() {
         {meta && (
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-4">
             <div className="text-sm text-slate-500">
-              Menampilkan <span className="font-medium text-slate-700">{data.length}</span> dari <span className="font-medium text-slate-700">{meta.total_count}</span> data
+              Menampilkan <span className="font-medium text-slate-700">{data.length}</span> dari <span className="font-medium text-slate-700">{meta.total_count ?? meta.total_data ?? 0}</span> data
             </div>
             <div className="flex items-center gap-2">
-              <button 
+              <Button 
+                variant="outline"
+                size="sm"
                 disabled={page <= 1} 
                 onClick={() => setPage(p => p - 1)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="text-xs h-8"
               >
                 Sebelumnya
-              </button>
-              <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-600">
-                Hal {page} / {meta.total_pages}
+              </Button>
+              <div className="text-xs font-medium px-2">
+                Halaman {page} dari {meta.total_pages || 1}
               </div>
-              <button 
-                disabled={page >= meta.total_pages} 
+              <Button 
+                variant="outline"
+                size="sm"
+                disabled={page >= (meta.total_pages || 1)} 
                 onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="text-xs h-8"
               >
                 Selanjutnya
-              </button>
+              </Button>
             </div>
           </div>
         )}
       </div>
+
+      {/* Modal Detail Map ICD-9 */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-4xl max-w-[95vw] max-h-[90vh] overflow-y-auto p-6">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
+                <GitFork className="h-6 w-6" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-slate-800">
+                  Detail Pemetaan ICD-9-CM
+                </DialogTitle>
+                <DialogDescription className="text-sm text-slate-500 mt-0.5">
+                  Relasi lengkap prosedur medis ke SNOMED-CT (SATUSEHAT), Tindakan SIMRS, dan Poliklinik
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {selectedIcd9 && (
+            <div className="mt-4 space-y-5">
+              {/* ICD-9 Info Card */}
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-base font-bold text-blue-700">
+                    {selectedIcd9.icd9_code}
+                  </span>
+                  <span className="text-xs font-medium text-slate-600 bg-white px-3 py-1 rounded-md border border-slate-200 shadow-2xs">
+                    {selectedIcd9.chapter_code ? `Kategori: ${selectedIcd9.chapter_code}` : "Prosedur Klinis"}
+                  </span>
+                </div>
+                <h4 className="text-base font-semibold text-slate-800 mt-1.5">
+                  {selectedIcd9.name_id || selectedIcd9.name_en}
+                </h4>
+                {selectedIcd9.name_id && selectedIcd9.name_en && (
+                  <p className="text-xs text-slate-500 italic mt-0.5">
+                    {selectedIcd9.name_en}
+                  </p>
+                )}
+              </div>
+
+              {loadingDetails ? (
+                <div className="text-center py-8 text-slate-400 text-sm">
+                  Mengambil relasi pemetaan...
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  {/* 1. SNOMED-CT Section */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <Tag className="h-5 w-5 text-blue-600" />
+                      <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                        1. Pemetaan SNOMED-CT (SATUSEHAT FHIR Procedure)
+                      </h4>
+                    </div>
+                    {mappingDetails?.snomed_mappings && mappingDetails.snomed_mappings.length > 0 ? (
+                      <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                            <tr>
+                              <th className="px-4 py-3">Concept ID</th>
+                              <th className="px-4 py-3">Fully Specified Name (FSN)</th>
+                              <th className="px-4 py-3">Istilah Klinis</th>
+                              <th className="px-4 py-3 text-center">Tag</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {mappingDetails.snomed_mappings.map((s) => (
+                              <tr key={s.concept_id} className="hover:bg-slate-50/50">
+                                <td className="px-4 py-3 font-mono font-bold text-blue-700">
+                                  {s.concept_id}
+                                </td>
+                                <td className="px-4 py-3 text-slate-800 font-medium">
+                                  {s.fsn}
+                                </td>
+                                <td className="px-4 py-3 text-slate-600">
+                                  {s.term_id}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className="px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                    {s.semantic_tag}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 text-center text-sm text-slate-400">
+                        Belum ada pemetaan SNOMED-CT untuk prosedur ICD-9 ini.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 2. Tindakan SIMRS Section */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <Stethoscope className="h-5 w-5 text-emerald-600" />
+                      <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                        2. Pemetaan Tindakan & Tarif SIMRS
+                      </h4>
+                    </div>
+                    {mappingDetails?.tindakan_mappings && mappingDetails.tindakan_mappings.length > 0 ? (
+                      <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                        <table className="w-full text-sm text-left">
+                          <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                            <tr>
+                              <th className="px-4 py-3">Kode Tindakan</th>
+                              <th className="px-4 py-3">Nama Tindakan</th>
+                              <th className="px-4 py-3 text-right">Tarif Dasar</th>
+                              <th className="px-4 py-3 text-center">Tipe</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {mappingDetails.tindakan_mappings.map((t) => (
+                              <tr key={t.kode_tindakan} className="hover:bg-slate-50/50">
+                                <td className="px-4 py-3 font-mono font-bold text-emerald-700">
+                                  {t.kode_tindakan}
+                                </td>
+                                <td className="px-4 py-3 text-slate-800 font-medium">
+                                  {t.nama_tindakan}
+                                </td>
+                                <td className="px-4 py-3 text-right font-mono font-semibold text-slate-700">
+                                  Rp {t.base_price.toLocaleString("id-ID")}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  {t.is_primary ? (
+                                    <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800">
+                                      PRIMARY
+                                    </span>
+                                  ) : (
+                                    <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
+                                      SECONDARY
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 text-center text-sm text-slate-400">
+                        Belum ada tindakan SIMRS yang terpetakan ke prosedur ICD-9 ini.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 3. Poliklinik Section */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <Building2 className="h-5 w-5 text-purple-600" />
+                      <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                        3. Poliklinik Terkait
+                      </h4>
+                    </div>
+                    {mappingDetails?.polyclinics && mappingDetails.polyclinics.length > 0 ? (
+                      <div className="flex flex-wrap gap-2.5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        {mappingDetails.polyclinics.map((p) => (
+                          <div
+                            key={p.code}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-purple-200 text-purple-800 shadow-2xs text-sm"
+                          >
+                            <span className="font-mono font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs">
+                              {p.code}
+                            </span>
+                            <span className="font-medium text-slate-800">{p.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-dashed border-slate-200 text-center text-sm text-slate-400">
+                        Belum di-assign ke Poliklinik manapun.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

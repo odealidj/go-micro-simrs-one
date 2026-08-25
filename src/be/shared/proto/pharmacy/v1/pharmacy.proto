@@ -20,6 +20,9 @@ service PharmacyService {
   // Master Data
   rpc GetMasterObat (GetMasterObatRequest) returns (GetMasterObatResponse);
   rpc GetMasterObatByPoli (GetMasterObatByPoliRequest) returns (GetMasterObatByPoliResponse);
+  rpc GetMasterKFA (GetMasterKFARequest) returns (GetMasterKFAResponse);
+  rpc GetMasterDPHO (GetMasterDPHORequest) returns (GetMasterDPHOResponse);
+  rpc GetObatMappingDetails (GetObatMappingDetailsRequest) returns (GetObatMappingDetailsResponse);
 }
 
 message GetEstimatedWaitTimeRequest {
@@ -93,6 +96,12 @@ message MasterObat {
   double price = 3;
   int32 stock_quantity = 4;
   repeated string polyclinics = 5;
+  int32 kfa_count = 6;
+  int32 dpho_count = 7;
+  bool is_fornas = 8;
+  string kfa_code = 9;
+  string bpjs_dpho_code = 10;
+  string restriction = 11;
 }
 
 message GetMasterObatResponse {
@@ -112,3 +121,88 @@ message GetMasterObatByPoliResponse {
   repeated MasterObat data = 1;
   int32 total_count = 2;
 }
+
+// -- KFA Catalog (Kemenkes SATUSEHAT) --
+message MasterKFAItem {
+  string kfa_code = 1;
+  string name = 2;
+  string active_substance = 3;
+  string dosage_form = 4;
+  string strength = 5;
+  string bpom_nie = 6;
+  string atc_code = 7;
+  string snomed_concept_id = 8;
+  bool is_active = 9;
+  int32 mapped_item_count = 10;
+}
+
+message GetMasterKFARequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+}
+
+message GetMasterKFAResponse {
+  repeated MasterKFAItem data = 1;
+  int32 total_count = 2;
+}
+
+// -- BPJS DPHO / FORNAS Catalog --
+message MasterDPHOItem {
+  string dpho_code = 1;
+  string dpho_name = 2;
+  bool is_fornas = 3;
+  bool is_prb = 4;
+  string restriction = 5;
+  int32 max_qty_per_claim = 6;
+  bool is_active = 7;
+  int32 mapped_item_count = 8;
+}
+
+message GetMasterDPHORequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+  optional bool is_fornas = 4;
+  optional bool is_prb = 5;
+}
+
+message GetMasterDPHOResponse {
+  repeated MasterDPHOItem data = 1;
+  int32 total_count = 2;
+}
+
+// -- Detail Map Obat --
+message GetObatMappingDetailsRequest {
+  string item_code = 1;
+}
+
+message ObatKFAMapDetail {
+  string kfa_code = 1;
+  string name = 2;
+  string active_substance = 3;
+  string dosage_form = 4;
+  string strength = 5;
+  string bpom_nie = 6;
+  string atc_code = 7;
+  string snomed_concept_id = 8;
+  bool is_primary = 9;
+  string mapping_confidence = 10;
+}
+
+message ObatDPHOMapDetail {
+  string dpho_code = 1;
+  string dpho_name = 2;
+  bool is_fornas = 3;
+  bool is_prb = 4;
+  string restriction = 5;
+  int32 max_qty_per_claim = 6;
+}
+
+message GetObatMappingDetailsResponse {
+  string item_code = 1;
+  repeated ObatKFAMapDetail kfa_mappings = 2;
+  repeated ObatDPHOMapDetail dpho_mappings = 3;
+  repeated string polyclinics = 4;
+}
+

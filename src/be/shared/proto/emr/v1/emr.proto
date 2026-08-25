@@ -19,7 +19,9 @@ service EMRService {
   rpc GetMasterTindakanByPoli (GetMasterTindakanByPoliRequest) returns (GetMasterTindakanByPoliResponse);
   rpc GetMasterICD10 (GetMasterICD10Request) returns (GetMasterICD10Response);
   rpc GetMasterICD10ByPoli (GetMasterICD10ByPoliRequest) returns (GetMasterICD10ByPoliResponse);
+  rpc GetICD10MappingDetails (GetICD10MappingDetailsRequest) returns (GetICD10MappingDetailsResponse);
   rpc GetMasterICD9 (GetMasterICD9Request) returns (GetMasterICD9Response);
+  rpc GetICD9MappingDetails (GetICD9MappingDetailsRequest) returns (GetICD9MappingDetailsResponse);
   rpc GetICD9SuggestionsForTindakan (GetICD9SuggestionsForTindakanRequest) returns (GetICD9SuggestionsForTindakanResponse);
   rpc GetMasterSNOMED (GetMasterSNOMEDRequest) returns (GetMasterSNOMEDResponse);
   rpc GetSNOMEDMappingDetails (GetSNOMEDMappingDetailsRequest) returns (GetSNOMEDMappingDetailsResponse);
@@ -97,6 +99,7 @@ message KBMItem {
   string description = 3;
   string body_system = 4;
   repeated string polyclinics = 5;
+  int32 icd10_count = 6;
 }
 
 message SearchKBMResponse {
@@ -118,11 +121,14 @@ message GetICD10SuggestionsForKBMRequest {
 
 message ICD10Suggestion {
   string icd10_code = 1;
-  bool is_primary = 2;
+  string icd10_name = 2;
+  bool is_primary = 3;
+  string mapping_confidence = 4;
 }
 
 message GetICD10SuggestionsForKBMResponse {
   repeated ICD10Suggestion suggestions = 1;
+  repeated Polyclinic polyclinics = 2;
 }
 
 // -- Diagnosis (Baru) --
@@ -320,6 +326,7 @@ message Polyclinic {
   string code = 1;
   string name = 2;
 }
+
 message GetPolyclinicsResponse {
   repeated Polyclinic data = 1;
   int32 total_count = 2;
@@ -393,6 +400,7 @@ message MasterICD10 {
   bool is_active = 6;
   repeated string polyclinics = 7;
   int32 kbm_count = 8;
+  int32 snomed_count = 9;
 }
 message GetMasterICD10Response {
   repeated MasterICD10 data = 1;
@@ -420,6 +428,8 @@ message ICD9Item {
   string block_code = 5;
   bool is_active = 6;
   repeated string polyclinics = 7;
+  int32 snomed_count = 8;
+  int32 tindakan_count = 9;
 }
 
 message GetMasterICD9Request {
@@ -445,6 +455,7 @@ message GetICD9SuggestionsForTindakanRequest {
 
 message GetICD9SuggestionsForTindakanResponse {
   repeated ICD9Suggestion suggestions = 1;
+  repeated Polyclinic polyclinics = 2;
 }
 
 message SNOMEDItem {
@@ -498,4 +509,33 @@ message GetSNOMEDMappingDetailsResponse {
   string concept_id = 1;
   repeated SNOMEDICD10MapDetail icd10_mappings = 2;
   repeated SNOMEDICD9MapDetail icd9_mappings = 3;
+}
+
+message GetICD10MappingDetailsRequest {
+  string icd10_code = 1;
+}
+
+message GetICD10MappingDetailsResponse {
+  string icd10_code = 1;
+  repeated KBMSuggestion kbm_mappings = 2;
+  repeated SNOMEDItem snomed_mappings = 3;
+  repeated Polyclinic polyclinics = 4;
+}
+
+message GetICD9MappingDetailsRequest {
+  string icd9_code = 1;
+}
+
+message ICD9TindakanMapDetail {
+  string kode_tindakan = 1;
+  string nama_tindakan = 2;
+  double base_price = 3;
+  bool is_primary = 4;
+}
+
+message GetICD9MappingDetailsResponse {
+  string icd9_code = 1;
+  repeated SNOMEDItem snomed_mappings = 2;
+  repeated ICD9TindakanMapDetail tindakan_mappings = 3;
+  repeated Polyclinic polyclinics = 4;
 }

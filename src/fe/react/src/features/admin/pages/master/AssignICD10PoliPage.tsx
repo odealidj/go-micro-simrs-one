@@ -3,7 +3,7 @@ import { MasterDataTable } from "../../components/MasterDataTable";
 export function AssignICD10PoliPage() {
   return (
     <MasterDataTable<any>
-      title="Mapping ICD-10"
+      title="Katalog ICD10 - Poliklinik"
       description="Pemetaan ICD-10 ke poliklinik"
       endpoint="/master/icd10"
       requiresPoliFilter={true}
