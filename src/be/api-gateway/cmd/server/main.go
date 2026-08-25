@@ -1933,9 +1933,53 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
+
+					// Sync with registration service
+					_, _ = circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
+						return regClient.UpdateEncounterStatus(req.Context(), &regpb.UpdateEncounterStatusRequest{
+							EncounterNo: payload.EncounterNo,
+							Status:      "IN_PROGRESS",
+						})
+					})
+
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
 						Success: true,
 						Message: "Success",
+						Data:    res,
+					})
+				})
+
+				r.Post("/emr/complete", func(w http.ResponseWriter, req *http.Request) {
+					var payload emrpb.CompleteEncounterRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					if err := validator.ValidateAll(map[string]func() error{
+						"encounter_no": validator.NotEmpty(payload.EncounterNo),
+					}); err != nil {
+						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.CompleteEncounterResponse, error) {
+						return emrClient.CompleteEncounter(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					// Sync with registration service
+					_, _ = circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
+						return regClient.UpdateEncounterStatus(req.Context(), &regpb.UpdateEncounterStatusRequest{
+							EncounterNo: payload.EncounterNo,
+							Status:      "COMPLETED",
+						})
+					})
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Pemeriksaan pasien berhasil diselesaikan",
 						Data:    res,
 					})
 				})

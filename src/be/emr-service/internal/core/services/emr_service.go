@@ -3,8 +3,10 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/aliube/go-micro-simrs-one/emr-service/internal/core/domain"
@@ -61,12 +63,35 @@ func (s *emrServiceImpl) AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCo
 		if err != nil {
 			return err
 		}
+		if kbm == nil {
+			return fmt.Errorf("KBM code %s not found", kbmCode)
+		}
 
-		err = s.repo.AddDiagnosisKBM(ctx, encounterNo, kbmCode, kbm.KBMName, notes, doctorId, deptCode, gender, ageBracket)
+		return s.repo.AddDiagnosisKBM(ctx, encounterNo, kbmCode, kbm.KBMName, notes, doctorId, deptCode, gender, ageBracket)
+	}
+	return nil
+}
+
+func (s *emrServiceImpl) CompleteEncounter(ctx context.Context, encounterNo string) error {
+	slog.Info("Completing Encounter with Clinical Validation", "encounterNo", encounterNo)
+	if s.repo != nil {
+		mr, err := s.repo.GetMedicalRecord(ctx, encounterNo)
 		if err != nil {
 			return err
 		}
-		
+		if mr == nil {
+			return errors.New("rekam medis encounter tidak ditemukan")
+		}
+
+		if !mr.Checklist.IsReadyToComplete {
+			return fmt.Errorf("validasi kelengkapan gagal: %s wajib diisi sebelum menyelesaikan pemeriksaan", strings.Join(mr.Checklist.MissingMandatoryFields, " dan "))
+		}
+
+		err = s.repo.CompleteEncounter(ctx, encounterNo)
+		if err != nil {
+			return err
+		}
+
 		// Publish event to Redis for SSE Queue updates
 		if s.redisClient != nil {
 			payload := `{"encounter_no":"` + encounterNo + `", "status":"COMPLETED", "type":"CLINIC"}`

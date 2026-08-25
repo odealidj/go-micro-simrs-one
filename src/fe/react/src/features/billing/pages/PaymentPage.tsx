@@ -461,7 +461,7 @@ export function PaymentPage() {
                 </Button>
 
                 <Button
-                  onClick={() => navigate("/kasir/invoice")}
+                  onClick={() => navigate("/kasir/riwayat-pembayaran")}
                   variant="outline"
                   className="w-full h-11 border-slate-200 text-slate-700 hover:bg-slate-50 font-bold rounded-xl cursor-pointer"
                 >

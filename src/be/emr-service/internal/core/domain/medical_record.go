@@ -19,6 +19,18 @@ type TriageData struct {
 	HeartRate              *int32
 }
 
+type ClinicalChecklist struct {
+	TriageCompleted        bool
+	DiagnosisCompleted     bool
+	ActionsCompleted       bool
+	ActionsCount           int32
+	PrescriptionCompleted  bool
+	PrescriptionCount      int32
+	IsReadyToComplete      bool
+	MissingMandatoryFields []string
+	BaseConsultationFee    string
+}
+
 type MedicalRecord struct {
 	ID                 string
 	EncounterNo        string
@@ -28,8 +40,10 @@ type MedicalRecord struct {
 	KBMName            string
 	ICD10MappingStatus string
 	Notes              string
+	Status             string
 	Triage             TriageData
 	Actions            []MedicalAction
+	Checklist          ClinicalChecklist
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }

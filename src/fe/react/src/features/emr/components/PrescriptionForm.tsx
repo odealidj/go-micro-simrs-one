@@ -19,6 +19,7 @@ interface PrescriptionFormProps {
   encounterNo: string;
   deptCode?: string;
   existingPrescriptions?: PrescriptionDraftItem[];
+  readOnly?: boolean;
   onSuccess?: () => void;
 }
 
@@ -36,6 +37,7 @@ export function PrescriptionForm({
   encounterNo,
   deptCode,
   existingPrescriptions = [],
+  readOnly = false,
   onSuccess,
 }: PrescriptionFormProps) {
   const [loading, setLoading] = useState(false);
@@ -165,172 +167,169 @@ export function PrescriptionForm({
         </div>
       )}
 
-      {/* Input Obat */}
-      <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100 space-y-4">
-        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-          Tambah Obat ke Resep
-        </h4>
+      {!readOnly && (
+        <div className="bg-slate-50/50 p-5 rounded-xl border border-slate-100 space-y-4">
+          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            Tambah Obat ke Resep
+          </h4>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-start">
-          {/* Cari Obat */}
-          <div className="md:col-span-5 relative">
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Pilih Obat / Formularium <span className="text-red-500">*</span>
-            </label>
-
-            {selectedObat ? (
-              <div className="flex items-center justify-between p-3 border border-violet-200 bg-violet-50 rounded-xl">
-                <div>
-                  <span className="font-bold text-violet-700 mr-2 text-xs">[{selectedObat.code}]</span>
-                  <span className="text-slate-800 font-medium text-sm">{selectedObat.name}</span>
-                  <div className="text-[11px] text-slate-500 mt-0.5">
-                    Stok: <strong className="text-slate-700">{selectedObat.stock}</strong> · Rp {selectedObat.price.toLocaleString("id-ID")}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedObat(null);
-                    setSearchQuery("");
-                  }}
-                  className="text-violet-700 hover:text-violet-900 text-xs font-semibold px-2 py-1 bg-white rounded border border-violet-200"
-                >
-                  Ganti
-                </button>
-              </div>
-            ) : (
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  type="text"
-                  placeholder="Ketik nama obat (Paracetamol, Amoxicillin...)"
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => setShowDropdown(true)}
-                  className="pl-9 h-11 bg-white rounded-xl text-sm"
-                />
-
-                {showDropdown && searchQuery.length >= 2 && (
-                  <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
-                    {searching ? (
-                      <div className="p-3 text-xs text-slate-500 text-center">Mencari stok obat...</div>
-                    ) : obatResults.length > 0 ? (
-                      <ul className="divide-y divide-slate-100 text-sm">
-                        {obatResults.map((obat) => (
-                          <li
-                            key={obat.code}
-                            onClick={() => {
-                              setSelectedObat(obat);
-                              setShowDropdown(false);
-                            }}
-                            className="p-3 hover:bg-violet-50/60 cursor-pointer flex justify-between items-center transition-colors"
-                          >
-                            <div>
-                              <div className="font-medium text-slate-800">{obat.name}</div>
-                              <div className="text-xs text-slate-400 mt-0.5">
-                                Stok: <span className="font-semibold text-slate-600">{obat.stock}</span> · Rp {obat.price.toLocaleString("id-ID")}
-                              </div>
-                            </div>
-                            <span className="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                              {obat.code}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="p-3 text-xs text-slate-500 text-center">Obat tidak ditemukan</div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Qty & Unit */}
-          <div className="md:col-span-3 grid grid-cols-2 gap-2">
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-start">
+            <div className="md:col-span-5 relative">
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Jumlah (Qty)
+                Pilih Obat / Formularium <span className="text-red-500">*</span>
+              </label>
+
+              {selectedObat ? (
+                <div className="flex items-center justify-between p-3 border border-violet-200 bg-violet-50 rounded-xl">
+                  <div>
+                    <span className="font-bold text-violet-700 mr-2 text-xs">[{selectedObat.code}]</span>
+                    <span className="text-slate-800 font-medium text-sm">{selectedObat.name}</span>
+                    <div className="text-[11px] text-slate-500 mt-0.5">
+                      Stok: <strong className="text-slate-700">{selectedObat.stock}</strong> · Rp {selectedObat.price.toLocaleString("id-ID")}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedObat(null);
+                      setSearchQuery("");
+                    }}
+                    className="text-violet-700 hover:text-violet-900 text-xs font-semibold px-2 py-1 bg-white rounded border border-violet-200 cursor-pointer"
+                  >
+                    Ganti
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder="Ketik nama obat (Paracetamol, Amoxicillin...)"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowDropdown(true);
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    className="pl-9 h-11 bg-white rounded-xl text-sm"
+                  />
+
+                  {showDropdown && searchQuery.length >= 2 && (
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                      {searching ? (
+                        <div className="p-3 text-xs text-slate-500 text-center">Mencari stok obat...</div>
+                      ) : obatResults.length > 0 ? (
+                        <ul className="divide-y divide-slate-100 text-sm">
+                          {obatResults.map((obat) => (
+                            <li
+                              key={obat.code}
+                              onClick={() => {
+                                setSelectedObat(obat);
+                                setShowDropdown(false);
+                              }}
+                              className="p-3 hover:bg-violet-50/60 cursor-pointer flex justify-between items-center transition-colors"
+                            >
+                              <div>
+                                <div className="font-medium text-slate-800">{obat.name}</div>
+                                <div className="text-xs text-slate-400 mt-0.5">
+                                  Stok: <span className="font-semibold text-slate-600">{obat.stock}</span> · Rp {obat.price.toLocaleString("id-ID")}
+                                </div>
+                              </div>
+                              <span className="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                                {obat.code}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="p-3 text-xs text-slate-500 text-center">Obat tidak ditemukan</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="md:col-span-3 grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Jumlah
+                </label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value) || 1)}
+                  className="h-11 bg-white rounded-xl text-center text-sm font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Satuan
+                </label>
+                <select
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  className="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-violet-500"
+                >
+                  <option value="Tablet">Tablet</option>
+                  <option value="Kapsul">Kapsul</option>
+                  <option value="Botol">Botol (Sirup)</option>
+                  <option value="Tube">Tube (Salep)</option>
+                  <option value="Pcs">Pcs</option>
+                  <option value="Vial">Vial</option>
+                  <option value="Ampul">Ampul</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="md:col-span-4">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Aturan Pakai (Signa) <span className="text-red-500">*</span>
               </label>
               <Input
-                type="number"
-                min="1"
-                max="500"
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-                className="h-11 bg-white text-center font-bold text-slate-800 rounded-xl"
+                type="text"
+                placeholder="Contoh: 3 x 1 Tablet sesudah makan..."
+                value={dosage}
+                onChange={(e) => setDosage(e.target.value)}
+                className="h-11 bg-white rounded-xl text-sm"
               />
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Bentuk
-              </label>
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className="h-11 px-2.5 w-full bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-violet-500"
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap pt-1">
+            <span className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-violet-500" />
+              Template Signa:
+            </span>
+            {COMMON_SIGNAS.slice(0, 4).map((sig) => (
+              <button
+                key={sig}
+                type="button"
+                onClick={() => setDosage(sig)}
+                className="text-[11px] px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-600 hover:border-violet-300 hover:text-violet-700 transition-colors cursor-pointer"
               >
-                <option value="Tablet">Tablet</option>
-                <option value="Kapsul">Kapsul</option>
-                <option value="Sirup">Sirup</option>
-                <option value="Botol">Botol</option>
-                <option value="Tube">Tube</option>
-                <option value="Injeksi">Injeksi</option>
-                <option value="Puyer">Puyer</option>
-              </select>
-            </div>
+                {sig}
+              </button>
+            ))}
           </div>
 
-          {/* Signa / Aturan Pakai */}
-          <div className="md:col-span-4">
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-              Aturan Pakai (Signa)
-            </label>
-            <Input
-              type="text"
-              value={dosage}
-              onChange={(e) => setDosage(e.target.value)}
-              placeholder="Contoh: 3 x 1 Tablet sesudah makan"
-              className="h-11 bg-white rounded-xl text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Quick Signa Chips */}
-        <div className="flex items-center gap-1.5 flex-wrap pt-1">
-          <span className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
-            <Sparkles className="h-3 w-3 text-violet-500" />
-            Template Signa:
-          </span>
-          {COMMON_SIGNAS.slice(0, 4).map((sig) => (
-            <button
-              key={sig}
+          <div className="flex justify-end pt-2">
+            <Button
               type="button"
-              onClick={() => setDosage(sig)}
-              className="text-[11px] px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-600 hover:border-violet-300 hover:text-violet-700 transition-colors"
+              onClick={handleAddDraft}
+              disabled={!selectedObat}
+              className="gap-2 bg-violet-600 hover:bg-violet-700 text-white shadow-sm"
             >
-              {sig}
-            </button>
-          ))}
+              <Plus className="h-4 w-4" />
+              Tambahkan ke Resep
+            </Button>
+          </div>
         </div>
+      )}
 
-        <div className="flex justify-end pt-2">
-          <Button
-            type="button"
-            onClick={handleAddDraft}
-            disabled={!selectedObat}
-            className="gap-2 bg-violet-600 hover:bg-violet-700 text-white shadow-sm"
-          >
-            <Plus className="h-4 w-4" />
-            Tambahkan ke Resep
-          </Button>
-        </div>
-      </div>
-
-      {/* Daftar Resep Saat Ini */}
       <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
           <h4 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
@@ -358,27 +357,28 @@ export function PrescriptionForm({
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveDraft(i)}
-                  className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDraft(i)}
+                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Tombol Kirim ke Farmasi */}
-      {draftList.length > 0 && (
+      {!readOnly && draftList.length > 0 && (
         <div className="pt-2 flex justify-end">
           <Button
             type="button"
             onClick={handleSendToPharmacy}
             disabled={loading}
-            className="gap-2 bg-violet-700 hover:bg-violet-800 text-white font-semibold shadow-sm h-11 px-6 rounded-xl"
+            className="gap-2 bg-violet-700 hover:bg-violet-800 text-white font-semibold shadow-sm h-11 px-6 rounded-xl cursor-pointer"
           >
             <Send className="h-4 w-4" />
             {loading ? "Mengirim ke Farmasi..." : "Kirim Resep ke Farmasi"}

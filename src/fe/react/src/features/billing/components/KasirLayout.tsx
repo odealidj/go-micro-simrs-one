@@ -38,7 +38,7 @@ const navGroups: NavGroup[] = [
     title: "Tagihan & Pembayaran",
     items: [
       { name: "Antrean Tagihan", path: "/kasir/antrean", icon: Receipt },
-      { name: "Riwayat Pembayaran", path: "/kasir/invoice", icon: FileText },
+      { name: "Riwayat Pembayaran", path: "/kasir/riwayat-pembayaran", icon: FileText },
     ],
   },
   {

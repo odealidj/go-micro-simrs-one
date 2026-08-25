@@ -65,6 +65,18 @@ export interface EncounterDetail {
   guarantor?: string;
 }
 
+export interface ClinicalChecklist {
+  triage_completed: boolean;
+  diagnosis_completed: boolean;
+  actions_completed: boolean;
+  actions_count: number;
+  prescription_completed: boolean;
+  prescription_count: number;
+  is_ready_to_complete: boolean;
+  missing_mandatory_fields: string[];
+  base_consultation_fee?: string;
+}
+
 export interface GetMedicalRecordResponse {
   encounter_no: string;
   patient_mrn: string;
@@ -79,4 +91,6 @@ export interface GetMedicalRecordResponse {
   prescriptions?: PrescriptionDraftItem[];
   disposition?: DispositionData;
   notes: string;
+  status?: string;
+  checklist?: ClinicalChecklist;
 }

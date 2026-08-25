@@ -17,10 +17,11 @@ import { cn } from "@/lib/utils";
 interface TriageFormProps {
   encounterNo: string;
   initialData?: TriageData;
+  readOnly?: boolean;
   onSuccess?: () => void;
 }
 
-export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormProps) {
+export function TriageForm({ encounterNo, initialData, readOnly = false, onSuccess }: TriageFormProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +136,7 @@ export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormPr
                   name="blood_pressure_systolic"
                   value={formData.blood_pressure_systolic}
                   onChange={handleChange}
+                  disabled={readOnly}
                   className="h-10 text-center font-medium"
                   placeholder="Sistolik"
                   min="0"
@@ -145,6 +147,7 @@ export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormPr
                   name="blood_pressure_diastolic"
                   value={formData.blood_pressure_diastolic}
                   onChange={handleChange}
+                  disabled={readOnly}
                   className="h-10 text-center font-medium"
                   placeholder="Diastolik"
                   min="0"
@@ -163,6 +166,7 @@ export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormPr
                 step="0.1"
                 value={formData.temperature}
                 onChange={handleChange}
+                disabled={readOnly}
                 className="h-10 font-medium"
                 min="30"
                 max="45"
@@ -178,6 +182,7 @@ export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormPr
                 name="heart_rate"
                 value={formData.heart_rate}
                 onChange={handleChange}
+                disabled={readOnly}
                 className="h-10 font-medium"
                 min="0"
               />
@@ -193,6 +198,7 @@ export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormPr
                   name="respiratory_rate"
                   value={formData.respiratory_rate}
                   onChange={handleChange}
+                  disabled={readOnly}
                   className="h-10 text-center font-medium"
                   placeholder="RR"
                   min="0"
@@ -203,6 +209,7 @@ export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormPr
                   name="oxygen_saturation"
                   value={formData.oxygen_saturation}
                   onChange={handleChange}
+                  disabled={readOnly}
                   className="h-10 text-center font-medium"
                   placeholder="SpO2"
                   min="0"
@@ -229,6 +236,7 @@ export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormPr
                 name="height"
                 value={formData.height}
                 onChange={handleChange}
+                disabled={readOnly}
                 className="h-10 font-medium"
                 min="20"
                 max="250"
@@ -244,6 +252,7 @@ export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormPr
                 name="weight"
                 value={formData.weight}
                 onChange={handleChange}
+                disabled={readOnly}
                 className="h-10 font-medium"
                 min="1"
                 max="300"
@@ -273,6 +282,7 @@ export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormPr
               name="allergies"
               value={formData.allergies}
               onChange={handleChange}
+              disabled={readOnly}
               className="h-10"
               placeholder="Contoh: Alergi Amoxicillin, Seafood (atau tulis 'Tidak Ada')"
             />
@@ -286,23 +296,26 @@ export function TriageForm({ encounterNo, initialData, onSuccess }: TriageFormPr
               name="notes"
               value={formData.notes}
               onChange={handleChange}
-              className="w-full h-20 bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-sm text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors resize-none"
+              disabled={readOnly}
+              className="w-full h-20 bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-sm text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors resize-none disabled:opacity-75 disabled:cursor-not-allowed"
               placeholder="Keluhan utama pasien saat skrining awal..."
             />
           </div>
         </div>
 
         {/* Submit */}
-        <div className="pt-3 flex justify-end">
-          <Button 
-            type="submit" 
-            disabled={loading}
-            className="gap-2 bg-cyan-600 hover:bg-cyan-700 text-white shadow-sm"
-          >
-            <Save className="h-4 w-4" />
-            {loading ? "Menyimpan..." : "Simpan Data Triage"}
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="pt-3 flex justify-end">
+            <Button 
+              type="submit" 
+              disabled={loading}
+              className="gap-2 bg-cyan-600 hover:bg-cyan-700 text-white shadow-sm"
+            >
+              <Save className="h-4 w-4" />
+              {loading ? "Menyimpan..." : "Simpan Data Triage"}
+            </Button>
+          </div>
+        )}
       </form>
     </div>
   );

@@ -16,7 +16,7 @@ export const kasirRoutes: RouteObject[] = [
         children: [
           { index: true, element: <KasirDashboard /> },
           { path: "antrean", element: <BillingQueuePage /> },
-          { path: "invoice", element: <InvoicePage /> },
+          { path: "riwayat-pembayaran", element: <InvoicePage /> },
           { path: "bayar", element: <PaymentPage /> },
           { path: "bayar/:encounterNo", element: <PaymentPage /> },
           {
