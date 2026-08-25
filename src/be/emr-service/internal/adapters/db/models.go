@@ -23,14 +23,68 @@ type ClinicWaitTimeAggregate struct {
 	UpdatedAt          sql.NullTime
 }
 
-type Icd10Catalog struct {
-	Icd10Code   string
-	Name        string
-	Description sql.NullString
+type EncounterDiagnosis struct {
+	ID                   uuid.UUID
+	EncounterNo          string
+	Icd10Code            string
+	DiagnosisType        string
+	Sequence             int32
+	ClinicalNotes        sql.NullString
+	SeverityLevel        string
+	SeveritySetBy        sql.NullString
+	SeveritySetRole      sql.NullString
+	AutoKbmCode          sql.NullString
+	AutoKbmName          sql.NullString
+	KbmMappingConfidence sql.NullString
+	IsVerifiedByRm       bool
+	VerifiedBy           sql.NullString
+	VerifiedAt           sql.NullTime
+	CreatedBy            sql.NullString
+	CreatedAt            sql.NullTime
+	UpdatedAt            sql.NullTime
+	DeletedDt            sql.NullTime
+}
+
+type EncounterResep struct {
+	ID          uuid.UUID
+	EncounterNo string
+	ObatID      string
+	ObatName    string
+	Qty         int32
+	Dosis       sql.NullString
+	Instruksi   sql.NullString
+	Status      string
+	CreatedBy   sql.NullString
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
 	DeletedDt   sql.NullTime
-	DeletedBy   uuid.NullUUID
+}
+
+type EncounterTindakan struct {
+	ID            uuid.UUID
+	EncounterNo   string
+	KodeTindakan  string
+	Qty           int32
+	Price         string
+	Total         string
+	PaymentStatus string
+	CreatedBy     sql.NullString
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+	DeletedDt     sql.NullTime
+}
+
+type Icd10Catalog struct {
+	Icd10Code   string
+	NameEn      string
+	NameID      string
+	ChapterCode sql.NullString
+	BlockCode   sql.NullString
+	IsActive    sql.NullBool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+	DeletedDt   sql.NullTime
+	CodingRule  sql.NullString
 }
 
 type Icd10PolyclinicMapping struct {
@@ -39,6 +93,17 @@ type Icd10PolyclinicMapping struct {
 	CreatedAt      sql.NullTime
 	DeletedDt      sql.NullTime
 	DeletedBy      uuid.NullUUID
+}
+
+type Icd9cmCatalog struct {
+	Icd9Code  string
+	NameEn    string
+	NameID    sql.NullString
+	Category  sql.NullString
+	IsActive  sql.NullBool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	DeletedDt sql.NullTime
 }
 
 type KbmCatalog struct {
@@ -54,12 +119,13 @@ type KbmCatalog struct {
 }
 
 type KbmIcd10Mapping struct {
-	KbmCode   string
-	Icd10Code string
-	IsPrimary sql.NullBool
-	CreatedAt sql.NullTime
-	DeletedDt sql.NullTime
-	DeletedBy uuid.NullUUID
+	KbmCode           string
+	Icd10Code         string
+	IsPrimary         sql.NullBool
+	CreatedAt         sql.NullTime
+	DeletedDt         sql.NullTime
+	DeletedBy         uuid.NullUUID
+	MappingConfidence sql.NullString
 }
 
 type KbmPolyclinicMapping struct {
@@ -71,14 +137,15 @@ type KbmPolyclinicMapping struct {
 }
 
 type MasterTindakan struct {
-	KodeTindakan string
-	NamaTindakan string
-	BasePrice    string
-	IsActive     bool
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
-	DeletedDt    sql.NullTime
-	DeletedBy    uuid.NullUUID
+	KodeTindakan     string
+	NamaTindakan     string
+	BasePrice        string
+	IsActive         bool
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	DeletedDt        sql.NullTime
+	DeletedBy        uuid.NullUUID
+	InternalCategory sql.NullString
 }
 
 type MedicalAction struct {
@@ -97,7 +164,6 @@ type MedicalRecord struct {
 	ID                     string
 	EncounterNo            string
 	Mrn                    string
-	Icd10Codes             []string
 	Notes                  sql.NullString
 	CreatedAt              sql.NullTime
 	UpdatedAt              sql.NullTime
@@ -113,11 +179,11 @@ type MedicalRecord struct {
 	Diagnosis              sql.NullString
 	Gender                 sql.NullString
 	AgeBracket             sql.NullString
-	KbmCode                sql.NullString
-	KbmName                sql.NullString
-	Icd10MappingStatus     sql.NullString
 	DeletedDt              sql.NullTime
 	DeletedBy              uuid.NullUUID
+	EncounterSeverityLevel sql.NullString
+	SeverityFinalizedBy    sql.NullString
+	SeverityFinalizedAt    sql.NullTime
 }
 
 type OutboxEvent struct {
@@ -138,6 +204,14 @@ type Polyclinic struct {
 	UpdatedAt   sql.NullTime
 	DeletedDt   sql.NullTime
 	DeletedBy   uuid.NullUUID
+}
+
+type TindakanIcd9Mapping struct {
+	ID           uuid.UUID
+	KodeTindakan string
+	Icd9Code     string
+	IsPrimary    sql.NullBool
+	CreatedAt    sql.NullTime
 }
 
 type TindakanPolyclinicMapping struct {

@@ -97,7 +97,7 @@ export function EncounterPage() {
     record.triage.temperature &&
     record.triage.heart_rate
   );
-  const hasDiagnosis = !!(record?.kbm_code || (record?.icd10_codes && record.icd10_codes.length > 0));
+  const hasDiagnosis = !!(record?.diagnoses && record.diagnoses.length > 0);
   const hasActions = !!(record?.actions && record.actions.length > 0);
   const hasPrescriptions = !!(record?.prescriptions && record.prescriptions.length > 0);
 
@@ -208,9 +208,9 @@ export function EncounterPage() {
               <Stethoscope className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Diagnosa Utama (KBM)</p>
-              <p className="font-bold text-slate-900 text-sm line-clamp-1" title={record?.kbm_name}>
-                {record?.kbm_code ? `[${record.kbm_code}] ${record.kbm_name}` : "Belum ditentukan"}
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tingkat Keparahan</p>
+              <p className="font-bold text-slate-900 text-sm">
+                {record?.encounter_severity_level ? `Level ${record.encounter_severity_level}` : "Belum final"}
               </p>
             </div>
           </div>
@@ -223,10 +223,8 @@ export function EncounterPage() {
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status Pelayanan</p>
               <span className="inline-flex items-center gap-1.5 font-bold text-emerald-800 text-xs mt-0.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                {record?.icd10_mapping_status === "VERIFIED"
-                  ? "Selesai Pelayanan (Terverifikasi)"
-                  : record?.icd10_mapping_status === "AUTO_MAPPED"
-                  ? "Selesai (Auto-Mapped)"
+                {record?.status === "COMPLETED"
+                  ? "Selesai Pelayanan"
                   : "Dalam Pelayanan"}
               </span>
             </div>
@@ -391,10 +389,8 @@ export function EncounterPage() {
             <DiagnosisForm 
               encounterNo={encounterNo!} 
               deptCode={poliCode || ""}
-              initialKbmCode={record?.kbm_code}
-              initialKbmName={record?.kbm_name}
-              initialNotes={record?.notes}
-              initialSecondaryDiagnoses={record?.secondary_diagnoses}
+              diagnoses={record?.diagnoses}
+              encounterSeverityLevel={record?.encounter_severity_level}
               readOnly={isReadOnly}
               onSuccess={fetchRecord}
             />

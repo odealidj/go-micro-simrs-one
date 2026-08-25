@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"database/sql"
 	"strconv"
 	"strings"
 
@@ -104,71 +103,93 @@ func (s *EMRGrpcServer) GetKBMDetail(ctx context.Context, req *pb.GetKBMDetailRe
 	}, nil
 }
 
-func (s *EMRGrpcServer) GetICD10SuggestionsForKBM(ctx context.Context, req *pb.GetICD10SuggestionsForKBMRequest) (*pb.GetICD10SuggestionsForKBMResponse, error) {
-	suggestions, err := s.emrService.GetICD10SuggestionsForKBM(ctx, req.KbmCode)
+func (s *EMRGrpcServer) AddEncounterDiagnosis(ctx context.Context, req *pb.AddEncounterDiagnosisRequest) (*pb.AddEncounterDiagnosisResponse, error) {
+	diag, err := s.emrService.AddEncounterDiagnosis(ctx, req.EncounterNo, req.Icd10Code, req.DiagnosisType, req.ClinicalNotes, req.SeverityLevel, req.DoctorId, req.DepartmentCode, req.Gender, req.AgeBracket, req.Sequence)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to get icd10 suggestions: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to add diagnosis: %v", err)
 	}
-	var pbSuggestions []*pb.ICD10Suggestion
+
+	return &pb.AddEncounterDiagnosisResponse{
+		Success: true,
+		Message: "Diagnosis added successfully",
+		Data: &pb.EncounterDiagnosis{
+			Id:                   diag.ID,
+			Icd10Code:            diag.ICD10Code,
+			Icd10Name:            diag.ICD10Name,
+			DiagnosisType:        diag.DiagnosisType,
+			Sequence:             diag.Sequence,
+			ClinicalNotes:        diag.ClinicalNotes,
+			SeverityLevel:        diag.SeverityLevel,
+			SeveritySetRole:      diag.SeveritySetRole,
+			AutoKbmCode:          diag.AutoKBMCode,
+			AutoKbmName:          diag.AutoKBMName,
+			KbmMappingConfidence: diag.KBMMappingConfidence,
+			IsVerifiedByRm:       diag.IsVerifiedByRM,
+			VerifiedBy:           diag.VerifiedBy,
+		},
+	}, nil
+}
+
+func (s *EMRGrpcServer) UpdateEncounterDiagnosis(ctx context.Context, req *pb.UpdateEncounterDiagnosisRequest) (*pb.UpdateEncounterDiagnosisResponse, error) {
+	err := s.emrService.UpdateEncounterDiagnosis(ctx, req.Id, req.DiagnosisType, req.ClinicalNotes, req.SeverityLevel, req.Sequence)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to update diagnosis: %v", err)
+	}
+	return &pb.UpdateEncounterDiagnosisResponse{Success: true, Message: "Updated"}, nil
+}
+
+func (s *EMRGrpcServer) RemoveEncounterDiagnosis(ctx context.Context, req *pb.RemoveEncounterDiagnosisRequest) (*pb.RemoveEncounterDiagnosisResponse, error) {
+	err := s.emrService.RemoveEncounterDiagnosis(ctx, req.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to remove diagnosis: %v", err)
+	}
+	return &pb.RemoveEncounterDiagnosisResponse{Success: true, Message: "Removed"}, nil
+}
+
+func (s *EMRGrpcServer) GetKBMSuggestionsForICD10(ctx context.Context, req *pb.GetKBMSuggestionsForICD10Request) (*pb.GetKBMSuggestionsForICD10Response, error) {
+	suggestions, err := s.emrService.GetKBMSuggestionsForICD10(ctx, req.Icd10Code)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get kbm suggestions: %v", err)
+	}
+	var pbSuggestions []*pb.KBMSuggestion
 	for _, s := range suggestions {
-		pbSuggestions = append(pbSuggestions, &pb.ICD10Suggestion{
-			Icd10Code: s.ICD10Code,
-			IsPrimary: s.IsPrimary,
+		pbSuggestions = append(pbSuggestions, &pb.KBMSuggestion{
+			KbmCode:           s.KBMCode,
+			KbmName:           s.KBMName,
+			IsPrimary:         s.IsPrimary,
+			MappingConfidence: s.MappingConfidence,
 		})
 	}
-	return &pb.GetICD10SuggestionsForKBMResponse{
+	return &pb.GetKBMSuggestionsForICD10Response{
 		Suggestions: pbSuggestions,
 	}, nil
 }
 
-func (s *EMRGrpcServer) AddDiagnosisKBM(ctx context.Context, req *pb.AddDiagnosisKBMRequest) (*pb.AddDiagnosisKBMResponse, error) {
-	err := s.emrService.AddDiagnosisKBM(ctx, req.EncounterNo, req.KbmCode, req.Notes, req.DoctorId, req.DepartmentCode, req.Gender, req.AgeBracket)
+func (s *EMRGrpcServer) VerifyKBMMapping(ctx context.Context, req *pb.VerifyKBMMappingRequest) (*pb.VerifyKBMMappingResponse, error) {
+	err := s.emrService.VerifyKBMMapping(ctx, req.Id, req.KbmCode, req.UserId)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add kbm diagnosis: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to verify kbm mapping: %v", err)
 	}
-
-	return &pb.AddDiagnosisKBMResponse{
+	return &pb.VerifyKBMMappingResponse{
 		Success: true,
-		Message: "Diagnosis added successfully",
+		Message: "KBM mapping verified",
 	}, nil
 }
 
-func (s *EMRGrpcServer) VerifyICD10Mapping(ctx context.Context, req *pb.VerifyICD10MappingRequest) (*pb.VerifyICD10MappingResponse, error) {
-	err := s.emrService.VerifyICD10Mapping(ctx, req.EncounterNo, req.Icd10Codes, req.Notes)
+func (s *EMRGrpcServer) FinalizeSeverity(ctx context.Context, req *pb.FinalizeSeverityRequest) (*pb.FinalizeSeverityResponse, error) {
+	err := s.emrService.FinalizeSeverity(ctx, req.EncounterNo, req.SeverityLevel, req.UserId)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to verify icd10 mapping: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to finalize severity: %v", err)
 	}
-	return &pb.VerifyICD10MappingResponse{
+	return &pb.FinalizeSeverityResponse{
 		Success: true,
-		Message: "ICD-10 mapping verified",
+		Message: "Severity finalized",
 	}, nil
 }
 
-func (s *EMRGrpcServer) ListPendingICD10Verifications(ctx context.Context, req *pb.ListPendingICD10VerificationsRequest) (*pb.ListPendingICD10VerificationsResponse, error) {
-	limit := req.Limit
-	if limit == 0 {
-		limit = 20
-	}
-	items, total, err := s.emrService.ListPendingICD10Verifications(ctx, limit, req.Offset)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to list pending verifications: %v", err)
-	}
-
-	var pbItems []*pb.PendingVerificationItem
-	for _, i := range items {
-		pbItems = append(pbItems, &pb.PendingVerificationItem{
-			EncounterNo:        i.EncounterNo,
-			Mrn:                i.MRN,
-			KbmCode:            i.KBMCode,
-			KbmName:            i.KBMName,
-			Icd10MappingStatus: i.ICD10MappingStatus,
-			CreatedAt:          i.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		})
-	}
-	return &pb.ListPendingICD10VerificationsResponse{
-		Items: pbItems,
-		Total: total,
-	}, nil
+func (s *EMRGrpcServer) ListPendingKBMVerifications(ctx context.Context, req *pb.ListPendingKBMVerificationsRequest) (*pb.ListPendingKBMVerificationsResponse, error) {
+	// Not implemented for MVP
+	return &pb.ListPendingKBMVerificationsResponse{}, nil
 }
 
 func (s *EMRGrpcServer) AddMedicalAction(ctx context.Context, req *pb.AddMedicalActionRequest) (*pb.AddMedicalActionResponse, error) {
@@ -233,18 +254,35 @@ func (s *EMRGrpcServer) GetMedicalRecord(ctx context.Context, req *pb.GetMedical
 		BaseConsultationFee:    mr.Checklist.BaseConsultationFee,
 	}
 
+	var diagnoses []*pb.EncounterDiagnosis
+	for _, d := range mr.Diagnoses {
+		diagnoses = append(diagnoses, &pb.EncounterDiagnosis{
+			Id:                   d.ID,
+			Icd10Code:            d.ICD10Code,
+			Icd10Name:            d.ICD10Name,
+			DiagnosisType:        d.DiagnosisType,
+			Sequence:             d.Sequence,
+			ClinicalNotes:        d.ClinicalNotes,
+			SeverityLevel:        d.SeverityLevel,
+			SeveritySetRole:      d.SeveritySetRole,
+			AutoKbmCode:          d.AutoKBMCode,
+			AutoKbmName:          d.AutoKBMName,
+			KbmMappingConfidence: d.KBMMappingConfidence,
+			IsVerifiedByRm:       d.IsVerifiedByRM,
+			VerifiedBy:           d.VerifiedBy,
+		})
+	}
+
 	return &pb.GetMedicalRecordResponse{
-		EncounterNo:        mr.EncounterNo,
-		PatientMrn:         mr.MRN,
-		Icd10Codes:         mr.ICD10Codes,
-		KbmCode:            mr.KBMCode,
-		KbmName:            mr.KBMName,
-		Icd10MappingStatus: mr.ICD10MappingStatus,
-		Notes:              mr.Notes,
-		Status:             mr.Status,
-		Triage:             triage,
-		Actions:            actions,
-		Checklist:          checklist,
+		EncounterNo:            mr.EncounterNo,
+		PatientMrn:             mr.MRN,
+		Notes:                  mr.Notes,
+		Status:                 mr.Status,
+		Triage:                 triage,
+		Diagnoses:              diagnoses,
+		Actions:                actions,
+		Checklist:              checklist,
+		EncounterSeverityLevel: mr.EncounterSeverityLevel,
 	}, nil
 }
 
@@ -270,14 +308,14 @@ func (s *EMRGrpcServer) GetPolyclinics(ctx context.Context, req *pb.GetPolyclini
 	offset := (page - 1) * pageSize
 
 	res, err := s.queries.GetPolyclinics(ctx, db.GetPolyclinicsParams{
-		Column1: sql.NullString{String: req.Search, Valid: true},
+		Column1: req.Search,
 		Limit:   pageSize,
 		Offset:  offset,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get polyclinics: %v", err)
 	}
-	count, err := s.queries.CountPolyclinics(ctx, sql.NullString{String: req.Search, Valid: true})
+	count, err := s.queries.CountPolyclinics(ctx, req.Search)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to count polyclinics: %v", err)
 	}
@@ -301,8 +339,8 @@ func (s *EMRGrpcServer) GetMasterKBMs(ctx context.Context, req *pb.GetMasterKBMs
 	offset := (page - 1) * pageSize
 
 	res, err := s.queries.GetKBMs(ctx, db.GetKBMsParams{
-		Column1: sql.NullString{String: req.SearchName, Valid: true},
-		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+		Column1: req.SearchName,
+		Column2: req.SearchCode,
 		Limit:   pageSize,
 		Offset:  offset,
 	})
@@ -310,8 +348,8 @@ func (s *EMRGrpcServer) GetMasterKBMs(ctx context.Context, req *pb.GetMasterKBMs
 		return nil, status.Errorf(codes.Internal, "failed to get kbms: %v", err)
 	}
 	count, err := s.queries.CountKBMs(ctx, db.CountKBMsParams{
-		Column1: sql.NullString{String: req.SearchName, Valid: true},
-		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+		Column1: req.SearchName,
+		Column2: req.SearchCode,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to count kbms: %v", err)
@@ -343,8 +381,8 @@ func (s *EMRGrpcServer) GetMasterKBMsByPoli(ctx context.Context, req *pb.GetMast
 
 	res, err := s.queries.GetKBMsByPolyclinic(ctx, db.GetKBMsByPolyclinicParams{
 		PolyclinicCode: req.PoliCode,
-		Column2:        sql.NullString{String: req.SearchName, Valid: true},
-		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+		Column2:        req.SearchName,
+		Column3:        req.SearchCode,
 		Limit:          pageSize,
 		Offset:         offset,
 	})
@@ -353,8 +391,8 @@ func (s *EMRGrpcServer) GetMasterKBMsByPoli(ctx context.Context, req *pb.GetMast
 	}
 	count, err := s.queries.CountKBMsByPolyclinic(ctx, db.CountKBMsByPolyclinicParams{
 		PolyclinicCode: req.PoliCode,
-		Column2:        sql.NullString{String: req.SearchName, Valid: true},
-		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+		Column2:        req.SearchName,
+		Column3:        req.SearchCode,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to count kbms by poli: %v", err)
@@ -385,8 +423,8 @@ func (s *EMRGrpcServer) GetMasterTindakan(ctx context.Context, req *pb.GetMaster
 	offset := (page - 1) * pageSize
 
 	res, err := s.queries.GetTindakan(ctx, db.GetTindakanParams{
-		Column1: sql.NullString{String: req.SearchName, Valid: true},
-		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+		Column1: req.SearchName,
+		Column2: req.SearchCode,
 		Limit:   pageSize,
 		Offset:  offset,
 	})
@@ -394,8 +432,8 @@ func (s *EMRGrpcServer) GetMasterTindakan(ctx context.Context, req *pb.GetMaster
 		return nil, status.Errorf(codes.Internal, "failed to get tindakan: %v", err)
 	}
 	count, err := s.queries.CountTindakan(ctx, db.CountTindakanParams{
-		Column1: sql.NullString{String: req.SearchName, Valid: true},
-		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+		Column1: req.SearchName,
+		Column2: req.SearchCode,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to count tindakan: %v", err)
@@ -427,8 +465,8 @@ func (s *EMRGrpcServer) GetMasterTindakanByPoli(ctx context.Context, req *pb.Get
 
 	res, err := s.queries.GetTindakanByPolyclinic(ctx, db.GetTindakanByPolyclinicParams{
 		PolyclinicCode: req.PoliCode,
-		Column2:        sql.NullString{String: req.SearchName, Valid: true},
-		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+		Column2:        req.SearchName,
+		Column3:        req.SearchCode,
 		Limit:          pageSize,
 		Offset:         offset,
 	})
@@ -437,8 +475,8 @@ func (s *EMRGrpcServer) GetMasterTindakanByPoli(ctx context.Context, req *pb.Get
 	}
 	count, err := s.queries.CountTindakanByPolyclinic(ctx, db.CountTindakanByPolyclinicParams{
 		PolyclinicCode: req.PoliCode,
-		Column2:        sql.NullString{String: req.SearchName, Valid: true},
-		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+		Column2:        req.SearchName,
+		Column3:        req.SearchCode,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to count tindakan by poli: %v", err)
@@ -469,8 +507,8 @@ func (s *EMRGrpcServer) GetMasterICD10(ctx context.Context, req *pb.GetMasterICD
 	offset := (page - 1) * pageSize
 
 	res, err := s.queries.GetICD10(ctx, db.GetICD10Params{
-		Column1: sql.NullString{String: req.SearchName, Valid: true},
-		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+		Column1: req.SearchName,
+		Column2: req.SearchCode,
 		Limit:   pageSize,
 		Offset:  offset,
 	})
@@ -478,8 +516,8 @@ func (s *EMRGrpcServer) GetMasterICD10(ctx context.Context, req *pb.GetMasterICD
 		return nil, status.Errorf(codes.Internal, "failed to get icd10: %v", err)
 	}
 	count, err := s.queries.CountICD10(ctx, db.CountICD10Params{
-		Column1: sql.NullString{String: req.SearchName, Valid: true},
-		Column2: sql.NullString{String: req.SearchCode, Valid: true},
+		Column1: req.SearchName,
+		Column2: req.SearchCode,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to count icd10: %v", err)
@@ -489,7 +527,11 @@ func (s *EMRGrpcServer) GetMasterICD10(ctx context.Context, req *pb.GetMasterICD
 	for _, i := range res {
 		data = append(data, &pb.MasterICD10{
 			Icd10Code:   i.Icd10Code,
-			Name:        i.Name,
+			NameEn:      i.NameEn,
+			NameId:      i.NameID,
+			ChapterCode: i.ChapterCode.String,
+			BlockCode:   i.BlockCode.String,
+			IsActive:    i.IsActive.Bool,
 			Polyclinics: i.Polyclinics,
 		})
 	}
@@ -509,8 +551,8 @@ func (s *EMRGrpcServer) GetMasterICD10ByPoli(ctx context.Context, req *pb.GetMas
 
 	res, err := s.queries.GetICD10ByPolyclinic(ctx, db.GetICD10ByPolyclinicParams{
 		PolyclinicCode: req.PoliCode,
-		Column2:        sql.NullString{String: req.SearchName, Valid: true},
-		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+		Column2:        req.SearchName,
+		Column3:        req.SearchCode,
 		Limit:          pageSize,
 		Offset:         offset,
 	})
@@ -519,8 +561,8 @@ func (s *EMRGrpcServer) GetMasterICD10ByPoli(ctx context.Context, req *pb.GetMas
 	}
 	count, err := s.queries.CountICD10ByPolyclinic(ctx, db.CountICD10ByPolyclinicParams{
 		PolyclinicCode: req.PoliCode,
-		Column2:        sql.NullString{String: req.SearchName, Valid: true},
-		Column3:        sql.NullString{String: req.SearchCode, Valid: true},
+		Column2:        req.SearchName,
+		Column3:        req.SearchCode,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to count icd10 by poli: %v", err)
@@ -530,9 +572,97 @@ func (s *EMRGrpcServer) GetMasterICD10ByPoli(ctx context.Context, req *pb.GetMas
 	for _, i := range res {
 		data = append(data, &pb.MasterICD10{
 			Icd10Code:   i.Icd10Code,
-			Name:        i.Name,
+			NameEn:      i.NameEn,
+			NameId:      i.NameID,
+			ChapterCode: i.ChapterCode.String,
+			BlockCode:   i.BlockCode.String,
+			IsActive:    i.IsActive.Bool,
 			Polyclinics: i.Polyclinics,
 		})
 	}
 	return &pb.GetMasterICD10ByPoliResponse{Data: data, TotalCount: int32(count)}, nil
+}
+
+func (s *EMRGrpcServer) GetMasterICD9(ctx context.Context, req *pb.GetMasterICD9Request) (*pb.GetMasterICD9Response, error) {
+	limit := req.Limit
+	if limit <= 0 {
+		limit = 10
+	}
+	offset := req.Offset
+	if offset < 0 {
+		offset = 0
+	}
+	
+	res, err := s.queries.GetICD9(ctx, db.GetICD9Params{
+		Column1: req.Search,
+		Column2: "",
+		Limit:   limit,
+		Offset:  offset,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get icd9: %v", err)
+	}
+
+	count, err := s.queries.CountICD9(ctx, db.CountICD9Params{
+		Column1: req.Search,
+		Column2: "",
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count icd9: %v", err)
+	}
+
+	var data []*pb.ICD9Item
+	for _, i := range res {
+		data = append(data, &pb.ICD9Item{
+			Icd9Code:    i.Icd9Code,
+			NameEn:      i.NameEn,
+			NameId:      i.NameID.String,
+			ChapterCode: i.Category.String, // map category to ChapterCode for now
+			BlockCode:   "",                // no block code in icd9
+			IsActive:    i.IsActive.Bool,
+		})
+	}
+	return &pb.GetMasterICD9Response{Items: data, Total: int32(count)}, nil
+}
+
+func (s *EMRGrpcServer) GetICD9SuggestionsForTindakan(ctx context.Context, req *pb.GetICD9SuggestionsForTindakanRequest) (*pb.GetICD9SuggestionsForTindakanResponse, error) {
+	res, err := s.queries.GetICD9SuggestionsForTindakan(ctx, req.KodeTindakan)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get icd9 suggestions: %v", err)
+	}
+
+	var suggestions []*pb.ICD9Suggestion
+	for _, i := range res {
+		suggestions = append(suggestions, &pb.ICD9Suggestion{
+			Icd9Code:  i.Icd9Code,
+			Icd9Name:  i.NameID.String,
+			IsPrimary: i.IsPrimary.Bool,
+		})
+	}
+	return &pb.GetICD9SuggestionsForTindakanResponse{Suggestions: suggestions}, nil
+}
+
+func (s *EMRGrpcServer) FinalizeMedicalRecord(ctx context.Context, req *pb.FinalizeMedicalRecordRequest) (*pb.FinalizeMedicalRecordResponse, error) {
+	errorsList, err := s.emrService.FinalizeMedicalRecord(ctx, req.EncounterNo, req.DoctorId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to finalize medical record: %v", err)
+	}
+
+	success := len(errorsList) == 0
+	
+	// If success is true, we should also call CompleteEncounter to mark the status to completed if needed
+	// But according to requirements, Finalize is its own thing. 
+	// For now we just return the validation results.
+	if success {
+		// Attempt to complete the encounter
+		err = s.emrService.CompleteEncounter(ctx, req.EncounterNo)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to complete encounter: %v", err)
+		}
+	}
+
+	return &pb.FinalizeMedicalRecordResponse{
+		Success:          success,
+		ValidationErrors: errorsList,
+	}, nil
 }

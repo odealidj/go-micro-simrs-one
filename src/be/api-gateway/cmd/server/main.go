@@ -1037,6 +1037,9 @@ func main() {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
 					searchName := req.URL.Query().Get("search_name")
+					if searchName == "" {
+						searchName = req.URL.Query().Get("search")
+					}
 					searchCode := req.URL.Query().Get("search_code")
 
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetMasterKBMsResponse, error) {
@@ -1069,6 +1072,9 @@ func main() {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
 					searchName := req.URL.Query().Get("search_name")
+					if searchName == "" {
+						searchName = req.URL.Query().Get("search")
+					}
 					searchCode := req.URL.Query().Get("search_code")
 
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetMasterKBMsByPoliResponse, error) {
@@ -1101,6 +1107,9 @@ func main() {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
 					searchName := req.URL.Query().Get("search_name")
+					if searchName == "" {
+						searchName = req.URL.Query().Get("search")
+					}
 					searchCode := req.URL.Query().Get("search_code")
 
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetMasterTindakanResponse, error) {
@@ -1133,6 +1142,9 @@ func main() {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
 					searchName := req.URL.Query().Get("search_name")
+					if searchName == "" {
+						searchName = req.URL.Query().Get("search")
+					}
 					searchCode := req.URL.Query().Get("search_code")
 
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetMasterTindakanByPoliResponse, error) {
@@ -1165,6 +1177,9 @@ func main() {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
 					searchName := req.URL.Query().Get("search_name")
+					if searchName == "" {
+						searchName = req.URL.Query().Get("search")
+					}
 					searchCode := req.URL.Query().Get("search_code")
 
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetMasterICD10Response, error) {
@@ -1197,6 +1212,9 @@ func main() {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
 					searchName := req.URL.Query().Get("search_name")
+					if searchName == "" {
+						searchName = req.URL.Query().Get("search")
+					}
 					searchCode := req.URL.Query().Get("search_code")
 
 					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetMasterICD10ByPoliResponse, error) {
@@ -1223,6 +1241,56 @@ func main() {
 						meta.TotalPages = 1
 					}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
+				})
+				
+				r.Get("/master/icd9", func(w http.ResponseWriter, req *http.Request) {
+					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					search := req.URL.Query().Get("search")
+					if search == "" {
+						search = req.URL.Query().Get("search_name")
+					}
+					if search == "" {
+						search = req.URL.Query().Get("search_code")
+					}
+
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetMasterICD9Response, error) {
+						return emrClient.GetMasterICD9(req.Context(), &emrpb.GetMasterICD9Request{
+							Offset:     int32((page - 1) * pageSize),
+							Limit:      int32(pageSize),
+							Search:     search,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.Total), TotalPages: (int(res.Total) + pageSize - 1) / pageSize}
+					if meta.Page < 1 {
+						meta.Page = 1
+					}
+					if meta.PageSize < 1 {
+						meta.PageSize = 10
+					}
+					if meta.TotalPages == 0 {
+						meta.TotalPages = 1
+					}
+					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Items, Meta: meta})
+				})
+
+				r.Get("/master/tindakan/{code}/icd9-suggestions", func(w http.ResponseWriter, req *http.Request) {
+					kodeTindakan := chi.URLParam(req, "code")
+
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetICD9SuggestionsForTindakanResponse, error) {
+						return emrClient.GetICD9SuggestionsForTindakan(req.Context(), &emrpb.GetICD9SuggestionsForTindakanRequest{
+							KodeTindakan: kodeTindakan,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res.Suggestions})
 				})
 				r.Get("/master/obat", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
@@ -1984,21 +2052,23 @@ func main() {
 					})
 				})
 
-				r.Post("/emr/diagnosis-kbm", func(w http.ResponseWriter, req *http.Request) {
-					var payload emrpb.AddDiagnosisKBMRequest
+				r.Post("/emr/diagnosis", func(w http.ResponseWriter, req *http.Request) {
+					var payload emrpb.AddEncounterDiagnosisRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
 					if err := validator.ValidateAll(map[string]func() error{
-						"encounter_no": validator.NotEmpty(payload.EncounterNo),
-						"kbm_code":     validator.NotEmpty(payload.KbmCode),
+						"encounter_no":   validator.NotEmpty(payload.EncounterNo),
+						"icd10_code":     validator.NotEmpty(payload.Icd10Code),
+						"diagnosis_type": validator.NotEmpty(payload.DiagnosisType),
+						"severity_level": validator.NotEmpty(payload.SeverityLevel),
 					}); err != nil {
 						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.AddDiagnosisKBMResponse, error) {
-						return emrClient.AddDiagnosisKBM(req.Context(), &payload)
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.AddEncounterDiagnosisResponse, error) {
+						return emrClient.AddEncounterDiagnosis(req.Context(), &payload)
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
@@ -2007,6 +2077,100 @@ func main() {
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
 						Success: true,
 						Message: "Success",
+						Data:    res,
+					})
+				})
+
+				r.Put("/emr/diagnosis/{id}", func(w http.ResponseWriter, req *http.Request) {
+					id := chi.URLParam(req, "id")
+					var payload emrpb.UpdateEncounterDiagnosisRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					payload.Id = id
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.UpdateEncounterDiagnosisResponse, error) {
+						return emrClient.UpdateEncounterDiagnosis(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
+				})
+
+				r.Delete("/emr/diagnosis/{id}", func(w http.ResponseWriter, req *http.Request) {
+					id := chi.URLParam(req, "id")
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.RemoveEncounterDiagnosisResponse, error) {
+						return emrClient.RemoveEncounterDiagnosis(req.Context(), &emrpb.RemoveEncounterDiagnosisRequest{Id: id})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res,
+					})
+				})
+
+				r.Post("/emr/encounter/{encounter_no}/severity/finalize", func(w http.ResponseWriter, req *http.Request) {
+					encounterNo := chi.URLParam(req, "encounter_no")
+					var payload struct {
+						SeverityLevel string `json:"severity_level"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					userId, _ := req.Context().Value("user_id").(string)
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.FinalizeSeverityResponse, error) {
+						return emrClient.FinalizeSeverity(req.Context(), &emrpb.FinalizeSeverityRequest{
+							EncounterNo:   encounterNo,
+							SeverityLevel: payload.SeverityLevel,
+							UserId:        userId,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Severity finalized successfully",
+						Data:    res,
+					})
+				})
+
+				r.Post("/emr/diagnosis/{id}/verify-kbm", func(w http.ResponseWriter, req *http.Request) {
+					id := chi.URLParam(req, "id")
+					var payload struct {
+						KbmCode string `json:"kbm_code"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					userId, _ := req.Context().Value("user_id").(string)
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.VerifyKBMMappingResponse, error) {
+						return emrClient.VerifyKBMMapping(req.Context(), &emrpb.VerifyKBMMappingRequest{
+							Id:      id,
+							KbmCode: payload.KbmCode,
+							UserId:  userId,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "KBM mapped successfully",
 						Data:    res,
 					})
 				})
@@ -2092,14 +2256,9 @@ func main() {
 			// EMR (Dokter - verify ICD10 & pending review)
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireRole("dokter", "admin", "rekam_medis"))
-				r.Post("/emr/verify-icd10", func(w http.ResponseWriter, req *http.Request) {
-					var payload emrpb.VerifyICD10MappingRequest
-					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
-						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
-						return
-					}
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.VerifyICD10MappingResponse, error) {
-						return emrClient.VerifyICD10Mapping(req.Context(), &payload)
+				r.Get("/emr/pending-kbm-verifications", func(w http.ResponseWriter, req *http.Request) {
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.ListPendingKBMVerificationsResponse, error) {
+						return emrClient.ListPendingKBMVerifications(req.Context(), &emrpb.ListPendingKBMVerificationsRequest{})
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
@@ -2112,25 +2271,10 @@ func main() {
 					})
 				})
 
-				r.Get("/emr/pending-icd10", func(w http.ResponseWriter, req *http.Request) {
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.ListPendingICD10VerificationsResponse, error) {
-						return emrClient.ListPendingICD10Verifications(req.Context(), &emrpb.ListPendingICD10VerificationsRequest{Limit: 50})
-					})
-					if err != nil {
-						response.HandleGRPCError(w, err)
-						return
-					}
-					response.JSON(w, http.StatusOK, response.SuccessResponse{
-						Success: true,
-						Message: "Success",
-						Data:    res,
-					})
-				})
-
-				r.Get("/emr/kbm/{code}/icd10-suggestions", func(w http.ResponseWriter, req *http.Request) {
+				r.Get("/emr/icd10/{code}/kbm-suggestions", func(w http.ResponseWriter, req *http.Request) {
 					code := chi.URLParam(req, "code")
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetICD10SuggestionsForKBMResponse, error) {
-						return emrClient.GetICD10SuggestionsForKBM(req.Context(), &emrpb.GetICD10SuggestionsForKBMRequest{KbmCode: code})
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetKBMSuggestionsForICD10Response, error) {
+						return emrClient.GetKBMSuggestionsForICD10(req.Context(), &emrpb.GetKBMSuggestionsForICD10Request{Icd10Code: code})
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)

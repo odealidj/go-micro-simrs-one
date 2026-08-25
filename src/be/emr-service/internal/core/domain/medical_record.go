@@ -31,21 +31,35 @@ type ClinicalChecklist struct {
 	BaseConsultationFee    string
 }
 
+type EncounterDiagnosis struct {
+	ID                   string
+	ICD10Code            string
+	ICD10Name            string
+	DiagnosisType        string
+	Sequence             int32
+	ClinicalNotes        string
+	SeverityLevel        string
+	SeveritySetRole      string
+	AutoKBMCode          string
+	AutoKBMName          string
+	KBMMappingConfidence string
+	IsVerifiedByRM       bool
+	VerifiedBy           string
+}
+
 type MedicalRecord struct {
-	ID                 string
-	EncounterNo        string
-	MRN                string
-	ICD10Codes         []string
-	KBMCode            string
-	KBMName            string
-	ICD10MappingStatus string
-	Notes              string
-	Status             string
-	Triage             TriageData
-	Actions            []MedicalAction
-	Checklist          ClinicalChecklist
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
+	ID                     string
+	EncounterNo            string
+	MRN                    string
+	Notes                  string
+	Status                 string
+	Triage                 TriageData
+	Diagnoses              []EncounterDiagnosis
+	Actions                []MedicalAction
+	Checklist              ClinicalChecklist
+	EncounterSeverityLevel string
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
 }
 
 type KBMItem struct {
@@ -55,16 +69,19 @@ type KBMItem struct {
 	BodySystem  string
 }
 
-type ICD10Suggestion struct {
-	ICD10Code string
-	IsPrimary bool
+type KBMSuggestion struct {
+	KBMCode            string
+	KBMName            string
+	IsPrimary          bool
+	MappingConfidence  string
 }
 
 type PendingVerification struct {
 	EncounterNo        string
 	MRN                string
+	ICD10Code          string
+	ICD10Name          string
 	KBMCode            string
 	KBMName            string
-	ICD10MappingStatus string
 	CreatedAt          time.Time
 }

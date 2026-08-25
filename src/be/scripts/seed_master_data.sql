@@ -25,15 +25,54 @@ ON CONFLICT (id) DO NOTHING;
 -- ICD-10
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-INSERT INTO emr.icd10_catalog (icd10_code, name, description) VALUES
-('A00', 'Cholera', 'Kolera'),
-('A01', 'Typhoid and paratyphoid fevers', 'Tifus'),
-('A09', 'Infectious gastroenteritis and colitis, unspecified', 'Gastroenteritis'),
-('E11', 'Type 2 diabetes mellitus', 'Diabetes'),
-('I10', 'Essential (primary) hypertension', 'Hipertensi'),
-('J00', 'Acute nasopharyngitis [common cold]', 'Flu'),
-('J01', 'Acute sinusitis', 'Sinusitis')
-ON CONFLICT (icd10_code) DO NOTHING;
+INSERT INTO emr.icd10_catalog (icd10_code, name_en, name_id, chapter_code, block_code, coding_rule, is_active) VALUES
+('A00.0', 'Cholera due to Vibrio cholerae 01, biovar cholerae', 'Kolera akibat Vibrio cholerae 01, biotipe cholerae', 'I', 'A00-A09', 'NORMAL', true),
+('A01.0', 'Typhoid fever', 'Demam Tifoid', 'I', 'A00-A09', 'NORMAL', true),
+('A09', 'Diarrhoea and gastroenteritis of presumed infectious origin', 'Diare dan gastroenteritis oleh penyebab infeksi tertentu', 'I', 'A00-A09', 'NORMAL', true),
+('A15.0', 'Tuberculosis of lung, confirmed by sputum microscopy with or without culture', 'Tuberkulosis paru, terkonfirmasi secara mikroskopis dahak', 'I', 'A15-A19', 'DAGGER', true),
+('B01.9', 'Varicella without complication', 'Cacar air tanpa komplikasi', 'I', 'B00-B09', 'NORMAL', true),
+('B20', 'Human immunodeficiency virus [HIV] disease resulting in infectious and parasitic diseases', 'Penyakit HIV yang menyebabkan penyakit infeksi dan parasit', 'I', 'B20-B24', 'DAGGER', true),
+('E10.2', 'Type 1 diabetes mellitus with renal complications', 'Diabetes mellitus tipe 1 dengan komplikasi ginjal', 'IV', 'E10-E14', 'DAGGER', true),
+('E11.9', 'Type 2 diabetes mellitus without complications', 'Diabetes mellitus tipe 2 tanpa komplikasi', 'IV', 'E10-E14', 'NORMAL', true),
+('I10', 'Essential (primary) hypertension', 'Hipertensi esensial (primer)', 'IX', 'I10-I15', 'NORMAL', true),
+('J00', 'Acute nasopharyngitis [common cold]', 'Nasofaringitis akut [common cold]', 'X', 'J00-J06', 'NORMAL', true),
+('J01.9', 'Acute sinusitis, unspecified', 'Sinusitis akut, tidak ditentukan', 'X', 'J00-J06', 'NORMAL', true),
+('M14.8*', 'Arthropathies in other specified diseases classified elsewhere', 'Artropati pada penyakit lain yang diklasifikasikan di tempat lain', 'XIII', 'M00-M25', 'ASTERISK', true),
+('N08.3*', 'Glomerular disorders in diabetes mellitus', 'Gangguan glomerulus pada diabetes mellitus', 'XIV', 'N00-N08', 'ASTERISK', true)
+ON CONFLICT (icd10_code) DO UPDATE 
+SET name_en = EXCLUDED.name_en, name_id = EXCLUDED.name_id, chapter_code = EXCLUDED.chapter_code, block_code = EXCLUDED.block_code, coding_rule = EXCLUDED.coding_rule, is_active = EXCLUDED.is_active;
+
+-- ICD-9-CM
+INSERT INTO emr.icd9cm_catalog (icd9_code, name_en, name_id, category, is_active) VALUES
+('00.01', 'Therapeutic ultrasound of vessels of head and neck', 'Ultrasonografi terapeutik pembuluh darah kepala dan leher', '00', true),
+('00.11', 'Infusion of drotrecogin alfa (activated)', 'Infus drotrecogin alfa (diaktifkan)', '00', true),
+('01.01', 'Cisternal puncture', 'Pungsi sisternal', '01', true),
+('01.11', 'Closed [percutaneous] [needle] biopsy of cerebral meninges', 'Biopsi tertutup selaput otak', '01', true),
+('02.01', 'Opening of cranial suture', 'Pembukaan sutura kranial', '02', true),
+('03.01', 'Removal of foreign body from spinal canal', 'Pengangkatan benda asing dari kanalis spinalis', '03', true),
+('04.01', 'Excision of acoustic neuroma', 'Eksisi neuroma akustik', '04', true),
+('10.0', 'Removal of foreign body from conjunctiva by incision', 'Pengangkatan benda asing dari konjungtiva dengan insisi', '10', true),
+('21.01', 'Control of epistaxis by anterior nasal packing', 'Kontrol epistaksis dengan tampon hidung anterior', '21', true),
+('21.02', 'Control of epistaxis by posterior (and anterior) packing', 'Kontrol epistaksis dengan tampon hidung posterior (dan anterior)', '21', true),
+('23.09', 'Extraction of other tooth', 'Pencabutan Gigi Lainnya', '23', true),
+('33.22', 'Fiber-optic bronchoscopy', 'Bronkoskopi fiber-optik', '33', true),
+('33.23', 'Other bronchoscopy', 'Bronkoskopi lainnya', '33', true),
+('45.13', 'Other endoscopy of small intestine', 'Endoskopi usus halus lainnya', '45', true),
+('45.23', 'Colonoscopy', 'Kolonoskopi', '45', true),
+('54.21', 'Laparoscopy', 'Laparoskopi', '54', true),
+('86.59', 'Closure of skin and subcutaneous tissue of other sites', 'Jahit Luka', '86', true),
+('87.44', 'Routine chest x-ray, so described', 'Rontgen Dada', '87', true),
+('88.78', 'Diagnostic ultrasound of gravid uterus', 'USG Kandungan', '88', true),
+('89.01', 'Interview and evaluation, described as brief', 'Wawancara dan evaluasi, singkat', '89', true),
+('89.02', 'Interview and evaluation, described as limited', 'Wawancara dan evaluasi, terbatas', '89', true),
+('89.03', 'Interview and evaluation, described as comprehensive', 'Wawancara dan evaluasi, komprehensif', '89', true),
+('89.52', 'Electrocardiogram', 'Elektrokardiogram (EKG)', '89', true),
+('90.59', 'Microscopic examination of blood', 'Pemeriksaan mikroskopik darah', '90', true),
+('93.94', 'Respiratory medication administered by nebulizer', 'Pemberian obat pernapasan dengan nebulizer', '93', true),
+('99.04', 'Transfusion of packed cells', 'Transfusi sel darah merah', '99', true),
+('99.21', 'Injection of antibiotic', 'Injeksi antibiotik', '99', true),
+('99.29', 'Injection or infusion of other therapeutic or prophylactic substance', 'Injeksi atau infus zat terapeutik lainnya', '99', true)
+ON CONFLICT (icd9_code) DO NOTHING;
 
 -- Tindakan Medis
 INSERT INTO emr.master_tindakan (kode_tindakan, nama_tindakan, base_price) VALUES
@@ -79,14 +118,21 @@ ON CONFLICT (kbm_code) DO NOTHING;
 
 -- Mappings EMR
 INSERT INTO emr.icd10_polyclinic_mappings (icd10_code, polyclinic_code) VALUES
-('A00', '01'),
-('A01', '01'),
+('A00.0', '01'),
+('A01.0', '01'),
 ('A09', '01'),
-('E11', '01'),
+('A15.0', '01'),
+('B01.9', '01'),
+('B01.9', '03'),
+('B20', '01'),
+('E10.2', '01'),
+('E11.9', '01'),
 ('I10', '01'),
 ('J00', '01'),
 ('J00', '03'),
-('J01', '01')
+('J01.9', '01'),
+('M14.8*', '01'),
+('N08.3*', '01')
 ON CONFLICT DO NOTHING;
 
 -- Seed KBM Polyclinic Mappings (Dummy Data for existing KBMs)
@@ -107,6 +153,16 @@ INSERT INTO emr.tindakan_polyclinic_mappings (kode_tindakan, polyclinic_code) VA
 ('TND-005', '01'),
 ('TND-006', '01')
 ON CONFLICT DO NOTHING;
+
+-- Tindakan ICD-9 Mappings
+INSERT INTO emr.tindakan_icd9_mapping (kode_tindakan, icd9_code, is_primary) VALUES
+('TND-001', '89.02', true), -- Pemeriksaan Umum -> Wawancara dan evaluasi, terbatas
+('TND-002', '89.03', true), -- Pemeriksaan Gigi -> Wawancara dan evaluasi, komprehensif
+('TND-003', '23.09', true), -- Cabut Gigi -> Pencabutan Gigi Lainnya
+('TND-004', '88.78', true), -- USG Kandungan -> USG Kandungan
+('TND-005', '90.59', true), -- Cek Gula Darah -> Pemeriksaan mikroskopik darah
+('TND-006', '86.59', true)  -- Jahit Luka -> Jahit Luka
+ON CONFLICT (kode_tindakan, icd9_code) DO NOTHING;
 
 -- Mappings Pharmacy
 INSERT INTO pharmacy.inventory_polyclinic_mappings (item_code, polyclinic_code) VALUES
@@ -164,3 +220,4 @@ WHERE NOT EXISTS (SELECT 1 FROM auth.mapping_dokter_poli WHERE dokter_id = (SELE
 INSERT INTO auth.mapping_perawat_poli (perawat_id, poli_code, end_date)
 SELECT (SELECT id FROM auth.profil_perawat WHERE user_id = (SELECT id FROM auth.users WHERE username = 'perawat.andi')), '01', '2099-12-31'
 WHERE NOT EXISTS (SELECT 1 FROM auth.mapping_perawat_poli WHERE perawat_id = (SELECT id FROM auth.profil_perawat WHERE user_id = (SELECT id FROM auth.users WHERE username = 'perawat.andi')) AND poli_code = '01');
+

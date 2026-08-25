@@ -44,49 +44,7 @@ func (r *emrRepoSqlc) CompleteEncounter(ctx context.Context, encounterNo string)
 	return r.q.CompleteEncounter(ctx, encounterNo)
 }
 
-func (r *emrRepoSqlc) AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, kbmName, notes, doctorId, deptCode, gender, ageBracket string) error {
-	var n sql.NullString
-	if notes != "" {
-		n = sql.NullString{String: notes, Valid: true}
-	}
-	
-	var doc sql.NullString
-	if doctorId != "" {
-		doc = sql.NullString{String: doctorId, Valid: true}
-	}
-	var dept sql.NullString
-	if deptCode != "" {
-		dept = sql.NullString{String: deptCode, Valid: true}
-	}
-	var gen sql.NullString
-	if gender != "" {
-		gen = sql.NullString{String: gender, Valid: true}
-	}
-	var age sql.NullString
-	if ageBracket != "" {
-		age = sql.NullString{String: ageBracket, Valid: true}
-	}
-	var kc sql.NullString
-	if kbmCode != "" {
-		kc = sql.NullString{String: kbmCode, Valid: true}
-	}
-	var kn sql.NullString
-	if kbmName != "" {
-		kn = sql.NullString{String: kbmName, Valid: true}
-	}
 
-	_, err := r.q.AddDiagnosisKBM(ctx, db.AddDiagnosisKBMParams{
-		EncounterNo:    encounterNo,
-		KbmCode:        kc,
-		KbmName:        kn,
-		Notes:          n,
-		DoctorID:       doc,
-		DepartmentCode: dept,
-		Gender:         gen,
-		AgeBracket:     age,
-	})
-	return err
-}
 
 func (r *emrRepoSqlc) SearchKBM(ctx context.Context, deptCode, query string, limit, offset int32) ([]*domain.KBMItem, int32, error) {
 	var dbItems []db.KbmCatalog
@@ -152,52 +110,7 @@ func (r *emrRepoSqlc) GetKBMDetail(ctx context.Context, kbmCode string) (*domain
 	}, nil
 }
 
-func (r *emrRepoSqlc) VerifyICD10Mapping(ctx context.Context, encounterNo string, icd10Codes []string, notes string) error {
-	_, err := r.q.VerifyICD10Mapping(ctx, db.VerifyICD10MappingParams{
-		EncounterNo: encounterNo,
-		Icd10Codes:  icd10Codes,
-		Column3:     notes,
-	})
-	return err
-}
 
-func (r *emrRepoSqlc) GetICD10SuggestionsForKBM(ctx context.Context, kbmCode string) ([]*domain.ICD10Suggestion, error) {
-	dbItems, err := r.q.GetICD10MappingsByKBM(ctx, kbmCode)
-	if err != nil {
-		return nil, err
-	}
-	var items []*domain.ICD10Suggestion
-	for _, item := range dbItems {
-		items = append(items, &domain.ICD10Suggestion{
-			ICD10Code: item.Icd10Code,
-			IsPrimary: item.IsPrimary.Bool,
-		})
-	}
-	return items, nil
-}
-
-func (r *emrRepoSqlc) ListPendingICD10Verifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error) {
-	dbItems, err := r.q.ListPendingICD10Verifications(ctx, db.ListPendingICD10VerificationsParams{
-		Limit:  limit,
-		Offset: offset,
-	})
-	if err != nil {
-		return nil, 0, err
-	}
-
-	var items []*domain.PendingVerification
-	for _, i := range dbItems {
-		items = append(items, &domain.PendingVerification{
-			EncounterNo:        i.EncounterNo,
-			MRN:                i.Mrn,
-			KBMCode:            i.KbmCode.String,
-			KBMName:            i.KbmName.String,
-			ICD10MappingStatus: i.Icd10MappingStatus.String,
-			CreatedAt:          i.CreatedAt.Time,
-		})
-	}
-	return items, int32(len(dbItems)), nil
-}
 
 func (r *emrRepoSqlc) UpdateTriage(ctx context.Context, encounterNo string, systolic, diastolic *int32, temp *float64, heartRate *int32, notes string) error {
 	var n sql.NullString
@@ -290,15 +203,12 @@ func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) 
 	}
 
 	record := &domain.MedicalRecord{
-		ID:                 mr.ID,
-		EncounterNo:        mr.EncounterNo,
-		MRN:                mr.Mrn,
-		ICD10Codes:         mr.Icd10Codes,
-		KBMCode:            mr.KbmCode.String,
-		KBMName:            mr.KbmName.String,
-		ICD10MappingStatus: mr.Icd10MappingStatus.String,
-		Notes:              mr.Notes.String,
-		Status:             mr.Status.String,
+		ID:                     mr.ID,
+		EncounterNo:            mr.EncounterNo,
+		MRN:                    mr.Mrn,
+		Notes:                  mr.Notes.String,
+		Status:                 mr.Status.String,
+		EncounterSeverityLevel: mr.EncounterSeverityLevel.String,
 		Triage: domain.TriageData{
 			BloodPressureSystolic:  sys,
 			BloodPressureDiastolic: dia,
@@ -308,6 +218,33 @@ func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) 
 		CreatedAt: mr.CreatedAt.Time,
 		UpdatedAt: mr.UpdatedAt.Time,
 	}
+
+	// Fetch Diagnoses
+	dbDiagnoses, err := r.q.GetEncounterDiagnoses(ctx, mr.EncounterNo)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+
+	var diagnoses []domain.EncounterDiagnosis
+	for _, d := range dbDiagnoses {
+		diagnoses = append(diagnoses, domain.EncounterDiagnosis{
+			ID:                   d.ID.String(),
+			ICD10Code:            d.Icd10Code,
+			ICD10Name:            d.Icd10Name,
+			DiagnosisType:        d.DiagnosisType,
+			Sequence:             d.Sequence,
+			ClinicalNotes:        d.ClinicalNotes.String,
+			SeverityLevel:        d.SeverityLevel,
+			SeveritySetRole:      d.SeveritySetRole.String,
+			AutoKBMCode:          d.AutoKbmCode.String,
+			AutoKBMName:          d.AutoKbmName.String,
+			KBMMappingConfidence: d.KbmMappingConfidence.String,
+			IsVerifiedByRM:       d.IsVerifiedByRm,
+			VerifiedBy:           d.VerifiedBy.String,
+		})
+	}
+	record.Diagnoses = diagnoses
+
 
 	// Fetch medical actions
 	dbActions, err := r.q.GetMedicalActionsByRecordID(ctx, mr.ID)
@@ -332,7 +269,7 @@ func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) 
 
 	// Calculate Clinical Checklist & Readiness
 	triageCompleted := mr.BloodPressureSystolic.Valid && mr.BloodPressureDiastolic.Valid && mr.Temperature.Valid && mr.HeartRate.Valid
-	diagnosisCompleted := (mr.KbmCode.Valid && mr.KbmCode.String != "") || len(mr.Icd10Codes) > 0
+	diagnosisCompleted := len(diagnoses) > 0
 	actionsCompleted := len(actions) > 0
 
 	var missing []string

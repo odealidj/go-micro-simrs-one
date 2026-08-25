@@ -48,7 +48,6 @@ export function useMasterData<T>(endpoint: string, options?: UseMasterDataOption
           page_size: 10,
           search,
           search_name: search,
-          search_code: search,
         },
       });
       setData(response.data.data || []);

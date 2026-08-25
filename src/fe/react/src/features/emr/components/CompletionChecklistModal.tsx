@@ -49,7 +49,7 @@ export function CompletionChecklistModal({
     record.triage.heart_rate
   );
 
-  const hasDiagnosis = !!(record?.kbm_code || (record?.icd10_codes && record.icd10_codes.length > 0));
+  const hasDiagnosis = !!(record?.diagnoses && record.diagnoses.length > 0);
   const actionsCount = record?.actions?.length || 0;
   const prescriptionsCount = record?.prescriptions?.length || 0;
 
@@ -202,9 +202,13 @@ export function CompletionChecklistModal({
                     </span>
                   </div>
                   {hasDiagnosis ? (
-                    <p className="text-xs text-slate-700 font-medium mt-0.5">
-                      [{record?.kbm_code}] {record?.kbm_name}
-                    </p>
+                    <div className="mt-0.5 space-y-1">
+                      {record?.diagnoses?.filter(d => d.diagnosis_type === "PRIMARY").map(d => (
+                        <p key={d.id} className="text-xs text-slate-700 font-medium">
+                          [{d.icd10_code}] {d.icd10_name} {d.auto_kbm_code && `(Auto-KBM: ${d.auto_kbm_code})`}
+                        </p>
+                      ))}
+                    </div>
                   ) : (
                     <p className="text-xs text-red-600 font-medium mt-0.5">
                       Belum ditentukan oleh dokter pemeriksa.

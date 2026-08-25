@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS tindakan_icd9_mapping CASCADE;
+DROP TABLE IF EXISTS icd9cm_catalog CASCADE;
