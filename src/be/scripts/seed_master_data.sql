@@ -30,13 +30,18 @@ INSERT INTO emr.icd10_catalog (icd10_code, name_en, name_id, chapter_code, block
 ('A01.0', 'Typhoid fever', 'Demam Tifoid', 'I', 'A00-A09', 'NORMAL', true),
 ('A09', 'Diarrhoea and gastroenteritis of presumed infectious origin', 'Diare dan gastroenteritis oleh penyebab infeksi tertentu', 'I', 'A00-A09', 'NORMAL', true),
 ('A15.0', 'Tuberculosis of lung, confirmed by sputum microscopy with or without culture', 'Tuberkulosis paru, terkonfirmasi secara mikroskopis dahak', 'I', 'A15-A19', 'DAGGER', true),
+('A91', 'Dengue haemorrhagic fever', 'Demam Berdarah Dengue (DBD)', 'I', 'A90-A99', 'NORMAL', true),
 ('B01.9', 'Varicella without complication', 'Cacar air tanpa komplikasi', 'I', 'B00-B09', 'NORMAL', true),
 ('B20', 'Human immunodeficiency virus [HIV] disease resulting in infectious and parasitic diseases', 'Penyakit HIV yang menyebabkan penyakit infeksi dan parasit', 'I', 'B20-B24', 'DAGGER', true),
 ('E10.2', 'Type 1 diabetes mellitus with renal complications', 'Diabetes mellitus tipe 1 dengan komplikasi ginjal', 'IV', 'E10-E14', 'DAGGER', true),
 ('E11.9', 'Type 2 diabetes mellitus without complications', 'Diabetes mellitus tipe 2 tanpa komplikasi', 'IV', 'E10-E14', 'NORMAL', true),
 ('I10', 'Essential (primary) hypertension', 'Hipertensi esensial (primer)', 'IX', 'I10-I15', 'NORMAL', true),
+('I25.1', 'Atherosclerotic heart disease', 'Penyakit Jantung Aterosklerotik', 'IX', 'I20-I25', 'NORMAL', true),
 ('J00', 'Acute nasopharyngitis [common cold]', 'Nasofaringitis akut [common cold]', 'X', 'J00-J06', 'NORMAL', true),
 ('J01.9', 'Acute sinusitis, unspecified', 'Sinusitis akut, tidak ditentukan', 'X', 'J00-J06', 'NORMAL', true),
+('J18.9', 'Pneumonia, unspecified', 'Pneumonia, tidak ditentukan', 'X', 'J09-J18', 'NORMAL', true),
+('J45.9', 'Asthma, unspecified', 'Asma, tidak ditentukan', 'X', 'J40-J47', 'NORMAL', true),
+('K35.8', 'Other and unspecified acute appendicitis', 'Apendisitis akut lainnya dan tidak ditentukan', 'XI', 'K35-K38', 'NORMAL', true),
 ('M14.8*', 'Arthropathies in other specified diseases classified elsewhere', 'Artropati pada penyakit lain yang diklasifikasikan di tempat lain', 'XIII', 'M00-M25', 'ASTERISK', true),
 ('N08.3*', 'Glomerular disorders in diabetes mellitus', 'Gangguan glomerulus pada diabetes mellitus', 'XIV', 'N00-N08', 'ASTERISK', true)
 ON CONFLICT (icd10_code) DO UPDATE 
@@ -173,6 +178,47 @@ INSERT INTO emr.kbm_icd10_mappings (kbm_code, icd10_code, is_primary, mapping_co
 ('KBM-031', 'E11.9', true, '0.95'),
 ('KBM-031', 'E11.8', false, '0.85')
 ON CONFLICT (kbm_code, icd10_code) DO NOTHING;
+
+-- ==========================================
+-- SNOMED-CT CLINICAL CORE CATALOG & CROSS MAPS
+-- ==========================================
+INSERT INTO emr.snomed_concepts (concept_id, fsn, term_id, semantic_tag, is_active) VALUES
+('4834000', 'Typhoid fever (disorder)', 'Demam Tifoid', 'disorder', true),
+('38362002', 'Dengue fever (disorder)', 'Demam Berdarah Dengue (DBD)', 'disorder', true),
+('38341003', 'Hypertensive disorder, systemic arterial (disorder)', 'Hipertensi Primer / Esensial', 'disorder', true),
+('44054006', 'Type 2 diabetes mellitus (disorder)', 'Diabetes Melitus Tipe 2', 'disorder', true),
+('195967001', 'Asthma (disorder)', 'Asma Bronkial', 'disorder', true),
+('74400008', 'Appendicitis (disorder)', 'Apendisitis Akut', 'disorder', true),
+('233604007', 'Pneumonia (disorder)', 'Pneumonia Bakterial', 'disorder', true),
+('50417007', 'Gastroenteritis (disorder)', 'Gastroenteritis Akut (Diare)', 'disorder', true),
+('53741008', 'Coronary arteriosclerosis (disorder)', 'Penyakit Jantung Koroner', 'disorder', true),
+('274151003', 'Extraction of tooth (procedure)', 'Pencabutan Gigi', 'procedure', true),
+('265747005', 'Diagnostic ultrasound of pregnancy (procedure)', 'USG Kehamilan / Kandungan', 'procedure', true),
+('104091002', 'Measurement of blood glucose (procedure)', 'Pemeriksaan Gula Darah', 'procedure', true),
+('225965007', 'Suture of skin (procedure)', 'Penjahitan Luka Kulit', 'procedure', true),
+('386053000', 'Evaluation procedure (procedure)', 'Pemeriksaan Medis Umum', 'procedure', true)
+ON CONFLICT (concept_id) DO NOTHING;
+
+-- SNOMED-CT to ICD-10 Mappings
+INSERT INTO emr.snomed_icd10_mapping (snomed_concept_id, icd10_code, map_group, map_priority, map_rule, map_advice, is_primary) VALUES
+('4834000', 'A01.0', 1, 1, 'TRUE', 'ALWAYS A01.0', true),
+('38362002', 'A91', 1, 1, 'TRUE', 'ALWAYS A91', true),
+('38341003', 'I10', 1, 1, 'TRUE', 'ALWAYS I10', true),
+('44054006', 'E11.9', 1, 1, 'TRUE', 'ALWAYS E11.9', true),
+('195967001', 'J45.9', 1, 1, 'TRUE', 'ALWAYS J45.9', true),
+('74400008', 'K35.8', 1, 1, 'TRUE', 'ALWAYS K35.8', true),
+('233604007', 'J18.9', 1, 1, 'TRUE', 'ALWAYS J18.9', true),
+('50417007', 'A09', 1, 1, 'TRUE', 'ALWAYS A09', true)
+ON CONFLICT (snomed_concept_id, icd10_code) DO NOTHING;
+
+-- SNOMED-CT to ICD-9-CM Mappings
+INSERT INTO emr.snomed_icd9_mapping (snomed_concept_id, icd9_code, is_primary) VALUES
+('274151003', '23.09', true),
+('265747005', '88.78', true),
+('104091002', '90.59', true),
+('225965007', '86.59', true),
+('386053000', '89.02', true)
+ON CONFLICT (snomed_concept_id, icd9_code) DO NOTHING;
 
 -- Mappings Pharmacy
 INSERT INTO pharmacy.inventory_polyclinic_mappings (item_code, polyclinic_code) VALUES

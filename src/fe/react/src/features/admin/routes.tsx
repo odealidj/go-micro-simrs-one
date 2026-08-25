@@ -15,6 +15,7 @@ import { TindakanPage } from "./pages/master/TindakanPage";
 import { AssignTindakanPoliPage } from "./pages/master/AssignTindakanPoliPage";
 import { ICD10Page } from "./pages/master/ICD10Page";
 import { ICD9Page } from "./pages/master/ICD9Page";
+import { SNOMEDPage } from "./pages/master/SNOMEDPage";
 import { AssignICD10PoliPage } from "./pages/master/AssignICD10PoliPage";
 import { ObatPage } from "./pages/master/ObatPage";
 import { AssignObatPoliPage } from "./pages/master/AssignObatPoliPage";
@@ -48,6 +49,7 @@ export const adminRoutes: RouteObject[] = [
           { path: "master/assign-tindakan", element: <AssignTindakanPoliPage /> },
           { path: "master/icd10", element: <ICD10Page /> },
           { path: "master/icd9", element: <ICD9Page /> },
+          { path: "master/snomed", element: <SNOMEDPage /> },
           { path: "master/assign-icd10", element: <AssignICD10PoliPage /> },
           { path: "master/obat", element: <ObatPage /> },
           { path: "master/assign-obat", element: <AssignObatPoliPage /> },

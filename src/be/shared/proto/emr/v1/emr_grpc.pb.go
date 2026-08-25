@@ -33,6 +33,8 @@ const (
 	EMRService_GetMasterICD10ByPoli_FullMethodName          = "/emr.v1.EMRService/GetMasterICD10ByPoli"
 	EMRService_GetMasterICD9_FullMethodName                 = "/emr.v1.EMRService/GetMasterICD9"
 	EMRService_GetICD9SuggestionsForTindakan_FullMethodName = "/emr.v1.EMRService/GetICD9SuggestionsForTindakan"
+	EMRService_GetMasterSNOMED_FullMethodName               = "/emr.v1.EMRService/GetMasterSNOMED"
+	EMRService_GetSNOMEDMappingDetails_FullMethodName       = "/emr.v1.EMRService/GetSNOMEDMappingDetails"
 	EMRService_SearchKBM_FullMethodName                     = "/emr.v1.EMRService/SearchKBM"
 	EMRService_GetKBMDetail_FullMethodName                  = "/emr.v1.EMRService/GetKBMDetail"
 	EMRService_GetICD10SuggestionsForKBM_FullMethodName     = "/emr.v1.EMRService/GetICD10SuggestionsForKBM"
@@ -66,6 +68,8 @@ type EMRServiceClient interface {
 	GetMasterICD10ByPoli(ctx context.Context, in *GetMasterICD10ByPoliRequest, opts ...grpc.CallOption) (*GetMasterICD10ByPoliResponse, error)
 	GetMasterICD9(ctx context.Context, in *GetMasterICD9Request, opts ...grpc.CallOption) (*GetMasterICD9Response, error)
 	GetICD9SuggestionsForTindakan(ctx context.Context, in *GetICD9SuggestionsForTindakanRequest, opts ...grpc.CallOption) (*GetICD9SuggestionsForTindakanResponse, error)
+	GetMasterSNOMED(ctx context.Context, in *GetMasterSNOMEDRequest, opts ...grpc.CallOption) (*GetMasterSNOMEDResponse, error)
+	GetSNOMEDMappingDetails(ctx context.Context, in *GetSNOMEDMappingDetailsRequest, opts ...grpc.CallOption) (*GetSNOMEDMappingDetailsResponse, error)
 	// Master KBM (Existing)
 	SearchKBM(ctx context.Context, in *SearchKBMRequest, opts ...grpc.CallOption) (*SearchKBMResponse, error)
 	GetKBMDetail(ctx context.Context, in *GetKBMDetailRequest, opts ...grpc.CallOption) (*GetKBMDetailResponse, error)
@@ -233,6 +237,26 @@ func (c *eMRServiceClient) GetICD9SuggestionsForTindakan(ctx context.Context, in
 	return out, nil
 }
 
+func (c *eMRServiceClient) GetMasterSNOMED(ctx context.Context, in *GetMasterSNOMEDRequest, opts ...grpc.CallOption) (*GetMasterSNOMEDResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterSNOMEDResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetMasterSNOMED_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetSNOMEDMappingDetails(ctx context.Context, in *GetSNOMEDMappingDetailsRequest, opts ...grpc.CallOption) (*GetSNOMEDMappingDetailsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSNOMEDMappingDetailsResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetSNOMEDMappingDetails_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *eMRServiceClient) SearchKBM(ctx context.Context, in *SearchKBMRequest, opts ...grpc.CallOption) (*SearchKBMResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SearchKBMResponse)
@@ -372,6 +396,8 @@ type EMRServiceServer interface {
 	GetMasterICD10ByPoli(context.Context, *GetMasterICD10ByPoliRequest) (*GetMasterICD10ByPoliResponse, error)
 	GetMasterICD9(context.Context, *GetMasterICD9Request) (*GetMasterICD9Response, error)
 	GetICD9SuggestionsForTindakan(context.Context, *GetICD9SuggestionsForTindakanRequest) (*GetICD9SuggestionsForTindakanResponse, error)
+	GetMasterSNOMED(context.Context, *GetMasterSNOMEDRequest) (*GetMasterSNOMEDResponse, error)
+	GetSNOMEDMappingDetails(context.Context, *GetSNOMEDMappingDetailsRequest) (*GetSNOMEDMappingDetailsResponse, error)
 	// Master KBM (Existing)
 	SearchKBM(context.Context, *SearchKBMRequest) (*SearchKBMResponse, error)
 	GetKBMDetail(context.Context, *GetKBMDetailRequest) (*GetKBMDetailResponse, error)
@@ -440,6 +466,12 @@ func (UnimplementedEMRServiceServer) GetMasterICD9(context.Context, *GetMasterIC
 }
 func (UnimplementedEMRServiceServer) GetICD9SuggestionsForTindakan(context.Context, *GetICD9SuggestionsForTindakanRequest) (*GetICD9SuggestionsForTindakanResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetICD9SuggestionsForTindakan not implemented")
+}
+func (UnimplementedEMRServiceServer) GetMasterSNOMED(context.Context, *GetMasterSNOMEDRequest) (*GetMasterSNOMEDResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterSNOMED not implemented")
+}
+func (UnimplementedEMRServiceServer) GetSNOMEDMappingDetails(context.Context, *GetSNOMEDMappingDetailsRequest) (*GetSNOMEDMappingDetailsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSNOMEDMappingDetails not implemented")
 }
 func (UnimplementedEMRServiceServer) SearchKBM(context.Context, *SearchKBMRequest) (*SearchKBMResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchKBM not implemented")
@@ -750,6 +782,42 @@ func _EMRService_GetICD9SuggestionsForTindakan_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EMRService_GetMasterSNOMED_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterSNOMEDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetMasterSNOMED(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetMasterSNOMED_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetMasterSNOMED(ctx, req.(*GetMasterSNOMEDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetSNOMEDMappingDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSNOMEDMappingDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetSNOMEDMappingDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetSNOMEDMappingDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetSNOMEDMappingDetails(ctx, req.(*GetSNOMEDMappingDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _EMRService_SearchKBM_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchKBMRequest)
 	if err := dec(in); err != nil {
@@ -1028,6 +1096,14 @@ var EMRService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetICD9SuggestionsForTindakan",
 			Handler:    _EMRService_GetICD9SuggestionsForTindakan_Handler,
+		},
+		{
+			MethodName: "GetMasterSNOMED",
+			Handler:    _EMRService_GetMasterSNOMED_Handler,
+		},
+		{
+			MethodName: "GetSNOMEDMappingDetails",
+			Handler:    _EMRService_GetSNOMEDMappingDetails_Handler,
 		},
 		{
 			MethodName: "SearchKBM",

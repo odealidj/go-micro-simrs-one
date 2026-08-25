@@ -205,3 +205,40 @@ export const getMedicalRecord = async (encounterNo: string): Promise<GetMedicalR
     return null;
   }
 };
+
+export interface SNOMEDICD10MapDetail {
+  icd10_code: string;
+  icd10_name_id: string;
+  icd10_name_en: string;
+  chapter_code: string;
+  block_code: string;
+  map_group: number;
+  map_priority: number;
+  map_rule: string;
+  map_advice: string;
+  is_primary: boolean;
+}
+
+export interface SNOMEDICD9MapDetail {
+  icd9_code: string;
+  icd9_name_id: string;
+  icd9_name_en: string;
+  category: string;
+  is_primary: boolean;
+}
+
+export interface SNOMEDMappingResponse {
+  concept_id: string;
+  icd10_mappings: SNOMEDICD10MapDetail[];
+  icd9_mappings: SNOMEDICD9MapDetail[];
+}
+
+export const getSNOMEDMappings = async (conceptId: string): Promise<SNOMEDMappingResponse | null> => {
+  try {
+    const { data } = await api.get<{ data: SNOMEDMappingResponse }>(`/master/snomed/${conceptId}/mappings`);
+    return data?.data || null;
+  } catch (error) {
+    console.error("Failed to fetch SNOMED mappings", error);
+    return null;
+  }
+};

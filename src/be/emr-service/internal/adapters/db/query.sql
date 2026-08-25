@@ -314,3 +314,36 @@ INSERT INTO encounter_resep (
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9
 ) RETURNING *;
+
+-- name: GetSNOMEDConcepts :many
+SELECT c.*,
+       COUNT(DISTINCT m10.icd10_code)::int AS icd10_count,
+       COUNT(DISTINCT m9.icd9_code)::int AS icd9_count
+FROM snomed_concepts c
+LEFT JOIN snomed_icd10_mapping m10 ON c.concept_id = m10.snomed_concept_id
+LEFT JOIN snomed_icd9_mapping m9 ON c.concept_id = m9.snomed_concept_id
+WHERE c.deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR c.term_id ILIKE '%' || $1 || '%' OR c.fsn ILIKE '%' || $1 || '%' OR c.concept_id ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR c.semantic_tag = $2)
+GROUP BY c.concept_id
+ORDER BY c.concept_id ASC LIMIT $3 OFFSET $4;
+
+-- name: CountSNOMEDConcepts :one
+SELECT COUNT(*) FROM snomed_concepts
+WHERE deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR term_id ILIKE '%' || $1 || '%' OR fsn ILIKE '%' || $1 || '%' OR concept_id ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR semantic_tag = $2);
+
+-- name: GetSNOMEDICD10Mappings :many
+SELECT m.*, i.name_id AS icd10_name_id, i.name_en AS icd10_name_en, i.chapter_code, i.block_code
+FROM snomed_icd10_mapping m
+JOIN icd10_catalog i ON m.icd10_code = i.icd10_code
+WHERE m.snomed_concept_id = $1
+ORDER BY m.is_primary DESC, m.map_priority ASC;
+
+-- name: GetSNOMEDICD9Mappings :many
+SELECT m.*, i.name_id AS icd9_name_id, i.name_en AS icd9_name_en, i.category
+FROM snomed_icd9_mapping m
+JOIN icd9cm_catalog i ON m.icd9_code = i.icd9_code
+WHERE m.snomed_concept_id = $1
+ORDER BY m.is_primary DESC;

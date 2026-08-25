@@ -21,6 +21,8 @@ service EMRService {
   rpc GetMasterICD10ByPoli (GetMasterICD10ByPoliRequest) returns (GetMasterICD10ByPoliResponse);
   rpc GetMasterICD9 (GetMasterICD9Request) returns (GetMasterICD9Response);
   rpc GetICD9SuggestionsForTindakan (GetICD9SuggestionsForTindakanRequest) returns (GetICD9SuggestionsForTindakanResponse);
+  rpc GetMasterSNOMED (GetMasterSNOMEDRequest) returns (GetMasterSNOMEDResponse);
+  rpc GetSNOMEDMappingDetails (GetSNOMEDMappingDetailsRequest) returns (GetSNOMEDMappingDetailsResponse);
 
   // Master KBM (Existing)
   rpc SearchKBM (SearchKBMRequest) returns (SearchKBMResponse);
@@ -443,4 +445,57 @@ message GetICD9SuggestionsForTindakanRequest {
 
 message GetICD9SuggestionsForTindakanResponse {
   repeated ICD9Suggestion suggestions = 1;
+}
+
+message SNOMEDItem {
+  string concept_id = 1;
+  string fsn = 2;
+  string term_id = 3;
+  string semantic_tag = 4;
+  bool is_active = 5;
+  int32 icd10_count = 6;
+  int32 icd9_count = 7;
+}
+
+message GetMasterSNOMEDRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+  string semantic_tag = 4;
+}
+
+message GetMasterSNOMEDResponse {
+  repeated SNOMEDItem data = 1;
+  int32 total_count = 2;
+}
+
+message SNOMEDICD10MapDetail {
+  string icd10_code = 1;
+  string icd10_name_id = 2;
+  string icd10_name_en = 3;
+  string chapter_code = 4;
+  string block_code = 5;
+  int32 map_group = 6;
+  int32 map_priority = 7;
+  string map_rule = 8;
+  string map_advice = 9;
+  bool is_primary = 10;
+}
+
+message SNOMEDICD9MapDetail {
+  string icd9_code = 1;
+  string icd9_name_id = 2;
+  string icd9_name_en = 3;
+  string category = 4;
+  bool is_primary = 5;
+}
+
+message GetSNOMEDMappingDetailsRequest {
+  string concept_id = 1;
+}
+
+message GetSNOMEDMappingDetailsResponse {
+  string concept_id = 1;
+  repeated SNOMEDICD10MapDetail icd10_mappings = 2;
+  repeated SNOMEDICD9MapDetail icd9_mappings = 3;
 }

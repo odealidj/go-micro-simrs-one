@@ -21,7 +21,7 @@ INSERT INTO encounter_diagnoses (
     auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, created_by
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
-) RETURNING id, encounter_no, icd10_code, diagnosis_type, sequence, clinical_notes, severity_level, severity_set_by, severity_set_role, auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, is_verified_by_rm, verified_by, verified_at, created_by, created_at, updated_at, deleted_dt
+) RETURNING id, encounter_no, icd10_code, diagnosis_type, sequence, clinical_notes, severity_level, severity_set_by, severity_set_role, auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, is_verified_by_rm, verified_by, verified_at, created_by, created_at, updated_at, deleted_dt, snomed_concept_id
 `
 
 type AddEncounterDiagnosisParams struct {
@@ -77,6 +77,7 @@ func (q *Queries) AddEncounterDiagnosis(ctx context.Context, arg AddEncounterDia
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedDt,
+		&i.SnomedConceptID,
 	)
 	return i, err
 }
@@ -136,7 +137,7 @@ INSERT INTO encounter_tindakan (
     id, encounter_no, kode_tindakan, qty, price, total, payment_status, created_by
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8
-) RETURNING id, encounter_no, kode_tindakan, qty, price, total, payment_status, created_by, created_at, updated_at, deleted_dt
+) RETURNING id, encounter_no, kode_tindakan, qty, price, total, payment_status, created_by, created_at, updated_at, deleted_dt, snomed_concept_id
 `
 
 type AddEncounterTindakanParams struct {
@@ -174,6 +175,7 @@ func (q *Queries) AddEncounterTindakan(ctx context.Context, arg AddEncounterTind
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletedDt,
+		&i.SnomedConceptID,
 	)
 	return i, err
 }
@@ -371,6 +373,25 @@ func (q *Queries) CountPolyclinics(ctx context.Context, dollar_1 string) (int64,
 	return count, err
 }
 
+const countSNOMEDConcepts = `-- name: CountSNOMEDConcepts :one
+SELECT COUNT(*) FROM snomed_concepts
+WHERE deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR term_id ILIKE '%' || $1 || '%' OR fsn ILIKE '%' || $1 || '%' OR concept_id ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR semantic_tag = $2)
+`
+
+type CountSNOMEDConceptsParams struct {
+	Column1 string
+	Column2 string
+}
+
+func (q *Queries) CountSNOMEDConcepts(ctx context.Context, arg CountSNOMEDConceptsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countSNOMEDConcepts, arg.Column1, arg.Column2)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countTindakan = `-- name: CountTindakan :one
 SELECT COUNT(*) FROM master_tindakan
 WHERE is_active = true AND deleted_dt IS NULL
@@ -547,7 +568,7 @@ func (q *Queries) GetClinicWaitAggregateWithoutDiagnosis(ctx context.Context, ar
 }
 
 const getEncounterDiagnoses = `-- name: GetEncounterDiagnoses :many
-SELECT d.id, d.encounter_no, d.icd10_code, d.diagnosis_type, d.sequence, d.clinical_notes, d.severity_level, d.severity_set_by, d.severity_set_role, d.auto_kbm_code, d.auto_kbm_name, d.kbm_mapping_confidence, d.is_verified_by_rm, d.verified_by, d.verified_at, d.created_by, d.created_at, d.updated_at, d.deleted_dt, i.name_id as icd10_name
+SELECT d.id, d.encounter_no, d.icd10_code, d.diagnosis_type, d.sequence, d.clinical_notes, d.severity_level, d.severity_set_by, d.severity_set_role, d.auto_kbm_code, d.auto_kbm_name, d.kbm_mapping_confidence, d.is_verified_by_rm, d.verified_by, d.verified_at, d.created_by, d.created_at, d.updated_at, d.deleted_dt, d.snomed_concept_id, i.name_id as icd10_name
 FROM encounter_diagnoses d
 JOIN icd10_catalog i ON d.icd10_code = i.icd10_code
 WHERE d.encounter_no = $1 AND d.deleted_dt IS NULL
@@ -574,6 +595,7 @@ type GetEncounterDiagnosesRow struct {
 	CreatedAt            sql.NullTime
 	UpdatedAt            sql.NullTime
 	DeletedDt            sql.NullTime
+	SnomedConceptID      sql.NullString
 	Icd10Name            string
 }
 
@@ -606,6 +628,7 @@ func (q *Queries) GetEncounterDiagnoses(ctx context.Context, encounterNo string)
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedDt,
+			&i.SnomedConceptID,
 			&i.Icd10Name,
 		); err != nil {
 			return nil, err
@@ -665,7 +688,7 @@ func (q *Queries) GetEncounterResep(ctx context.Context, encounterNo string) ([]
 }
 
 const getEncounterTindakan = `-- name: GetEncounterTindakan :many
-SELECT t.id, t.encounter_no, t.kode_tindakan, t.qty, t.price, t.total, t.payment_status, t.created_by, t.created_at, t.updated_at, t.deleted_dt, m.nama_tindakan, m.internal_category
+SELECT t.id, t.encounter_no, t.kode_tindakan, t.qty, t.price, t.total, t.payment_status, t.created_by, t.created_at, t.updated_at, t.deleted_dt, t.snomed_concept_id, m.nama_tindakan, m.internal_category
 FROM encounter_tindakan t
 JOIN master_tindakan m ON t.kode_tindakan = m.kode_tindakan
 WHERE t.encounter_no = $1 AND t.deleted_dt IS NULL
@@ -684,6 +707,7 @@ type GetEncounterTindakanRow struct {
 	CreatedAt        sql.NullTime
 	UpdatedAt        sql.NullTime
 	DeletedDt        sql.NullTime
+	SnomedConceptID  sql.NullString
 	NamaTindakan     string
 	InternalCategory sql.NullString
 }
@@ -709,6 +733,7 @@ func (q *Queries) GetEncounterTindakan(ctx context.Context, encounterNo string) 
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedDt,
+			&i.SnomedConceptID,
 			&i.NamaTindakan,
 			&i.InternalCategory,
 		); err != nil {
@@ -1356,6 +1381,187 @@ func (q *Queries) GetPolyclinics(ctx context.Context, arg GetPolyclinicsParams) 
 			&i.UpdatedAt,
 			&i.DeletedDt,
 			&i.DeletedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSNOMEDConcepts = `-- name: GetSNOMEDConcepts :many
+SELECT c.concept_id, c.fsn, c.term_id, c.semantic_tag, c.is_active, c.created_at, c.deleted_dt, c.deleted_by,
+       COUNT(DISTINCT m10.icd10_code)::int AS icd10_count,
+       COUNT(DISTINCT m9.icd9_code)::int AS icd9_count
+FROM snomed_concepts c
+LEFT JOIN snomed_icd10_mapping m10 ON c.concept_id = m10.snomed_concept_id
+LEFT JOIN snomed_icd9_mapping m9 ON c.concept_id = m9.snomed_concept_id
+WHERE c.deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR c.term_id ILIKE '%' || $1 || '%' OR c.fsn ILIKE '%' || $1 || '%' OR c.concept_id ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR c.semantic_tag = $2)
+GROUP BY c.concept_id
+ORDER BY c.concept_id ASC LIMIT $3 OFFSET $4
+`
+
+type GetSNOMEDConceptsParams struct {
+	Column1 string
+	Column2 string
+	Limit   int32
+	Offset  int32
+}
+
+type GetSNOMEDConceptsRow struct {
+	ConceptID   string
+	Fsn         string
+	TermID      string
+	SemanticTag string
+	IsActive    bool
+	CreatedAt   sql.NullTime
+	DeletedDt   sql.NullTime
+	DeletedBy   uuid.NullUUID
+	Icd10Count  int32
+	Icd9Count   int32
+}
+
+func (q *Queries) GetSNOMEDConcepts(ctx context.Context, arg GetSNOMEDConceptsParams) ([]GetSNOMEDConceptsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getSNOMEDConcepts,
+		arg.Column1,
+		arg.Column2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSNOMEDConceptsRow
+	for rows.Next() {
+		var i GetSNOMEDConceptsRow
+		if err := rows.Scan(
+			&i.ConceptID,
+			&i.Fsn,
+			&i.TermID,
+			&i.SemanticTag,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.DeletedDt,
+			&i.DeletedBy,
+			&i.Icd10Count,
+			&i.Icd9Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSNOMEDICD10Mappings = `-- name: GetSNOMEDICD10Mappings :many
+SELECT m.snomed_concept_id, m.icd10_code, m.map_group, m.map_priority, m.map_rule, m.map_advice, m.is_primary, m.created_at, i.name_id AS icd10_name_id, i.name_en AS icd10_name_en, i.chapter_code, i.block_code
+FROM snomed_icd10_mapping m
+JOIN icd10_catalog i ON m.icd10_code = i.icd10_code
+WHERE m.snomed_concept_id = $1
+ORDER BY m.is_primary DESC, m.map_priority ASC
+`
+
+type GetSNOMEDICD10MappingsRow struct {
+	SnomedConceptID string
+	Icd10Code       string
+	MapGroup        int32
+	MapPriority     int32
+	MapRule         string
+	MapAdvice       string
+	IsPrimary       bool
+	CreatedAt       sql.NullTime
+	Icd10NameID     string
+	Icd10NameEn     string
+	ChapterCode     sql.NullString
+	BlockCode       sql.NullString
+}
+
+func (q *Queries) GetSNOMEDICD10Mappings(ctx context.Context, snomedConceptID string) ([]GetSNOMEDICD10MappingsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getSNOMEDICD10Mappings, snomedConceptID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSNOMEDICD10MappingsRow
+	for rows.Next() {
+		var i GetSNOMEDICD10MappingsRow
+		if err := rows.Scan(
+			&i.SnomedConceptID,
+			&i.Icd10Code,
+			&i.MapGroup,
+			&i.MapPriority,
+			&i.MapRule,
+			&i.MapAdvice,
+			&i.IsPrimary,
+			&i.CreatedAt,
+			&i.Icd10NameID,
+			&i.Icd10NameEn,
+			&i.ChapterCode,
+			&i.BlockCode,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSNOMEDICD9Mappings = `-- name: GetSNOMEDICD9Mappings :many
+SELECT m.snomed_concept_id, m.icd9_code, m.is_primary, m.created_at, i.name_id AS icd9_name_id, i.name_en AS icd9_name_en, i.category
+FROM snomed_icd9_mapping m
+JOIN icd9cm_catalog i ON m.icd9_code = i.icd9_code
+WHERE m.snomed_concept_id = $1
+ORDER BY m.is_primary DESC
+`
+
+type GetSNOMEDICD9MappingsRow struct {
+	SnomedConceptID string
+	Icd9Code        string
+	IsPrimary       bool
+	CreatedAt       sql.NullTime
+	Icd9NameID      sql.NullString
+	Icd9NameEn      string
+	Category        sql.NullString
+}
+
+func (q *Queries) GetSNOMEDICD9Mappings(ctx context.Context, snomedConceptID string) ([]GetSNOMEDICD9MappingsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getSNOMEDICD9Mappings, snomedConceptID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSNOMEDICD9MappingsRow
+	for rows.Next() {
+		var i GetSNOMEDICD9MappingsRow
+		if err := rows.Scan(
+			&i.SnomedConceptID,
+			&i.Icd9Code,
+			&i.IsPrimary,
+			&i.CreatedAt,
+			&i.Icd9NameID,
+			&i.Icd9NameEn,
+			&i.Category,
 		); err != nil {
 			return nil, err
 		}
