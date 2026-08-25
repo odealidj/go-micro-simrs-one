@@ -64,6 +64,12 @@ export function ObatPage() {
   }`;
 
   const { data: rawData, loading, error, meta } = useMasterData<ObatItem>(endpoint);
+  const { data: polyclinicList } = useMasterData<any>("/master/polyclinics?page_size=100");
+
+  const getPolyclinicName = (code: string) => {
+    const found = polyclinicList?.find((p: any) => p.code === code);
+    return found ? found.name : `Poli ${code}`;
+  };
 
   // Client-side quick filtering if user selects FORNAS/PRB/Unmapped
   const filteredData = useMemo(() => {
@@ -551,16 +557,21 @@ export function ObatPage() {
                     Memuat data poliklinik...
                   </div>
                 ) : polyclinics.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    {polyclinics.map((p) => (
-                      <span
-                        key={p}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-white text-indigo-700 border border-indigo-200 shadow-2xs"
-                      >
-                        <Building2 className="w-3.5 h-3.5 text-indigo-500" />
-                        Poli {p}
-                      </span>
-                    ))}
+                  <div className="flex flex-wrap gap-2.5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    {polyclinics.map((code) => {
+                      const poliName = getPolyclinicName(code);
+                      return (
+                        <div
+                          key={code}
+                          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-indigo-200 text-indigo-800 shadow-2xs text-sm"
+                        >
+                          <span className="font-mono font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs">
+                            {code}
+                          </span>
+                          <span className="font-medium text-slate-800">{poliName}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-5 bg-slate-50 rounded-xl border border-slate-100 text-slate-400 text-sm">
