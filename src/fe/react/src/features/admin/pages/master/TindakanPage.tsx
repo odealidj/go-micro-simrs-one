@@ -37,15 +37,30 @@ export function TindakanPage() {
     <>
       <MasterDataTable<any>
         title="Tindakan & Tarif"
-        description="Data master"
+        description="Data master tindakan medis beserta tarif dan pemetaan kode prosedur ICD-9"
         endpoint="/master/tindakan"
         requiresPoliFilter={false}
-        columns={["ID Tindakan","Nama Tindakan","Harga Dasar","Aksi"]}
+        columns={["ID Tindakan", "Nama Tindakan", "Harga Dasar", "Pemetaan ICD-9", "Aksi"]}
         renderRow={(item, i) => (
           <tr key={i} className="hover:bg-slate-50/50 transition-colors">
             <td className="px-6 py-4 font-medium text-slate-900">{item.kode_tindakan || "-"}</td>
             <td className="px-6 py-4 text-slate-600">{item.nama_tindakan || "-"}</td>
-            <td className="px-6 py-4 text-slate-600">{item.base_price || 0}</td>
+            <td className="px-6 py-4 text-slate-600">
+              {Number(item.base_price || 0).toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })}
+            </td>
+            <td className="px-6 py-4">
+              {item.icd9_count && item.icd9_count > 0 ? (
+                <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 font-medium inline-flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Terpetakan ({item.icd9_count} ICD-9)
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-amber-50/80 text-amber-700 border-amber-200/90 hover:bg-amber-100/80 font-medium inline-flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  Belum Dipetakan
+                </Badge>
+              )}
+            </td>
             <td className="px-6 py-4 text-right">
               <Button variant="outline" size="sm" onClick={() => handleViewIcd9(item)}>
                 <Eye className="w-4 h-4 mr-2" />

@@ -210,7 +210,7 @@ be-stop-local-all: be-stop-local-prometheus be-stop-local-api-gateway be-stop-lo
 be-run-local-auth-service:
 	@echo "Starting local auth-service..."
 	@cd src/be/auth-service && go build -o tmp-main cmd/server/main.go
-	@cd src/be/auth-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50051 nohup ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/auth-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50051 setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-auth-service:
 	@echo "Stopping local auth-service..."
@@ -221,7 +221,7 @@ be-stop-local-auth-service:
 be-run-local-patient-service:
 	@echo "Starting local patient-service..."
 	@cd src/be/patient-service && go build -o tmp-main cmd/server/main.go
-	@cd src/be/patient-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50052 nohup ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/patient-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50052 setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-patient-service:
 	@echo "Stopping local patient-service..."
@@ -232,7 +232,7 @@ be-stop-local-patient-service:
 be-run-local-registration-service:
 	@echo "Starting local registration-service..."
 	@cd src/be/registration-service && go build -o tmp-main cmd/server/main.go
-	@cd src/be/registration-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50053 nohup ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/registration-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50053 setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-registration-service:
 	@echo "Stopping local registration-service..."
@@ -243,7 +243,7 @@ be-stop-local-registration-service:
 be-run-local-emr-service:
 	@echo "Starting local emr-service..."
 	@cd src/be/emr-service && go build -o tmp-main cmd/server/main.go
-	@cd src/be/emr-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50054 nohup ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/emr-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50054 setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-emr-service:
 	@echo "Stopping local emr-service..."
@@ -254,7 +254,7 @@ be-stop-local-emr-service:
 be-run-local-pharmacy-service:
 	@echo "Starting local pharmacy-service..."
 	@cd src/be/pharmacy-service && go build -o tmp-main cmd/server/main.go
-	@cd src/be/pharmacy-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50055 nohup ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/pharmacy-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50055 setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-pharmacy-service:
 	@echo "Stopping local pharmacy-service..."
@@ -265,7 +265,7 @@ be-stop-local-pharmacy-service:
 be-run-local-billing-service:
 	@echo "Starting local billing-service..."
 	@cd src/be/billing-service && go build -o tmp-main cmd/server/main.go
-	@cd src/be/billing-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50056 nohup ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/billing-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50056 setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-billing-service:
 	@echo "Stopping local billing-service..."
@@ -276,7 +276,7 @@ be-stop-local-billing-service:
 be-run-local-api-gateway:
 	@echo "Starting local api-gateway..."
 	@cd src/be/api-gateway && go build -o tmp-main ./cmd/server
-	@cd src/be/api-gateway && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) PROMETHEUS_URL=$(LOCAL_PROMETHEUS_URL) AUTH_SERVICE_ADDR=localhost:50051 PATIENT_SERVICE_ADDR=localhost:50052 REGISTRATION_SERVICE_ADDR=localhost:50053 EMR_SERVICE_ADDR=localhost:50054 PHARMACY_SERVICE_ADDR=localhost:50055 BILLING_SERVICE_ADDR=localhost:50056 PORT=8080 GOOGLE_API_KEY=$(GOOGLE_API_KEY) nohup ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/api-gateway && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) PROMETHEUS_URL=$(LOCAL_PROMETHEUS_URL) AUTH_SERVICE_ADDR=localhost:50051 PATIENT_SERVICE_ADDR=localhost:50052 REGISTRATION_SERVICE_ADDR=localhost:50053 EMR_SERVICE_ADDR=localhost:50054 PHARMACY_SERVICE_ADDR=localhost:50055 BILLING_SERVICE_ADDR=localhost:50056 PORT=8080 GOOGLE_API_KEY=$(GOOGLE_API_KEY) setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-api-gateway:
 	@echo "Stopping local api-gateway..."

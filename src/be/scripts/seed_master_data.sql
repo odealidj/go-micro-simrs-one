@@ -164,6 +164,16 @@ INSERT INTO emr.tindakan_icd9_mapping (kode_tindakan, icd9_code, is_primary) VAL
 ('TND-006', '86.59', true)  -- Jahit Luka -> Jahit Luka
 ON CONFLICT (kode_tindakan, icd9_code) DO NOTHING;
 
+-- KBM to ICD-10 Mappings
+INSERT INTO emr.kbm_icd10_mappings (kbm_code, icd10_code, is_primary, mapping_confidence) VALUES
+('KBM-001', 'A01.0', true, '0.95'),
+('KBM-011', 'J06.9', true, '0.90'),
+('KBM-011', 'J00', false, '0.80'),
+('KBM-021', 'I10', true, '0.95'),
+('KBM-031', 'E11.9', true, '0.95'),
+('KBM-031', 'E11.8', false, '0.85')
+ON CONFLICT (kbm_code, icd10_code) DO NOTHING;
+
 -- Mappings Pharmacy
 INSERT INTO pharmacy.inventory_polyclinic_mappings (item_code, polyclinic_code) VALUES
 ('OBT-001', '01'),

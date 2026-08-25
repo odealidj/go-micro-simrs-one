@@ -375,7 +375,7 @@ const countTindakan = `-- name: CountTindakan :one
 SELECT COUNT(*) FROM master_tindakan
 WHERE is_active = true AND deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR nama_tindakan ILIKE '%' || $1 || '%' OR kode_tindakan ILIKE '%' || $1 || '%')
-  AND ($2::text IS NULL OR $2::text = '' OR kode_tindakan ILIKE '%' || $2 || '%')
+  AND ($2::text IS NULL OR kode_tindakan ILIKE '%' || $2 || '%')
 `
 
 type CountTindakanParams struct {
@@ -726,9 +726,12 @@ func (q *Queries) GetEncounterTindakan(ctx context.Context, encounterNo string) 
 }
 
 const getICD10 = `-- name: GetICD10 :many
-SELECT i.icd10_code, i.name_en, i.name_id, i.chapter_code, i.block_code, i.is_active, i.created_at, i.updated_at, i.deleted_dt, i.coding_rule, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT i.icd10_code, i.name_en, i.name_id, i.chapter_code, i.block_code, i.is_active, i.created_at, i.updated_at, i.deleted_dt, i.coding_rule, 
+       COALESCE(array_agg(DISTINCT m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT k.kbm_code)::int AS kbm_count
 FROM icd10_catalog i
 LEFT JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code AND m.deleted_dt IS NULL
+LEFT JOIN kbm_icd10_mappings k ON i.icd10_code = k.icd10_code
 WHERE i.deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR i.name_en ILIKE '%' || $1 || '%' OR i.name_id ILIKE '%' || $1 || '%' OR i.icd10_code ILIKE '%' || $1 || '%')
   AND ($2::text IS NULL OR $2::text = '' OR i.icd10_code ILIKE '%' || $2 || '%')
@@ -755,6 +758,7 @@ type GetICD10Row struct {
 	DeletedDt   sql.NullTime
 	CodingRule  sql.NullString
 	Polyclinics []string
+	KbmCount    int32
 }
 
 func (q *Queries) GetICD10(ctx context.Context, arg GetICD10Params) ([]GetICD10Row, error) {
@@ -783,6 +787,7 @@ func (q *Queries) GetICD10(ctx context.Context, arg GetICD10Params) ([]GetICD10R
 			&i.DeletedDt,
 			&i.CodingRule,
 			pq.Array(&i.Polyclinics),
+			&i.KbmCount,
 		); err != nil {
 			return nil, err
 		}
@@ -798,10 +803,13 @@ func (q *Queries) GetICD10(ctx context.Context, arg GetICD10Params) ([]GetICD10R
 }
 
 const getICD10ByPolyclinic = `-- name: GetICD10ByPolyclinic :many
-SELECT i.icd10_code, i.name_en, i.name_id, i.chapter_code, i.block_code, i.is_active, i.created_at, i.updated_at, i.deleted_dt, i.coding_rule, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT i.icd10_code, i.name_en, i.name_id, i.chapter_code, i.block_code, i.is_active, i.created_at, i.updated_at, i.deleted_dt, i.coding_rule, 
+       COALESCE(array_agg(DISTINCT m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT k.kbm_code)::int AS kbm_count
 FROM icd10_catalog i
 JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code
 LEFT JOIN icd10_polyclinic_mappings m2 ON i.icd10_code = m2.icd10_code AND m2.deleted_dt IS NULL
+LEFT JOIN kbm_icd10_mappings k ON i.icd10_code = k.icd10_code
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND ($2::text IS NULL OR $2::text = '' OR i.name_en ILIKE '%' || $2 || '%' OR i.name_id ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
   AND ($3::text IS NULL OR $3::text = '' OR i.icd10_code ILIKE '%' || $3 || '%')
@@ -829,6 +837,7 @@ type GetICD10ByPolyclinicRow struct {
 	DeletedDt   sql.NullTime
 	CodingRule  sql.NullString
 	Polyclinics []string
+	KbmCount    int32
 }
 
 func (q *Queries) GetICD10ByPolyclinic(ctx context.Context, arg GetICD10ByPolyclinicParams) ([]GetICD10ByPolyclinicRow, error) {
@@ -858,6 +867,7 @@ func (q *Queries) GetICD10ByPolyclinic(ctx context.Context, arg GetICD10ByPolycl
 			&i.DeletedDt,
 			&i.CodingRule,
 			pq.Array(&i.Polyclinics),
+			&i.KbmCount,
 		); err != nil {
 			return nil, err
 		}
@@ -1361,9 +1371,12 @@ func (q *Queries) GetPolyclinics(ctx context.Context, arg GetPolyclinicsParams) 
 }
 
 const getTindakan = `-- name: GetTindakan :many
-SELECT t.kode_tindakan, t.nama_tindakan, t.base_price, t.is_active, t.created_at, t.updated_at, t.deleted_dt, t.deleted_by, t.internal_category, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT t.kode_tindakan, t.nama_tindakan, t.base_price, t.is_active, t.created_at, t.updated_at, t.deleted_dt, t.deleted_by, t.internal_category, 
+       COALESCE(array_agg(DISTINCT m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT map.icd9_code)::int AS icd9_count
 FROM master_tindakan t
 LEFT JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan AND m.deleted_dt IS NULL
+LEFT JOIN tindakan_icd9_mapping map ON t.kode_tindakan = map.kode_tindakan
 WHERE t.is_active = true AND t.deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR t.nama_tindakan ILIKE '%' || $1 || '%' OR t.kode_tindakan ILIKE '%' || $1 || '%')
   AND ($2::text IS NULL OR $2::text = '' OR t.kode_tindakan ILIKE '%' || $2 || '%')
@@ -1389,6 +1402,7 @@ type GetTindakanRow struct {
 	DeletedBy        uuid.NullUUID
 	InternalCategory sql.NullString
 	Polyclinics      []string
+	Icd9Count        int32
 }
 
 func (q *Queries) GetTindakan(ctx context.Context, arg GetTindakanParams) ([]GetTindakanRow, error) {
@@ -1416,6 +1430,7 @@ func (q *Queries) GetTindakan(ctx context.Context, arg GetTindakanParams) ([]Get
 			&i.DeletedBy,
 			&i.InternalCategory,
 			pq.Array(&i.Polyclinics),
+			&i.Icd9Count,
 		); err != nil {
 			return nil, err
 		}
@@ -1431,10 +1446,13 @@ func (q *Queries) GetTindakan(ctx context.Context, arg GetTindakanParams) ([]Get
 }
 
 const getTindakanByPolyclinic = `-- name: GetTindakanByPolyclinic :many
-SELECT t.kode_tindakan, t.nama_tindakan, t.base_price, t.is_active, t.created_at, t.updated_at, t.deleted_dt, t.deleted_by, t.internal_category, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT t.kode_tindakan, t.nama_tindakan, t.base_price, t.is_active, t.created_at, t.updated_at, t.deleted_dt, t.deleted_by, t.internal_category, 
+       COALESCE(array_agg(DISTINCT m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT map.icd9_code)::int AS icd9_count
 FROM master_tindakan t
 JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan
 LEFT JOIN tindakan_polyclinic_mappings m2 ON t.kode_tindakan = m2.kode_tindakan AND m2.deleted_dt IS NULL
+LEFT JOIN tindakan_icd9_mapping map ON t.kode_tindakan = map.kode_tindakan
 WHERE t.is_active = true AND t.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
   AND ($2::text IS NULL OR $2::text = '' OR t.nama_tindakan ILIKE '%' || $2 || '%' OR t.kode_tindakan ILIKE '%' || $2 || '%')
@@ -1462,6 +1480,7 @@ type GetTindakanByPolyclinicRow struct {
 	DeletedBy        uuid.NullUUID
 	InternalCategory sql.NullString
 	Polyclinics      []string
+	Icd9Count        int32
 }
 
 func (q *Queries) GetTindakanByPolyclinic(ctx context.Context, arg GetTindakanByPolyclinicParams) ([]GetTindakanByPolyclinicRow, error) {
@@ -1490,6 +1509,7 @@ func (q *Queries) GetTindakanByPolyclinic(ctx context.Context, arg GetTindakanBy
 			&i.DeletedBy,
 			&i.InternalCategory,
 			pq.Array(&i.Polyclinics),
+			&i.Icd9Count,
 		); err != nil {
 			return nil, err
 		}

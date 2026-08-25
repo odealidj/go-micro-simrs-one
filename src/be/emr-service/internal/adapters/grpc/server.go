@@ -447,6 +447,7 @@ func (s *EMRGrpcServer) GetMasterTindakan(ctx context.Context, req *pb.GetMaster
 			NamaTindakan: t.NamaTindakan,
 			BasePrice:    basePrice, // we can parse string from numeric or use Float64Value if available. wait pgtype.Numeric needs proper parsing.
 			Polyclinics:  t.Polyclinics,
+			Icd9Count:    t.Icd9Count,
 		})
 	}
 	return &pb.GetMasterTindakanResponse{Data: data, TotalCount: int32(count)}, nil
@@ -490,6 +491,7 @@ func (s *EMRGrpcServer) GetMasterTindakanByPoli(ctx context.Context, req *pb.Get
 			NamaTindakan: t.NamaTindakan,
 			BasePrice:    basePrice,
 			Polyclinics:  t.Polyclinics,
+			Icd9Count:    t.Icd9Count,
 		})
 	}
 	return &pb.GetMasterTindakanByPoliResponse{Data: data, TotalCount: int32(count)}, nil
@@ -533,6 +535,7 @@ func (s *EMRGrpcServer) GetMasterICD10(ctx context.Context, req *pb.GetMasterICD
 			BlockCode:   i.BlockCode.String,
 			IsActive:    i.IsActive.Bool,
 			Polyclinics: i.Polyclinics,
+			KbmCount:    i.KbmCount,
 		})
 	}
 	return &pb.GetMasterICD10Response{Data: data, TotalCount: int32(count)}, nil
@@ -578,6 +581,7 @@ func (s *EMRGrpcServer) GetMasterICD10ByPoli(ctx context.Context, req *pb.GetMas
 			BlockCode:   i.BlockCode.String,
 			IsActive:    i.IsActive.Bool,
 			Polyclinics: i.Polyclinics,
+			KbmCount:    i.KbmCount,
 		})
 	}
 	return &pb.GetMasterICD10ByPoliResponse{Data: data, TotalCount: int32(count)}, nil
