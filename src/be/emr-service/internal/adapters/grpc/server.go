@@ -670,3 +670,92 @@ func (s *EMRGrpcServer) FinalizeMedicalRecord(ctx context.Context, req *pb.Final
 		ValidationErrors: errorsList,
 	}, nil
 }
+
+func (s *EMRGrpcServer) GetMasterSNOMED(ctx context.Context, req *pb.GetMasterSNOMEDRequest) (*pb.GetMasterSNOMEDResponse, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	res, err := s.queries.GetSNOMEDConcepts(ctx, db.GetSNOMEDConceptsParams{
+		Column1: req.Search,
+		Column2: req.SemanticTag,
+		Limit:   pageSize,
+		Offset:  offset,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get snomed concepts: %v", err)
+	}
+
+	count, err := s.queries.CountSNOMEDConcepts(ctx, db.CountSNOMEDConceptsParams{
+		Column1: req.Search,
+		Column2: req.SemanticTag,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count snomed concepts: %v", err)
+	}
+
+	var data []*pb.SNOMEDItem
+	for _, c := range res {
+		data = append(data, &pb.SNOMEDItem{
+			ConceptId:   c.ConceptID,
+			Fsn:         c.Fsn,
+			TermId:      c.TermID,
+			SemanticTag: c.SemanticTag,
+			IsActive:    c.IsActive,
+			Icd10Count:  c.Icd10Count,
+			Icd9Count:   c.Icd9Count,
+		})
+	}
+	return &pb.GetMasterSNOMEDResponse{Data: data, TotalCount: int32(count)}, nil
+}
+
+func (s *EMRGrpcServer) GetSNOMEDMappingDetails(ctx context.Context, req *pb.GetSNOMEDMappingDetailsRequest) (*pb.GetSNOMEDMappingDetailsResponse, error) {
+	icd10Res, err := s.queries.GetSNOMEDICD10Mappings(ctx, req.ConceptId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get snomed icd10 mappings: %v", err)
+	}
+
+	icd9Res, err := s.queries.GetSNOMEDICD9Mappings(ctx, req.ConceptId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get snomed icd9 mappings: %v", err)
+	}
+
+	var icd10Mappings []*pb.SNOMEDICD10MapDetail
+	for _, m := range icd10Res {
+		icd10Mappings = append(icd10Mappings, &pb.SNOMEDICD10MapDetail{
+			Icd10Code:   m.Icd10Code,
+			Icd10NameId: m.Icd10NameID,
+			Icd10NameEn: m.Icd10NameEn,
+			ChapterCode: m.ChapterCode.String,
+			BlockCode:   m.BlockCode.String,
+			MapGroup:    m.MapGroup,
+			MapPriority: m.MapPriority,
+			MapRule:     m.MapRule,
+			MapAdvice:   m.MapAdvice,
+			IsPrimary:   m.IsPrimary,
+		})
+	}
+
+	var icd9Mappings []*pb.SNOMEDICD9MapDetail
+	for _, m := range icd9Res {
+		icd9Mappings = append(icd9Mappings, &pb.SNOMEDICD9MapDetail{
+			Icd9Code:   m.Icd9Code,
+			Icd9NameId: m.Icd9NameID.String,
+			Icd9NameEn: m.Icd9NameEn,
+			Category:   m.Category.String,
+			IsPrimary:  m.IsPrimary,
+		})
+	}
+
+	return &pb.GetSNOMEDMappingDetailsResponse{
+		ConceptId:     req.ConceptId,
+		Icd10Mappings: icd10Mappings,
+		Icd9Mappings:  icd9Mappings,
+	}, nil
+}

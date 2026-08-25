@@ -4,6 +4,9 @@
 
 TRUNCATE TABLE pharmacy.inventory_polyclinic_mappings CASCADE;
 TRUNCATE TABLE pharmacy.inventory CASCADE;
+TRUNCATE TABLE emr.snomed_icd9_mapping CASCADE;
+TRUNCATE TABLE emr.snomed_icd10_mapping CASCADE;
+TRUNCATE TABLE emr.snomed_concepts CASCADE;
 TRUNCATE TABLE emr.tindakan_icd9_mapping CASCADE;
 TRUNCATE TABLE emr.icd9cm_catalog CASCADE;
 TRUNCATE TABLE emr.kbm_icd10_mappings CASCADE;

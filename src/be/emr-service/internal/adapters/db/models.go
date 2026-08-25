@@ -43,6 +43,7 @@ type EncounterDiagnosis struct {
 	CreatedAt            sql.NullTime
 	UpdatedAt            sql.NullTime
 	DeletedDt            sql.NullTime
+	SnomedConceptID      sql.NullString
 }
 
 type EncounterResep struct {
@@ -61,17 +62,18 @@ type EncounterResep struct {
 }
 
 type EncounterTindakan struct {
-	ID            uuid.UUID
-	EncounterNo   string
-	KodeTindakan  string
-	Qty           int32
-	Price         string
-	Total         string
-	PaymentStatus string
-	CreatedBy     sql.NullString
-	CreatedAt     sql.NullTime
-	UpdatedAt     sql.NullTime
-	DeletedDt     sql.NullTime
+	ID              uuid.UUID
+	EncounterNo     string
+	KodeTindakan    string
+	Qty             int32
+	Price           string
+	Total           string
+	PaymentStatus   string
+	CreatedBy       sql.NullString
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+	DeletedDt       sql.NullTime
+	SnomedConceptID sql.NullString
 }
 
 type Icd10Catalog struct {
@@ -204,6 +206,35 @@ type Polyclinic struct {
 	UpdatedAt   sql.NullTime
 	DeletedDt   sql.NullTime
 	DeletedBy   uuid.NullUUID
+}
+
+type SnomedConcept struct {
+	ConceptID   string
+	Fsn         string
+	TermID      string
+	SemanticTag string
+	IsActive    bool
+	CreatedAt   sql.NullTime
+	DeletedDt   sql.NullTime
+	DeletedBy   uuid.NullUUID
+}
+
+type SnomedIcd10Mapping struct {
+	SnomedConceptID string
+	Icd10Code       string
+	MapGroup        int32
+	MapPriority     int32
+	MapRule         string
+	MapAdvice       string
+	IsPrimary       bool
+	CreatedAt       sql.NullTime
+}
+
+type SnomedIcd9Mapping struct {
+	SnomedConceptID string
+	Icd9Code        string
+	IsPrimary       bool
+	CreatedAt       sql.NullTime
 }
 
 type TindakanIcd9Mapping struct {

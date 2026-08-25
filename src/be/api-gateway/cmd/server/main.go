@@ -1299,6 +1299,59 @@ func main() {
 					}
 					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res.Suggestions})
 				})
+
+				r.Get("/master/snomed", func(w http.ResponseWriter, req *http.Request) {
+					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					if page < 1 {
+						page = 1
+					}
+					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if pageSize < 1 {
+						pageSize = 10
+					}
+					search := req.URL.Query().Get("search")
+					if search == "" {
+						search = req.URL.Query().Get("search_name")
+					}
+					if search == "" {
+						search = req.URL.Query().Get("search_code")
+					}
+					semanticTag := req.URL.Query().Get("semantic_tag")
+
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetMasterSNOMEDResponse, error) {
+						return emrClient.GetMasterSNOMED(req.Context(), &emrpb.GetMasterSNOMEDRequest{
+							Page:        int32(page),
+							PageSize:    int32(pageSize),
+							Search:      search,
+							SemanticTag: semanticTag,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
+					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
+					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
+				})
+
+				r.Get("/master/snomed/{concept_id}/mappings", func(w http.ResponseWriter, req *http.Request) {
+					conceptID := chi.URLParam(req, "concept_id")
+
+					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetSNOMEDMappingDetailsResponse, error) {
+						return emrClient.GetSNOMEDMappingDetails(req.Context(), &emrpb.GetSNOMEDMappingDetailsRequest{
+							ConceptId: conceptID,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
 				r.Get("/master/obat", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
