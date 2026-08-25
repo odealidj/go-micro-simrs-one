@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { MasterDataTable } from "../../components/MasterDataTable";
+import { useState, useMemo } from "react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,17 +11,23 @@ import {
 } from "@/components/ui/dialog";
 import {
   GitFork,
-  Layers,
   ShieldCheck,
   BookOpen,
   Building2,
   AlertCircle,
+  Search,
+  Pill,
+  ChevronLeft,
+  ChevronRight,
+  Package,
 } from "lucide-react";
 import {
   getObatMappingDetails,
   type ObatKFAMapDetail,
   type ObatDPHOMapDetail,
 } from "@/features/emr/api/emrApi";
+import { useMasterData } from "@/hooks/useMasterData";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface ObatItem {
   item_code: string;
@@ -32,18 +38,49 @@ interface ObatItem {
   kfa_count?: number;
   dpho_count?: number;
   is_fornas?: boolean;
+  is_prb?: boolean;
   kfa_code?: string;
   bpjs_dpho_code?: string;
   restriction?: string;
 }
 
 export function ObatPage() {
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "fornas" | "prb" | "unmapped">("all");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const debouncedSearch = useDebounce(search, 400);
+
+  // Detail Map Modal State
   const [selectedObat, setSelectedObat] = useState<ObatItem | null>(null);
   const [kfaMappings, setKfaMappings] = useState<ObatKFAMapDetail[]>([]);
   const [dphoMappings, setDphoMappings] = useState<ObatDPHOMapDetail[]>([]);
   const [polyclinics, setPolyclinics] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingMap, setLoadingMap] = useState(false);
+
+  const endpoint = `/master/obat?page=${page}&page_size=${pageSize}${
+    debouncedSearch ? `&search_name=${encodeURIComponent(debouncedSearch)}` : ""
+  }`;
+
+  const { data: rawData, loading, error, meta } = useMasterData<ObatItem>(endpoint);
+
+  // Client-side quick filtering if user selects FORNAS/PRB/Unmapped
+  const filteredData = useMemo(() => {
+    if (!rawData) return [];
+    if (filterType === "fornas") {
+      return rawData.filter((item) => item.is_fornas);
+    }
+    if (filterType === "prb") {
+      return rawData.filter((item) => item.is_prb);
+    }
+    if (filterType === "unmapped") {
+      return rawData.filter(
+        (item) => (!item.kfa_count || item.kfa_count === 0) && (!item.dpho_count || item.dpho_count === 0)
+      );
+    }
+    return rawData;
+  }, [rawData, filterType]);
 
   const handleViewDetailMap = async (obat: ObatItem) => {
     setSelectedObat(obat);
@@ -65,81 +102,277 @@ export function ObatPage() {
   };
 
   return (
-    <>
-      <MasterDataTable<ObatItem>
-        title="Inventaris Obat"
-        description="Master obat dan perbekalan farmasi terintegrasi standar KFA (SATUSEHAT) & DPHO/FORNAS (BPJS)"
-        endpoint="/master/obat"
-        requiresPoliFilter={false}
-        columns={["Kode Obat", "Nama Obat", "Harga", "Stok", "Pemetaan", "Aksi"]}
-        renderRow={(item, i) => (
-          <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-            <td className="px-6 py-4 font-mono font-bold text-blue-600">
-              {item.item_code || "-"}
-            </td>
-            <td className="px-6 py-4">
-              <div className="font-medium text-slate-900">{item.name || "-"}</div>
-              {item.restriction ? (
-                <div className="text-xs text-amber-700 italic mt-0.5 truncate max-w-xs" title={item.restriction}>
-                  Restriksi: {item.restriction}
-                </div>
-              ) : null}
-            </td>
-            <td className="px-6 py-4 font-mono font-semibold text-slate-700">
-              {Number(item.price || 0).toLocaleString("id-ID", {
-                style: "currency",
-                currency: "IDR",
-                maximumFractionDigits: 0,
-              })}
-            </td>
-            <td className="px-6 py-4">
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                  (item.stock_quantity ?? 0) > 50
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : (item.stock_quantity ?? 0) > 0
-                    ? "bg-amber-50 text-amber-700 border border-amber-200"
-                    : "bg-rose-50 text-rose-700 border border-rose-200"
-                }`}
-              >
-                {item.stock_quantity ?? 0} unit
-              </span>
-            </td>
-            <td className="px-6 py-4 text-center">
-              <div className="flex flex-col items-center gap-1">
-                {item.kfa_count && item.kfa_count > 0 ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <Layers className="w-3 h-3" /> {item.kfa_count} KFA
-                  </span>
-                ) : null}
-                {item.is_fornas ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                    <ShieldCheck className="w-3 h-3" /> FORNAS (BPJS)
-                  </span>
-                ) : item.dpho_count && item.dpho_count > 0 ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                    <ShieldCheck className="w-3 h-3" /> {item.dpho_count} DPHO
-                  </span>
-                ) : null}
-                {(!item.kfa_count || item.kfa_count === 0) && (!item.dpho_count || item.dpho_count === 0) && (
-                  <span className="text-xs text-slate-400">Belum Ada Map</span>
-                )}
-              </div>
-            </td>
-            <td className="px-6 py-4 text-right">
+    <div className="space-y-6">
+      {/* Header & Global Stats */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
+              <Pill className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
+                Inventaris Obat & Standarisasi
+              </h1>
+              <p className="text-sm text-slate-500 mt-0.5">
+                Master obat terintegrasi KFA Kemenkes (SATUSEHAT FHIR) & DPHO/FORNAS (BPJS Kesehatan)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {meta && (
+          <div className="flex items-center gap-2 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs">
+            <Package className="w-4 h-4 text-blue-600" />
+            <span className="text-xs font-semibold text-slate-600">Total Obat RS:</span>
+            <span className="text-xs font-bold text-slate-900 font-mono">
+              {meta.total_data || 0}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Main Table Card */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-5">
+        {/* Search & Quick Filter Toolbar */}
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 mb-5">
+          <div className="relative w-full lg:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Cari kode obat, nama obat..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="pl-9 bg-slate-50 border-slate-200 focus:bg-white text-sm"
+            />
+          </div>
+
+          {/* Quick Filter Buttons */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant={filterType === "all" ? "default" : "outline"}
+              size="sm"
+              className={filterType === "all" ? "bg-slate-800 hover:bg-slate-700 text-white" : "text-slate-600"}
+              onClick={() => setFilterType("all")}
+            >
+              Semua Obat
+            </Button>
+            <Button
+              variant={filterType === "fornas" ? "default" : "outline"}
+              size="sm"
+              className={
+                filterType === "fornas"
+                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  : "text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+              }
+              onClick={() => setFilterType("fornas")}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 mr-1" />
+              FORNAS (BPJS)
+            </Button>
+            <Button
+              variant={filterType === "prb" ? "default" : "outline"}
+              size="sm"
+              className={
+                filterType === "prb"
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "text-blue-700 border-blue-200 hover:bg-blue-50"
+              }
+              onClick={() => setFilterType("prb")}
+            >
+              PRB (Kronis)
+            </Button>
+            <Button
+              variant={filterType === "unmapped" ? "default" : "outline"}
+              size="sm"
+              className={
+                filterType === "unmapped"
+                  ? "bg-amber-600 hover:bg-amber-700 text-white"
+                  : "text-amber-700 border-amber-200 hover:bg-amber-50"
+              }
+              onClick={() => setFilterType("unmapped")}
+            >
+              <AlertCircle className="w-3.5 h-3.5 mr-1" />
+              Belum Mapping
+            </Button>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-600">
+            <thead className="bg-slate-50/80 text-slate-700 uppercase font-semibold text-xs border-b border-slate-100">
+              <tr>
+                <th className="px-4 py-3 rounded-l-lg">Kode Obat</th>
+                <th className="px-4 py-3">Nama Obat & Standar</th>
+                <th className="px-4 py-3">Tarif / Harga</th>
+                <th className="px-4 py-3 text-center">Stok</th>
+                <th className="px-4 py-3 text-center">Pemetaan Standar</th>
+                <th className="px-4 py-3 text-right rounded-r-lg">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8 text-slate-400">
+                    Memuat inventaris obat...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8 text-rose-500">
+                    {error}
+                  </td>
+                </tr>
+              ) : filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8 text-slate-400">
+                    Tidak ada obat yang sesuai dengan filter.
+                  </td>
+                </tr>
+              ) : (
+                filteredData.map((item) => (
+                  <tr key={item.item_code} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-4 py-3 font-mono font-bold text-blue-600 align-top">
+                      {item.item_code}
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <div className="font-semibold text-slate-900">{item.name}</div>
+                      
+                      {/* Sub metadata KFA & DPHO */}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                        {item.kfa_code && (
+                          <span className="font-mono text-[11px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+                            KFA: {item.kfa_code}
+                          </span>
+                        )}
+                        {item.bpjs_dpho_code && (
+                          <span className="font-mono text-[11px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            DPHO: {item.bpjs_dpho_code}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Restriksi BPJS Note */}
+                      {item.restriction ? (
+                        <div className="mt-1.5 flex items-start gap-1 text-xs text-amber-800 bg-amber-50/70 p-1.5 rounded-md border border-amber-200/60 max-w-md">
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                          <span className="line-clamp-2">
+                            <strong>Restriksi BPJS:</strong> {item.restriction}
+                          </span>
+                        </div>
+                      ) : null}
+                    </td>
+                    <td className="px-4 py-3 font-mono font-bold text-slate-800 align-top">
+                      {Number(item.price || 0).toLocaleString("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                        maximumFractionDigits: 0,
+                      })}
+                    </td>
+                    <td className="px-4 py-3 text-center align-top">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          (item.stock_quantity ?? 0) > 50
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : (item.stock_quantity ?? 0) > 0
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : "bg-rose-50 text-rose-700 border border-rose-200"
+                        }`}
+                      >
+                        {item.stock_quantity ?? 0} unit
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center align-top">
+                      <div className="flex flex-col items-center gap-1">
+                        {item.kfa_count && item.kfa_count > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                            <BookOpen className="w-3 h-3" /> {item.kfa_count} KFA
+                          </span>
+                        ) : null}
+
+                        {item.is_fornas ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <ShieldCheck className="w-3 h-3" /> FORNAS
+                          </span>
+                        ) : item.dpho_count && item.dpho_count > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                            <ShieldCheck className="w-3 h-3" /> {item.dpho_count} DPHO
+                          </span>
+                        ) : null}
+
+                        {item.is_prb && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            PRB
+                          </span>
+                        )}
+
+                        {(!item.kfa_count || item.kfa_count === 0) &&
+                          (!item.dpho_count || item.dpho_count === 0) && (
+                            <span className="text-[11px] text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                              Belum Ada Map
+                            </span>
+                          )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right align-top">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1.5 text-xs text-blue-600 border-blue-200 hover:bg-blue-50 font-medium"
+                        onClick={() => handleViewDetailMap(item)}
+                      >
+                        <GitFork className="w-3.5 h-3.5" />
+                        Detail Map
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {meta && (
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-4">
+            <div className="text-sm text-slate-500">
+              Menampilkan <span className="font-semibold text-slate-800">{filteredData.length}</span> dari{" "}
+              <span className="font-semibold text-slate-800">{meta.total_data || 0}</span> data (Halaman{" "}
+              <span className="font-semibold text-slate-800">{meta.page || 1}</span> dari{" "}
+              <span className="font-semibold text-slate-800">{meta.total_pages || 1}</span>)
+            </div>
+
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 gap-1.5 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
-                onClick={() => handleViewDetailMap(item)}
+                className="h-8 gap-1 text-slate-600"
+                disabled={page <= 1 || loading}
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
               >
-                <GitFork className="w-3.5 h-3.5" />
-                Detail Map
+                <ChevronLeft className="h-4 w-4" />
+                Sebelumnya
               </Button>
-            </td>
-          </tr>
+              <div className="text-xs font-semibold px-2 text-slate-700">
+                {page} / {meta.total_pages || 1}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-slate-600"
+                disabled={page >= (meta.total_pages || 1) || loading}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Selanjutnya
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         )}
-      />
+      </div>
 
       {/* Modal Detail Map */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -182,7 +415,7 @@ export function ObatPage() {
                     </span>
                   </div>
                 </div>
-                <h4 className="text-base font-semibold text-slate-800 mt-1.5">
+                <h4 className="text-base font-bold text-slate-800 mt-1.5">
                   {selectedObat.name}
                 </h4>
               </div>
@@ -261,7 +494,7 @@ export function ObatPage() {
                 <div className="flex items-center gap-2 mb-2.5">
                   <ShieldCheck className="h-5 w-5 text-emerald-600" />
                   <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
-                    2. Pemetaan BPJS Kesehatan (DPHO / FORNAS)
+                    2. Pemetaan BPJS Kesehatan (DPHO / FORNAS / PRB)
                   </h4>
                 </div>
                 {loadingMap ? (
@@ -363,6 +596,6 @@ export function ObatPage() {
           )}
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

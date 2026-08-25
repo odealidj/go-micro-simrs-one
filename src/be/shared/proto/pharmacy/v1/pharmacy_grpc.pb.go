@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: pharmacy.proto
+// source: pharmacy/v1/pharmacy.proto
 
 package pharmacyv1
 
@@ -431,5 +431,5 @@ var PharmacyService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "pharmacy.proto",
+	Metadata: "pharmacy/v1/pharmacy.proto",
 }

@@ -102,6 +102,7 @@ message MasterObat {
   string kfa_code = 9;
   string bpjs_dpho_code = 10;
   string restriction = 11;
+  bool is_prb = 12;
 }
 
 message GetMasterObatResponse {
