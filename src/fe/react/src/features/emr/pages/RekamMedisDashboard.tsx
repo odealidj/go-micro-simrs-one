@@ -90,11 +90,13 @@ export function RekamMedisDashboard() {
                 Lihat Detail <ChevronRight className="h-4 w-4" />
               </Link>
             </div>
-            {record.kbm_name && (
+            {(record.diagnoses && record.diagnoses.length > 0) && (
               <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-1 bg-white border border-indigo-200 rounded-md text-xs text-indigo-700">
-                  {record.kbm_code} — {record.kbm_name}
-                </span>
+                {record.diagnoses.filter(d => d.diagnosis_type === "PRIMARY").map(d => (
+                  <span key={d.id} className="px-2 py-1 bg-white border border-indigo-200 rounded-md text-xs text-indigo-700">
+                    {d.icd10_code} — {d.icd10_name}
+                  </span>
+                ))}
               </div>
             )}
           </div>

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: emr/v1/emr.proto
+// source: proto/emr/v1/emr.proto
 
 package emrv1
 
@@ -31,13 +31,20 @@ const (
 	EMRService_GetMasterTindakanByPoli_FullMethodName       = "/emr.v1.EMRService/GetMasterTindakanByPoli"
 	EMRService_GetMasterICD10_FullMethodName                = "/emr.v1.EMRService/GetMasterICD10"
 	EMRService_GetMasterICD10ByPoli_FullMethodName          = "/emr.v1.EMRService/GetMasterICD10ByPoli"
+	EMRService_GetMasterICD9_FullMethodName                 = "/emr.v1.EMRService/GetMasterICD9"
+	EMRService_GetICD9SuggestionsForTindakan_FullMethodName = "/emr.v1.EMRService/GetICD9SuggestionsForTindakan"
 	EMRService_SearchKBM_FullMethodName                     = "/emr.v1.EMRService/SearchKBM"
 	EMRService_GetKBMDetail_FullMethodName                  = "/emr.v1.EMRService/GetKBMDetail"
 	EMRService_GetICD10SuggestionsForKBM_FullMethodName     = "/emr.v1.EMRService/GetICD10SuggestionsForKBM"
-	EMRService_AddDiagnosisKBM_FullMethodName               = "/emr.v1.EMRService/AddDiagnosisKBM"
-	EMRService_VerifyICD10Mapping_FullMethodName            = "/emr.v1.EMRService/VerifyICD10Mapping"
-	EMRService_ListPendingICD10Verifications_FullMethodName = "/emr.v1.EMRService/ListPendingICD10Verifications"
+	EMRService_AddEncounterDiagnosis_FullMethodName         = "/emr.v1.EMRService/AddEncounterDiagnosis"
+	EMRService_UpdateEncounterDiagnosis_FullMethodName      = "/emr.v1.EMRService/UpdateEncounterDiagnosis"
+	EMRService_RemoveEncounterDiagnosis_FullMethodName      = "/emr.v1.EMRService/RemoveEncounterDiagnosis"
+	EMRService_GetKBMSuggestionsForICD10_FullMethodName     = "/emr.v1.EMRService/GetKBMSuggestionsForICD10"
+	EMRService_ListPendingKBMVerifications_FullMethodName   = "/emr.v1.EMRService/ListPendingKBMVerifications"
+	EMRService_VerifyKBMMapping_FullMethodName              = "/emr.v1.EMRService/VerifyKBMMapping"
+	EMRService_FinalizeSeverity_FullMethodName              = "/emr.v1.EMRService/FinalizeSeverity"
 	EMRService_CompleteEncounter_FullMethodName             = "/emr.v1.EMRService/CompleteEncounter"
+	EMRService_FinalizeMedicalRecord_FullMethodName         = "/emr.v1.EMRService/FinalizeMedicalRecord"
 )
 
 // EMRServiceClient is the client API for EMRService service.
@@ -57,17 +64,25 @@ type EMRServiceClient interface {
 	GetMasterTindakanByPoli(ctx context.Context, in *GetMasterTindakanByPoliRequest, opts ...grpc.CallOption) (*GetMasterTindakanByPoliResponse, error)
 	GetMasterICD10(ctx context.Context, in *GetMasterICD10Request, opts ...grpc.CallOption) (*GetMasterICD10Response, error)
 	GetMasterICD10ByPoli(ctx context.Context, in *GetMasterICD10ByPoliRequest, opts ...grpc.CallOption) (*GetMasterICD10ByPoliResponse, error)
+	GetMasterICD9(ctx context.Context, in *GetMasterICD9Request, opts ...grpc.CallOption) (*GetMasterICD9Response, error)
+	GetICD9SuggestionsForTindakan(ctx context.Context, in *GetICD9SuggestionsForTindakanRequest, opts ...grpc.CallOption) (*GetICD9SuggestionsForTindakanResponse, error)
 	// Master KBM (Existing)
 	SearchKBM(ctx context.Context, in *SearchKBMRequest, opts ...grpc.CallOption) (*SearchKBMResponse, error)
 	GetKBMDetail(ctx context.Context, in *GetKBMDetailRequest, opts ...grpc.CallOption) (*GetKBMDetailResponse, error)
 	GetICD10SuggestionsForKBM(ctx context.Context, in *GetICD10SuggestionsForKBMRequest, opts ...grpc.CallOption) (*GetICD10SuggestionsForKBMResponse, error)
-	// Diagnosis (Dokter - Poliklinik)
-	AddDiagnosisKBM(ctx context.Context, in *AddDiagnosisKBMRequest, opts ...grpc.CallOption) (*AddDiagnosisKBMResponse, error)
-	// Verifikasi ICD-10 (Bagian Rekam Medis)
-	VerifyICD10Mapping(ctx context.Context, in *VerifyICD10MappingRequest, opts ...grpc.CallOption) (*VerifyICD10MappingResponse, error)
-	ListPendingICD10Verifications(ctx context.Context, in *ListPendingICD10VerificationsRequest, opts ...grpc.CallOption) (*ListPendingICD10VerificationsResponse, error)
+	// Diagnosis Baru (Dokter - ICD-10 First)
+	AddEncounterDiagnosis(ctx context.Context, in *AddEncounterDiagnosisRequest, opts ...grpc.CallOption) (*AddEncounterDiagnosisResponse, error)
+	UpdateEncounterDiagnosis(ctx context.Context, in *UpdateEncounterDiagnosisRequest, opts ...grpc.CallOption) (*UpdateEncounterDiagnosisResponse, error)
+	RemoveEncounterDiagnosis(ctx context.Context, in *RemoveEncounterDiagnosisRequest, opts ...grpc.CallOption) (*RemoveEncounterDiagnosisResponse, error)
+	GetKBMSuggestionsForICD10(ctx context.Context, in *GetKBMSuggestionsForICD10Request, opts ...grpc.CallOption) (*GetKBMSuggestionsForICD10Response, error)
+	// Verifikasi KBM & Severity (Rekam Medis)
+	ListPendingKBMVerifications(ctx context.Context, in *ListPendingKBMVerificationsRequest, opts ...grpc.CallOption) (*ListPendingKBMVerificationsResponse, error)
+	VerifyKBMMapping(ctx context.Context, in *VerifyKBMMappingRequest, opts ...grpc.CallOption) (*VerifyKBMMappingResponse, error)
+	FinalizeSeverity(ctx context.Context, in *FinalizeSeverityRequest, opts ...grpc.CallOption) (*FinalizeSeverityResponse, error)
 	// Complete Encounter (Dokter - Selesai Pemeriksaan)
 	CompleteEncounter(ctx context.Context, in *CompleteEncounterRequest, opts ...grpc.CallOption) (*CompleteEncounterResponse, error)
+	// Finalize Medical Record (Dokter - Validasi & Tutup RM)
+	FinalizeMedicalRecord(ctx context.Context, in *FinalizeMedicalRecordRequest, opts ...grpc.CallOption) (*FinalizeMedicalRecordResponse, error)
 }
 
 type eMRServiceClient struct {
@@ -198,6 +213,26 @@ func (c *eMRServiceClient) GetMasterICD10ByPoli(ctx context.Context, in *GetMast
 	return out, nil
 }
 
+func (c *eMRServiceClient) GetMasterICD9(ctx context.Context, in *GetMasterICD9Request, opts ...grpc.CallOption) (*GetMasterICD9Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMasterICD9Response)
+	err := c.cc.Invoke(ctx, EMRService_GetMasterICD9_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetICD9SuggestionsForTindakan(ctx context.Context, in *GetICD9SuggestionsForTindakanRequest, opts ...grpc.CallOption) (*GetICD9SuggestionsForTindakanResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetICD9SuggestionsForTindakanResponse)
+	err := c.cc.Invoke(ctx, EMRService_GetICD9SuggestionsForTindakan_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *eMRServiceClient) SearchKBM(ctx context.Context, in *SearchKBMRequest, opts ...grpc.CallOption) (*SearchKBMResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(SearchKBMResponse)
@@ -228,30 +263,70 @@ func (c *eMRServiceClient) GetICD10SuggestionsForKBM(ctx context.Context, in *Ge
 	return out, nil
 }
 
-func (c *eMRServiceClient) AddDiagnosisKBM(ctx context.Context, in *AddDiagnosisKBMRequest, opts ...grpc.CallOption) (*AddDiagnosisKBMResponse, error) {
+func (c *eMRServiceClient) AddEncounterDiagnosis(ctx context.Context, in *AddEncounterDiagnosisRequest, opts ...grpc.CallOption) (*AddEncounterDiagnosisResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(AddDiagnosisKBMResponse)
-	err := c.cc.Invoke(ctx, EMRService_AddDiagnosisKBM_FullMethodName, in, out, cOpts...)
+	out := new(AddEncounterDiagnosisResponse)
+	err := c.cc.Invoke(ctx, EMRService_AddEncounterDiagnosis_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *eMRServiceClient) VerifyICD10Mapping(ctx context.Context, in *VerifyICD10MappingRequest, opts ...grpc.CallOption) (*VerifyICD10MappingResponse, error) {
+func (c *eMRServiceClient) UpdateEncounterDiagnosis(ctx context.Context, in *UpdateEncounterDiagnosisRequest, opts ...grpc.CallOption) (*UpdateEncounterDiagnosisResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(VerifyICD10MappingResponse)
-	err := c.cc.Invoke(ctx, EMRService_VerifyICD10Mapping_FullMethodName, in, out, cOpts...)
+	out := new(UpdateEncounterDiagnosisResponse)
+	err := c.cc.Invoke(ctx, EMRService_UpdateEncounterDiagnosis_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *eMRServiceClient) ListPendingICD10Verifications(ctx context.Context, in *ListPendingICD10VerificationsRequest, opts ...grpc.CallOption) (*ListPendingICD10VerificationsResponse, error) {
+func (c *eMRServiceClient) RemoveEncounterDiagnosis(ctx context.Context, in *RemoveEncounterDiagnosisRequest, opts ...grpc.CallOption) (*RemoveEncounterDiagnosisResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListPendingICD10VerificationsResponse)
-	err := c.cc.Invoke(ctx, EMRService_ListPendingICD10Verifications_FullMethodName, in, out, cOpts...)
+	out := new(RemoveEncounterDiagnosisResponse)
+	err := c.cc.Invoke(ctx, EMRService_RemoveEncounterDiagnosis_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) GetKBMSuggestionsForICD10(ctx context.Context, in *GetKBMSuggestionsForICD10Request, opts ...grpc.CallOption) (*GetKBMSuggestionsForICD10Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetKBMSuggestionsForICD10Response)
+	err := c.cc.Invoke(ctx, EMRService_GetKBMSuggestionsForICD10_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) ListPendingKBMVerifications(ctx context.Context, in *ListPendingKBMVerificationsRequest, opts ...grpc.CallOption) (*ListPendingKBMVerificationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPendingKBMVerificationsResponse)
+	err := c.cc.Invoke(ctx, EMRService_ListPendingKBMVerifications_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) VerifyKBMMapping(ctx context.Context, in *VerifyKBMMappingRequest, opts ...grpc.CallOption) (*VerifyKBMMappingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(VerifyKBMMappingResponse)
+	err := c.cc.Invoke(ctx, EMRService_VerifyKBMMapping_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) FinalizeSeverity(ctx context.Context, in *FinalizeSeverityRequest, opts ...grpc.CallOption) (*FinalizeSeverityResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinalizeSeverityResponse)
+	err := c.cc.Invoke(ctx, EMRService_FinalizeSeverity_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -262,6 +337,16 @@ func (c *eMRServiceClient) CompleteEncounter(ctx context.Context, in *CompleteEn
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CompleteEncounterResponse)
 	err := c.cc.Invoke(ctx, EMRService_CompleteEncounter_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eMRServiceClient) FinalizeMedicalRecord(ctx context.Context, in *FinalizeMedicalRecordRequest, opts ...grpc.CallOption) (*FinalizeMedicalRecordResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinalizeMedicalRecordResponse)
+	err := c.cc.Invoke(ctx, EMRService_FinalizeMedicalRecord_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -285,17 +370,25 @@ type EMRServiceServer interface {
 	GetMasterTindakanByPoli(context.Context, *GetMasterTindakanByPoliRequest) (*GetMasterTindakanByPoliResponse, error)
 	GetMasterICD10(context.Context, *GetMasterICD10Request) (*GetMasterICD10Response, error)
 	GetMasterICD10ByPoli(context.Context, *GetMasterICD10ByPoliRequest) (*GetMasterICD10ByPoliResponse, error)
+	GetMasterICD9(context.Context, *GetMasterICD9Request) (*GetMasterICD9Response, error)
+	GetICD9SuggestionsForTindakan(context.Context, *GetICD9SuggestionsForTindakanRequest) (*GetICD9SuggestionsForTindakanResponse, error)
 	// Master KBM (Existing)
 	SearchKBM(context.Context, *SearchKBMRequest) (*SearchKBMResponse, error)
 	GetKBMDetail(context.Context, *GetKBMDetailRequest) (*GetKBMDetailResponse, error)
 	GetICD10SuggestionsForKBM(context.Context, *GetICD10SuggestionsForKBMRequest) (*GetICD10SuggestionsForKBMResponse, error)
-	// Diagnosis (Dokter - Poliklinik)
-	AddDiagnosisKBM(context.Context, *AddDiagnosisKBMRequest) (*AddDiagnosisKBMResponse, error)
-	// Verifikasi ICD-10 (Bagian Rekam Medis)
-	VerifyICD10Mapping(context.Context, *VerifyICD10MappingRequest) (*VerifyICD10MappingResponse, error)
-	ListPendingICD10Verifications(context.Context, *ListPendingICD10VerificationsRequest) (*ListPendingICD10VerificationsResponse, error)
+	// Diagnosis Baru (Dokter - ICD-10 First)
+	AddEncounterDiagnosis(context.Context, *AddEncounterDiagnosisRequest) (*AddEncounterDiagnosisResponse, error)
+	UpdateEncounterDiagnosis(context.Context, *UpdateEncounterDiagnosisRequest) (*UpdateEncounterDiagnosisResponse, error)
+	RemoveEncounterDiagnosis(context.Context, *RemoveEncounterDiagnosisRequest) (*RemoveEncounterDiagnosisResponse, error)
+	GetKBMSuggestionsForICD10(context.Context, *GetKBMSuggestionsForICD10Request) (*GetKBMSuggestionsForICD10Response, error)
+	// Verifikasi KBM & Severity (Rekam Medis)
+	ListPendingKBMVerifications(context.Context, *ListPendingKBMVerificationsRequest) (*ListPendingKBMVerificationsResponse, error)
+	VerifyKBMMapping(context.Context, *VerifyKBMMappingRequest) (*VerifyKBMMappingResponse, error)
+	FinalizeSeverity(context.Context, *FinalizeSeverityRequest) (*FinalizeSeverityResponse, error)
 	// Complete Encounter (Dokter - Selesai Pemeriksaan)
 	CompleteEncounter(context.Context, *CompleteEncounterRequest) (*CompleteEncounterResponse, error)
+	// Finalize Medical Record (Dokter - Validasi & Tutup RM)
+	FinalizeMedicalRecord(context.Context, *FinalizeMedicalRecordRequest) (*FinalizeMedicalRecordResponse, error)
 	mustEmbedUnimplementedEMRServiceServer()
 }
 
@@ -342,6 +435,12 @@ func (UnimplementedEMRServiceServer) GetMasterICD10(context.Context, *GetMasterI
 func (UnimplementedEMRServiceServer) GetMasterICD10ByPoli(context.Context, *GetMasterICD10ByPoliRequest) (*GetMasterICD10ByPoliResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMasterICD10ByPoli not implemented")
 }
+func (UnimplementedEMRServiceServer) GetMasterICD9(context.Context, *GetMasterICD9Request) (*GetMasterICD9Response, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMasterICD9 not implemented")
+}
+func (UnimplementedEMRServiceServer) GetICD9SuggestionsForTindakan(context.Context, *GetICD9SuggestionsForTindakanRequest) (*GetICD9SuggestionsForTindakanResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetICD9SuggestionsForTindakan not implemented")
+}
 func (UnimplementedEMRServiceServer) SearchKBM(context.Context, *SearchKBMRequest) (*SearchKBMResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SearchKBM not implemented")
 }
@@ -351,17 +450,32 @@ func (UnimplementedEMRServiceServer) GetKBMDetail(context.Context, *GetKBMDetail
 func (UnimplementedEMRServiceServer) GetICD10SuggestionsForKBM(context.Context, *GetICD10SuggestionsForKBMRequest) (*GetICD10SuggestionsForKBMResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetICD10SuggestionsForKBM not implemented")
 }
-func (UnimplementedEMRServiceServer) AddDiagnosisKBM(context.Context, *AddDiagnosisKBMRequest) (*AddDiagnosisKBMResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method AddDiagnosisKBM not implemented")
+func (UnimplementedEMRServiceServer) AddEncounterDiagnosis(context.Context, *AddEncounterDiagnosisRequest) (*AddEncounterDiagnosisResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddEncounterDiagnosis not implemented")
 }
-func (UnimplementedEMRServiceServer) VerifyICD10Mapping(context.Context, *VerifyICD10MappingRequest) (*VerifyICD10MappingResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method VerifyICD10Mapping not implemented")
+func (UnimplementedEMRServiceServer) UpdateEncounterDiagnosis(context.Context, *UpdateEncounterDiagnosisRequest) (*UpdateEncounterDiagnosisResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateEncounterDiagnosis not implemented")
 }
-func (UnimplementedEMRServiceServer) ListPendingICD10Verifications(context.Context, *ListPendingICD10VerificationsRequest) (*ListPendingICD10VerificationsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListPendingICD10Verifications not implemented")
+func (UnimplementedEMRServiceServer) RemoveEncounterDiagnosis(context.Context, *RemoveEncounterDiagnosisRequest) (*RemoveEncounterDiagnosisResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveEncounterDiagnosis not implemented")
+}
+func (UnimplementedEMRServiceServer) GetKBMSuggestionsForICD10(context.Context, *GetKBMSuggestionsForICD10Request) (*GetKBMSuggestionsForICD10Response, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetKBMSuggestionsForICD10 not implemented")
+}
+func (UnimplementedEMRServiceServer) ListPendingKBMVerifications(context.Context, *ListPendingKBMVerificationsRequest) (*ListPendingKBMVerificationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListPendingKBMVerifications not implemented")
+}
+func (UnimplementedEMRServiceServer) VerifyKBMMapping(context.Context, *VerifyKBMMappingRequest) (*VerifyKBMMappingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method VerifyKBMMapping not implemented")
+}
+func (UnimplementedEMRServiceServer) FinalizeSeverity(context.Context, *FinalizeSeverityRequest) (*FinalizeSeverityResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FinalizeSeverity not implemented")
 }
 func (UnimplementedEMRServiceServer) CompleteEncounter(context.Context, *CompleteEncounterRequest) (*CompleteEncounterResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CompleteEncounter not implemented")
+}
+func (UnimplementedEMRServiceServer) FinalizeMedicalRecord(context.Context, *FinalizeMedicalRecordRequest) (*FinalizeMedicalRecordResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FinalizeMedicalRecord not implemented")
 }
 func (UnimplementedEMRServiceServer) mustEmbedUnimplementedEMRServiceServer() {}
 func (UnimplementedEMRServiceServer) testEmbeddedByValue()                    {}
@@ -600,6 +714,42 @@ func _EMRService_GetMasterICD10ByPoli_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EMRService_GetMasterICD9_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMasterICD9Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetMasterICD9(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetMasterICD9_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetMasterICD9(ctx, req.(*GetMasterICD9Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetICD9SuggestionsForTindakan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetICD9SuggestionsForTindakanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetICD9SuggestionsForTindakan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetICD9SuggestionsForTindakan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetICD9SuggestionsForTindakan(ctx, req.(*GetICD9SuggestionsForTindakanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _EMRService_SearchKBM_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SearchKBMRequest)
 	if err := dec(in); err != nil {
@@ -654,56 +804,128 @@ func _EMRService_GetICD10SuggestionsForKBM_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EMRService_AddDiagnosisKBM_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AddDiagnosisKBMRequest)
+func _EMRService_AddEncounterDiagnosis_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddEncounterDiagnosisRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EMRServiceServer).AddDiagnosisKBM(ctx, in)
+		return srv.(EMRServiceServer).AddEncounterDiagnosis(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: EMRService_AddDiagnosisKBM_FullMethodName,
+		FullMethod: EMRService_AddEncounterDiagnosis_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EMRServiceServer).AddDiagnosisKBM(ctx, req.(*AddDiagnosisKBMRequest))
+		return srv.(EMRServiceServer).AddEncounterDiagnosis(ctx, req.(*AddEncounterDiagnosisRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EMRService_VerifyICD10Mapping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(VerifyICD10MappingRequest)
+func _EMRService_UpdateEncounterDiagnosis_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateEncounterDiagnosisRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EMRServiceServer).VerifyICD10Mapping(ctx, in)
+		return srv.(EMRServiceServer).UpdateEncounterDiagnosis(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: EMRService_VerifyICD10Mapping_FullMethodName,
+		FullMethod: EMRService_UpdateEncounterDiagnosis_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EMRServiceServer).VerifyICD10Mapping(ctx, req.(*VerifyICD10MappingRequest))
+		return srv.(EMRServiceServer).UpdateEncounterDiagnosis(ctx, req.(*UpdateEncounterDiagnosisRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _EMRService_ListPendingICD10Verifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListPendingICD10VerificationsRequest)
+func _EMRService_RemoveEncounterDiagnosis_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveEncounterDiagnosisRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(EMRServiceServer).ListPendingICD10Verifications(ctx, in)
+		return srv.(EMRServiceServer).RemoveEncounterDiagnosis(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: EMRService_ListPendingICD10Verifications_FullMethodName,
+		FullMethod: EMRService_RemoveEncounterDiagnosis_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EMRServiceServer).ListPendingICD10Verifications(ctx, req.(*ListPendingICD10VerificationsRequest))
+		return srv.(EMRServiceServer).RemoveEncounterDiagnosis(ctx, req.(*RemoveEncounterDiagnosisRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_GetKBMSuggestionsForICD10_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetKBMSuggestionsForICD10Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).GetKBMSuggestionsForICD10(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_GetKBMSuggestionsForICD10_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).GetKBMSuggestionsForICD10(ctx, req.(*GetKBMSuggestionsForICD10Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_ListPendingKBMVerifications_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPendingKBMVerificationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).ListPendingKBMVerifications(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_ListPendingKBMVerifications_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).ListPendingKBMVerifications(ctx, req.(*ListPendingKBMVerificationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_VerifyKBMMapping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyKBMMappingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).VerifyKBMMapping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_VerifyKBMMapping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).VerifyKBMMapping(ctx, req.(*VerifyKBMMappingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_FinalizeSeverity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FinalizeSeverityRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).FinalizeSeverity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_FinalizeSeverity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).FinalizeSeverity(ctx, req.(*FinalizeSeverityRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -722,6 +944,24 @@ func _EMRService_CompleteEncounter_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EMRServiceServer).CompleteEncounter(ctx, req.(*CompleteEncounterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EMRService_FinalizeMedicalRecord_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FinalizeMedicalRecordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).FinalizeMedicalRecord(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_FinalizeMedicalRecord_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).FinalizeMedicalRecord(ctx, req.(*FinalizeMedicalRecordRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -782,6 +1022,14 @@ var EMRService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EMRService_GetMasterICD10ByPoli_Handler,
 		},
 		{
+			MethodName: "GetMasterICD9",
+			Handler:    _EMRService_GetMasterICD9_Handler,
+		},
+		{
+			MethodName: "GetICD9SuggestionsForTindakan",
+			Handler:    _EMRService_GetICD9SuggestionsForTindakan_Handler,
+		},
+		{
 			MethodName: "SearchKBM",
 			Handler:    _EMRService_SearchKBM_Handler,
 		},
@@ -794,22 +1042,42 @@ var EMRService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _EMRService_GetICD10SuggestionsForKBM_Handler,
 		},
 		{
-			MethodName: "AddDiagnosisKBM",
-			Handler:    _EMRService_AddDiagnosisKBM_Handler,
+			MethodName: "AddEncounterDiagnosis",
+			Handler:    _EMRService_AddEncounterDiagnosis_Handler,
 		},
 		{
-			MethodName: "VerifyICD10Mapping",
-			Handler:    _EMRService_VerifyICD10Mapping_Handler,
+			MethodName: "UpdateEncounterDiagnosis",
+			Handler:    _EMRService_UpdateEncounterDiagnosis_Handler,
 		},
 		{
-			MethodName: "ListPendingICD10Verifications",
-			Handler:    _EMRService_ListPendingICD10Verifications_Handler,
+			MethodName: "RemoveEncounterDiagnosis",
+			Handler:    _EMRService_RemoveEncounterDiagnosis_Handler,
+		},
+		{
+			MethodName: "GetKBMSuggestionsForICD10",
+			Handler:    _EMRService_GetKBMSuggestionsForICD10_Handler,
+		},
+		{
+			MethodName: "ListPendingKBMVerifications",
+			Handler:    _EMRService_ListPendingKBMVerifications_Handler,
+		},
+		{
+			MethodName: "VerifyKBMMapping",
+			Handler:    _EMRService_VerifyKBMMapping_Handler,
+		},
+		{
+			MethodName: "FinalizeSeverity",
+			Handler:    _EMRService_FinalizeSeverity_Handler,
 		},
 		{
 			MethodName: "CompleteEncounter",
 			Handler:    _EMRService_CompleteEncounter_Handler,
 		},
+		{
+			MethodName: "FinalizeMedicalRecord",
+			Handler:    _EMRService_FinalizeMedicalRecord_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "emr/v1/emr.proto",
+	Metadata: "proto/emr/v1/emr.proto",
 }

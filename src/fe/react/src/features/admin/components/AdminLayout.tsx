@@ -46,6 +46,7 @@ export function AdminLayout() {
         { name: "Mapping KBM", path: "/admin/master/assign-kbm", icon: Map },
         { name: "Katalog ICD-10", path: "/admin/master/icd10", icon: ClipboardList },
         { name: "Mapping ICD-10", path: "/admin/master/assign-icd10", icon: Map },
+        { name: "Katalog ICD-9", path: "/admin/master/icd9", icon: ClipboardList },
         { name: "Tindakan & Tarif", path: "/admin/master/tindakan", icon: Activity },
         { name: "Mapping Tindakan", path: "/admin/master/assign-tindakan", icon: Map },
       ]

@@ -19,21 +19,30 @@ service EMRService {
   rpc GetMasterTindakanByPoli (GetMasterTindakanByPoliRequest) returns (GetMasterTindakanByPoliResponse);
   rpc GetMasterICD10 (GetMasterICD10Request) returns (GetMasterICD10Response);
   rpc GetMasterICD10ByPoli (GetMasterICD10ByPoliRequest) returns (GetMasterICD10ByPoliResponse);
+  rpc GetMasterICD9 (GetMasterICD9Request) returns (GetMasterICD9Response);
+  rpc GetICD9SuggestionsForTindakan (GetICD9SuggestionsForTindakanRequest) returns (GetICD9SuggestionsForTindakanResponse);
 
   // Master KBM (Existing)
   rpc SearchKBM (SearchKBMRequest) returns (SearchKBMResponse);
   rpc GetKBMDetail (GetKBMDetailRequest) returns (GetKBMDetailResponse);
   rpc GetICD10SuggestionsForKBM (GetICD10SuggestionsForKBMRequest) returns (GetICD10SuggestionsForKBMResponse);
 
-  // Diagnosis (Dokter - Poliklinik)
-  rpc AddDiagnosisKBM (AddDiagnosisKBMRequest) returns (AddDiagnosisKBMResponse);
+  // Diagnosis Baru (Dokter - ICD-10 First)
+  rpc AddEncounterDiagnosis (AddEncounterDiagnosisRequest) returns (AddEncounterDiagnosisResponse);
+  rpc UpdateEncounterDiagnosis (UpdateEncounterDiagnosisRequest) returns (UpdateEncounterDiagnosisResponse);
+  rpc RemoveEncounterDiagnosis (RemoveEncounterDiagnosisRequest) returns (RemoveEncounterDiagnosisResponse);
+  rpc GetKBMSuggestionsForICD10 (GetKBMSuggestionsForICD10Request) returns (GetKBMSuggestionsForICD10Response);
 
-  // Verifikasi ICD-10 (Bagian Rekam Medis)
-  rpc VerifyICD10Mapping (VerifyICD10MappingRequest) returns (VerifyICD10MappingResponse);
-  rpc ListPendingICD10Verifications (ListPendingICD10VerificationsRequest) returns (ListPendingICD10VerificationsResponse);
+  // Verifikasi KBM & Severity (Rekam Medis)
+  rpc ListPendingKBMVerifications (ListPendingKBMVerificationsRequest) returns (ListPendingKBMVerificationsResponse);
+  rpc VerifyKBMMapping (VerifyKBMMappingRequest) returns (VerifyKBMMappingResponse);
+  rpc FinalizeSeverity (FinalizeSeverityRequest) returns (FinalizeSeverityResponse);
 
   // Complete Encounter (Dokter - Selesai Pemeriksaan)
   rpc CompleteEncounter (CompleteEncounterRequest) returns (CompleteEncounterResponse);
+
+  // Finalize Medical Record (Dokter - Validasi & Tutup RM)
+  rpc FinalizeMedicalRecord (FinalizeMedicalRecordRequest) returns (FinalizeMedicalRecordResponse);
 }
 
 message GetEstimatedWaitTimeRequest {
@@ -114,52 +123,107 @@ message GetICD10SuggestionsForKBMResponse {
   repeated ICD10Suggestion suggestions = 1;
 }
 
-// -- Diagnosis KBM (Dokter) --
-message AddDiagnosisKBMRequest {
+// -- Diagnosis (Baru) --
+message AddEncounterDiagnosisRequest {
   string encounter_no = 1;
-  string kbm_code = 2;
-  string notes = 3;
-  string doctor_id = 4;
-  string department_code = 5;
-  string gender = 6;
-  string age_bracket = 7;
+  string icd10_code = 2;
+  string diagnosis_type = 3; // PRIMARY | SECONDARY | COMPLICATION | DIFFERENTIAL
+  int32 sequence = 4;
+  string clinical_notes = 5;
+  string severity_level = 6; // RINGAN | SEDANG | BERAT
+  string doctor_id = 7;
+  string department_code = 8;
+  string gender = 9;
+  string age_bracket = 10;
 }
 
-message AddDiagnosisKBMResponse {
+message AddEncounterDiagnosisResponse {
+  bool success = 1;
+  string message = 2;
+  EncounterDiagnosis data = 3;
+}
+
+message UpdateEncounterDiagnosisRequest {
+  string id = 1;
+  string diagnosis_type = 2;
+  int32 sequence = 3;
+  string clinical_notes = 4;
+  string severity_level = 5;
+}
+
+message UpdateEncounterDiagnosisResponse {
   bool success = 1;
   string message = 2;
 }
 
-// -- Verifikasi ICD-10 (Rekam Medis) --
-message VerifyICD10MappingRequest {
-  string encounter_no = 1;
-  repeated string icd10_codes = 2;
-  string notes = 3;
+message RemoveEncounterDiagnosisRequest {
+  string id = 1;
 }
 
-message VerifyICD10MappingResponse {
+message RemoveEncounterDiagnosisResponse {
   bool success = 1;
   string message = 2;
 }
 
-message ListPendingICD10VerificationsRequest {
+message GetKBMSuggestionsForICD10Request {
+  string icd10_code = 1;
+}
+
+message KBMSuggestion {
+  string kbm_code = 1;
+  string kbm_name = 2;
+  bool is_primary = 3;
+  string mapping_confidence = 4;
+}
+
+message GetKBMSuggestionsForICD10Response {
+  repeated KBMSuggestion suggestions = 1;
+}
+
+
+// -- Verifikasi RM --
+message ListPendingKBMVerificationsRequest {
   int32 limit = 1;
   int32 offset = 2;
 }
 
-message PendingVerificationItem {
-  string encounter_no = 1;
-  string mrn = 2;
-  string kbm_code = 3;
-  string kbm_name = 4;
-  string icd10_mapping_status = 5;
-  string created_at = 6;
+message ListPendingKBMVerificationsResponse {
+  // pending
 }
 
-message ListPendingICD10VerificationsResponse {
-  repeated PendingVerificationItem items = 1;
-  int32 total = 2;
+message VerifyKBMMappingRequest {
+  string id = 1;
+  string kbm_code = 2;
+  string user_id = 3;
 }
+
+message VerifyKBMMappingResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message FinalizeSeverityRequest {
+  string encounter_no = 1;
+  string severity_level = 2; // RINGAN | SEDANG | BERAT
+  string user_id = 3;
+}
+
+message FinalizeSeverityResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message FinalizeMedicalRecordRequest {
+  string encounter_no = 1;
+  string doctor_id = 2;
+}
+
+message FinalizeMedicalRecordResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string validation_errors = 3;
+}
+
 
 // 3. Medical Action (Dokter)
 message AddMedicalActionRequest {
@@ -194,6 +258,22 @@ message TriageData {
   string notes = 5;
 }
 
+message EncounterDiagnosis {
+  string id = 1;
+  string icd10_code = 2;
+  string icd10_name = 3;
+  string diagnosis_type = 4;
+  int32 sequence = 5;
+  string clinical_notes = 6;
+  string severity_level = 7;
+  string severity_set_role = 8;
+  string auto_kbm_code = 9;
+  string auto_kbm_name = 10;
+  string kbm_mapping_confidence = 11;
+  bool is_verified_by_rm = 12;
+  string verified_by = 13;
+}
+
 message ClinicalChecklist {
   bool triage_completed = 1;
   bool diagnosis_completed = 2;
@@ -210,14 +290,12 @@ message GetMedicalRecordResponse {
   string encounter_no = 1;
   string patient_mrn = 2;
   TriageData triage = 3;
-  repeated string icd10_codes = 4;
-  string kbm_code = 5;
-  string kbm_name = 6;
-  string icd10_mapping_status = 7;
-  repeated MedicalAction actions = 8;
-  string notes = 9;
-  string status = 10;
-  ClinicalChecklist checklist = 11;
+  repeated EncounterDiagnosis diagnoses = 4;
+  repeated MedicalAction actions = 5;
+  string notes = 6;
+  string status = 7;
+  string encounter_severity_level = 8;
+  ClinicalChecklist checklist = 9;
 }
 
 message CompleteEncounterRequest {
@@ -305,8 +383,12 @@ message GetMasterICD10Request {
 }
 message MasterICD10 {
   string icd10_code = 1;
-  string name = 2;
-  repeated string polyclinics = 3;
+  string name_en = 2;
+  string name_id = 3;
+  string chapter_code = 4;
+  string block_code = 5;
+  bool is_active = 6;
+  repeated string polyclinics = 7;
 }
 message GetMasterICD10Response {
   repeated MasterICD10 data = 1;
@@ -325,3 +407,38 @@ message GetMasterICD10ByPoliResponse {
   int32 total_count = 2;
 }
 
+
+message ICD9Item {
+  string icd9_code = 1;
+  string name_en = 2;
+  string name_id = 3;
+  string chapter_code = 4;
+  string block_code = 5;
+  bool is_active = 6;
+  repeated string polyclinics = 7;
+}
+
+message GetMasterICD9Request {
+  string search = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message GetMasterICD9Response {
+  repeated ICD9Item items = 1;
+  int32 total = 2;
+}
+
+message ICD9Suggestion {
+  string icd9_code = 1;
+  string icd9_name = 2;
+  bool is_primary = 3;
+}
+
+message GetICD9SuggestionsForTindakanRequest {
+  string kode_tindakan = 1;
+}
+
+message GetICD9SuggestionsForTindakanResponse {
+  repeated ICD9Suggestion suggestions = 1;
+}

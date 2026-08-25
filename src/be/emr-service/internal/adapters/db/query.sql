@@ -3,19 +3,14 @@ INSERT INTO medical_records (id, encounter_no, mrn)
 VALUES ($1, $2, $3)
 RETURNING *;
 
--- name: AddDiagnosisKBM :one
-UPDATE medical_records
-SET kbm_code = $2,
-    kbm_name = $3,
-    icd10_mapping_status = 'AUTO_MAPPED',
-    notes = $4,
-    updated_at = CURRENT_TIMESTAMP,
-    doctor_id = $5,
-    department_code = $6,
-    gender = $7,
-    age_bracket = $8
-WHERE encounter_no = $1
-RETURNING *;
+-- name: AddEncounterDiagnosis :one
+INSERT INTO encounter_diagnoses (
+    id, encounter_no, icd10_code, diagnosis_type, sequence, clinical_notes,
+    severity_level, severity_set_by, severity_set_role,
+    auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, created_by
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+) RETURNING *;
 
 -- name: CompleteEncounter :exec
 UPDATE medical_records
@@ -43,27 +38,28 @@ LIMIT $3 OFFSET $4;
 SELECT * FROM kbm_catalog
 WHERE kbm_code = $1 AND deleted_dt IS NULL LIMIT 1;
 
--- name: VerifyICD10Mapping :one
-UPDATE medical_records
-SET icd10_codes = $2,
-    icd10_mapping_status = 'VERIFIED',
-    notes = CASE WHEN $3::text != '' THEN notes || E'\nCatatan RM: ' || $3::text ELSE notes END,
-    updated_at = CURRENT_TIMESTAMP
-WHERE encounter_no = $1
-RETURNING *;
+-- name: SearchICD10 :many
+SELECT i.*, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+FROM icd10_catalog i
+LEFT JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code AND m.deleted_dt IS NULL
+WHERE i.deleted_dt IS NULL
+  AND (i.name_en ILIKE '%' || $1 || '%' OR i.name_id ILIKE '%' || $1 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
+GROUP BY i.icd10_code
+ORDER BY i.icd10_code ASC LIMIT $3 OFFSET $4;
 
--- name: GetICD10MappingsByKBM :many
-SELECT icd10_code, is_primary
-FROM kbm_icd10_mappings
-WHERE kbm_code = $1 AND deleted_dt IS NULL
-ORDER BY is_primary DESC, icd10_code ASC;
+-- name: GetKBMSuggestionsForICD10 :many
+SELECT k.*, m.is_primary, m.mapping_confidence
+FROM kbm_catalog k
+JOIN kbm_icd10_mappings m ON k.kbm_code = m.kbm_code
+WHERE m.icd10_code = $1 AND k.is_active = true AND k.deleted_dt IS NULL
+ORDER BY m.is_primary DESC, m.mapping_confidence ASC;
 
--- name: ListPendingICD10Verifications :many
-SELECT encounter_no, mrn, kbm_code, kbm_name, icd10_mapping_status, created_at
-FROM medical_records
-WHERE icd10_mapping_status IN ('PENDING_REVIEW', 'AUTO_MAPPED') AND deleted_dt IS NULL
-ORDER BY created_at ASC
-LIMIT $1 OFFSET $2;
+-- name: GetEncounterDiagnoses :many
+SELECT d.*, i.name_id as icd10_name
+FROM encounter_diagnoses d
+JOIN icd10_catalog i ON d.icd10_code = i.icd10_code
+WHERE d.encounter_no = $1 AND d.deleted_dt IS NULL
+ORDER BY d.sequence ASC, d.created_at ASC;
 
 -- name: StartEncounter :exec
 UPDATE medical_records
@@ -130,26 +126,30 @@ WHERE doctor_id = $1 AND department_code = $2 AND gender = $3 AND age_bracket = 
 -- Master Data Queries
 -- name: GetPolyclinics :many
 SELECT * FROM polyclinics
-WHERE is_active = true AND deleted_dt IS NULL AND name ILIKE '%' || $1 || '%'
+WHERE is_active = true AND deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR name ILIKE '%' || $1 || '%' OR code ILIKE '%' || $1 || '%')
 ORDER BY code ASC LIMIT $2 OFFSET $3;
 
 -- name: CountPolyclinics :one
 SELECT COUNT(*) FROM polyclinics
-WHERE is_active = true AND deleted_dt IS NULL AND name ILIKE '%' || $1 || '%';
+WHERE is_active = true AND deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR name ILIKE '%' || $1 || '%' OR code ILIKE '%' || $1 || '%');
 
 -- name: GetKBMs :many
 SELECT c.*, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
 FROM kbm_catalog c
 LEFT JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code AND m.deleted_dt IS NULL
 WHERE c.is_active = true AND c.deleted_dt IS NULL
-  AND (c.kbm_name ILIKE '%' || $1 || '%' OR c.kbm_code ILIKE '%' || $2 || '%')
+  AND ($1::text IS NULL OR $1::text = '' OR c.kbm_name ILIKE '%' || $1 || '%' OR c.kbm_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR c.kbm_code ILIKE '%' || $2 || '%')
 GROUP BY c.kbm_code
 ORDER BY c.kbm_code ASC LIMIT $3 OFFSET $4;
 
 -- name: CountKBMs :one
 SELECT COUNT(*) FROM kbm_catalog
 WHERE is_active = true AND deleted_dt IS NULL
-  AND (kbm_name ILIKE '%' || $1 || '%' OR kbm_code ILIKE '%' || $2 || '%');
+  AND ($1::text IS NULL OR $1::text = '' OR kbm_name ILIKE '%' || $1 || '%' OR kbm_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR kbm_code ILIKE '%' || $2 || '%');
 
 -- name: GetKBMsByPolyclinic :many
 SELECT c.*, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
@@ -158,8 +158,8 @@ JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
 LEFT JOIN kbm_polyclinic_mappings m2 ON c.kbm_code = m2.kbm_code AND m2.deleted_dt IS NULL
 WHERE c.is_active = true AND c.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
-  AND c.kbm_name ILIKE '%' || $2 || '%'
-  AND c.kbm_code ILIKE '%' || $3 || '%'
+  AND ($2::text IS NULL OR $2::text = '' OR c.kbm_name ILIKE '%' || $2 || '%' OR c.kbm_code ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR c.kbm_code ILIKE '%' || $3 || '%')
 GROUP BY c.kbm_code
 ORDER BY c.kbm_code ASC LIMIT $4 OFFSET $5;
 
@@ -168,22 +168,24 @@ SELECT COUNT(*) FROM kbm_catalog c
 JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
 WHERE c.is_active = true AND c.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
-  AND c.kbm_name ILIKE '%' || $2 || '%'
-  AND c.kbm_code ILIKE '%' || $3 || '%';
+  AND ($2::text IS NULL OR $2::text = '' OR c.kbm_name ILIKE '%' || $2 || '%' OR c.kbm_code ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR c.kbm_code ILIKE '%' || $3 || '%');
 
 -- name: GetTindakan :many
 SELECT t.*, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
 FROM master_tindakan t
 LEFT JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan AND m.deleted_dt IS NULL
 WHERE t.is_active = true AND t.deleted_dt IS NULL
-  AND (t.nama_tindakan ILIKE '%' || $1 || '%' OR t.kode_tindakan ILIKE '%' || $2 || '%')
+  AND ($1::text IS NULL OR $1::text = '' OR t.nama_tindakan ILIKE '%' || $1 || '%' OR t.kode_tindakan ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR t.kode_tindakan ILIKE '%' || $2 || '%')
 GROUP BY t.kode_tindakan
 ORDER BY t.kode_tindakan ASC LIMIT $3 OFFSET $4;
 
 -- name: CountTindakan :one
 SELECT COUNT(*) FROM master_tindakan
 WHERE is_active = true AND deleted_dt IS NULL
-  AND (nama_tindakan ILIKE '%' || $1 || '%' OR kode_tindakan ILIKE '%' || $2 || '%');
+  AND ($1::text IS NULL OR $1::text = '' OR nama_tindakan ILIKE '%' || $1 || '%' OR kode_tindakan ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR kode_tindakan ILIKE '%' || $2 || '%');
 
 -- name: GetTindakanByPolyclinic :many
 SELECT t.*, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
@@ -192,8 +194,8 @@ JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan
 LEFT JOIN tindakan_polyclinic_mappings m2 ON t.kode_tindakan = m2.kode_tindakan AND m2.deleted_dt IS NULL
 WHERE t.is_active = true AND t.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
-  AND t.nama_tindakan ILIKE '%' || $2 || '%'
-  AND t.kode_tindakan ILIKE '%' || $3 || '%'
+  AND ($2::text IS NULL OR $2::text = '' OR t.nama_tindakan ILIKE '%' || $2 || '%' OR t.kode_tindakan ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR t.kode_tindakan ILIKE '%' || $3 || '%')
 GROUP BY t.kode_tindakan
 ORDER BY t.kode_tindakan ASC LIMIT $4 OFFSET $5;
 
@@ -202,22 +204,24 @@ SELECT COUNT(*) FROM master_tindakan t
 JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan
 WHERE t.is_active = true AND t.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
-  AND t.nama_tindakan ILIKE '%' || $2 || '%'
-  AND t.kode_tindakan ILIKE '%' || $3 || '%';
+  AND ($2::text IS NULL OR $2::text = '' OR t.nama_tindakan ILIKE '%' || $2 || '%' OR t.kode_tindakan ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR t.kode_tindakan ILIKE '%' || $3 || '%');
 
 -- name: GetICD10 :many
 SELECT i.*, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
 FROM icd10_catalog i
 LEFT JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code AND m.deleted_dt IS NULL
 WHERE i.deleted_dt IS NULL
-  AND (i.name ILIKE '%' || $1 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
+  AND ($1::text IS NULL OR $1::text = '' OR i.name_en ILIKE '%' || $1 || '%' OR i.name_id ILIKE '%' || $1 || '%' OR i.icd10_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR i.icd10_code ILIKE '%' || $2 || '%')
 GROUP BY i.icd10_code
 ORDER BY i.icd10_code ASC LIMIT $3 OFFSET $4;
 
 -- name: CountICD10 :one
 SELECT COUNT(*) FROM icd10_catalog
 WHERE deleted_dt IS NULL
-  AND (name ILIKE '%' || $1 || '%' OR icd10_code ILIKE '%' || $2 || '%');
+  AND ($1::text IS NULL OR $1::text = '' OR name_en ILIKE '%' || $1 || '%' OR name_id ILIKE '%' || $1 || '%' OR icd10_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR icd10_code ILIKE '%' || $2 || '%');
 
 -- name: GetICD10ByPolyclinic :many
 SELECT i.*, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
@@ -225,7 +229,8 @@ FROM icd10_catalog i
 JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code
 LEFT JOIN icd10_polyclinic_mappings m2 ON i.icd10_code = m2.icd10_code AND m2.deleted_dt IS NULL
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
-  AND (i.name ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $3 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR i.name_en ILIKE '%' || $2 || '%' OR i.name_id ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR i.icd10_code ILIKE '%' || $3 || '%')
 GROUP BY i.icd10_code
 ORDER BY i.icd10_code ASC LIMIT $4 OFFSET $5;
 
@@ -233,4 +238,67 @@ ORDER BY i.icd10_code ASC LIMIT $4 OFFSET $5;
 SELECT COUNT(*) FROM icd10_catalog i
 JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
-  AND (i.name ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $3 || '%');
+  AND ($2::text IS NULL OR $2::text = '' OR i.name_en ILIKE '%' || $2 || '%' OR i.name_id ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR i.icd10_code ILIKE '%' || $3 || '%');
+
+-- name: GetICD9 :many
+SELECT * FROM icd9cm_catalog
+WHERE deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR name_en ILIKE '%' || $1 || '%' OR name_id ILIKE '%' || $1 || '%' OR icd9_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR icd9_code ILIKE '%' || $2 || '%')
+ORDER BY icd9_code ASC LIMIT $3 OFFSET $4;
+
+-- name: CountICD9 :one
+SELECT COUNT(*) FROM icd9cm_catalog
+WHERE deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR name_en ILIKE '%' || $1 || '%' OR name_id ILIKE '%' || $1 || '%' OR icd9_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR icd9_code ILIKE '%' || $2 || '%');
+
+-- name: GetICD9SuggestionsForTindakan :many
+SELECT i.*, m.is_primary 
+FROM icd9cm_catalog i
+JOIN tindakan_icd9_mapping m ON i.icd9_code = m.icd9_code
+WHERE m.kode_tindakan = $1 AND i.deleted_dt IS NULL
+ORDER BY m.is_primary DESC, i.icd9_code ASC;
+
+
+-- name: GetEncounterTindakan :many
+SELECT t.*, m.nama_tindakan, m.internal_category
+FROM encounter_tindakan t
+JOIN master_tindakan m ON t.kode_tindakan = m.kode_tindakan
+WHERE t.encounter_no = $1 AND t.deleted_dt IS NULL
+ORDER BY t.created_at ASC;
+
+-- name: GetEncounterResep :many
+SELECT *
+FROM encounter_resep
+WHERE encounter_no = $1 AND deleted_dt IS NULL
+ORDER BY created_at ASC;
+
+-- name: CheckKarcisUnpaid :one
+SELECT COUNT(*) > 0 AS has_unpaid_karcis
+FROM encounter_tindakan t
+JOIN master_tindakan m ON t.kode_tindakan = m.kode_tindakan
+WHERE t.encounter_no = $1 AND t.deleted_dt IS NULL 
+  AND m.internal_category = 'KARCIS' AND t.payment_status = 'UNPAID';
+
+-- name: CheckKarcisPaid :one
+SELECT COUNT(*) > 0 AS has_paid_karcis
+FROM encounter_tindakan t
+JOIN master_tindakan m ON t.kode_tindakan = m.kode_tindakan
+WHERE t.encounter_no = $1 AND t.deleted_dt IS NULL 
+  AND m.internal_category = 'KARCIS' AND t.payment_status = 'PAID';
+
+-- name: AddEncounterTindakan :one
+INSERT INTO encounter_tindakan (
+    id, encounter_no, kode_tindakan, qty, price, total, payment_status, created_by
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8
+) RETURNING *;
+
+-- name: AddEncounterResep :one
+INSERT INTO encounter_resep (
+    id, encounter_no, obat_id, obat_name, qty, dosis, instruksi, status, created_by
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
+) RETURNING *;

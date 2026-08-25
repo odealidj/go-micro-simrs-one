@@ -30,10 +30,20 @@ export interface KBMItem {
   polyclinics: string[];
 }
 
-export interface SecondaryDiagnosis {
+export interface EncounterDiagnosis {
+  id: string;
   icd10_code: string;
-  name: string;
-  category?: "KOMORBID" | "KOMPLIKASI" | "BANDING" | string;
+  icd10_name: string;
+  diagnosis_type: "PRIMARY" | "SECONDARY" | "DIFFERENTIAL" | string;
+  sequence: number;
+  clinical_notes: string;
+  severity_level: "I" | "II" | "III" | string;
+  severity_set_role: string;
+  auto_kbm_code: string;
+  auto_kbm_name: string;
+  kbm_mapping_confidence: string;
+  is_verified_by_rm: boolean;
+  verified_by: string;
 }
 
 export interface PrescriptionDraftItem {
@@ -82,11 +92,8 @@ export interface GetMedicalRecordResponse {
   patient_mrn: string;
   patient_name?: string;
   triage: TriageData;
-  icd10_codes: string[];
-  kbm_code: string;
-  kbm_name: string;
-  icd10_mapping_status: string;
-  secondary_diagnoses?: SecondaryDiagnosis[];
+  diagnoses: EncounterDiagnosis[];
+  encounter_severity_level?: string;
   actions: MedicalAction[];
   prescriptions?: PrescriptionDraftItem[];
   disposition?: DispositionData;

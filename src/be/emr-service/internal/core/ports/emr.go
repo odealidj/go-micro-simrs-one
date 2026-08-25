@@ -16,11 +16,24 @@ type EMRRepository interface {
 	// KBM
 	SearchKBM(ctx context.Context, deptCode, query string, limit, offset int32) ([]*domain.KBMItem, int32, error)
 	GetKBMDetail(ctx context.Context, kbmCode string) (*domain.KBMItem, error)
-	GetICD10SuggestionsForKBM(ctx context.Context, kbmCode string) ([]*domain.ICD10Suggestion, error)
-	AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, kbmName, notes, doctorId, deptCode, gender, ageBracket string) error
-	VerifyICD10Mapping(ctx context.Context, encounterNo string, icd10Codes []string, notes string) error
-	ListPendingICD10Verifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error)
+	// ICD-10 First Diagnosis Flow
+	AddEncounterDiagnosis(ctx context.Context, encounterNo, icd10Code, diagType, notes, severity, doctorId, deptCode, gender, ageBracket string, sequence int32) (*domain.EncounterDiagnosis, error)
+	UpdateEncounterDiagnosis(ctx context.Context, id, diagType, notes, severity string, sequence int32) error
+	RemoveEncounterDiagnosis(ctx context.Context, id string) error
+	GetKBMSuggestionsForICD10(ctx context.Context, icd10Code string) ([]*domain.KBMSuggestion, error)
+
+	// Verification by Rekam Medis
+	ListPendingKBMVerifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error)
+	VerifyKBMMapping(ctx context.Context, id, kbmCode, userId string) error
+	FinalizeSeverity(ctx context.Context, encounterNo, severityLevel, userId string) error
 	CompleteEncounter(ctx context.Context, encounterNo string) error
+	
+	// Validation helpers
+	GetEncounterDiagnoses(ctx context.Context, encounterNo string) ([]*domain.EncounterDiagnosis, error)
+	GetEncounterResepCount(ctx context.Context, encounterNo string) (int, error)
+	CheckKarcisUnpaid(ctx context.Context, encounterNo string) (bool, error)
+	CheckKarcisPaid(ctx context.Context, encounterNo string) (bool, error)
+	GetEncounterTindakanCount(ctx context.Context, encounterNo string) (int, error)
 }
 
 type EMRService interface {
@@ -34,11 +47,19 @@ type EMRService interface {
 	// KBM
 	SearchKBM(ctx context.Context, deptCode, query string, limit, offset int32) ([]*domain.KBMItem, int32, error)
 	GetKBMDetail(ctx context.Context, kbmCode string) (*domain.KBMItem, error)
-	GetICD10SuggestionsForKBM(ctx context.Context, kbmCode string) ([]*domain.ICD10Suggestion, error)
-	AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, notes, doctorId, deptCode, gender, ageBracket string) error
-	VerifyICD10Mapping(ctx context.Context, encounterNo string, icd10Codes []string, notes string) error
-	ListPendingICD10Verifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error)
+	
+	// ICD-10 First Diagnosis Flow
+	AddEncounterDiagnosis(ctx context.Context, encounterNo, icd10Code, diagType, notes, severity, doctorId, deptCode, gender, ageBracket string, sequence int32) (*domain.EncounterDiagnosis, error)
+	UpdateEncounterDiagnosis(ctx context.Context, id, diagType, notes, severity string, sequence int32) error
+	RemoveEncounterDiagnosis(ctx context.Context, id string) error
+	GetKBMSuggestionsForICD10(ctx context.Context, icd10Code string) ([]*domain.KBMSuggestion, error)
+
+	// Verification by Rekam Medis
+	ListPendingKBMVerifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error)
+	VerifyKBMMapping(ctx context.Context, id, kbmCode, userId string) error
+	FinalizeSeverity(ctx context.Context, encounterNo, severityLevel, userId string) error
 	CompleteEncounter(ctx context.Context, encounterNo string) error
+	FinalizeMedicalRecord(ctx context.Context, encounterNo, doctorId string) ([]string, error)
 }
 
 // EventSubscriber interface to listen to outbox events

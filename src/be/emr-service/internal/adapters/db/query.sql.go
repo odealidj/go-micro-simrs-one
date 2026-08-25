@@ -14,69 +14,166 @@ import (
 	"github.com/lib/pq"
 )
 
-const addDiagnosisKBM = `-- name: AddDiagnosisKBM :one
-UPDATE medical_records
-SET kbm_code = $2,
-    kbm_name = $3,
-    icd10_mapping_status = 'AUTO_MAPPED',
-    notes = $4,
-    updated_at = CURRENT_TIMESTAMP,
-    doctor_id = $5,
-    department_code = $6,
-    gender = $7,
-    age_bracket = $8
-WHERE encounter_no = $1
-RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, kbm_code, kbm_name, icd10_mapping_status, deleted_dt, deleted_by
+const addEncounterDiagnosis = `-- name: AddEncounterDiagnosis :one
+INSERT INTO encounter_diagnoses (
+    id, encounter_no, icd10_code, diagnosis_type, sequence, clinical_notes,
+    severity_level, severity_set_by, severity_set_role,
+    auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, created_by
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+) RETURNING id, encounter_no, icd10_code, diagnosis_type, sequence, clinical_notes, severity_level, severity_set_by, severity_set_role, auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, is_verified_by_rm, verified_by, verified_at, created_by, created_at, updated_at, deleted_dt
 `
 
-type AddDiagnosisKBMParams struct {
-	EncounterNo    string
-	KbmCode        sql.NullString
-	KbmName        sql.NullString
-	Notes          sql.NullString
-	DoctorID       sql.NullString
-	DepartmentCode sql.NullString
-	Gender         sql.NullString
-	AgeBracket     sql.NullString
+type AddEncounterDiagnosisParams struct {
+	ID                   uuid.UUID
+	EncounterNo          string
+	Icd10Code            string
+	DiagnosisType        string
+	Sequence             int32
+	ClinicalNotes        sql.NullString
+	SeverityLevel        string
+	SeveritySetBy        sql.NullString
+	SeveritySetRole      sql.NullString
+	AutoKbmCode          sql.NullString
+	AutoKbmName          sql.NullString
+	KbmMappingConfidence sql.NullString
+	CreatedBy            sql.NullString
 }
 
-func (q *Queries) AddDiagnosisKBM(ctx context.Context, arg AddDiagnosisKBMParams) (MedicalRecord, error) {
-	row := q.db.QueryRowContext(ctx, addDiagnosisKBM,
+func (q *Queries) AddEncounterDiagnosis(ctx context.Context, arg AddEncounterDiagnosisParams) (EncounterDiagnosis, error) {
+	row := q.db.QueryRowContext(ctx, addEncounterDiagnosis,
+		arg.ID,
 		arg.EncounterNo,
-		arg.KbmCode,
-		arg.KbmName,
-		arg.Notes,
-		arg.DoctorID,
-		arg.DepartmentCode,
-		arg.Gender,
-		arg.AgeBracket,
+		arg.Icd10Code,
+		arg.DiagnosisType,
+		arg.Sequence,
+		arg.ClinicalNotes,
+		arg.SeverityLevel,
+		arg.SeveritySetBy,
+		arg.SeveritySetRole,
+		arg.AutoKbmCode,
+		arg.AutoKbmName,
+		arg.KbmMappingConfidence,
+		arg.CreatedBy,
 	)
-	var i MedicalRecord
+	var i EncounterDiagnosis
 	err := row.Scan(
 		&i.ID,
 		&i.EncounterNo,
-		&i.Mrn,
-		pq.Array(&i.Icd10Codes),
-		&i.Notes,
+		&i.Icd10Code,
+		&i.DiagnosisType,
+		&i.Sequence,
+		&i.ClinicalNotes,
+		&i.SeverityLevel,
+		&i.SeveritySetBy,
+		&i.SeveritySetRole,
+		&i.AutoKbmCode,
+		&i.AutoKbmName,
+		&i.KbmMappingConfidence,
+		&i.IsVerifiedByRm,
+		&i.VerifiedBy,
+		&i.VerifiedAt,
+		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.BloodPressureSystolic,
-		&i.BloodPressureDiastolic,
-		&i.Temperature,
-		&i.HeartRate,
-		&i.Status,
-		&i.StartedAt,
-		&i.CompletedAt,
-		&i.DoctorID,
-		&i.DepartmentCode,
-		&i.Diagnosis,
-		&i.Gender,
-		&i.AgeBracket,
-		&i.KbmCode,
-		&i.KbmName,
-		&i.Icd10MappingStatus,
 		&i.DeletedDt,
-		&i.DeletedBy,
+	)
+	return i, err
+}
+
+const addEncounterResep = `-- name: AddEncounterResep :one
+INSERT INTO encounter_resep (
+    id, encounter_no, obat_id, obat_name, qty, dosis, instruksi, status, created_by
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
+) RETURNING id, encounter_no, obat_id, obat_name, qty, dosis, instruksi, status, created_by, created_at, updated_at, deleted_dt
+`
+
+type AddEncounterResepParams struct {
+	ID          uuid.UUID
+	EncounterNo string
+	ObatID      string
+	ObatName    string
+	Qty         int32
+	Dosis       sql.NullString
+	Instruksi   sql.NullString
+	Status      string
+	CreatedBy   sql.NullString
+}
+
+func (q *Queries) AddEncounterResep(ctx context.Context, arg AddEncounterResepParams) (EncounterResep, error) {
+	row := q.db.QueryRowContext(ctx, addEncounterResep,
+		arg.ID,
+		arg.EncounterNo,
+		arg.ObatID,
+		arg.ObatName,
+		arg.Qty,
+		arg.Dosis,
+		arg.Instruksi,
+		arg.Status,
+		arg.CreatedBy,
+	)
+	var i EncounterResep
+	err := row.Scan(
+		&i.ID,
+		&i.EncounterNo,
+		&i.ObatID,
+		&i.ObatName,
+		&i.Qty,
+		&i.Dosis,
+		&i.Instruksi,
+		&i.Status,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedDt,
+	)
+	return i, err
+}
+
+const addEncounterTindakan = `-- name: AddEncounterTindakan :one
+INSERT INTO encounter_tindakan (
+    id, encounter_no, kode_tindakan, qty, price, total, payment_status, created_by
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8
+) RETURNING id, encounter_no, kode_tindakan, qty, price, total, payment_status, created_by, created_at, updated_at, deleted_dt
+`
+
+type AddEncounterTindakanParams struct {
+	ID            uuid.UUID
+	EncounterNo   string
+	KodeTindakan  string
+	Qty           int32
+	Price         string
+	Total         string
+	PaymentStatus string
+	CreatedBy     sql.NullString
+}
+
+func (q *Queries) AddEncounterTindakan(ctx context.Context, arg AddEncounterTindakanParams) (EncounterTindakan, error) {
+	row := q.db.QueryRowContext(ctx, addEncounterTindakan,
+		arg.ID,
+		arg.EncounterNo,
+		arg.KodeTindakan,
+		arg.Qty,
+		arg.Price,
+		arg.Total,
+		arg.PaymentStatus,
+		arg.CreatedBy,
+	)
+	var i EncounterTindakan
+	err := row.Scan(
+		&i.ID,
+		&i.EncounterNo,
+		&i.KodeTindakan,
+		&i.Qty,
+		&i.Price,
+		&i.Total,
+		&i.PaymentStatus,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedDt,
 	)
 	return i, err
 }
@@ -120,6 +217,36 @@ func (q *Queries) AddMedicalAction(ctx context.Context, arg AddMedicalActionPara
 	return i, err
 }
 
+const checkKarcisPaid = `-- name: CheckKarcisPaid :one
+SELECT COUNT(*) > 0 AS has_paid_karcis
+FROM encounter_tindakan t
+JOIN master_tindakan m ON t.kode_tindakan = m.kode_tindakan
+WHERE t.encounter_no = $1 AND t.deleted_dt IS NULL 
+  AND m.internal_category = 'KARCIS' AND t.payment_status = 'PAID'
+`
+
+func (q *Queries) CheckKarcisPaid(ctx context.Context, encounterNo string) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkKarcisPaid, encounterNo)
+	var has_paid_karcis bool
+	err := row.Scan(&has_paid_karcis)
+	return has_paid_karcis, err
+}
+
+const checkKarcisUnpaid = `-- name: CheckKarcisUnpaid :one
+SELECT COUNT(*) > 0 AS has_unpaid_karcis
+FROM encounter_tindakan t
+JOIN master_tindakan m ON t.kode_tindakan = m.kode_tindakan
+WHERE t.encounter_no = $1 AND t.deleted_dt IS NULL 
+  AND m.internal_category = 'KARCIS' AND t.payment_status = 'UNPAID'
+`
+
+func (q *Queries) CheckKarcisUnpaid(ctx context.Context, encounterNo string) (bool, error) {
+	row := q.db.QueryRowContext(ctx, checkKarcisUnpaid, encounterNo)
+	var has_unpaid_karcis bool
+	err := row.Scan(&has_unpaid_karcis)
+	return has_unpaid_karcis, err
+}
+
 const completeEncounter = `-- name: CompleteEncounter :exec
 UPDATE medical_records
 SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
@@ -134,12 +261,13 @@ func (q *Queries) CompleteEncounter(ctx context.Context, encounterNo string) err
 const countICD10 = `-- name: CountICD10 :one
 SELECT COUNT(*) FROM icd10_catalog
 WHERE deleted_dt IS NULL
-  AND (name ILIKE '%' || $1 || '%' OR icd10_code ILIKE '%' || $2 || '%')
+  AND ($1::text IS NULL OR $1::text = '' OR name_en ILIKE '%' || $1 || '%' OR name_id ILIKE '%' || $1 || '%' OR icd10_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR icd10_code ILIKE '%' || $2 || '%')
 `
 
 type CountICD10Params struct {
-	Column1 sql.NullString
-	Column2 sql.NullString
+	Column1 string
+	Column2 string
 }
 
 func (q *Queries) CountICD10(ctx context.Context, arg CountICD10Params) (int64, error) {
@@ -153,13 +281,14 @@ const countICD10ByPolyclinic = `-- name: CountICD10ByPolyclinic :one
 SELECT COUNT(*) FROM icd10_catalog i
 JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
-  AND (i.name ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $3 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR i.name_en ILIKE '%' || $2 || '%' OR i.name_id ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR i.icd10_code ILIKE '%' || $3 || '%')
 `
 
 type CountICD10ByPolyclinicParams struct {
 	PolyclinicCode string
-	Column2        sql.NullString
-	Column3        sql.NullString
+	Column2        string
+	Column3        string
 }
 
 func (q *Queries) CountICD10ByPolyclinic(ctx context.Context, arg CountICD10ByPolyclinicParams) (int64, error) {
@@ -169,15 +298,35 @@ func (q *Queries) CountICD10ByPolyclinic(ctx context.Context, arg CountICD10ByPo
 	return count, err
 }
 
+const countICD9 = `-- name: CountICD9 :one
+SELECT COUNT(*) FROM icd9cm_catalog
+WHERE deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR name_en ILIKE '%' || $1 || '%' OR name_id ILIKE '%' || $1 || '%' OR icd9_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR icd9_code ILIKE '%' || $2 || '%')
+`
+
+type CountICD9Params struct {
+	Column1 string
+	Column2 string
+}
+
+func (q *Queries) CountICD9(ctx context.Context, arg CountICD9Params) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countICD9, arg.Column1, arg.Column2)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countKBMs = `-- name: CountKBMs :one
 SELECT COUNT(*) FROM kbm_catalog
 WHERE is_active = true AND deleted_dt IS NULL
-  AND (kbm_name ILIKE '%' || $1 || '%' OR kbm_code ILIKE '%' || $2 || '%')
+  AND ($1::text IS NULL OR $1::text = '' OR kbm_name ILIKE '%' || $1 || '%' OR kbm_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR kbm_code ILIKE '%' || $2 || '%')
 `
 
 type CountKBMsParams struct {
-	Column1 sql.NullString
-	Column2 sql.NullString
+	Column1 string
+	Column2 string
 }
 
 func (q *Queries) CountKBMs(ctx context.Context, arg CountKBMsParams) (int64, error) {
@@ -192,14 +341,14 @@ SELECT COUNT(*) FROM kbm_catalog c
 JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
 WHERE c.is_active = true AND c.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
-  AND c.kbm_name ILIKE '%' || $2 || '%'
-  AND c.kbm_code ILIKE '%' || $3 || '%'
+  AND ($2::text IS NULL OR $2::text = '' OR c.kbm_name ILIKE '%' || $2 || '%' OR c.kbm_code ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR c.kbm_code ILIKE '%' || $3 || '%')
 `
 
 type CountKBMsByPolyclinicParams struct {
 	PolyclinicCode string
-	Column2        sql.NullString
-	Column3        sql.NullString
+	Column2        string
+	Column3        string
 }
 
 func (q *Queries) CountKBMsByPolyclinic(ctx context.Context, arg CountKBMsByPolyclinicParams) (int64, error) {
@@ -211,10 +360,11 @@ func (q *Queries) CountKBMsByPolyclinic(ctx context.Context, arg CountKBMsByPoly
 
 const countPolyclinics = `-- name: CountPolyclinics :one
 SELECT COUNT(*) FROM polyclinics
-WHERE is_active = true AND deleted_dt IS NULL AND name ILIKE '%' || $1 || '%'
+WHERE is_active = true AND deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR name ILIKE '%' || $1 || '%' OR code ILIKE '%' || $1 || '%')
 `
 
-func (q *Queries) CountPolyclinics(ctx context.Context, dollar_1 sql.NullString) (int64, error) {
+func (q *Queries) CountPolyclinics(ctx context.Context, dollar_1 string) (int64, error) {
 	row := q.db.QueryRowContext(ctx, countPolyclinics, dollar_1)
 	var count int64
 	err := row.Scan(&count)
@@ -224,12 +374,13 @@ func (q *Queries) CountPolyclinics(ctx context.Context, dollar_1 sql.NullString)
 const countTindakan = `-- name: CountTindakan :one
 SELECT COUNT(*) FROM master_tindakan
 WHERE is_active = true AND deleted_dt IS NULL
-  AND (nama_tindakan ILIKE '%' || $1 || '%' OR kode_tindakan ILIKE '%' || $2 || '%')
+  AND ($1::text IS NULL OR $1::text = '' OR nama_tindakan ILIKE '%' || $1 || '%' OR kode_tindakan ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR kode_tindakan ILIKE '%' || $2 || '%')
 `
 
 type CountTindakanParams struct {
-	Column1 sql.NullString
-	Column2 sql.NullString
+	Column1 string
+	Column2 string
 }
 
 func (q *Queries) CountTindakan(ctx context.Context, arg CountTindakanParams) (int64, error) {
@@ -244,14 +395,14 @@ SELECT COUNT(*) FROM master_tindakan t
 JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan
 WHERE t.is_active = true AND t.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
-  AND t.nama_tindakan ILIKE '%' || $2 || '%'
-  AND t.kode_tindakan ILIKE '%' || $3 || '%'
+  AND ($2::text IS NULL OR $2::text = '' OR t.nama_tindakan ILIKE '%' || $2 || '%' OR t.kode_tindakan ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR t.kode_tindakan ILIKE '%' || $3 || '%')
 `
 
 type CountTindakanByPolyclinicParams struct {
 	PolyclinicCode string
-	Column2        sql.NullString
-	Column3        sql.NullString
+	Column2        string
+	Column3        string
 }
 
 func (q *Queries) CountTindakanByPolyclinic(ctx context.Context, arg CountTindakanByPolyclinicParams) (int64, error) {
@@ -264,7 +415,7 @@ func (q *Queries) CountTindakanByPolyclinic(ctx context.Context, arg CountTindak
 const createDraftMR = `-- name: CreateDraftMR :one
 INSERT INTO medical_records (id, encounter_no, mrn)
 VALUES ($1, $2, $3)
-RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, kbm_code, kbm_name, icd10_mapping_status, deleted_dt, deleted_by
+RETURNING id, encounter_no, mrn, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, deleted_dt, deleted_by, encounter_severity_level, severity_finalized_by, severity_finalized_at
 `
 
 type CreateDraftMRParams struct {
@@ -280,7 +431,6 @@ func (q *Queries) CreateDraftMR(ctx context.Context, arg CreateDraftMRParams) (M
 		&i.ID,
 		&i.EncounterNo,
 		&i.Mrn,
-		pq.Array(&i.Icd10Codes),
 		&i.Notes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -296,11 +446,11 @@ func (q *Queries) CreateDraftMR(ctx context.Context, arg CreateDraftMRParams) (M
 		&i.Diagnosis,
 		&i.Gender,
 		&i.AgeBracket,
-		&i.KbmCode,
-		&i.KbmName,
-		&i.Icd10MappingStatus,
 		&i.DeletedDt,
 		&i.DeletedBy,
+		&i.EncounterSeverityLevel,
+		&i.SeverityFinalizedBy,
+		&i.SeverityFinalizedAt,
 	)
 	return i, err
 }
@@ -396,31 +546,214 @@ func (q *Queries) GetClinicWaitAggregateWithoutDiagnosis(ctx context.Context, ar
 	return avg_wait_minutes, err
 }
 
+const getEncounterDiagnoses = `-- name: GetEncounterDiagnoses :many
+SELECT d.id, d.encounter_no, d.icd10_code, d.diagnosis_type, d.sequence, d.clinical_notes, d.severity_level, d.severity_set_by, d.severity_set_role, d.auto_kbm_code, d.auto_kbm_name, d.kbm_mapping_confidence, d.is_verified_by_rm, d.verified_by, d.verified_at, d.created_by, d.created_at, d.updated_at, d.deleted_dt, i.name_id as icd10_name
+FROM encounter_diagnoses d
+JOIN icd10_catalog i ON d.icd10_code = i.icd10_code
+WHERE d.encounter_no = $1 AND d.deleted_dt IS NULL
+ORDER BY d.sequence ASC, d.created_at ASC
+`
+
+type GetEncounterDiagnosesRow struct {
+	ID                   uuid.UUID
+	EncounterNo          string
+	Icd10Code            string
+	DiagnosisType        string
+	Sequence             int32
+	ClinicalNotes        sql.NullString
+	SeverityLevel        string
+	SeveritySetBy        sql.NullString
+	SeveritySetRole      sql.NullString
+	AutoKbmCode          sql.NullString
+	AutoKbmName          sql.NullString
+	KbmMappingConfidence sql.NullString
+	IsVerifiedByRm       bool
+	VerifiedBy           sql.NullString
+	VerifiedAt           sql.NullTime
+	CreatedBy            sql.NullString
+	CreatedAt            sql.NullTime
+	UpdatedAt            sql.NullTime
+	DeletedDt            sql.NullTime
+	Icd10Name            string
+}
+
+func (q *Queries) GetEncounterDiagnoses(ctx context.Context, encounterNo string) ([]GetEncounterDiagnosesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEncounterDiagnoses, encounterNo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEncounterDiagnosesRow
+	for rows.Next() {
+		var i GetEncounterDiagnosesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.EncounterNo,
+			&i.Icd10Code,
+			&i.DiagnosisType,
+			&i.Sequence,
+			&i.ClinicalNotes,
+			&i.SeverityLevel,
+			&i.SeveritySetBy,
+			&i.SeveritySetRole,
+			&i.AutoKbmCode,
+			&i.AutoKbmName,
+			&i.KbmMappingConfidence,
+			&i.IsVerifiedByRm,
+			&i.VerifiedBy,
+			&i.VerifiedAt,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedDt,
+			&i.Icd10Name,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEncounterResep = `-- name: GetEncounterResep :many
+SELECT id, encounter_no, obat_id, obat_name, qty, dosis, instruksi, status, created_by, created_at, updated_at, deleted_dt
+FROM encounter_resep
+WHERE encounter_no = $1 AND deleted_dt IS NULL
+ORDER BY created_at ASC
+`
+
+func (q *Queries) GetEncounterResep(ctx context.Context, encounterNo string) ([]EncounterResep, error) {
+	rows, err := q.db.QueryContext(ctx, getEncounterResep, encounterNo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []EncounterResep
+	for rows.Next() {
+		var i EncounterResep
+		if err := rows.Scan(
+			&i.ID,
+			&i.EncounterNo,
+			&i.ObatID,
+			&i.ObatName,
+			&i.Qty,
+			&i.Dosis,
+			&i.Instruksi,
+			&i.Status,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedDt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEncounterTindakan = `-- name: GetEncounterTindakan :many
+SELECT t.id, t.encounter_no, t.kode_tindakan, t.qty, t.price, t.total, t.payment_status, t.created_by, t.created_at, t.updated_at, t.deleted_dt, m.nama_tindakan, m.internal_category
+FROM encounter_tindakan t
+JOIN master_tindakan m ON t.kode_tindakan = m.kode_tindakan
+WHERE t.encounter_no = $1 AND t.deleted_dt IS NULL
+ORDER BY t.created_at ASC
+`
+
+type GetEncounterTindakanRow struct {
+	ID               uuid.UUID
+	EncounterNo      string
+	KodeTindakan     string
+	Qty              int32
+	Price            string
+	Total            string
+	PaymentStatus    string
+	CreatedBy        sql.NullString
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	DeletedDt        sql.NullTime
+	NamaTindakan     string
+	InternalCategory sql.NullString
+}
+
+func (q *Queries) GetEncounterTindakan(ctx context.Context, encounterNo string) ([]GetEncounterTindakanRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEncounterTindakan, encounterNo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEncounterTindakanRow
+	for rows.Next() {
+		var i GetEncounterTindakanRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.EncounterNo,
+			&i.KodeTindakan,
+			&i.Qty,
+			&i.Price,
+			&i.Total,
+			&i.PaymentStatus,
+			&i.CreatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedDt,
+			&i.NamaTindakan,
+			&i.InternalCategory,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getICD10 = `-- name: GetICD10 :many
-SELECT i.icd10_code, i.name, i.description, i.created_at, i.updated_at, i.deleted_dt, i.deleted_by, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT i.icd10_code, i.name_en, i.name_id, i.chapter_code, i.block_code, i.is_active, i.created_at, i.updated_at, i.deleted_dt, i.coding_rule, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
 FROM icd10_catalog i
 LEFT JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code AND m.deleted_dt IS NULL
 WHERE i.deleted_dt IS NULL
-  AND (i.name ILIKE '%' || $1 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
+  AND ($1::text IS NULL OR $1::text = '' OR i.name_en ILIKE '%' || $1 || '%' OR i.name_id ILIKE '%' || $1 || '%' OR i.icd10_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR i.icd10_code ILIKE '%' || $2 || '%')
 GROUP BY i.icd10_code
 ORDER BY i.icd10_code ASC LIMIT $3 OFFSET $4
 `
 
 type GetICD10Params struct {
-	Column1 sql.NullString
-	Column2 sql.NullString
+	Column1 string
+	Column2 string
 	Limit   int32
 	Offset  int32
 }
 
 type GetICD10Row struct {
 	Icd10Code   string
-	Name        string
-	Description sql.NullString
+	NameEn      string
+	NameID      string
+	ChapterCode sql.NullString
+	BlockCode   sql.NullString
+	IsActive    sql.NullBool
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
 	DeletedDt   sql.NullTime
-	DeletedBy   uuid.NullUUID
+	CodingRule  sql.NullString
 	Polyclinics []string
 }
 
@@ -440,12 +773,15 @@ func (q *Queries) GetICD10(ctx context.Context, arg GetICD10Params) ([]GetICD10R
 		var i GetICD10Row
 		if err := rows.Scan(
 			&i.Icd10Code,
-			&i.Name,
-			&i.Description,
+			&i.NameEn,
+			&i.NameID,
+			&i.ChapterCode,
+			&i.BlockCode,
+			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedDt,
-			&i.DeletedBy,
+			&i.CodingRule,
 			pq.Array(&i.Polyclinics),
 		); err != nil {
 			return nil, err
@@ -462,32 +798,36 @@ func (q *Queries) GetICD10(ctx context.Context, arg GetICD10Params) ([]GetICD10R
 }
 
 const getICD10ByPolyclinic = `-- name: GetICD10ByPolyclinic :many
-SELECT i.icd10_code, i.name, i.description, i.created_at, i.updated_at, i.deleted_dt, i.deleted_by, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT i.icd10_code, i.name_en, i.name_id, i.chapter_code, i.block_code, i.is_active, i.created_at, i.updated_at, i.deleted_dt, i.coding_rule, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
 FROM icd10_catalog i
 JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code
 LEFT JOIN icd10_polyclinic_mappings m2 ON i.icd10_code = m2.icd10_code AND m2.deleted_dt IS NULL
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
-  AND (i.name ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $3 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR i.name_en ILIKE '%' || $2 || '%' OR i.name_id ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR i.icd10_code ILIKE '%' || $3 || '%')
 GROUP BY i.icd10_code
 ORDER BY i.icd10_code ASC LIMIT $4 OFFSET $5
 `
 
 type GetICD10ByPolyclinicParams struct {
 	PolyclinicCode string
-	Column2        sql.NullString
-	Column3        sql.NullString
+	Column2        string
+	Column3        string
 	Limit          int32
 	Offset         int32
 }
 
 type GetICD10ByPolyclinicRow struct {
 	Icd10Code   string
-	Name        string
-	Description sql.NullString
+	NameEn      string
+	NameID      string
+	ChapterCode sql.NullString
+	BlockCode   sql.NullString
+	IsActive    sql.NullBool
 	CreatedAt   sql.NullTime
 	UpdatedAt   sql.NullTime
 	DeletedDt   sql.NullTime
-	DeletedBy   uuid.NullUUID
+	CodingRule  sql.NullString
 	Polyclinics []string
 }
 
@@ -508,12 +848,15 @@ func (q *Queries) GetICD10ByPolyclinic(ctx context.Context, arg GetICD10ByPolycl
 		var i GetICD10ByPolyclinicRow
 		if err := rows.Scan(
 			&i.Icd10Code,
-			&i.Name,
-			&i.Description,
+			&i.NameEn,
+			&i.NameID,
+			&i.ChapterCode,
+			&i.BlockCode,
+			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.DeletedDt,
-			&i.DeletedBy,
+			&i.CodingRule,
 			pq.Array(&i.Polyclinics),
 		); err != nil {
 			return nil, err
@@ -529,28 +872,98 @@ func (q *Queries) GetICD10ByPolyclinic(ctx context.Context, arg GetICD10ByPolycl
 	return items, nil
 }
 
-const getICD10MappingsByKBM = `-- name: GetICD10MappingsByKBM :many
-SELECT icd10_code, is_primary
-FROM kbm_icd10_mappings
-WHERE kbm_code = $1 AND deleted_dt IS NULL
-ORDER BY is_primary DESC, icd10_code ASC
+const getICD9 = `-- name: GetICD9 :many
+SELECT icd9_code, name_en, name_id, category, is_active, created_at, updated_at, deleted_dt FROM icd9cm_catalog
+WHERE deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR name_en ILIKE '%' || $1 || '%' OR name_id ILIKE '%' || $1 || '%' OR icd9_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR icd9_code ILIKE '%' || $2 || '%')
+ORDER BY icd9_code ASC LIMIT $3 OFFSET $4
 `
 
-type GetICD10MappingsByKBMRow struct {
-	Icd10Code string
-	IsPrimary sql.NullBool
+type GetICD9Params struct {
+	Column1 string
+	Column2 string
+	Limit   int32
+	Offset  int32
 }
 
-func (q *Queries) GetICD10MappingsByKBM(ctx context.Context, kbmCode string) ([]GetICD10MappingsByKBMRow, error) {
-	rows, err := q.db.QueryContext(ctx, getICD10MappingsByKBM, kbmCode)
+func (q *Queries) GetICD9(ctx context.Context, arg GetICD9Params) ([]Icd9cmCatalog, error) {
+	rows, err := q.db.QueryContext(ctx, getICD9,
+		arg.Column1,
+		arg.Column2,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetICD10MappingsByKBMRow
+	var items []Icd9cmCatalog
 	for rows.Next() {
-		var i GetICD10MappingsByKBMRow
-		if err := rows.Scan(&i.Icd10Code, &i.IsPrimary); err != nil {
+		var i Icd9cmCatalog
+		if err := rows.Scan(
+			&i.Icd9Code,
+			&i.NameEn,
+			&i.NameID,
+			&i.Category,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedDt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getICD9SuggestionsForTindakan = `-- name: GetICD9SuggestionsForTindakan :many
+SELECT i.icd9_code, i.name_en, i.name_id, i.category, i.is_active, i.created_at, i.updated_at, i.deleted_dt, m.is_primary 
+FROM icd9cm_catalog i
+JOIN tindakan_icd9_mapping m ON i.icd9_code = m.icd9_code
+WHERE m.kode_tindakan = $1 AND i.deleted_dt IS NULL
+ORDER BY m.is_primary DESC, i.icd9_code ASC
+`
+
+type GetICD9SuggestionsForTindakanRow struct {
+	Icd9Code  string
+	NameEn    string
+	NameID    sql.NullString
+	Category  sql.NullString
+	IsActive  sql.NullBool
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+	DeletedDt sql.NullTime
+	IsPrimary sql.NullBool
+}
+
+func (q *Queries) GetICD9SuggestionsForTindakan(ctx context.Context, kodeTindakan string) ([]GetICD9SuggestionsForTindakanRow, error) {
+	rows, err := q.db.QueryContext(ctx, getICD9SuggestionsForTindakan, kodeTindakan)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetICD9SuggestionsForTindakanRow
+	for rows.Next() {
+		var i GetICD9SuggestionsForTindakanRow
+		if err := rows.Scan(
+			&i.Icd9Code,
+			&i.NameEn,
+			&i.NameID,
+			&i.Category,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedDt,
+			&i.IsPrimary,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -586,19 +999,77 @@ func (q *Queries) GetKBMByCode(ctx context.Context, kbmCode string) (KbmCatalog,
 	return i, err
 }
 
+const getKBMSuggestionsForICD10 = `-- name: GetKBMSuggestionsForICD10 :many
+SELECT k.kbm_code, k.kbm_name, k.description, k.body_system, k.is_active, k.created_at, k.updated_at, k.deleted_dt, k.deleted_by, m.is_primary, m.mapping_confidence
+FROM kbm_catalog k
+JOIN kbm_icd10_mappings m ON k.kbm_code = m.kbm_code
+WHERE m.icd10_code = $1 AND k.is_active = true AND k.deleted_dt IS NULL
+ORDER BY m.is_primary DESC, m.mapping_confidence ASC
+`
+
+type GetKBMSuggestionsForICD10Row struct {
+	KbmCode           string
+	KbmName           string
+	Description       sql.NullString
+	BodySystem        sql.NullString
+	IsActive          bool
+	CreatedAt         sql.NullTime
+	UpdatedAt         sql.NullTime
+	DeletedDt         sql.NullTime
+	DeletedBy         uuid.NullUUID
+	IsPrimary         sql.NullBool
+	MappingConfidence sql.NullString
+}
+
+func (q *Queries) GetKBMSuggestionsForICD10(ctx context.Context, icd10Code string) ([]GetKBMSuggestionsForICD10Row, error) {
+	rows, err := q.db.QueryContext(ctx, getKBMSuggestionsForICD10, icd10Code)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetKBMSuggestionsForICD10Row
+	for rows.Next() {
+		var i GetKBMSuggestionsForICD10Row
+		if err := rows.Scan(
+			&i.KbmCode,
+			&i.KbmName,
+			&i.Description,
+			&i.BodySystem,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedDt,
+			&i.DeletedBy,
+			&i.IsPrimary,
+			&i.MappingConfidence,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getKBMs = `-- name: GetKBMs :many
 SELECT c.kbm_code, c.kbm_name, c.description, c.body_system, c.is_active, c.created_at, c.updated_at, c.deleted_dt, c.deleted_by, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
 FROM kbm_catalog c
 LEFT JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code AND m.deleted_dt IS NULL
 WHERE c.is_active = true AND c.deleted_dt IS NULL
-  AND (c.kbm_name ILIKE '%' || $1 || '%' OR c.kbm_code ILIKE '%' || $2 || '%')
+  AND ($1::text IS NULL OR $1::text = '' OR c.kbm_name ILIKE '%' || $1 || '%' OR c.kbm_code ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR c.kbm_code ILIKE '%' || $2 || '%')
 GROUP BY c.kbm_code
 ORDER BY c.kbm_code ASC LIMIT $3 OFFSET $4
 `
 
 type GetKBMsParams struct {
-	Column1 sql.NullString
-	Column2 sql.NullString
+	Column1 string
+	Column2 string
 	Limit   int32
 	Offset  int32
 }
@@ -662,16 +1133,16 @@ JOIN kbm_polyclinic_mappings m ON c.kbm_code = m.kbm_code
 LEFT JOIN kbm_polyclinic_mappings m2 ON c.kbm_code = m2.kbm_code AND m2.deleted_dt IS NULL
 WHERE c.is_active = true AND c.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
-  AND c.kbm_name ILIKE '%' || $2 || '%'
-  AND c.kbm_code ILIKE '%' || $3 || '%'
+  AND ($2::text IS NULL OR $2::text = '' OR c.kbm_name ILIKE '%' || $2 || '%' OR c.kbm_code ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR c.kbm_code ILIKE '%' || $3 || '%')
 GROUP BY c.kbm_code
 ORDER BY c.kbm_code ASC LIMIT $4 OFFSET $5
 `
 
 type GetKBMsByPolyclinicParams struct {
 	PolyclinicCode string
-	Column2        sql.NullString
-	Column3        sql.NullString
+	Column2        string
+	Column3        string
 	Limit          int32
 	Offset         int32
 }
@@ -730,7 +1201,7 @@ func (q *Queries) GetKBMsByPolyclinic(ctx context.Context, arg GetKBMsByPolyclin
 }
 
 const getMRByEncounterNo = `-- name: GetMRByEncounterNo :one
-SELECT id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, kbm_code, kbm_name, icd10_mapping_status, deleted_dt, deleted_by
+SELECT id, encounter_no, mrn, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, deleted_dt, deleted_by, encounter_severity_level, severity_finalized_by, severity_finalized_at
 FROM medical_records
 WHERE encounter_no = $1 AND deleted_dt IS NULL LIMIT 1
 `
@@ -742,7 +1213,6 @@ func (q *Queries) GetMRByEncounterNo(ctx context.Context, encounterNo string) (M
 		&i.ID,
 		&i.EncounterNo,
 		&i.Mrn,
-		pq.Array(&i.Icd10Codes),
 		&i.Notes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -758,11 +1228,11 @@ func (q *Queries) GetMRByEncounterNo(ctx context.Context, encounterNo string) (M
 		&i.Diagnosis,
 		&i.Gender,
 		&i.AgeBracket,
-		&i.KbmCode,
-		&i.KbmName,
-		&i.Icd10MappingStatus,
 		&i.DeletedDt,
 		&i.DeletedBy,
+		&i.EncounterSeverityLevel,
+		&i.SeverityFinalizedBy,
+		&i.SeverityFinalizedAt,
 	)
 	return i, err
 }
@@ -846,12 +1316,13 @@ func (q *Queries) GetPendingOutboxEvents(ctx context.Context) ([]OutboxEvent, er
 
 const getPolyclinics = `-- name: GetPolyclinics :many
 SELECT code, name, description, is_active, created_at, updated_at, deleted_dt, deleted_by FROM polyclinics
-WHERE is_active = true AND deleted_dt IS NULL AND name ILIKE '%' || $1 || '%'
+WHERE is_active = true AND deleted_dt IS NULL
+  AND ($1::text IS NULL OR $1::text = '' OR name ILIKE '%' || $1 || '%' OR code ILIKE '%' || $1 || '%')
 ORDER BY code ASC LIMIT $2 OFFSET $3
 `
 
 type GetPolyclinicsParams struct {
-	Column1 sql.NullString
+	Column1 string
 	Limit   int32
 	Offset  int32
 }
@@ -890,32 +1361,34 @@ func (q *Queries) GetPolyclinics(ctx context.Context, arg GetPolyclinicsParams) 
 }
 
 const getTindakan = `-- name: GetTindakan :many
-SELECT t.kode_tindakan, t.nama_tindakan, t.base_price, t.is_active, t.created_at, t.updated_at, t.deleted_dt, t.deleted_by, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT t.kode_tindakan, t.nama_tindakan, t.base_price, t.is_active, t.created_at, t.updated_at, t.deleted_dt, t.deleted_by, t.internal_category, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
 FROM master_tindakan t
 LEFT JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan AND m.deleted_dt IS NULL
 WHERE t.is_active = true AND t.deleted_dt IS NULL
-  AND (t.nama_tindakan ILIKE '%' || $1 || '%' OR t.kode_tindakan ILIKE '%' || $2 || '%')
+  AND ($1::text IS NULL OR $1::text = '' OR t.nama_tindakan ILIKE '%' || $1 || '%' OR t.kode_tindakan ILIKE '%' || $1 || '%')
+  AND ($2::text IS NULL OR $2::text = '' OR t.kode_tindakan ILIKE '%' || $2 || '%')
 GROUP BY t.kode_tindakan
 ORDER BY t.kode_tindakan ASC LIMIT $3 OFFSET $4
 `
 
 type GetTindakanParams struct {
-	Column1 sql.NullString
-	Column2 sql.NullString
+	Column1 string
+	Column2 string
 	Limit   int32
 	Offset  int32
 }
 
 type GetTindakanRow struct {
-	KodeTindakan string
-	NamaTindakan string
-	BasePrice    string
-	IsActive     bool
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
-	DeletedDt    sql.NullTime
-	DeletedBy    uuid.NullUUID
-	Polyclinics  []string
+	KodeTindakan     string
+	NamaTindakan     string
+	BasePrice        string
+	IsActive         bool
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	DeletedDt        sql.NullTime
+	DeletedBy        uuid.NullUUID
+	InternalCategory sql.NullString
+	Polyclinics      []string
 }
 
 func (q *Queries) GetTindakan(ctx context.Context, arg GetTindakanParams) ([]GetTindakanRow, error) {
@@ -941,6 +1414,7 @@ func (q *Queries) GetTindakan(ctx context.Context, arg GetTindakanParams) ([]Get
 			&i.UpdatedAt,
 			&i.DeletedDt,
 			&i.DeletedBy,
+			&i.InternalCategory,
 			pq.Array(&i.Polyclinics),
 		); err != nil {
 			return nil, err
@@ -957,36 +1431,37 @@ func (q *Queries) GetTindakan(ctx context.Context, arg GetTindakanParams) ([]Get
 }
 
 const getTindakanByPolyclinic = `-- name: GetTindakanByPolyclinic :many
-SELECT t.kode_tindakan, t.nama_tindakan, t.base_price, t.is_active, t.created_at, t.updated_at, t.deleted_dt, t.deleted_by, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT t.kode_tindakan, t.nama_tindakan, t.base_price, t.is_active, t.created_at, t.updated_at, t.deleted_dt, t.deleted_by, t.internal_category, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
 FROM master_tindakan t
 JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan
 LEFT JOIN tindakan_polyclinic_mappings m2 ON t.kode_tindakan = m2.kode_tindakan AND m2.deleted_dt IS NULL
 WHERE t.is_active = true AND t.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
-  AND t.nama_tindakan ILIKE '%' || $2 || '%'
-  AND t.kode_tindakan ILIKE '%' || $3 || '%'
+  AND ($2::text IS NULL OR $2::text = '' OR t.nama_tindakan ILIKE '%' || $2 || '%' OR t.kode_tindakan ILIKE '%' || $2 || '%')
+  AND ($3::text IS NULL OR $3::text = '' OR t.kode_tindakan ILIKE '%' || $3 || '%')
 GROUP BY t.kode_tindakan
 ORDER BY t.kode_tindakan ASC LIMIT $4 OFFSET $5
 `
 
 type GetTindakanByPolyclinicParams struct {
 	PolyclinicCode string
-	Column2        sql.NullString
-	Column3        sql.NullString
+	Column2        string
+	Column3        string
 	Limit          int32
 	Offset         int32
 }
 
 type GetTindakanByPolyclinicRow struct {
-	KodeTindakan string
-	NamaTindakan string
-	BasePrice    string
-	IsActive     bool
-	CreatedAt    sql.NullTime
-	UpdatedAt    sql.NullTime
-	DeletedDt    sql.NullTime
-	DeletedBy    uuid.NullUUID
-	Polyclinics  []string
+	KodeTindakan     string
+	NamaTindakan     string
+	BasePrice        string
+	IsActive         bool
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+	DeletedDt        sql.NullTime
+	DeletedBy        uuid.NullUUID
+	InternalCategory sql.NullString
+	Polyclinics      []string
 }
 
 func (q *Queries) GetTindakanByPolyclinic(ctx context.Context, arg GetTindakanByPolyclinicParams) ([]GetTindakanByPolyclinicRow, error) {
@@ -1013,6 +1488,7 @@ func (q *Queries) GetTindakanByPolyclinic(ctx context.Context, arg GetTindakanBy
 			&i.UpdatedAt,
 			&i.DeletedDt,
 			&i.DeletedBy,
+			&i.InternalCategory,
 			pq.Array(&i.Polyclinics),
 		); err != nil {
 			return nil, err
@@ -1028,44 +1504,63 @@ func (q *Queries) GetTindakanByPolyclinic(ctx context.Context, arg GetTindakanBy
 	return items, nil
 }
 
-const listPendingICD10Verifications = `-- name: ListPendingICD10Verifications :many
-SELECT encounter_no, mrn, kbm_code, kbm_name, icd10_mapping_status, created_at
-FROM medical_records
-WHERE icd10_mapping_status IN ('PENDING_REVIEW', 'AUTO_MAPPED') AND deleted_dt IS NULL
-ORDER BY created_at ASC
-LIMIT $1 OFFSET $2
+const searchICD10 = `-- name: SearchICD10 :many
+SELECT i.icd10_code, i.name_en, i.name_id, i.chapter_code, i.block_code, i.is_active, i.created_at, i.updated_at, i.deleted_dt, i.coding_rule, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+FROM icd10_catalog i
+LEFT JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code AND m.deleted_dt IS NULL
+WHERE i.deleted_dt IS NULL
+  AND (i.name_en ILIKE '%' || $1 || '%' OR i.name_id ILIKE '%' || $1 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
+GROUP BY i.icd10_code
+ORDER BY i.icd10_code ASC LIMIT $3 OFFSET $4
 `
 
-type ListPendingICD10VerificationsParams struct {
-	Limit  int32
-	Offset int32
+type SearchICD10Params struct {
+	Column1 sql.NullString
+	Column2 sql.NullString
+	Limit   int32
+	Offset  int32
 }
 
-type ListPendingICD10VerificationsRow struct {
-	EncounterNo        string
-	Mrn                string
-	KbmCode            sql.NullString
-	KbmName            sql.NullString
-	Icd10MappingStatus sql.NullString
-	CreatedAt          sql.NullTime
+type SearchICD10Row struct {
+	Icd10Code   string
+	NameEn      string
+	NameID      string
+	ChapterCode sql.NullString
+	BlockCode   sql.NullString
+	IsActive    sql.NullBool
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+	DeletedDt   sql.NullTime
+	CodingRule  sql.NullString
+	Polyclinics []string
 }
 
-func (q *Queries) ListPendingICD10Verifications(ctx context.Context, arg ListPendingICD10VerificationsParams) ([]ListPendingICD10VerificationsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listPendingICD10Verifications, arg.Limit, arg.Offset)
+func (q *Queries) SearchICD10(ctx context.Context, arg SearchICD10Params) ([]SearchICD10Row, error) {
+	rows, err := q.db.QueryContext(ctx, searchICD10,
+		arg.Column1,
+		arg.Column2,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListPendingICD10VerificationsRow
+	var items []SearchICD10Row
 	for rows.Next() {
-		var i ListPendingICD10VerificationsRow
+		var i SearchICD10Row
 		if err := rows.Scan(
-			&i.EncounterNo,
-			&i.Mrn,
-			&i.KbmCode,
-			&i.KbmName,
-			&i.Icd10MappingStatus,
+			&i.Icd10Code,
+			&i.NameEn,
+			&i.NameID,
+			&i.ChapterCode,
+			&i.BlockCode,
+			&i.IsActive,
 			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedDt,
+			&i.CodingRule,
+			pq.Array(&i.Polyclinics),
 		); err != nil {
 			return nil, err
 		}
@@ -1214,7 +1709,7 @@ const updateTriage = `-- name: UpdateTriage :one
 UPDATE medical_records
 SET blood_pressure_systolic = $2, blood_pressure_diastolic = $3, temperature = $4, heart_rate = $5, notes = $6, updated_at = CURRENT_TIMESTAMP
 WHERE encounter_no = $1
-RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, kbm_code, kbm_name, icd10_mapping_status, deleted_dt, deleted_by
+RETURNING id, encounter_no, mrn, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, deleted_dt, deleted_by, encounter_severity_level, severity_finalized_by, severity_finalized_at
 `
 
 type UpdateTriageParams struct {
@@ -1240,7 +1735,6 @@ func (q *Queries) UpdateTriage(ctx context.Context, arg UpdateTriageParams) (Med
 		&i.ID,
 		&i.EncounterNo,
 		&i.Mrn,
-		pq.Array(&i.Icd10Codes),
 		&i.Notes,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -1256,11 +1750,11 @@ func (q *Queries) UpdateTriage(ctx context.Context, arg UpdateTriageParams) (Med
 		&i.Diagnosis,
 		&i.Gender,
 		&i.AgeBracket,
-		&i.KbmCode,
-		&i.KbmName,
-		&i.Icd10MappingStatus,
 		&i.DeletedDt,
 		&i.DeletedBy,
+		&i.EncounterSeverityLevel,
+		&i.SeverityFinalizedBy,
+		&i.SeverityFinalizedAt,
 	)
 	return i, err
 }
@@ -1296,52 +1790,4 @@ func (q *Queries) UpsertClinicWaitAggregate(ctx context.Context, arg UpsertClini
 		arg.SampleCount,
 	)
 	return err
-}
-
-const verifyICD10Mapping = `-- name: VerifyICD10Mapping :one
-UPDATE medical_records
-SET icd10_codes = $2,
-    icd10_mapping_status = 'VERIFIED',
-    notes = CASE WHEN $3::text != '' THEN notes || E'\nCatatan RM: ' || $3::text ELSE notes END,
-    updated_at = CURRENT_TIMESTAMP
-WHERE encounter_no = $1
-RETURNING id, encounter_no, mrn, icd10_codes, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, kbm_code, kbm_name, icd10_mapping_status, deleted_dt, deleted_by
-`
-
-type VerifyICD10MappingParams struct {
-	EncounterNo string
-	Icd10Codes  []string
-	Column3     string
-}
-
-func (q *Queries) VerifyICD10Mapping(ctx context.Context, arg VerifyICD10MappingParams) (MedicalRecord, error) {
-	row := q.db.QueryRowContext(ctx, verifyICD10Mapping, arg.EncounterNo, pq.Array(arg.Icd10Codes), arg.Column3)
-	var i MedicalRecord
-	err := row.Scan(
-		&i.ID,
-		&i.EncounterNo,
-		&i.Mrn,
-		pq.Array(&i.Icd10Codes),
-		&i.Notes,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.BloodPressureSystolic,
-		&i.BloodPressureDiastolic,
-		&i.Temperature,
-		&i.HeartRate,
-		&i.Status,
-		&i.StartedAt,
-		&i.CompletedAt,
-		&i.DoctorID,
-		&i.DepartmentCode,
-		&i.Diagnosis,
-		&i.Gender,
-		&i.AgeBracket,
-		&i.KbmCode,
-		&i.KbmName,
-		&i.Icd10MappingStatus,
-		&i.DeletedDt,
-		&i.DeletedBy,
-	)
-	return i, err
 }

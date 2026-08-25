@@ -56,18 +56,23 @@ func (s *emrServiceImpl) SubmitTriage(ctx context.Context, encounterNo string, s
 	return nil
 }
 
-func (s *emrServiceImpl) AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, notes, doctorId, deptCode, gender, ageBracket string) error {
+func (s *emrServiceImpl) AddEncounterDiagnosis(ctx context.Context, encounterNo, icd10Code, diagType, notes, severity, doctorId, deptCode, gender, ageBracket string, sequence int32) (*domain.EncounterDiagnosis, error) {
 	if s.repo != nil {
-		// Fetch KBM detail to get the name
-		kbm, err := s.repo.GetKBMDetail(ctx, kbmCode)
-		if err != nil {
-			return err
-		}
-		if kbm == nil {
-			return fmt.Errorf("KBM code %s not found", kbmCode)
-		}
+		return s.repo.AddEncounterDiagnosis(ctx, encounterNo, icd10Code, diagType, notes, severity, doctorId, deptCode, gender, ageBracket, sequence)
+	}
+	return nil, nil
+}
 
-		return s.repo.AddDiagnosisKBM(ctx, encounterNo, kbmCode, kbm.KBMName, notes, doctorId, deptCode, gender, ageBracket)
+func (s *emrServiceImpl) UpdateEncounterDiagnosis(ctx context.Context, id, diagType, notes, severity string, sequence int32) error {
+	if s.repo != nil {
+		return s.repo.UpdateEncounterDiagnosis(ctx, id, diagType, notes, severity, sequence)
+	}
+	return nil
+}
+
+func (s *emrServiceImpl) RemoveEncounterDiagnosis(ctx context.Context, id string) error {
+	if s.repo != nil {
+		return s.repo.RemoveEncounterDiagnosis(ctx, id)
 	}
 	return nil
 }
@@ -151,25 +156,32 @@ func (s *emrServiceImpl) GetKBMDetail(ctx context.Context, kbmCode string) (*dom
 	return nil, nil
 }
 
-func (s *emrServiceImpl) VerifyICD10Mapping(ctx context.Context, encounterNo string, icd10Codes []string, notes string) error {
+func (s *emrServiceImpl) GetKBMSuggestionsForICD10(ctx context.Context, icd10Code string) ([]*domain.KBMSuggestion, error) {
 	if s.repo != nil {
-		return s.repo.VerifyICD10Mapping(ctx, encounterNo, icd10Codes, notes)
-	}
-	return nil
-}
-
-func (s *emrServiceImpl) GetICD10SuggestionsForKBM(ctx context.Context, kbmCode string) ([]*domain.ICD10Suggestion, error) {
-	if s.repo != nil {
-		return s.repo.GetICD10SuggestionsForKBM(ctx, kbmCode)
+		return s.repo.GetKBMSuggestionsForICD10(ctx, icd10Code)
 	}
 	return nil, nil
 }
 
-func (s *emrServiceImpl) ListPendingICD10Verifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error) {
+func (s *emrServiceImpl) ListPendingKBMVerifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error) {
 	if s.repo != nil {
-		return s.repo.ListPendingICD10Verifications(ctx, limit, offset)
+		return s.repo.ListPendingKBMVerifications(ctx, limit, offset)
 	}
 	return nil, 0, nil
+}
+
+func (s *emrServiceImpl) VerifyKBMMapping(ctx context.Context, id, kbmCode, userId string) error {
+	if s.repo != nil {
+		return s.repo.VerifyKBMMapping(ctx, id, kbmCode, userId)
+	}
+	return nil
+}
+
+func (s *emrServiceImpl) FinalizeSeverity(ctx context.Context, encounterNo, severityLevel, userId string) error {
+	if s.repo != nil {
+		return s.repo.FinalizeSeverity(ctx, encounterNo, severityLevel, userId)
+	}
+	return nil
 }
 
 func (s *emrServiceImpl) AddMedicalAction(ctx context.Context, encounterNo, actionCode, actionName string, price float64, notes string) error {
@@ -195,5 +207,56 @@ func (s *emrServiceImpl) EstimateWaitTime(ctx context.Context, doctorID, deptCod
 		return s.repo.EstimateWaitTime(ctx, doctorID, deptCode, gender, ageBracket)
 	}
 	return 15, nil
+}
+
+func (s *emrServiceImpl) FinalizeMedicalRecord(ctx context.Context, encounterNo, doctorId string) ([]string, error) {
+	var validationErrors []string
+
+	if s.repo == nil {
+		return nil, nil
+	}
+	
+	// 1. Triage Validation
+	mr, err := s.repo.GetMedicalRecord(ctx, encounterNo)
+	if err != nil {
+		return nil, err
+	}
+	if mr.Triage.HeartRate == nil && mr.Triage.BloodPressureSystolic == nil && mr.Notes == "" {
+		validationErrors = append(validationErrors, "Asesmen Triage belum diisi.")
+	}
+
+	// 2. Diagnosa Medis (Utama)
+	diags, err := s.repo.GetEncounterDiagnoses(ctx, encounterNo)
+	if err != nil {
+		return nil, err
+	}
+	hasPrimary := false
+	for _, d := range diags {
+		if d.DiagnosisType == "PRIMARY" {
+			hasPrimary = true
+			break
+		}
+	}
+	if !hasPrimary {
+		validationErrors = append(validationErrors, "Diagnosa Utama (Primary) belum diisi.")
+	}
+
+	// 3. Resume/Plan check (we use medical record resume field if any, but for now we skip or add if needed)
+
+	// 4. encounter_tindakan check (ensure \"KARCIS\" category exists and is PAID)
+	// We'll check if there's any unpaid KARCIS
+	unpaidKarcis, err := s.repo.CheckKarcisUnpaid(ctx, encounterNo)
+	if err == nil && unpaidKarcis {
+		validationErrors = append(validationErrors, "Karcis pendaftaran belum lunas/dibayar. Harap selesaikan pembayaran terlebih dahulu.")
+	}
+	// We might also want to check if a karcis exists at all.
+	paidKarcis, err := s.repo.CheckKarcisPaid(ctx, encounterNo)
+	if err == nil && !paidKarcis {
+		validationErrors = append(validationErrors, "Tidak ditemukan tagihan Karcis yang sudah dibayar.")
+	}
+
+	// 5. encounter_resep check (Optional: if resep exists, just inform or validate something. We'll leave it pass if none.)
+
+	return validationErrors, nil
 }
 

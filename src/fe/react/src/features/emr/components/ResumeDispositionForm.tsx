@@ -131,14 +131,18 @@ export function ResumeDispositionForm({
           <div className="bg-white p-3.5 rounded-lg border border-slate-200 space-y-1.5">
             <p className="font-semibold text-slate-700 flex items-center gap-1.5 text-slate-800">
               <Stethoscope className="h-3.5 w-3.5 text-indigo-600" />
-              Diagnosa Utama (KBM)
+              Diagnosa Utama
             </p>
-            {record?.kbm_code ? (
-              <p className="text-slate-800 font-medium">
-                [{record.kbm_code}] {record.kbm_name}
-              </p>
+            {(record?.diagnoses && record.diagnoses.length > 0) ? (
+              <div className="space-y-1">
+                {record.diagnoses.filter(d => d.diagnosis_type === "PRIMARY").map(d => (
+                  <p key={d.id} className="text-slate-800 font-medium text-sm">
+                    [{d.icd10_code}] {d.icd10_name} {d.auto_kbm_code && `(Auto-KBM: ${d.auto_kbm_code})`}
+                  </p>
+                ))}
+              </div>
             ) : (
-              <p className="text-slate-400 italic">Belum ditentukan</p>
+              <p className="text-slate-400 italic text-sm">Belum ditentukan</p>
             )}
           </div>
 

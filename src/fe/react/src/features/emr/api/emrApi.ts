@@ -2,7 +2,6 @@ import { api } from "@/lib/api";
 import type {
   EncounterDetail,
   GetMedicalRecordResponse,
-  KBMItem,
   PrescriptionDraftItem,
   TriageData,
 } from "../types";
@@ -59,13 +58,14 @@ export const submitTriage = async (
   });
 };
 
-export const searchKBM = async (query: string, deptCode?: string): Promise<KBMItem[]> => {
-  const params = new URLSearchParams();
-  if (query) params.append("q", query);
-  if (deptCode) params.append("dept_code", deptCode);
-  
-  const { data } = await api.get<{ data: { items: KBMItem[] } }>(`/emr/kbm/search?${params.toString()}`);
-  return data?.data?.items || [];
+export const getKBMSuggestionsForICD10 = async (icd10Code: string): Promise<any[]> => {
+  const { data } = await api.get<{ data: { suggestions: any[] } }>(`/emr/icd10/${icd10Code}/kbm-suggestions`);
+  return data?.data?.suggestions || [];
+};
+
+export const getICD9SuggestionsForTindakan = async (kodeTindakan: string): Promise<any[]> => {
+  const { data } = await api.get<{ data: any[] }>(`/master/tindakan/${kodeTindakan}/icd9-suggestions`);
+  return data?.data || [];
 };
 
 export const searchICD10 = async (search: string, poliCode?: string): Promise<{ code: string; name: string }[]> => {
@@ -77,26 +77,61 @@ export const searchICD10 = async (search: string, poliCode?: string): Promise<{ 
     const items = data?.data || [];
     return items.map((item: any) => ({
       code: item.icd10_code || item.code,
-      name: item.name || item.description || item.icd10_code,
+      name: item.name_id || item.name_en || item.icd10_code,
     }));
   } catch {
     return [];
   }
 };
 
-export const addDiagnosisKBM = async (
+export const addEncounterDiagnosis = async (
   encounterNo: string,
-  kbmCode: string,
-  notes: string,
-  doctorId: string,
-  deptCode: string
+  icd10Code: string,
+  diagnosisType: string,
+  severityLevel: string,
+  clinicalNotes: string
 ): Promise<void> => {
-  await api.post("/emr/diagnosis-kbm", {
+  await api.post("/emr/diagnosis", {
     encounter_no: encounterNo,
+    icd10_code: icd10Code,
+    diagnosis_type: diagnosisType,
+    severity_level: severityLevel,
+    clinical_notes: clinicalNotes,
+  });
+};
+
+export const updateEncounterDiagnosis = async (
+  id: string,
+  diagnosisType: string,
+  severityLevel: string,
+  clinicalNotes: string
+): Promise<void> => {
+  await api.put(`/emr/diagnosis/${id}`, {
+    diagnosis_type: diagnosisType,
+    severity_level: severityLevel,
+    clinical_notes: clinicalNotes,
+  });
+};
+
+export const removeEncounterDiagnosis = async (id: string): Promise<void> => {
+  await api.delete(`/emr/diagnosis/${id}`);
+};
+
+export const finalizeSeverity = async (
+  encounterNo: string,
+  severityLevel: string
+): Promise<void> => {
+  await api.post(`/emr/encounter/${encounterNo}/severity/finalize`, {
+    severity_level: severityLevel,
+  });
+};
+
+export const verifyKBMMapping = async (
+  id: string,
+  kbmCode: string
+): Promise<void> => {
+  await api.post(`/emr/diagnosis/${id}/verify-kbm`, {
     kbm_code: kbmCode,
-    notes,
-    doctor_id: doctorId,
-    department_code: deptCode
   });
 };
 

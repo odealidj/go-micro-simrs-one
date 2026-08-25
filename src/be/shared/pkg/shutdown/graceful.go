@@ -17,20 +17,8 @@ func WaitForSignal() (context.Context, context.CancelFunc) {
 
 	go func() {
 		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 		sig := <-quit
-		if sig == syscall.SIGHUP {
-			// SIGHUP diabaikan — digunakan oleh shell parent ketika make exit
-			// Jangan shutdown, cukup log dan lanjutkan
-			slog.Info("SIGHUP received (ignored, continuing...)", "signal", sig.String())
-			// Re-register dan tunggu signal berikutnya
-			for {
-				sig = <-quit
-				if sig != syscall.SIGHUP {
-					break
-				}
-			}
-		}
 		slog.Info("Shutdown signal received", "signal", sig.String())
 		cancel()
 	}()
