@@ -22,6 +22,7 @@ interface ICD10Data {
   block_code: string;
   is_active: boolean;
   polyclinics: string[];
+  kbm_count?: number;
 }
 
 export function ICD10Page() {
@@ -87,6 +88,7 @@ export function ICD10Page() {
                 <th className="px-6 py-4">Kode ICD-10</th>
                 <th className="px-6 py-4">Diagnosa (ID / EN)</th>
                 <th className="px-6 py-4">Kategori (Chapter / Block)</th>
+                <th className="px-6 py-4">Pemetaan KBM</th>
                 <th className="px-6 py-4">Status</th>
                 <th className="px-6 py-4 text-right">Aksi</th>
               </tr>
@@ -94,7 +96,7 @@ export function ICD10Page() {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-12">
+                  <td colSpan={6} className="text-center py-12">
                     <div className="flex flex-col items-center justify-center text-slate-400 space-y-2">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                       <p>Memuat katalog...</p>
@@ -103,7 +105,7 @@ export function ICD10Page() {
                 </tr>
               ) : data.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-12">
+                  <td colSpan={6} className="text-center py-12">
                     <div className="flex flex-col items-center justify-center text-slate-400 space-y-2">
                       <Book className="h-12 w-12 text-slate-200" />
                       <p>Tidak ada data ditemukan</p>
@@ -141,6 +143,19 @@ export function ICD10Page() {
                         </div>
                       ) : (
                         <span className="text-slate-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {item.kbm_count && item.kbm_count > 0 ? (
+                        <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 font-medium inline-flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                          Terpetakan ({item.kbm_count} KBM)
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-amber-50/80 text-amber-700 border-amber-200/90 hover:bg-amber-100/80 font-medium inline-flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                          Belum Dipetakan
+                        </Badge>
                       )}
                     </td>
                     <td className="px-6 py-4">

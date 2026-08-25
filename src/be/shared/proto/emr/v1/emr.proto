@@ -357,6 +357,7 @@ message MasterTindakan {
   string nama_tindakan = 2;
   double base_price = 3;
   repeated string polyclinics = 4;
+  int32 icd9_count = 5;
 }
 message GetMasterTindakanResponse {
   repeated MasterTindakan data = 1;
@@ -389,6 +390,7 @@ message MasterICD10 {
   string block_code = 5;
   bool is_active = 6;
   repeated string polyclinics = 7;
+  int32 kbm_count = 8;
 }
 message GetMasterICD10Response {
   repeated MasterICD10 data = 1;

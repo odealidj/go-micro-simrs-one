@@ -172,9 +172,12 @@ WHERE c.is_active = true AND c.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND ($3::text IS NULL OR $3::text = '' OR c.kbm_code ILIKE '%' || $3 || '%');
 
 -- name: GetTindakan :many
-SELECT t.*, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT t.*, 
+       COALESCE(array_agg(DISTINCT m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT map.icd9_code)::int AS icd9_count
 FROM master_tindakan t
 LEFT JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan AND m.deleted_dt IS NULL
+LEFT JOIN tindakan_icd9_mapping map ON t.kode_tindakan = map.kode_tindakan
 WHERE t.is_active = true AND t.deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR t.nama_tindakan ILIKE '%' || $1 || '%' OR t.kode_tindakan ILIKE '%' || $1 || '%')
   AND ($2::text IS NULL OR $2::text = '' OR t.kode_tindakan ILIKE '%' || $2 || '%')
@@ -185,13 +188,16 @@ ORDER BY t.kode_tindakan ASC LIMIT $3 OFFSET $4;
 SELECT COUNT(*) FROM master_tindakan
 WHERE is_active = true AND deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR nama_tindakan ILIKE '%' || $1 || '%' OR kode_tindakan ILIKE '%' || $1 || '%')
-  AND ($2::text IS NULL OR $2::text = '' OR kode_tindakan ILIKE '%' || $2 || '%');
+  AND ($2::text IS NULL OR kode_tindakan ILIKE '%' || $2 || '%');
 
 -- name: GetTindakanByPolyclinic :many
-SELECT t.*, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT t.*, 
+       COALESCE(array_agg(DISTINCT m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT map.icd9_code)::int AS icd9_count
 FROM master_tindakan t
 JOIN tindakan_polyclinic_mappings m ON t.kode_tindakan = m.kode_tindakan
 LEFT JOIN tindakan_polyclinic_mappings m2 ON t.kode_tindakan = m2.kode_tindakan AND m2.deleted_dt IS NULL
+LEFT JOIN tindakan_icd9_mapping map ON t.kode_tindakan = map.kode_tindakan
 WHERE t.is_active = true AND t.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND m.polyclinic_code = $1
   AND ($2::text IS NULL OR $2::text = '' OR t.nama_tindakan ILIKE '%' || $2 || '%' OR t.kode_tindakan ILIKE '%' || $2 || '%')
@@ -208,9 +214,12 @@ WHERE t.is_active = true AND t.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND ($3::text IS NULL OR $3::text = '' OR t.kode_tindakan ILIKE '%' || $3 || '%');
 
 -- name: GetICD10 :many
-SELECT i.*, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT i.*, 
+       COALESCE(array_agg(DISTINCT m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT k.kbm_code)::int AS kbm_count
 FROM icd10_catalog i
 LEFT JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code AND m.deleted_dt IS NULL
+LEFT JOIN kbm_icd10_mappings k ON i.icd10_code = k.icd10_code
 WHERE i.deleted_dt IS NULL
   AND ($1::text IS NULL OR $1::text = '' OR i.name_en ILIKE '%' || $1 || '%' OR i.name_id ILIKE '%' || $1 || '%' OR i.icd10_code ILIKE '%' || $1 || '%')
   AND ($2::text IS NULL OR $2::text = '' OR i.icd10_code ILIKE '%' || $2 || '%')
@@ -224,10 +233,13 @@ WHERE deleted_dt IS NULL
   AND ($2::text IS NULL OR $2::text = '' OR icd10_code ILIKE '%' || $2 || '%');
 
 -- name: GetICD10ByPolyclinic :many
-SELECT i.*, COALESCE(array_agg(m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
+SELECT i.*, 
+       COALESCE(array_agg(DISTINCT m2.polyclinic_code) FILTER (WHERE m2.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics,
+       COUNT(DISTINCT k.kbm_code)::int AS kbm_count
 FROM icd10_catalog i
 JOIN icd10_polyclinic_mappings m ON i.icd10_code = m.icd10_code
 LEFT JOIN icd10_polyclinic_mappings m2 ON i.icd10_code = m2.icd10_code AND m2.deleted_dt IS NULL
+LEFT JOIN kbm_icd10_mappings k ON i.icd10_code = k.icd10_code
 WHERE m.polyclinic_code = $1 AND i.deleted_dt IS NULL AND m.deleted_dt IS NULL
   AND ($2::text IS NULL OR $2::text = '' OR i.name_en ILIKE '%' || $2 || '%' OR i.name_id ILIKE '%' || $2 || '%' OR i.icd10_code ILIKE '%' || $2 || '%')
   AND ($3::text IS NULL OR $3::text = '' OR i.icd10_code ILIKE '%' || $3 || '%')

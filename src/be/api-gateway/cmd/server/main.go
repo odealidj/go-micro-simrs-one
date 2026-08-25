@@ -1035,7 +1035,13 @@ func main() {
 
 				r.Get("/master/kbm", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					if page < 1 {
+						page = 1
+					}
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					searchName := req.URL.Query().Get("search_name")
 					if searchName == "" {
 						searchName = req.URL.Query().Get("search")
@@ -1054,23 +1060,24 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
 				r.Get("/master/kbm/poli/{poli_code}", func(w http.ResponseWriter, req *http.Request) {
 					poliCode := chi.URLParam(req, "poli_code")
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					if page < 1 {
+						page = 1
+					}
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					searchName := req.URL.Query().Get("search_name")
 					if searchName == "" {
 						searchName = req.URL.Query().Get("search")
@@ -1090,22 +1097,23 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
 				r.Get("/master/tindakan", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					if page < 1 {
+						page = 1
+					}
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					searchName := req.URL.Query().Get("search_name")
 					if searchName == "" {
 						searchName = req.URL.Query().Get("search")
@@ -1124,23 +1132,24 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
 				r.Get("/master/tindakan/poli/{poli_code}", func(w http.ResponseWriter, req *http.Request) {
 					poliCode := chi.URLParam(req, "poli_code")
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					if page < 1 {
+						page = 1
+					}
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					searchName := req.URL.Query().Get("search_name")
 					if searchName == "" {
 						searchName = req.URL.Query().Get("search")
@@ -1160,22 +1169,23 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
 				r.Get("/master/icd10", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					if page < 1 {
+						page = 1
+					}
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					searchName := req.URL.Query().Get("search_name")
 					if searchName == "" {
 						searchName = req.URL.Query().Get("search")
@@ -1194,23 +1204,24 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
 				r.Get("/master/icd10/poli/{poli_code}", func(w http.ResponseWriter, req *http.Request) {
 					poliCode := chi.URLParam(req, "poli_code")
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					if page < 1 {
+						page = 1
+					}
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					searchName := req.URL.Query().Get("search_name")
 					if searchName == "" {
 						searchName = req.URL.Query().Get("search")
@@ -1230,22 +1241,23 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 				
 				r.Get("/master/icd9", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					if page < 1 {
+						page = 1
+					}
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					search := req.URL.Query().Get("search")
 					if search == "" {
 						search = req.URL.Query().Get("search_name")
@@ -1265,16 +1277,11 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.Total), TotalPages: (int(res.Total) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.Total) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.Total), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Items, Meta: meta})
 				})
 

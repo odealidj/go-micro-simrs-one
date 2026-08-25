@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.26.1
-// source: proto/emr/v1/emr.proto
+// source: emr.proto
 
 package emrv1
 
@@ -33,7 +33,7 @@ type GetEstimatedWaitTimeRequest struct {
 
 func (x *GetEstimatedWaitTimeRequest) Reset() {
 	*x = GetEstimatedWaitTimeRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[0]
+	mi := &file_emr_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -45,7 +45,7 @@ func (x *GetEstimatedWaitTimeRequest) String() string {
 func (*GetEstimatedWaitTimeRequest) ProtoMessage() {}
 
 func (x *GetEstimatedWaitTimeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[0]
+	mi := &file_emr_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,7 +58,7 @@ func (x *GetEstimatedWaitTimeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEstimatedWaitTimeRequest.ProtoReflect.Descriptor instead.
 func (*GetEstimatedWaitTimeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{0}
+	return file_emr_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetEstimatedWaitTimeRequest) GetDoctorId() string {
@@ -98,7 +98,7 @@ type GetEstimatedWaitTimeResponse struct {
 
 func (x *GetEstimatedWaitTimeResponse) Reset() {
 	*x = GetEstimatedWaitTimeResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[1]
+	mi := &file_emr_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -110,7 +110,7 @@ func (x *GetEstimatedWaitTimeResponse) String() string {
 func (*GetEstimatedWaitTimeResponse) ProtoMessage() {}
 
 func (x *GetEstimatedWaitTimeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[1]
+	mi := &file_emr_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -123,7 +123,7 @@ func (x *GetEstimatedWaitTimeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEstimatedWaitTimeResponse.ProtoReflect.Descriptor instead.
 func (*GetEstimatedWaitTimeResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{1}
+	return file_emr_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *GetEstimatedWaitTimeResponse) GetEstimatedMinutes() int64 {
@@ -143,7 +143,7 @@ type StartEncounterRequest struct {
 
 func (x *StartEncounterRequest) Reset() {
 	*x = StartEncounterRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[2]
+	mi := &file_emr_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -155,7 +155,7 @@ func (x *StartEncounterRequest) String() string {
 func (*StartEncounterRequest) ProtoMessage() {}
 
 func (x *StartEncounterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[2]
+	mi := &file_emr_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -168,7 +168,7 @@ func (x *StartEncounterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartEncounterRequest.ProtoReflect.Descriptor instead.
 func (*StartEncounterRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{2}
+	return file_emr_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *StartEncounterRequest) GetEncounterNo() string {
@@ -188,7 +188,7 @@ type StartEncounterResponse struct {
 
 func (x *StartEncounterResponse) Reset() {
 	*x = StartEncounterResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[3]
+	mi := &file_emr_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -200,7 +200,7 @@ func (x *StartEncounterResponse) String() string {
 func (*StartEncounterResponse) ProtoMessage() {}
 
 func (x *StartEncounterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[3]
+	mi := &file_emr_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -213,7 +213,7 @@ func (x *StartEncounterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartEncounterResponse.ProtoReflect.Descriptor instead.
 func (*StartEncounterResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{3}
+	return file_emr_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *StartEncounterResponse) GetSuccess() bool {
@@ -245,7 +245,7 @@ type SubmitTriageRequest struct {
 
 func (x *SubmitTriageRequest) Reset() {
 	*x = SubmitTriageRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[4]
+	mi := &file_emr_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -257,7 +257,7 @@ func (x *SubmitTriageRequest) String() string {
 func (*SubmitTriageRequest) ProtoMessage() {}
 
 func (x *SubmitTriageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[4]
+	mi := &file_emr_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -270,7 +270,7 @@ func (x *SubmitTriageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitTriageRequest.ProtoReflect.Descriptor instead.
 func (*SubmitTriageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{4}
+	return file_emr_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *SubmitTriageRequest) GetEncounterNo() string {
@@ -325,7 +325,7 @@ type SubmitTriageResponse struct {
 
 func (x *SubmitTriageResponse) Reset() {
 	*x = SubmitTriageResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[5]
+	mi := &file_emr_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -337,7 +337,7 @@ func (x *SubmitTriageResponse) String() string {
 func (*SubmitTriageResponse) ProtoMessage() {}
 
 func (x *SubmitTriageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[5]
+	mi := &file_emr_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -350,7 +350,7 @@ func (x *SubmitTriageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitTriageResponse.ProtoReflect.Descriptor instead.
 func (*SubmitTriageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{5}
+	return file_emr_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SubmitTriageResponse) GetSuccess() bool {
@@ -381,7 +381,7 @@ type SearchKBMRequest struct {
 
 func (x *SearchKBMRequest) Reset() {
 	*x = SearchKBMRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[6]
+	mi := &file_emr_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -393,7 +393,7 @@ func (x *SearchKBMRequest) String() string {
 func (*SearchKBMRequest) ProtoMessage() {}
 
 func (x *SearchKBMRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[6]
+	mi := &file_emr_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -406,7 +406,7 @@ func (x *SearchKBMRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchKBMRequest.ProtoReflect.Descriptor instead.
 func (*SearchKBMRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{6}
+	return file_emr_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SearchKBMRequest) GetQuery() string {
@@ -457,7 +457,7 @@ type KBMItem struct {
 
 func (x *KBMItem) Reset() {
 	*x = KBMItem{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[7]
+	mi := &file_emr_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -469,7 +469,7 @@ func (x *KBMItem) String() string {
 func (*KBMItem) ProtoMessage() {}
 
 func (x *KBMItem) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[7]
+	mi := &file_emr_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -482,7 +482,7 @@ func (x *KBMItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KBMItem.ProtoReflect.Descriptor instead.
 func (*KBMItem) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{7}
+	return file_emr_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *KBMItem) GetKbmCode() string {
@@ -530,7 +530,7 @@ type SearchKBMResponse struct {
 
 func (x *SearchKBMResponse) Reset() {
 	*x = SearchKBMResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[8]
+	mi := &file_emr_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -542,7 +542,7 @@ func (x *SearchKBMResponse) String() string {
 func (*SearchKBMResponse) ProtoMessage() {}
 
 func (x *SearchKBMResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[8]
+	mi := &file_emr_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -555,7 +555,7 @@ func (x *SearchKBMResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchKBMResponse.ProtoReflect.Descriptor instead.
 func (*SearchKBMResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{8}
+	return file_emr_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SearchKBMResponse) GetItems() []*KBMItem {
@@ -581,7 +581,7 @@ type GetKBMDetailRequest struct {
 
 func (x *GetKBMDetailRequest) Reset() {
 	*x = GetKBMDetailRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[9]
+	mi := &file_emr_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -593,7 +593,7 @@ func (x *GetKBMDetailRequest) String() string {
 func (*GetKBMDetailRequest) ProtoMessage() {}
 
 func (x *GetKBMDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[9]
+	mi := &file_emr_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -606,7 +606,7 @@ func (x *GetKBMDetailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKBMDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetKBMDetailRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{9}
+	return file_emr_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *GetKBMDetailRequest) GetKbmCode() string {
@@ -625,7 +625,7 @@ type GetKBMDetailResponse struct {
 
 func (x *GetKBMDetailResponse) Reset() {
 	*x = GetKBMDetailResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[10]
+	mi := &file_emr_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -637,7 +637,7 @@ func (x *GetKBMDetailResponse) String() string {
 func (*GetKBMDetailResponse) ProtoMessage() {}
 
 func (x *GetKBMDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[10]
+	mi := &file_emr_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -650,7 +650,7 @@ func (x *GetKBMDetailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKBMDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetKBMDetailResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{10}
+	return file_emr_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetKBMDetailResponse) GetItem() *KBMItem {
@@ -669,7 +669,7 @@ type GetICD10SuggestionsForKBMRequest struct {
 
 func (x *GetICD10SuggestionsForKBMRequest) Reset() {
 	*x = GetICD10SuggestionsForKBMRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[11]
+	mi := &file_emr_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -681,7 +681,7 @@ func (x *GetICD10SuggestionsForKBMRequest) String() string {
 func (*GetICD10SuggestionsForKBMRequest) ProtoMessage() {}
 
 func (x *GetICD10SuggestionsForKBMRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[11]
+	mi := &file_emr_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -694,7 +694,7 @@ func (x *GetICD10SuggestionsForKBMRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetICD10SuggestionsForKBMRequest.ProtoReflect.Descriptor instead.
 func (*GetICD10SuggestionsForKBMRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{11}
+	return file_emr_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetICD10SuggestionsForKBMRequest) GetKbmCode() string {
@@ -714,7 +714,7 @@ type ICD10Suggestion struct {
 
 func (x *ICD10Suggestion) Reset() {
 	*x = ICD10Suggestion{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[12]
+	mi := &file_emr_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -726,7 +726,7 @@ func (x *ICD10Suggestion) String() string {
 func (*ICD10Suggestion) ProtoMessage() {}
 
 func (x *ICD10Suggestion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[12]
+	mi := &file_emr_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -739,7 +739,7 @@ func (x *ICD10Suggestion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ICD10Suggestion.ProtoReflect.Descriptor instead.
 func (*ICD10Suggestion) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{12}
+	return file_emr_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ICD10Suggestion) GetIcd10Code() string {
@@ -765,7 +765,7 @@ type GetICD10SuggestionsForKBMResponse struct {
 
 func (x *GetICD10SuggestionsForKBMResponse) Reset() {
 	*x = GetICD10SuggestionsForKBMResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[13]
+	mi := &file_emr_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -777,7 +777,7 @@ func (x *GetICD10SuggestionsForKBMResponse) String() string {
 func (*GetICD10SuggestionsForKBMResponse) ProtoMessage() {}
 
 func (x *GetICD10SuggestionsForKBMResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[13]
+	mi := &file_emr_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -790,7 +790,7 @@ func (x *GetICD10SuggestionsForKBMResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetICD10SuggestionsForKBMResponse.ProtoReflect.Descriptor instead.
 func (*GetICD10SuggestionsForKBMResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{13}
+	return file_emr_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetICD10SuggestionsForKBMResponse) GetSuggestions() []*ICD10Suggestion {
@@ -819,7 +819,7 @@ type AddEncounterDiagnosisRequest struct {
 
 func (x *AddEncounterDiagnosisRequest) Reset() {
 	*x = AddEncounterDiagnosisRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[14]
+	mi := &file_emr_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -831,7 +831,7 @@ func (x *AddEncounterDiagnosisRequest) String() string {
 func (*AddEncounterDiagnosisRequest) ProtoMessage() {}
 
 func (x *AddEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[14]
+	mi := &file_emr_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -844,7 +844,7 @@ func (x *AddEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddEncounterDiagnosisRequest.ProtoReflect.Descriptor instead.
 func (*AddEncounterDiagnosisRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{14}
+	return file_emr_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *AddEncounterDiagnosisRequest) GetEncounterNo() string {
@@ -928,7 +928,7 @@ type AddEncounterDiagnosisResponse struct {
 
 func (x *AddEncounterDiagnosisResponse) Reset() {
 	*x = AddEncounterDiagnosisResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[15]
+	mi := &file_emr_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -940,7 +940,7 @@ func (x *AddEncounterDiagnosisResponse) String() string {
 func (*AddEncounterDiagnosisResponse) ProtoMessage() {}
 
 func (x *AddEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[15]
+	mi := &file_emr_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -953,7 +953,7 @@ func (x *AddEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddEncounterDiagnosisResponse.ProtoReflect.Descriptor instead.
 func (*AddEncounterDiagnosisResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{15}
+	return file_emr_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *AddEncounterDiagnosisResponse) GetSuccess() bool {
@@ -990,7 +990,7 @@ type UpdateEncounterDiagnosisRequest struct {
 
 func (x *UpdateEncounterDiagnosisRequest) Reset() {
 	*x = UpdateEncounterDiagnosisRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[16]
+	mi := &file_emr_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1002,7 +1002,7 @@ func (x *UpdateEncounterDiagnosisRequest) String() string {
 func (*UpdateEncounterDiagnosisRequest) ProtoMessage() {}
 
 func (x *UpdateEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[16]
+	mi := &file_emr_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1015,7 +1015,7 @@ func (x *UpdateEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEncounterDiagnosisRequest.ProtoReflect.Descriptor instead.
 func (*UpdateEncounterDiagnosisRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{16}
+	return file_emr_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *UpdateEncounterDiagnosisRequest) GetId() string {
@@ -1063,7 +1063,7 @@ type UpdateEncounterDiagnosisResponse struct {
 
 func (x *UpdateEncounterDiagnosisResponse) Reset() {
 	*x = UpdateEncounterDiagnosisResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[17]
+	mi := &file_emr_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1075,7 +1075,7 @@ func (x *UpdateEncounterDiagnosisResponse) String() string {
 func (*UpdateEncounterDiagnosisResponse) ProtoMessage() {}
 
 func (x *UpdateEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[17]
+	mi := &file_emr_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1088,7 +1088,7 @@ func (x *UpdateEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEncounterDiagnosisResponse.ProtoReflect.Descriptor instead.
 func (*UpdateEncounterDiagnosisResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{17}
+	return file_emr_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateEncounterDiagnosisResponse) GetSuccess() bool {
@@ -1114,7 +1114,7 @@ type RemoveEncounterDiagnosisRequest struct {
 
 func (x *RemoveEncounterDiagnosisRequest) Reset() {
 	*x = RemoveEncounterDiagnosisRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[18]
+	mi := &file_emr_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1126,7 +1126,7 @@ func (x *RemoveEncounterDiagnosisRequest) String() string {
 func (*RemoveEncounterDiagnosisRequest) ProtoMessage() {}
 
 func (x *RemoveEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[18]
+	mi := &file_emr_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1139,7 +1139,7 @@ func (x *RemoveEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveEncounterDiagnosisRequest.ProtoReflect.Descriptor instead.
 func (*RemoveEncounterDiagnosisRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{18}
+	return file_emr_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *RemoveEncounterDiagnosisRequest) GetId() string {
@@ -1159,7 +1159,7 @@ type RemoveEncounterDiagnosisResponse struct {
 
 func (x *RemoveEncounterDiagnosisResponse) Reset() {
 	*x = RemoveEncounterDiagnosisResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[19]
+	mi := &file_emr_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1171,7 +1171,7 @@ func (x *RemoveEncounterDiagnosisResponse) String() string {
 func (*RemoveEncounterDiagnosisResponse) ProtoMessage() {}
 
 func (x *RemoveEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[19]
+	mi := &file_emr_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1184,7 +1184,7 @@ func (x *RemoveEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveEncounterDiagnosisResponse.ProtoReflect.Descriptor instead.
 func (*RemoveEncounterDiagnosisResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{19}
+	return file_emr_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RemoveEncounterDiagnosisResponse) GetSuccess() bool {
@@ -1210,7 +1210,7 @@ type GetKBMSuggestionsForICD10Request struct {
 
 func (x *GetKBMSuggestionsForICD10Request) Reset() {
 	*x = GetKBMSuggestionsForICD10Request{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[20]
+	mi := &file_emr_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1222,7 +1222,7 @@ func (x *GetKBMSuggestionsForICD10Request) String() string {
 func (*GetKBMSuggestionsForICD10Request) ProtoMessage() {}
 
 func (x *GetKBMSuggestionsForICD10Request) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[20]
+	mi := &file_emr_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1235,7 +1235,7 @@ func (x *GetKBMSuggestionsForICD10Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKBMSuggestionsForICD10Request.ProtoReflect.Descriptor instead.
 func (*GetKBMSuggestionsForICD10Request) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{20}
+	return file_emr_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetKBMSuggestionsForICD10Request) GetIcd10Code() string {
@@ -1257,7 +1257,7 @@ type KBMSuggestion struct {
 
 func (x *KBMSuggestion) Reset() {
 	*x = KBMSuggestion{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[21]
+	mi := &file_emr_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1269,7 +1269,7 @@ func (x *KBMSuggestion) String() string {
 func (*KBMSuggestion) ProtoMessage() {}
 
 func (x *KBMSuggestion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[21]
+	mi := &file_emr_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1282,7 +1282,7 @@ func (x *KBMSuggestion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KBMSuggestion.ProtoReflect.Descriptor instead.
 func (*KBMSuggestion) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{21}
+	return file_emr_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *KBMSuggestion) GetKbmCode() string {
@@ -1322,7 +1322,7 @@ type GetKBMSuggestionsForICD10Response struct {
 
 func (x *GetKBMSuggestionsForICD10Response) Reset() {
 	*x = GetKBMSuggestionsForICD10Response{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[22]
+	mi := &file_emr_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1334,7 +1334,7 @@ func (x *GetKBMSuggestionsForICD10Response) String() string {
 func (*GetKBMSuggestionsForICD10Response) ProtoMessage() {}
 
 func (x *GetKBMSuggestionsForICD10Response) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[22]
+	mi := &file_emr_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1347,7 +1347,7 @@ func (x *GetKBMSuggestionsForICD10Response) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetKBMSuggestionsForICD10Response.ProtoReflect.Descriptor instead.
 func (*GetKBMSuggestionsForICD10Response) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{22}
+	return file_emr_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetKBMSuggestionsForICD10Response) GetSuggestions() []*KBMSuggestion {
@@ -1368,7 +1368,7 @@ type ListPendingKBMVerificationsRequest struct {
 
 func (x *ListPendingKBMVerificationsRequest) Reset() {
 	*x = ListPendingKBMVerificationsRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[23]
+	mi := &file_emr_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1380,7 +1380,7 @@ func (x *ListPendingKBMVerificationsRequest) String() string {
 func (*ListPendingKBMVerificationsRequest) ProtoMessage() {}
 
 func (x *ListPendingKBMVerificationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[23]
+	mi := &file_emr_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1393,7 +1393,7 @@ func (x *ListPendingKBMVerificationsRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListPendingKBMVerificationsRequest.ProtoReflect.Descriptor instead.
 func (*ListPendingKBMVerificationsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{23}
+	return file_emr_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListPendingKBMVerificationsRequest) GetLimit() int32 {
@@ -1418,7 +1418,7 @@ type ListPendingKBMVerificationsResponse struct {
 
 func (x *ListPendingKBMVerificationsResponse) Reset() {
 	*x = ListPendingKBMVerificationsResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[24]
+	mi := &file_emr_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1430,7 +1430,7 @@ func (x *ListPendingKBMVerificationsResponse) String() string {
 func (*ListPendingKBMVerificationsResponse) ProtoMessage() {}
 
 func (x *ListPendingKBMVerificationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[24]
+	mi := &file_emr_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1443,7 +1443,7 @@ func (x *ListPendingKBMVerificationsResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ListPendingKBMVerificationsResponse.ProtoReflect.Descriptor instead.
 func (*ListPendingKBMVerificationsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{24}
+	return file_emr_proto_rawDescGZIP(), []int{24}
 }
 
 type VerifyKBMMappingRequest struct {
@@ -1457,7 +1457,7 @@ type VerifyKBMMappingRequest struct {
 
 func (x *VerifyKBMMappingRequest) Reset() {
 	*x = VerifyKBMMappingRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[25]
+	mi := &file_emr_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1469,7 +1469,7 @@ func (x *VerifyKBMMappingRequest) String() string {
 func (*VerifyKBMMappingRequest) ProtoMessage() {}
 
 func (x *VerifyKBMMappingRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[25]
+	mi := &file_emr_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1482,7 +1482,7 @@ func (x *VerifyKBMMappingRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyKBMMappingRequest.ProtoReflect.Descriptor instead.
 func (*VerifyKBMMappingRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{25}
+	return file_emr_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *VerifyKBMMappingRequest) GetId() string {
@@ -1516,7 +1516,7 @@ type VerifyKBMMappingResponse struct {
 
 func (x *VerifyKBMMappingResponse) Reset() {
 	*x = VerifyKBMMappingResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[26]
+	mi := &file_emr_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1528,7 +1528,7 @@ func (x *VerifyKBMMappingResponse) String() string {
 func (*VerifyKBMMappingResponse) ProtoMessage() {}
 
 func (x *VerifyKBMMappingResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[26]
+	mi := &file_emr_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1541,7 +1541,7 @@ func (x *VerifyKBMMappingResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerifyKBMMappingResponse.ProtoReflect.Descriptor instead.
 func (*VerifyKBMMappingResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{26}
+	return file_emr_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *VerifyKBMMappingResponse) GetSuccess() bool {
@@ -1569,7 +1569,7 @@ type FinalizeSeverityRequest struct {
 
 func (x *FinalizeSeverityRequest) Reset() {
 	*x = FinalizeSeverityRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[27]
+	mi := &file_emr_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1581,7 +1581,7 @@ func (x *FinalizeSeverityRequest) String() string {
 func (*FinalizeSeverityRequest) ProtoMessage() {}
 
 func (x *FinalizeSeverityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[27]
+	mi := &file_emr_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1594,7 +1594,7 @@ func (x *FinalizeSeverityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeSeverityRequest.ProtoReflect.Descriptor instead.
 func (*FinalizeSeverityRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{27}
+	return file_emr_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *FinalizeSeverityRequest) GetEncounterNo() string {
@@ -1628,7 +1628,7 @@ type FinalizeSeverityResponse struct {
 
 func (x *FinalizeSeverityResponse) Reset() {
 	*x = FinalizeSeverityResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[28]
+	mi := &file_emr_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1640,7 +1640,7 @@ func (x *FinalizeSeverityResponse) String() string {
 func (*FinalizeSeverityResponse) ProtoMessage() {}
 
 func (x *FinalizeSeverityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[28]
+	mi := &file_emr_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1653,7 +1653,7 @@ func (x *FinalizeSeverityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeSeverityResponse.ProtoReflect.Descriptor instead.
 func (*FinalizeSeverityResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{28}
+	return file_emr_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *FinalizeSeverityResponse) GetSuccess() bool {
@@ -1680,7 +1680,7 @@ type FinalizeMedicalRecordRequest struct {
 
 func (x *FinalizeMedicalRecordRequest) Reset() {
 	*x = FinalizeMedicalRecordRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[29]
+	mi := &file_emr_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1692,7 +1692,7 @@ func (x *FinalizeMedicalRecordRequest) String() string {
 func (*FinalizeMedicalRecordRequest) ProtoMessage() {}
 
 func (x *FinalizeMedicalRecordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[29]
+	mi := &file_emr_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1705,7 +1705,7 @@ func (x *FinalizeMedicalRecordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeMedicalRecordRequest.ProtoReflect.Descriptor instead.
 func (*FinalizeMedicalRecordRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{29}
+	return file_emr_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *FinalizeMedicalRecordRequest) GetEncounterNo() string {
@@ -1733,7 +1733,7 @@ type FinalizeMedicalRecordResponse struct {
 
 func (x *FinalizeMedicalRecordResponse) Reset() {
 	*x = FinalizeMedicalRecordResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[30]
+	mi := &file_emr_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1745,7 +1745,7 @@ func (x *FinalizeMedicalRecordResponse) String() string {
 func (*FinalizeMedicalRecordResponse) ProtoMessage() {}
 
 func (x *FinalizeMedicalRecordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[30]
+	mi := &file_emr_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1758,7 +1758,7 @@ func (x *FinalizeMedicalRecordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeMedicalRecordResponse.ProtoReflect.Descriptor instead.
 func (*FinalizeMedicalRecordResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{30}
+	return file_emr_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *FinalizeMedicalRecordResponse) GetSuccess() bool {
@@ -1796,7 +1796,7 @@ type AddMedicalActionRequest struct {
 
 func (x *AddMedicalActionRequest) Reset() {
 	*x = AddMedicalActionRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[31]
+	mi := &file_emr_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1808,7 +1808,7 @@ func (x *AddMedicalActionRequest) String() string {
 func (*AddMedicalActionRequest) ProtoMessage() {}
 
 func (x *AddMedicalActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[31]
+	mi := &file_emr_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1821,7 +1821,7 @@ func (x *AddMedicalActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddMedicalActionRequest.ProtoReflect.Descriptor instead.
 func (*AddMedicalActionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{31}
+	return file_emr_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *AddMedicalActionRequest) GetEncounterNo() string {
@@ -1869,7 +1869,7 @@ type AddMedicalActionResponse struct {
 
 func (x *AddMedicalActionResponse) Reset() {
 	*x = AddMedicalActionResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[32]
+	mi := &file_emr_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1881,7 +1881,7 @@ func (x *AddMedicalActionResponse) String() string {
 func (*AddMedicalActionResponse) ProtoMessage() {}
 
 func (x *AddMedicalActionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[32]
+	mi := &file_emr_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1894,7 +1894,7 @@ func (x *AddMedicalActionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddMedicalActionResponse.ProtoReflect.Descriptor instead.
 func (*AddMedicalActionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{32}
+	return file_emr_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *AddMedicalActionResponse) GetSuccess() bool {
@@ -1921,7 +1921,7 @@ type GetMedicalRecordRequest struct {
 
 func (x *GetMedicalRecordRequest) Reset() {
 	*x = GetMedicalRecordRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[33]
+	mi := &file_emr_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1933,7 +1933,7 @@ func (x *GetMedicalRecordRequest) String() string {
 func (*GetMedicalRecordRequest) ProtoMessage() {}
 
 func (x *GetMedicalRecordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[33]
+	mi := &file_emr_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1946,7 +1946,7 @@ func (x *GetMedicalRecordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMedicalRecordRequest.ProtoReflect.Descriptor instead.
 func (*GetMedicalRecordRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{33}
+	return file_emr_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetMedicalRecordRequest) GetEncounterNo() string {
@@ -1967,7 +1967,7 @@ type MedicalAction struct {
 
 func (x *MedicalAction) Reset() {
 	*x = MedicalAction{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[34]
+	mi := &file_emr_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1979,7 +1979,7 @@ func (x *MedicalAction) String() string {
 func (*MedicalAction) ProtoMessage() {}
 
 func (x *MedicalAction) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[34]
+	mi := &file_emr_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1992,7 +1992,7 @@ func (x *MedicalAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MedicalAction.ProtoReflect.Descriptor instead.
 func (*MedicalAction) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{34}
+	return file_emr_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *MedicalAction) GetActionCode() string {
@@ -2029,7 +2029,7 @@ type TriageData struct {
 
 func (x *TriageData) Reset() {
 	*x = TriageData{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[35]
+	mi := &file_emr_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2041,7 +2041,7 @@ func (x *TriageData) String() string {
 func (*TriageData) ProtoMessage() {}
 
 func (x *TriageData) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[35]
+	mi := &file_emr_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2054,7 +2054,7 @@ func (x *TriageData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriageData.ProtoReflect.Descriptor instead.
 func (*TriageData) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{35}
+	return file_emr_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *TriageData) GetBloodPressureSystolic() int32 {
@@ -2113,7 +2113,7 @@ type EncounterDiagnosis struct {
 
 func (x *EncounterDiagnosis) Reset() {
 	*x = EncounterDiagnosis{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[36]
+	mi := &file_emr_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2125,7 +2125,7 @@ func (x *EncounterDiagnosis) String() string {
 func (*EncounterDiagnosis) ProtoMessage() {}
 
 func (x *EncounterDiagnosis) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[36]
+	mi := &file_emr_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2138,7 +2138,7 @@ func (x *EncounterDiagnosis) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EncounterDiagnosis.ProtoReflect.Descriptor instead.
 func (*EncounterDiagnosis) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{36}
+	return file_emr_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *EncounterDiagnosis) GetId() string {
@@ -2249,7 +2249,7 @@ type ClinicalChecklist struct {
 
 func (x *ClinicalChecklist) Reset() {
 	*x = ClinicalChecklist{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[37]
+	mi := &file_emr_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2261,7 +2261,7 @@ func (x *ClinicalChecklist) String() string {
 func (*ClinicalChecklist) ProtoMessage() {}
 
 func (x *ClinicalChecklist) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[37]
+	mi := &file_emr_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2274,7 +2274,7 @@ func (x *ClinicalChecklist) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClinicalChecklist.ProtoReflect.Descriptor instead.
 func (*ClinicalChecklist) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{37}
+	return file_emr_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ClinicalChecklist) GetTriageCompleted() bool {
@@ -2357,7 +2357,7 @@ type GetMedicalRecordResponse struct {
 
 func (x *GetMedicalRecordResponse) Reset() {
 	*x = GetMedicalRecordResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[38]
+	mi := &file_emr_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2369,7 +2369,7 @@ func (x *GetMedicalRecordResponse) String() string {
 func (*GetMedicalRecordResponse) ProtoMessage() {}
 
 func (x *GetMedicalRecordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[38]
+	mi := &file_emr_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2382,7 +2382,7 @@ func (x *GetMedicalRecordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMedicalRecordResponse.ProtoReflect.Descriptor instead.
 func (*GetMedicalRecordResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{38}
+	return file_emr_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *GetMedicalRecordResponse) GetEncounterNo() string {
@@ -2457,7 +2457,7 @@ type CompleteEncounterRequest struct {
 
 func (x *CompleteEncounterRequest) Reset() {
 	*x = CompleteEncounterRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[39]
+	mi := &file_emr_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2469,7 +2469,7 @@ func (x *CompleteEncounterRequest) String() string {
 func (*CompleteEncounterRequest) ProtoMessage() {}
 
 func (x *CompleteEncounterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[39]
+	mi := &file_emr_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2482,7 +2482,7 @@ func (x *CompleteEncounterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteEncounterRequest.ProtoReflect.Descriptor instead.
 func (*CompleteEncounterRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{39}
+	return file_emr_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *CompleteEncounterRequest) GetEncounterNo() string {
@@ -2503,7 +2503,7 @@ type CompleteEncounterResponse struct {
 
 func (x *CompleteEncounterResponse) Reset() {
 	*x = CompleteEncounterResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[40]
+	mi := &file_emr_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2515,7 +2515,7 @@ func (x *CompleteEncounterResponse) String() string {
 func (*CompleteEncounterResponse) ProtoMessage() {}
 
 func (x *CompleteEncounterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[40]
+	mi := &file_emr_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2528,7 +2528,7 @@ func (x *CompleteEncounterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteEncounterResponse.ProtoReflect.Descriptor instead.
 func (*CompleteEncounterResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{40}
+	return file_emr_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *CompleteEncounterResponse) GetSuccess() bool {
@@ -2564,7 +2564,7 @@ type GetPolyclinicsRequest struct {
 
 func (x *GetPolyclinicsRequest) Reset() {
 	*x = GetPolyclinicsRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[41]
+	mi := &file_emr_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2576,7 +2576,7 @@ func (x *GetPolyclinicsRequest) String() string {
 func (*GetPolyclinicsRequest) ProtoMessage() {}
 
 func (x *GetPolyclinicsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[41]
+	mi := &file_emr_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2589,7 +2589,7 @@ func (x *GetPolyclinicsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolyclinicsRequest.ProtoReflect.Descriptor instead.
 func (*GetPolyclinicsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{41}
+	return file_emr_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetPolyclinicsRequest) GetPage() int32 {
@@ -2623,7 +2623,7 @@ type Polyclinic struct {
 
 func (x *Polyclinic) Reset() {
 	*x = Polyclinic{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[42]
+	mi := &file_emr_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2635,7 +2635,7 @@ func (x *Polyclinic) String() string {
 func (*Polyclinic) ProtoMessage() {}
 
 func (x *Polyclinic) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[42]
+	mi := &file_emr_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2648,7 +2648,7 @@ func (x *Polyclinic) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Polyclinic.ProtoReflect.Descriptor instead.
 func (*Polyclinic) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{42}
+	return file_emr_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *Polyclinic) GetCode() string {
@@ -2675,7 +2675,7 @@ type GetPolyclinicsResponse struct {
 
 func (x *GetPolyclinicsResponse) Reset() {
 	*x = GetPolyclinicsResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[43]
+	mi := &file_emr_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2687,7 +2687,7 @@ func (x *GetPolyclinicsResponse) String() string {
 func (*GetPolyclinicsResponse) ProtoMessage() {}
 
 func (x *GetPolyclinicsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[43]
+	mi := &file_emr_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2700,7 +2700,7 @@ func (x *GetPolyclinicsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetPolyclinicsResponse.ProtoReflect.Descriptor instead.
 func (*GetPolyclinicsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{43}
+	return file_emr_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *GetPolyclinicsResponse) GetData() []*Polyclinic {
@@ -2729,7 +2729,7 @@ type GetMasterKBMsRequest struct {
 
 func (x *GetMasterKBMsRequest) Reset() {
 	*x = GetMasterKBMsRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[44]
+	mi := &file_emr_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2741,7 +2741,7 @@ func (x *GetMasterKBMsRequest) String() string {
 func (*GetMasterKBMsRequest) ProtoMessage() {}
 
 func (x *GetMasterKBMsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[44]
+	mi := &file_emr_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2754,7 +2754,7 @@ func (x *GetMasterKBMsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterKBMsRequest.ProtoReflect.Descriptor instead.
 func (*GetMasterKBMsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{44}
+	return file_emr_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *GetMasterKBMsRequest) GetPage() int32 {
@@ -2795,7 +2795,7 @@ type GetMasterKBMsResponse struct {
 
 func (x *GetMasterKBMsResponse) Reset() {
 	*x = GetMasterKBMsResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[45]
+	mi := &file_emr_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2807,7 +2807,7 @@ func (x *GetMasterKBMsResponse) String() string {
 func (*GetMasterKBMsResponse) ProtoMessage() {}
 
 func (x *GetMasterKBMsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[45]
+	mi := &file_emr_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2820,7 +2820,7 @@ func (x *GetMasterKBMsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterKBMsResponse.ProtoReflect.Descriptor instead.
 func (*GetMasterKBMsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{45}
+	return file_emr_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *GetMasterKBMsResponse) GetData() []*KBMItem {
@@ -2850,7 +2850,7 @@ type GetMasterKBMsByPoliRequest struct {
 
 func (x *GetMasterKBMsByPoliRequest) Reset() {
 	*x = GetMasterKBMsByPoliRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[46]
+	mi := &file_emr_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2862,7 +2862,7 @@ func (x *GetMasterKBMsByPoliRequest) String() string {
 func (*GetMasterKBMsByPoliRequest) ProtoMessage() {}
 
 func (x *GetMasterKBMsByPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[46]
+	mi := &file_emr_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2875,7 +2875,7 @@ func (x *GetMasterKBMsByPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterKBMsByPoliRequest.ProtoReflect.Descriptor instead.
 func (*GetMasterKBMsByPoliRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{46}
+	return file_emr_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *GetMasterKBMsByPoliRequest) GetPage() int32 {
@@ -2923,7 +2923,7 @@ type GetMasterKBMsByPoliResponse struct {
 
 func (x *GetMasterKBMsByPoliResponse) Reset() {
 	*x = GetMasterKBMsByPoliResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[47]
+	mi := &file_emr_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2935,7 +2935,7 @@ func (x *GetMasterKBMsByPoliResponse) String() string {
 func (*GetMasterKBMsByPoliResponse) ProtoMessage() {}
 
 func (x *GetMasterKBMsByPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[47]
+	mi := &file_emr_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2948,7 +2948,7 @@ func (x *GetMasterKBMsByPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterKBMsByPoliResponse.ProtoReflect.Descriptor instead.
 func (*GetMasterKBMsByPoliResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{47}
+	return file_emr_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *GetMasterKBMsByPoliResponse) GetData() []*KBMItem {
@@ -2977,7 +2977,7 @@ type GetMasterTindakanRequest struct {
 
 func (x *GetMasterTindakanRequest) Reset() {
 	*x = GetMasterTindakanRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[48]
+	mi := &file_emr_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2989,7 +2989,7 @@ func (x *GetMasterTindakanRequest) String() string {
 func (*GetMasterTindakanRequest) ProtoMessage() {}
 
 func (x *GetMasterTindakanRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[48]
+	mi := &file_emr_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3002,7 +3002,7 @@ func (x *GetMasterTindakanRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterTindakanRequest.ProtoReflect.Descriptor instead.
 func (*GetMasterTindakanRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{48}
+	return file_emr_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *GetMasterTindakanRequest) GetPage() int32 {
@@ -3039,13 +3039,14 @@ type MasterTindakan struct {
 	NamaTindakan  string                 `protobuf:"bytes,2,opt,name=nama_tindakan,json=namaTindakan,proto3" json:"nama_tindakan,omitempty"`
 	BasePrice     float64                `protobuf:"fixed64,3,opt,name=base_price,json=basePrice,proto3" json:"base_price,omitempty"`
 	Polyclinics   []string               `protobuf:"bytes,4,rep,name=polyclinics,proto3" json:"polyclinics,omitempty"`
+	Icd9Count     int32                  `protobuf:"varint,5,opt,name=icd9_count,json=icd9Count,proto3" json:"icd9_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MasterTindakan) Reset() {
 	*x = MasterTindakan{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[49]
+	mi := &file_emr_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3057,7 +3058,7 @@ func (x *MasterTindakan) String() string {
 func (*MasterTindakan) ProtoMessage() {}
 
 func (x *MasterTindakan) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[49]
+	mi := &file_emr_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3070,7 +3071,7 @@ func (x *MasterTindakan) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MasterTindakan.ProtoReflect.Descriptor instead.
 func (*MasterTindakan) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{49}
+	return file_emr_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *MasterTindakan) GetKodeTindakan() string {
@@ -3101,6 +3102,13 @@ func (x *MasterTindakan) GetPolyclinics() []string {
 	return nil
 }
 
+func (x *MasterTindakan) GetIcd9Count() int32 {
+	if x != nil {
+		return x.Icd9Count
+	}
+	return 0
+}
+
 type GetMasterTindakanResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          []*MasterTindakan      `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
@@ -3111,7 +3119,7 @@ type GetMasterTindakanResponse struct {
 
 func (x *GetMasterTindakanResponse) Reset() {
 	*x = GetMasterTindakanResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[50]
+	mi := &file_emr_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3123,7 +3131,7 @@ func (x *GetMasterTindakanResponse) String() string {
 func (*GetMasterTindakanResponse) ProtoMessage() {}
 
 func (x *GetMasterTindakanResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[50]
+	mi := &file_emr_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3136,7 +3144,7 @@ func (x *GetMasterTindakanResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterTindakanResponse.ProtoReflect.Descriptor instead.
 func (*GetMasterTindakanResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{50}
+	return file_emr_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *GetMasterTindakanResponse) GetData() []*MasterTindakan {
@@ -3166,7 +3174,7 @@ type GetMasterTindakanByPoliRequest struct {
 
 func (x *GetMasterTindakanByPoliRequest) Reset() {
 	*x = GetMasterTindakanByPoliRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[51]
+	mi := &file_emr_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3178,7 +3186,7 @@ func (x *GetMasterTindakanByPoliRequest) String() string {
 func (*GetMasterTindakanByPoliRequest) ProtoMessage() {}
 
 func (x *GetMasterTindakanByPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[51]
+	mi := &file_emr_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3191,7 +3199,7 @@ func (x *GetMasterTindakanByPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterTindakanByPoliRequest.ProtoReflect.Descriptor instead.
 func (*GetMasterTindakanByPoliRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{51}
+	return file_emr_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *GetMasterTindakanByPoliRequest) GetPage() int32 {
@@ -3239,7 +3247,7 @@ type GetMasterTindakanByPoliResponse struct {
 
 func (x *GetMasterTindakanByPoliResponse) Reset() {
 	*x = GetMasterTindakanByPoliResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[52]
+	mi := &file_emr_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3251,7 +3259,7 @@ func (x *GetMasterTindakanByPoliResponse) String() string {
 func (*GetMasterTindakanByPoliResponse) ProtoMessage() {}
 
 func (x *GetMasterTindakanByPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[52]
+	mi := &file_emr_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3264,7 +3272,7 @@ func (x *GetMasterTindakanByPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterTindakanByPoliResponse.ProtoReflect.Descriptor instead.
 func (*GetMasterTindakanByPoliResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{52}
+	return file_emr_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GetMasterTindakanByPoliResponse) GetData() []*MasterTindakan {
@@ -3293,7 +3301,7 @@ type GetMasterICD10Request struct {
 
 func (x *GetMasterICD10Request) Reset() {
 	*x = GetMasterICD10Request{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[53]
+	mi := &file_emr_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3305,7 +3313,7 @@ func (x *GetMasterICD10Request) String() string {
 func (*GetMasterICD10Request) ProtoMessage() {}
 
 func (x *GetMasterICD10Request) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[53]
+	mi := &file_emr_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3318,7 +3326,7 @@ func (x *GetMasterICD10Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterICD10Request.ProtoReflect.Descriptor instead.
 func (*GetMasterICD10Request) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{53}
+	return file_emr_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GetMasterICD10Request) GetPage() int32 {
@@ -3358,13 +3366,14 @@ type MasterICD10 struct {
 	BlockCode     string                 `protobuf:"bytes,5,opt,name=block_code,json=blockCode,proto3" json:"block_code,omitempty"`
 	IsActive      bool                   `protobuf:"varint,6,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
 	Polyclinics   []string               `protobuf:"bytes,7,rep,name=polyclinics,proto3" json:"polyclinics,omitempty"`
+	KbmCount      int32                  `protobuf:"varint,8,opt,name=kbm_count,json=kbmCount,proto3" json:"kbm_count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MasterICD10) Reset() {
 	*x = MasterICD10{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[54]
+	mi := &file_emr_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3376,7 +3385,7 @@ func (x *MasterICD10) String() string {
 func (*MasterICD10) ProtoMessage() {}
 
 func (x *MasterICD10) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[54]
+	mi := &file_emr_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3389,7 +3398,7 @@ func (x *MasterICD10) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MasterICD10.ProtoReflect.Descriptor instead.
 func (*MasterICD10) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{54}
+	return file_emr_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *MasterICD10) GetIcd10Code() string {
@@ -3441,6 +3450,13 @@ func (x *MasterICD10) GetPolyclinics() []string {
 	return nil
 }
 
+func (x *MasterICD10) GetKbmCount() int32 {
+	if x != nil {
+		return x.KbmCount
+	}
+	return 0
+}
+
 type GetMasterICD10Response struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          []*MasterICD10         `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
@@ -3451,7 +3467,7 @@ type GetMasterICD10Response struct {
 
 func (x *GetMasterICD10Response) Reset() {
 	*x = GetMasterICD10Response{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[55]
+	mi := &file_emr_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3463,7 +3479,7 @@ func (x *GetMasterICD10Response) String() string {
 func (*GetMasterICD10Response) ProtoMessage() {}
 
 func (x *GetMasterICD10Response) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[55]
+	mi := &file_emr_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3476,7 +3492,7 @@ func (x *GetMasterICD10Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterICD10Response.ProtoReflect.Descriptor instead.
 func (*GetMasterICD10Response) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{55}
+	return file_emr_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *GetMasterICD10Response) GetData() []*MasterICD10 {
@@ -3506,7 +3522,7 @@ type GetMasterICD10ByPoliRequest struct {
 
 func (x *GetMasterICD10ByPoliRequest) Reset() {
 	*x = GetMasterICD10ByPoliRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[56]
+	mi := &file_emr_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3518,7 +3534,7 @@ func (x *GetMasterICD10ByPoliRequest) String() string {
 func (*GetMasterICD10ByPoliRequest) ProtoMessage() {}
 
 func (x *GetMasterICD10ByPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[56]
+	mi := &file_emr_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3531,7 +3547,7 @@ func (x *GetMasterICD10ByPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterICD10ByPoliRequest.ProtoReflect.Descriptor instead.
 func (*GetMasterICD10ByPoliRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{56}
+	return file_emr_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *GetMasterICD10ByPoliRequest) GetPage() int32 {
@@ -3579,7 +3595,7 @@ type GetMasterICD10ByPoliResponse struct {
 
 func (x *GetMasterICD10ByPoliResponse) Reset() {
 	*x = GetMasterICD10ByPoliResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[57]
+	mi := &file_emr_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3591,7 +3607,7 @@ func (x *GetMasterICD10ByPoliResponse) String() string {
 func (*GetMasterICD10ByPoliResponse) ProtoMessage() {}
 
 func (x *GetMasterICD10ByPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[57]
+	mi := &file_emr_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3604,7 +3620,7 @@ func (x *GetMasterICD10ByPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterICD10ByPoliResponse.ProtoReflect.Descriptor instead.
 func (*GetMasterICD10ByPoliResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{57}
+	return file_emr_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *GetMasterICD10ByPoliResponse) GetData() []*MasterICD10 {
@@ -3636,7 +3652,7 @@ type ICD9Item struct {
 
 func (x *ICD9Item) Reset() {
 	*x = ICD9Item{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[58]
+	mi := &file_emr_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3648,7 +3664,7 @@ func (x *ICD9Item) String() string {
 func (*ICD9Item) ProtoMessage() {}
 
 func (x *ICD9Item) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[58]
+	mi := &file_emr_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3661,7 +3677,7 @@ func (x *ICD9Item) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ICD9Item.ProtoReflect.Descriptor instead.
 func (*ICD9Item) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{58}
+	return file_emr_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *ICD9Item) GetIcd9Code() string {
@@ -3724,7 +3740,7 @@ type GetMasterICD9Request struct {
 
 func (x *GetMasterICD9Request) Reset() {
 	*x = GetMasterICD9Request{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[59]
+	mi := &file_emr_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3736,7 +3752,7 @@ func (x *GetMasterICD9Request) String() string {
 func (*GetMasterICD9Request) ProtoMessage() {}
 
 func (x *GetMasterICD9Request) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[59]
+	mi := &file_emr_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3749,7 +3765,7 @@ func (x *GetMasterICD9Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterICD9Request.ProtoReflect.Descriptor instead.
 func (*GetMasterICD9Request) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{59}
+	return file_emr_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *GetMasterICD9Request) GetSearch() string {
@@ -3783,7 +3799,7 @@ type GetMasterICD9Response struct {
 
 func (x *GetMasterICD9Response) Reset() {
 	*x = GetMasterICD9Response{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[60]
+	mi := &file_emr_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3795,7 +3811,7 @@ func (x *GetMasterICD9Response) String() string {
 func (*GetMasterICD9Response) ProtoMessage() {}
 
 func (x *GetMasterICD9Response) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[60]
+	mi := &file_emr_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3808,7 +3824,7 @@ func (x *GetMasterICD9Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterICD9Response.ProtoReflect.Descriptor instead.
 func (*GetMasterICD9Response) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{60}
+	return file_emr_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *GetMasterICD9Response) GetItems() []*ICD9Item {
@@ -3836,7 +3852,7 @@ type ICD9Suggestion struct {
 
 func (x *ICD9Suggestion) Reset() {
 	*x = ICD9Suggestion{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[61]
+	mi := &file_emr_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3848,7 +3864,7 @@ func (x *ICD9Suggestion) String() string {
 func (*ICD9Suggestion) ProtoMessage() {}
 
 func (x *ICD9Suggestion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[61]
+	mi := &file_emr_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3861,7 +3877,7 @@ func (x *ICD9Suggestion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ICD9Suggestion.ProtoReflect.Descriptor instead.
 func (*ICD9Suggestion) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{61}
+	return file_emr_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *ICD9Suggestion) GetIcd9Code() string {
@@ -3894,7 +3910,7 @@ type GetICD9SuggestionsForTindakanRequest struct {
 
 func (x *GetICD9SuggestionsForTindakanRequest) Reset() {
 	*x = GetICD9SuggestionsForTindakanRequest{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[62]
+	mi := &file_emr_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3906,7 +3922,7 @@ func (x *GetICD9SuggestionsForTindakanRequest) String() string {
 func (*GetICD9SuggestionsForTindakanRequest) ProtoMessage() {}
 
 func (x *GetICD9SuggestionsForTindakanRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[62]
+	mi := &file_emr_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3919,7 +3935,7 @@ func (x *GetICD9SuggestionsForTindakanRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use GetICD9SuggestionsForTindakanRequest.ProtoReflect.Descriptor instead.
 func (*GetICD9SuggestionsForTindakanRequest) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{62}
+	return file_emr_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *GetICD9SuggestionsForTindakanRequest) GetKodeTindakan() string {
@@ -3938,7 +3954,7 @@ type GetICD9SuggestionsForTindakanResponse struct {
 
 func (x *GetICD9SuggestionsForTindakanResponse) Reset() {
 	*x = GetICD9SuggestionsForTindakanResponse{}
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[63]
+	mi := &file_emr_proto_msgTypes[63]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3950,7 +3966,7 @@ func (x *GetICD9SuggestionsForTindakanResponse) String() string {
 func (*GetICD9SuggestionsForTindakanResponse) ProtoMessage() {}
 
 func (x *GetICD9SuggestionsForTindakanResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_emr_v1_emr_proto_msgTypes[63]
+	mi := &file_emr_proto_msgTypes[63]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3963,7 +3979,7 @@ func (x *GetICD9SuggestionsForTindakanResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use GetICD9SuggestionsForTindakanResponse.ProtoReflect.Descriptor instead.
 func (*GetICD9SuggestionsForTindakanResponse) Descriptor() ([]byte, []int) {
-	return file_proto_emr_v1_emr_proto_rawDescGZIP(), []int{63}
+	return file_emr_proto_rawDescGZIP(), []int{63}
 }
 
 func (x *GetICD9SuggestionsForTindakanResponse) GetSuggestions() []*ICD9Suggestion {
@@ -3973,11 +3989,11 @@ func (x *GetICD9SuggestionsForTindakanResponse) GetSuggestions() []*ICD9Suggesti
 	return nil
 }
 
-var File_proto_emr_v1_emr_proto protoreflect.FileDescriptor
+var File_emr_proto protoreflect.FileDescriptor
 
-const file_proto_emr_v1_emr_proto_rawDesc = "" +
+const file_emr_proto_rawDesc = "" +
 	"\n" +
-	"\x16proto/emr/v1/emr.proto\x12\x06emr.v1\"\x9c\x01\n" +
+	"\temr.proto\x12\x06emr.v1\"\x9c\x01\n" +
 	"\x1bGetEstimatedWaitTimeRequest\x12\x1b\n" +
 	"\tdoctor_id\x18\x01 \x01(\tR\bdoctorId\x12'\n" +
 	"\x0fdepartment_code\x18\x02 \x01(\tR\x0edepartmentCode\x12\x16\n" +
@@ -4213,13 +4229,15 @@ const file_proto_emr_v1_emr_proto_rawDesc = "" +
 	"\vsearch_name\x18\x03 \x01(\tR\n" +
 	"searchName\x12\x1f\n" +
 	"\vsearch_code\x18\x04 \x01(\tR\n" +
-	"searchCode\"\x9b\x01\n" +
+	"searchCode\"\xba\x01\n" +
 	"\x0eMasterTindakan\x12#\n" +
 	"\rkode_tindakan\x18\x01 \x01(\tR\fkodeTindakan\x12#\n" +
 	"\rnama_tindakan\x18\x02 \x01(\tR\fnamaTindakan\x12\x1d\n" +
 	"\n" +
 	"base_price\x18\x03 \x01(\x01R\tbasePrice\x12 \n" +
-	"\vpolyclinics\x18\x04 \x03(\tR\vpolyclinics\"h\n" +
+	"\vpolyclinics\x18\x04 \x03(\tR\vpolyclinics\x12\x1d\n" +
+	"\n" +
+	"icd9_count\x18\x05 \x01(\x05R\ticd9Count\"h\n" +
 	"\x19GetMasterTindakanResponse\x12*\n" +
 	"\x04data\x18\x01 \x03(\v2\x16.emr.v1.MasterTindakanR\x04data\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x05R\n" +
@@ -4242,7 +4260,7 @@ const file_proto_emr_v1_emr_proto_rawDesc = "" +
 	"\vsearch_name\x18\x03 \x01(\tR\n" +
 	"searchName\x12\x1f\n" +
 	"\vsearch_code\x18\x04 \x01(\tR\n" +
-	"searchCode\"\xdf\x01\n" +
+	"searchCode\"\xfc\x01\n" +
 	"\vMasterICD10\x12\x1d\n" +
 	"\n" +
 	"icd10_code\x18\x01 \x01(\tR\ticd10Code\x12\x17\n" +
@@ -4252,7 +4270,8 @@ const file_proto_emr_v1_emr_proto_rawDesc = "" +
 	"\n" +
 	"block_code\x18\x05 \x01(\tR\tblockCode\x12\x1b\n" +
 	"\tis_active\x18\x06 \x01(\bR\bisActive\x12 \n" +
-	"\vpolyclinics\x18\a \x03(\tR\vpolyclinics\"b\n" +
+	"\vpolyclinics\x18\a \x03(\tR\vpolyclinics\x12\x1b\n" +
+	"\tkbm_count\x18\b \x01(\x05R\bkbmCount\"b\n" +
 	"\x16GetMasterICD10Response\x12'\n" +
 	"\x04data\x18\x01 \x03(\v2\x13.emr.v1.MasterICD10R\x04data\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x05R\n" +
@@ -4324,19 +4343,19 @@ const file_proto_emr_v1_emr_proto_rawDesc = "" +
 	"\x15FinalizeMedicalRecord\x12$.emr.v1.FinalizeMedicalRecordRequest\x1a%.emr.v1.FinalizeMedicalRecordResponseB@Z>github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1;emrv1b\x06proto3"
 
 var (
-	file_proto_emr_v1_emr_proto_rawDescOnce sync.Once
-	file_proto_emr_v1_emr_proto_rawDescData []byte
+	file_emr_proto_rawDescOnce sync.Once
+	file_emr_proto_rawDescData []byte
 )
 
-func file_proto_emr_v1_emr_proto_rawDescGZIP() []byte {
-	file_proto_emr_v1_emr_proto_rawDescOnce.Do(func() {
-		file_proto_emr_v1_emr_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_emr_v1_emr_proto_rawDesc), len(file_proto_emr_v1_emr_proto_rawDesc)))
+func file_emr_proto_rawDescGZIP() []byte {
+	file_emr_proto_rawDescOnce.Do(func() {
+		file_emr_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_emr_proto_rawDesc), len(file_emr_proto_rawDesc)))
 	})
-	return file_proto_emr_v1_emr_proto_rawDescData
+	return file_emr_proto_rawDescData
 }
 
-var file_proto_emr_v1_emr_proto_msgTypes = make([]protoimpl.MessageInfo, 64)
-var file_proto_emr_v1_emr_proto_goTypes = []any{
+var file_emr_proto_msgTypes = make([]protoimpl.MessageInfo, 64)
+var file_emr_proto_goTypes = []any{
 	(*GetEstimatedWaitTimeRequest)(nil),           // 0: emr.v1.GetEstimatedWaitTimeRequest
 	(*GetEstimatedWaitTimeResponse)(nil),          // 1: emr.v1.GetEstimatedWaitTimeResponse
 	(*StartEncounterRequest)(nil),                 // 2: emr.v1.StartEncounterRequest
@@ -4402,7 +4421,7 @@ var file_proto_emr_v1_emr_proto_goTypes = []any{
 	(*GetICD9SuggestionsForTindakanRequest)(nil),  // 62: emr.v1.GetICD9SuggestionsForTindakanRequest
 	(*GetICD9SuggestionsForTindakanResponse)(nil), // 63: emr.v1.GetICD9SuggestionsForTindakanResponse
 }
-var file_proto_emr_v1_emr_proto_depIdxs = []int32{
+var file_emr_proto_depIdxs = []int32{
 	7,  // 0: emr.v1.SearchKBMResponse.items:type_name -> emr.v1.KBMItem
 	7,  // 1: emr.v1.GetKBMDetailResponse.item:type_name -> emr.v1.KBMItem
 	12, // 2: emr.v1.GetICD10SuggestionsForKBMResponse.suggestions:type_name -> emr.v1.ICD10Suggestion
@@ -4481,26 +4500,26 @@ var file_proto_emr_v1_emr_proto_depIdxs = []int32{
 	0,  // [0:19] is the sub-list for field type_name
 }
 
-func init() { file_proto_emr_v1_emr_proto_init() }
-func file_proto_emr_v1_emr_proto_init() {
-	if File_proto_emr_v1_emr_proto != nil {
+func init() { file_emr_proto_init() }
+func file_emr_proto_init() {
+	if File_emr_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_emr_v1_emr_proto_rawDesc), len(file_proto_emr_v1_emr_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_emr_proto_rawDesc), len(file_emr_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   64,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_emr_v1_emr_proto_goTypes,
-		DependencyIndexes: file_proto_emr_v1_emr_proto_depIdxs,
-		MessageInfos:      file_proto_emr_v1_emr_proto_msgTypes,
+		GoTypes:           file_emr_proto_goTypes,
+		DependencyIndexes: file_emr_proto_depIdxs,
+		MessageInfos:      file_emr_proto_msgTypes,
 	}.Build()
-	File_proto_emr_v1_emr_proto = out.File
-	file_proto_emr_v1_emr_proto_goTypes = nil
-	file_proto_emr_v1_emr_proto_depIdxs = nil
+	File_emr_proto = out.File
+	file_emr_proto_goTypes = nil
+	file_emr_proto_depIdxs = nil
 }
