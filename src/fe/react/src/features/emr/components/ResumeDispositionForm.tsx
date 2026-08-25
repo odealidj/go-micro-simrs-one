@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { completeEncounter } from "../api/emrApi";
 import type { GetMedicalRecordResponse } from "../types";
 import {
   FileCheck,
@@ -21,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 interface ResumeDispositionFormProps {
   encounterNo: string;
   record: GetMedicalRecordResponse | null;
+  readOnly?: boolean;
   onSuccess?: () => void;
 }
 
@@ -34,6 +36,7 @@ const DISPOSITIONS = [
 export function ResumeDispositionForm({
   encounterNo,
   record,
+  readOnly = false,
   onSuccess,
 }: ResumeDispositionFormProps) {
   const navigate = useNavigate();
@@ -48,7 +51,7 @@ export function ResumeDispositionForm({
     setLoading(true);
     setError(null);
     try {
-      // In SIMRS flow, finalization marks the encounter complete.
+      await completeEncounter(encounterNo);
       setSuccess(true);
       if (onSuccess) onSuccess();
     } catch (err: any) {
@@ -166,7 +169,7 @@ export function ResumeDispositionForm({
       </div>
 
       {/* Pilihan Disposisi / Status Pulang */}
-      {!success && (
+      {!success && !readOnly && (
         <div className="space-y-4">
           <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider">
             Pilih Status Kepulangan / Disposisi <span className="text-red-500">*</span>
@@ -182,7 +185,7 @@ export function ResumeDispositionForm({
                   type="button"
                   onClick={() => setDisposition(item.value)}
                   className={cn(
-                    "p-4 rounded-xl border text-left transition-all flex items-start gap-3",
+                    "p-4 rounded-xl border text-left transition-all flex items-start gap-3 cursor-pointer",
                     isSelected
                       ? "bg-teal-50/70 border-teal-400 text-teal-900 shadow-sm"
                       : "bg-white border-slate-200 hover:bg-slate-50 text-slate-700"
@@ -234,12 +237,18 @@ export function ResumeDispositionForm({
               type="button"
               onClick={handleFinalize}
               disabled={loading}
-              className="gap-2 bg-teal-700 hover:bg-teal-800 text-white font-bold h-12 px-8 rounded-xl shadow-sm text-base"
+              className="gap-2 bg-teal-700 hover:bg-teal-800 text-white font-bold h-12 px-8 rounded-xl shadow-sm text-base cursor-pointer"
             >
               <ShieldCheck className="h-5 w-5" />
               {loading ? "Memproses..." : "Selesaikan & Kunci Pemeriksaan"}
             </Button>
           </div>
+        </div>
+      )}
+
+      {readOnly && !success && (
+        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-500 italic">
+          Formulir finalisasi terkunci. Pastikan sesi telah dimulai dan belum difinalisasi untuk mengubah data.
         </div>
       )}
     </div>

@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getMedicalRecord, startEncounter } from "../api/emrApi";
+import { getMedicalRecord, startEncounter, completeEncounter } from "../api/emrApi";
 import type { GetMedicalRecordResponse } from "../types";
 import { TriageForm } from "../components/TriageForm";
 import { DiagnosisForm } from "../components/DiagnosisForm";
 import { ActionForm } from "../components/ActionForm";
 import { PrescriptionForm } from "../components/PrescriptionForm";
 import { ResumeDispositionForm } from "../components/ResumeDispositionForm";
+import { CompletionChecklistModal } from "../components/CompletionChecklistModal";
 import {
   User,
   ArrowLeft,
@@ -19,6 +20,9 @@ import {
   CheckCircle2,
   Hash,
   Sparkles,
+  ShieldCheck,
+  AlertCircle,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
@@ -30,6 +34,7 @@ export function EncounterPage() {
   const [record, setRecord] = useState<GetMedicalRecordResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [showChecklistModal, setShowChecklistModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"triage" | "diagnosis" | "actions" | "prescription" | "disposition">("triage");
   const { poliCode, poliName, role } = useAuth();
 
@@ -57,17 +62,44 @@ export function EncounterPage() {
       await startEncounter(encounterNo);
       await fetchRecord();
     } catch (error) {
-      console.error(error);
+      console.error("Gagal memulai sesi", error);
     } finally {
       setStarting(false);
     }
   };
 
+  const handleOpenCompleteModal = () => {
+    setShowChecklistModal(true);
+  };
+
+  const handleFinalizeEncounter = async () => {
+    if (!encounterNo) return;
+    try {
+      await completeEncounter(encounterNo);
+      await fetchRecord();
+      setShowChecklistModal(false);
+    } catch (error: any) {
+      alert(error?.response?.data?.message || "Gagal menyelesaikan pemeriksaan.");
+    }
+  };
+
   const backUrl = role === "perawat" ? "/perawat/antrean" : "/dokter/antrean";
 
-  const hasTriage = !!record?.triage;
-  const hasDiagnosis = !!record?.kbm_code;
+  const status = record?.status || "WAITING";
+  const isStarted = status === "IN_PROGRESS" || status === "COMPLETED";
+  const isCompleted = status === "COMPLETED";
+  const isReadOnly = !isStarted || isCompleted;
+
+  const hasTriage = !!(
+    record?.triage &&
+    record.triage.blood_pressure_systolic &&
+    record.triage.blood_pressure_diastolic &&
+    record.triage.temperature &&
+    record.triage.heart_rate
+  );
+  const hasDiagnosis = !!(record?.kbm_code || (record?.icd10_codes && record.icd10_codes.length > 0));
   const hasActions = !!(record?.actions && record.actions.length > 0);
+  const hasPrescriptions = !!(record?.prescriptions && record.prescriptions.length > 0);
 
   if (loading) {
     return (
@@ -105,6 +137,19 @@ export function EncounterPage() {
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
                   {poliName || "Poliklinik"}
                 </span>
+                {isCompleted ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Selesai
+                  </span>
+                ) : isStarted ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" /> Sesi Sedang Berjalan
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                    Menunggu Sesi
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2 text-xs text-slate-600 mt-1">
                 <span className="inline-flex items-center gap-1 font-mono font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-300">
@@ -115,17 +160,34 @@ export function EncounterPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={handleStartEncounter}
-              disabled={starting}
-              variant="outline"
-              size="sm"
-              className="gap-2 border-blue-300 text-blue-900 bg-blue-50 hover:bg-blue-100 rounded-xl text-xs font-bold h-10 px-4 shadow-2xs cursor-pointer"
-            >
-              <Play className="h-3.5 w-3.5 text-blue-600 fill-blue-600" />
-              {starting ? "Memulai Sesi..." : "Mulai Sesi Pemeriksaan"}
-            </Button>
+          <div className="flex items-center gap-2.5">
+            {!isStarted && (
+              <Button
+                onClick={handleStartEncounter}
+                disabled={starting}
+                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold h-10 px-4 shadow-sm cursor-pointer"
+              >
+                <Play className="h-3.5 w-3.5 fill-white" />
+                {starting ? "Memulai Sesi..." : "Mulai Sesi Pemeriksaan"}
+              </Button>
+            )}
+
+            {isStarted && !isCompleted && (
+              <Button
+                onClick={handleOpenCompleteModal}
+                className="gap-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold h-10 px-4 shadow-sm cursor-pointer"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Selesai Pemeriksaan
+              </Button>
+            )}
+
+            {isCompleted && (
+              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl">
+                <Lock className="h-3.5 w-3.5 text-emerald-600" />
+                Rekam Medis Terkunci
+              </div>
+            )}
           </div>
         </div>
 
@@ -180,15 +242,23 @@ export function EncounterPage() {
             type="button"
             onClick={() => setActiveTab("triage")}
             className={cn(
-              "flex-1 min-w-[170px] py-4 px-4 text-xs flex items-center justify-center gap-2 border-b-2 transition-all cursor-pointer",
+              "flex-1 min-w-[175px] py-4 px-3 text-xs flex items-center justify-center gap-1.5 border-b-2 transition-all cursor-pointer",
               activeTab === "triage"
                 ? "text-cyan-800 bg-cyan-50/70 border-cyan-600 font-extrabold shadow-2xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 border-transparent font-bold"
             )}
           >
-            <HeartPulse className="h-4 w-4 text-cyan-600" />
+            <HeartPulse className="h-4 w-4 text-cyan-600 shrink-0" />
             <span>1. Asesmen Triage</span>
-            {hasTriage && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 ml-0.5" />}
+            {hasTriage ? (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-0.5 ml-1">
+                <CheckCircle2 className="h-3 w-3" />
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 ml-1">
+                • Wajib
+              </span>
+            )}
           </button>
 
           {/* Tab 2: Diagnosa */}
@@ -196,15 +266,23 @@ export function EncounterPage() {
             type="button"
             onClick={() => setActiveTab("diagnosis")}
             className={cn(
-              "flex-1 min-w-[170px] py-4 px-4 text-xs flex items-center justify-center gap-2 border-b-2 transition-all cursor-pointer",
+              "flex-1 min-w-[175px] py-4 px-3 text-xs flex items-center justify-center gap-1.5 border-b-2 transition-all cursor-pointer",
               activeTab === "diagnosis"
                 ? "text-indigo-800 bg-indigo-50/70 border-indigo-600 font-extrabold shadow-2xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 border-transparent font-bold"
             )}
           >
-            <Stethoscope className="h-4 w-4 text-indigo-600" />
+            <Stethoscope className="h-4 w-4 text-indigo-600 shrink-0" />
             <span>2. Diagnosa Medis</span>
-            {hasDiagnosis && <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 ml-0.5" />}
+            {hasDiagnosis ? (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-0.5 ml-1">
+                <CheckCircle2 className="h-3 w-3" />
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 ml-1">
+                • Wajib
+              </span>
+            )}
           </button>
 
           {/* Tab 3: Tindakan */}
@@ -212,17 +290,21 @@ export function EncounterPage() {
             type="button"
             onClick={() => setActiveTab("actions")}
             className={cn(
-              "flex-1 min-w-[170px] py-4 px-4 text-xs flex items-center justify-center gap-2 border-b-2 transition-all cursor-pointer",
+              "flex-1 min-w-[175px] py-4 px-3 text-xs flex items-center justify-center gap-1.5 border-b-2 transition-all cursor-pointer",
               activeTab === "actions"
                 ? "text-emerald-800 bg-emerald-50/70 border-emerald-600 font-extrabold shadow-2xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 border-transparent font-bold"
             )}
           >
-            <Syringe className="h-4 w-4 text-emerald-600" />
+            <Syringe className="h-4 w-4 text-emerald-600 shrink-0" />
             <span>3. Tindakan & Tarif</span>
-            {hasActions && (
-              <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-black">
+            {hasActions ? (
+              <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-black ml-1">
                 {record?.actions.length}
+              </span>
+            ) : (
+              <span className="text-[10px] font-medium text-slate-400 ml-0.5">
+                (Opsional)
               </span>
             )}
           </button>
@@ -232,14 +314,23 @@ export function EncounterPage() {
             type="button"
             onClick={() => setActiveTab("prescription")}
             className={cn(
-              "flex-1 min-w-[170px] py-4 px-4 text-xs flex items-center justify-center gap-2 border-b-2 transition-all cursor-pointer",
+              "flex-1 min-w-[175px] py-4 px-3 text-xs flex items-center justify-center gap-1.5 border-b-2 transition-all cursor-pointer",
               activeTab === "prescription"
                 ? "text-violet-800 bg-violet-50/70 border-violet-600 font-extrabold shadow-2xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 border-transparent font-bold"
             )}
           >
-            <Pill className="h-4 w-4 text-violet-600" />
+            <Pill className="h-4 w-4 text-violet-600 shrink-0" />
             <span>4. E-Resep Obat</span>
+            {hasPrescriptions ? (
+              <span className="px-1.5 py-0.2 bg-violet-100 text-violet-800 rounded-full text-[10px] font-black ml-1">
+                {record?.prescriptions?.length}
+              </span>
+            ) : (
+              <span className="text-[10px] font-medium text-slate-400 ml-0.5">
+                (Opsional)
+              </span>
+            )}
           </button>
 
           {/* Tab 5: Rencana & Resume */}
@@ -247,23 +338,51 @@ export function EncounterPage() {
             type="button"
             onClick={() => setActiveTab("disposition")}
             className={cn(
-              "flex-1 min-w-[170px] py-4 px-4 text-xs flex items-center justify-center gap-2 border-b-2 transition-all cursor-pointer",
+              "flex-1 min-w-[175px] py-4 px-3 text-xs flex items-center justify-center gap-1.5 border-b-2 transition-all cursor-pointer",
               activeTab === "disposition"
                 ? "text-teal-800 bg-teal-50/70 border-teal-600 font-extrabold shadow-2xs"
                 : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/50 border-transparent font-bold"
             )}
           >
-            <FileCheck className="h-4 w-4 text-teal-600" />
+            <FileCheck className="h-4 w-4 text-teal-600 shrink-0" />
             <span>5. Rencana & Resume</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 ml-1">
+              Finalisasi
+            </span>
           </button>
         </div>
 
         {/* Tab Content Panes */}
-        <div className="p-6">
+        <div className="p-6 space-y-5">
+          {!isStarted && (
+            <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 shadow-2xs">
+              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-sm">Sesi Pemeriksaan Belum Dimulai</p>
+                <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                  Formulir rekam medis dalam keadaan terkunci. Silakan klik tombol <strong>"Mulai Sesi Pemeriksaan"</strong> di bagian atas untuk mulai mengisi data anamnesa, asesmen triage, diagnosa, tindakan, atau resep.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {isCompleted && (
+            <div className="p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl flex items-start gap-3 text-emerald-900 shadow-2xs">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-sm">Pemeriksaan Selesai & Data Terkunci</p>
+                <p className="text-xs text-emerald-700 mt-0.5 leading-relaxed">
+                  Pemeriksaan pasien telah diselesaikan dan difinalisasi. Semua data rekam medis saat ini dalam mode <strong>Read-Only</strong>.
+                </p>
+              </div>
+            </div>
+          )}
+
           {activeTab === "triage" && (
             <TriageForm 
               encounterNo={encounterNo!} 
               initialData={record?.triage}
+              readOnly={isReadOnly}
               onSuccess={fetchRecord}
             />
           )}
@@ -276,6 +395,7 @@ export function EncounterPage() {
               initialKbmName={record?.kbm_name}
               initialNotes={record?.notes}
               initialSecondaryDiagnoses={record?.secondary_diagnoses}
+              readOnly={isReadOnly}
               onSuccess={fetchRecord}
             />
           )}
@@ -285,6 +405,7 @@ export function EncounterPage() {
               encounterNo={encounterNo!}
               deptCode={poliCode || ""}
               existingActions={record?.actions}
+              readOnly={isReadOnly}
               onSuccess={fetchRecord}
             />
           )}
@@ -294,6 +415,7 @@ export function EncounterPage() {
               encounterNo={encounterNo!}
               deptCode={poliCode || ""}
               existingPrescriptions={record?.prescriptions}
+              readOnly={isReadOnly}
               onSuccess={fetchRecord}
             />
           )}
@@ -302,11 +424,24 @@ export function EncounterPage() {
             <ResumeDispositionForm
               encounterNo={encounterNo!}
               record={record}
+              readOnly={isReadOnly}
               onSuccess={fetchRecord}
             />
           )}
         </div>
       </div>
+
+      {/* Completion Checklist Confirmation Modal */}
+      <CompletionChecklistModal
+        isOpen={showChecklistModal}
+        onClose={() => setShowChecklistModal(false)}
+        onConfirm={handleFinalizeEncounter}
+        record={record}
+        poliName={poliName}
+        onNavigateTab={(tab) => {
+          setActiveTab(tab);
+        }}
+      />
     </div>
   );
 }

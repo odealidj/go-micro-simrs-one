@@ -31,6 +31,9 @@ service EMRService {
   // Verifikasi ICD-10 (Bagian Rekam Medis)
   rpc VerifyICD10Mapping (VerifyICD10MappingRequest) returns (VerifyICD10MappingResponse);
   rpc ListPendingICD10Verifications (ListPendingICD10VerificationsRequest) returns (ListPendingICD10VerificationsResponse);
+
+  // Complete Encounter (Dokter - Selesai Pemeriksaan)
+  rpc CompleteEncounter (CompleteEncounterRequest) returns (CompleteEncounterResponse);
 }
 
 message GetEstimatedWaitTimeRequest {
@@ -191,6 +194,18 @@ message TriageData {
   string notes = 5;
 }
 
+message ClinicalChecklist {
+  bool triage_completed = 1;
+  bool diagnosis_completed = 2;
+  bool actions_completed = 3;
+  int32 actions_count = 4;
+  bool prescription_completed = 5;
+  int32 prescription_count = 6;
+  bool is_ready_to_complete = 7;
+  repeated string missing_mandatory_fields = 8;
+  string base_consultation_fee = 9;
+}
+
 message GetMedicalRecordResponse {
   string encounter_no = 1;
   string patient_mrn = 2;
@@ -201,6 +216,18 @@ message GetMedicalRecordResponse {
   string icd10_mapping_status = 7;
   repeated MedicalAction actions = 8;
   string notes = 9;
+  string status = 10;
+  ClinicalChecklist checklist = 11;
+}
+
+message CompleteEncounterRequest {
+  string encounter_no = 1;
+}
+
+message CompleteEncounterResponse {
+  bool success = 1;
+  string message = 2;
+  ClinicalChecklist checklist = 3;
 }
 
 // -- Master Data Messages --

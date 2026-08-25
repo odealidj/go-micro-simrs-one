@@ -40,6 +40,10 @@ func (r *emrRepoSqlc) StartEncounter(ctx context.Context, encounterNo string) er
 	return r.q.StartEncounter(ctx, encounterNo)
 }
 
+func (r *emrRepoSqlc) CompleteEncounter(ctx context.Context, encounterNo string) error {
+	return r.q.CompleteEncounter(ctx, encounterNo)
+}
+
 func (r *emrRepoSqlc) AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, kbmName, notes, doctorId, deptCode, gender, ageBracket string) error {
 	var n sql.NullString
 	if notes != "" {
@@ -294,6 +298,7 @@ func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) 
 		KBMName:            mr.KbmName.String,
 		ICD10MappingStatus: mr.Icd10MappingStatus.String,
 		Notes:              mr.Notes.String,
+		Status:             mr.Status.String,
 		Triage: domain.TriageData{
 			BloodPressureSystolic:  sys,
 			BloodPressureDiastolic: dia,
@@ -324,6 +329,31 @@ func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) 
 		})
 	}
 	record.Actions = actions
+
+	// Calculate Clinical Checklist & Readiness
+	triageCompleted := mr.BloodPressureSystolic.Valid && mr.BloodPressureDiastolic.Valid && mr.Temperature.Valid && mr.HeartRate.Valid
+	diagnosisCompleted := (mr.KbmCode.Valid && mr.KbmCode.String != "") || len(mr.Icd10Codes) > 0
+	actionsCompleted := len(actions) > 0
+
+	var missing []string
+	if !triageCompleted {
+		missing = append(missing, "Asesmen Triage / Tanda Vital")
+	}
+	if !diagnosisCompleted {
+		missing = append(missing, "Diagnosa Medis Utama")
+	}
+
+	record.Checklist = domain.ClinicalChecklist{
+		TriageCompleted:        triageCompleted,
+		DiagnosisCompleted:     diagnosisCompleted,
+		ActionsCompleted:       actionsCompleted,
+		ActionsCount:           int32(len(actions)),
+		PrescriptionCompleted:  false,
+		PrescriptionCount:      0,
+		IsReadyToComplete:      triageCompleted && diagnosisCompleted,
+		MissingMandatoryFields: missing,
+		BaseConsultationFee:    "Pemeriksaan Dokter (Include saat Registrasi)",
+	}
 
 	return record, nil
 }

@@ -41,6 +41,10 @@ export const startEncounter = async (encounterNo: string): Promise<void> => {
   await api.post("/emr/start", { encounter_no: encounterNo });
 };
 
+export const completeEncounter = async (encounterNo: string): Promise<void> => {
+  await api.post("/emr/complete", { encounter_no: encounterNo });
+};
+
 export const submitTriage = async (
   encounterNo: string,
   triageData: TriageData

@@ -37,6 +37,7 @@ const (
 	EMRService_AddDiagnosisKBM_FullMethodName               = "/emr.v1.EMRService/AddDiagnosisKBM"
 	EMRService_VerifyICD10Mapping_FullMethodName            = "/emr.v1.EMRService/VerifyICD10Mapping"
 	EMRService_ListPendingICD10Verifications_FullMethodName = "/emr.v1.EMRService/ListPendingICD10Verifications"
+	EMRService_CompleteEncounter_FullMethodName             = "/emr.v1.EMRService/CompleteEncounter"
 )
 
 // EMRServiceClient is the client API for EMRService service.
@@ -65,6 +66,8 @@ type EMRServiceClient interface {
 	// Verifikasi ICD-10 (Bagian Rekam Medis)
 	VerifyICD10Mapping(ctx context.Context, in *VerifyICD10MappingRequest, opts ...grpc.CallOption) (*VerifyICD10MappingResponse, error)
 	ListPendingICD10Verifications(ctx context.Context, in *ListPendingICD10VerificationsRequest, opts ...grpc.CallOption) (*ListPendingICD10VerificationsResponse, error)
+	// Complete Encounter (Dokter - Selesai Pemeriksaan)
+	CompleteEncounter(ctx context.Context, in *CompleteEncounterRequest, opts ...grpc.CallOption) (*CompleteEncounterResponse, error)
 }
 
 type eMRServiceClient struct {
@@ -255,6 +258,16 @@ func (c *eMRServiceClient) ListPendingICD10Verifications(ctx context.Context, in
 	return out, nil
 }
 
+func (c *eMRServiceClient) CompleteEncounter(ctx context.Context, in *CompleteEncounterRequest, opts ...grpc.CallOption) (*CompleteEncounterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompleteEncounterResponse)
+	err := c.cc.Invoke(ctx, EMRService_CompleteEncounter_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EMRServiceServer is the server API for EMRService service.
 // All implementations must embed UnimplementedEMRServiceServer
 // for forward compatibility.
@@ -281,6 +294,8 @@ type EMRServiceServer interface {
 	// Verifikasi ICD-10 (Bagian Rekam Medis)
 	VerifyICD10Mapping(context.Context, *VerifyICD10MappingRequest) (*VerifyICD10MappingResponse, error)
 	ListPendingICD10Verifications(context.Context, *ListPendingICD10VerificationsRequest) (*ListPendingICD10VerificationsResponse, error)
+	// Complete Encounter (Dokter - Selesai Pemeriksaan)
+	CompleteEncounter(context.Context, *CompleteEncounterRequest) (*CompleteEncounterResponse, error)
 	mustEmbedUnimplementedEMRServiceServer()
 }
 
@@ -344,6 +359,9 @@ func (UnimplementedEMRServiceServer) VerifyICD10Mapping(context.Context, *Verify
 }
 func (UnimplementedEMRServiceServer) ListPendingICD10Verifications(context.Context, *ListPendingICD10VerificationsRequest) (*ListPendingICD10VerificationsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListPendingICD10Verifications not implemented")
+}
+func (UnimplementedEMRServiceServer) CompleteEncounter(context.Context, *CompleteEncounterRequest) (*CompleteEncounterResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteEncounter not implemented")
 }
 func (UnimplementedEMRServiceServer) mustEmbedUnimplementedEMRServiceServer() {}
 func (UnimplementedEMRServiceServer) testEmbeddedByValue()                    {}
@@ -690,6 +708,24 @@ func _EMRService_ListPendingICD10Verifications_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EMRService_CompleteEncounter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteEncounterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EMRServiceServer).CompleteEncounter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: EMRService_CompleteEncounter_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EMRServiceServer).CompleteEncounter(ctx, req.(*CompleteEncounterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // EMRService_ServiceDesc is the grpc.ServiceDesc for EMRService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -768,6 +804,10 @@ var EMRService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPendingICD10Verifications",
 			Handler:    _EMRService_ListPendingICD10Verifications_Handler,
+		},
+		{
+			MethodName: "CompleteEncounter",
+			Handler:    _EMRService_CompleteEncounter_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

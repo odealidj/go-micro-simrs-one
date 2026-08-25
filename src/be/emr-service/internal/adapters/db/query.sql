@@ -9,8 +9,6 @@ SET kbm_code = $2,
     kbm_name = $3,
     icd10_mapping_status = 'AUTO_MAPPED',
     notes = $4,
-    status = 'COMPLETED',
-    completed_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP,
     doctor_id = $5,
     department_code = $6,
@@ -18,6 +16,11 @@ SET kbm_code = $2,
     age_bracket = $8
 WHERE encounter_no = $1
 RETURNING *;
+
+-- name: CompleteEncounter :exec
+UPDATE medical_records
+SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+WHERE encounter_no = $1;
 
 -- name: SearchKBM :many
 SELECT * FROM kbm_catalog

@@ -20,8 +20,6 @@ SET kbm_code = $2,
     kbm_name = $3,
     icd10_mapping_status = 'AUTO_MAPPED',
     notes = $4,
-    status = 'COMPLETED',
-    completed_at = CURRENT_TIMESTAMP,
     updated_at = CURRENT_TIMESTAMP,
     doctor_id = $5,
     department_code = $6,
@@ -120,6 +118,17 @@ func (q *Queries) AddMedicalAction(ctx context.Context, arg AddMedicalActionPara
 		&i.DeletedBy,
 	)
 	return i, err
+}
+
+const completeEncounter = `-- name: CompleteEncounter :exec
+UPDATE medical_records
+SET status = 'COMPLETED', completed_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
+WHERE encounter_no = $1
+`
+
+func (q *Queries) CompleteEncounter(ctx context.Context, encounterNo string) error {
+	_, err := q.db.ExecContext(ctx, completeEncounter, encounterNo)
+	return err
 }
 
 const countICD10 = `-- name: CountICD10 :one

@@ -23,6 +23,7 @@ interface DiagnosisFormProps {
   initialKbmName?: string;
   initialNotes?: string;
   initialSecondaryDiagnoses?: SecondaryDiagnosis[];
+  readOnly?: boolean;
   onSuccess?: () => void;
 }
 
@@ -33,6 +34,7 @@ export function DiagnosisForm({
   initialKbmName,
   initialNotes,
   initialSecondaryDiagnoses = [],
+  readOnly = false,
   onSuccess 
 }: DiagnosisFormProps) {
   const { userId } = useAuth();
@@ -192,7 +194,8 @@ export function DiagnosisForm({
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors resize-none placeholder:text-slate-400"
+            disabled={readOnly}
+            className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-colors resize-none placeholder:text-slate-400 disabled:opacity-75 disabled:cursor-not-allowed"
             placeholder="Tuliskan Subjective (Keluhan/RPS), Objective (Pemeriksaan Fisik/Status Lokalis), Plan..."
           />
         </div>
@@ -213,24 +216,27 @@ export function DiagnosisForm({
                   Diagnosa Utama
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedKbm(null);
-                  setSearchQuery("");
-                }}
-                className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold px-2.5 py-1 bg-white rounded-lg border border-indigo-200 transition-colors"
-              >
-                Ganti Diagnosa
-              </button>
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedKbm(null);
+                    setSearchQuery("");
+                  }}
+                  className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold px-2.5 py-1 bg-white rounded-lg border border-indigo-200 transition-colors cursor-pointer"
+                >
+                  Ganti Diagnosa
+                </button>
+              )}
             </div>
           ) : (
             <div className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 type="text"
-                placeholder="Ketik keluhan atau nama penyakit KBM..."
+                placeholder={readOnly ? "Diagnosa belum ditentukan" : "Ketik keluhan atau nama penyakit KBM..."}
                 value={searchQuery}
+                disabled={readOnly}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setShowKbmDropdown(true);
@@ -239,7 +245,7 @@ export function DiagnosisForm({
                 className="pl-10 h-11 rounded-xl"
               />
               
-              {showKbmDropdown && searchQuery.length >= 2 && (
+              {!readOnly && showKbmDropdown && searchQuery.length >= 2 && (
                 <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
                   {searchingKbm ? (
                     <div className="p-4 text-xs text-slate-500 text-center">Mencari katalog KBM...</div>
@@ -280,57 +286,59 @@ export function DiagnosisForm({
             3. Diagnosa Sekunder / Komorbiditas (Multi-Entry)
           </label>
 
-          <div className="flex gap-2 mb-3">
-            <select
-              value={secCategory}
-              onChange={(e) => setSecCategory(e.target.value as any)}
-              className="h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            >
-              <option value="KOMORBID">Komorbid</option>
-              <option value="KOMPLIKASI">Komplikasi</option>
-              <option value="BANDING">Diagnosa Banding</option>
-            </select>
+          {!readOnly && (
+            <div className="flex gap-2 mb-3">
+              <select
+                value={secCategory}
+                onChange={(e) => setSecCategory(e.target.value as any)}
+                className="h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="KOMORBID">Komorbid</option>
+                <option value="KOMPLIKASI">Komplikasi</option>
+                <option value="BANDING">Diagnosa Banding</option>
+              </select>
 
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                type="text"
-                placeholder="Cari diagnosa sekunder (ICD-10)..."
-                value={searchSecQuery}
-                onChange={(e) => {
-                  setSearchSecQuery(e.target.value);
-                  setShowSecDropdown(true);
-                }}
-                onFocus={() => setShowSecDropdown(true)}
-                className="pl-9 h-10 rounded-xl text-sm"
-              />
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Cari diagnosa sekunder (ICD-10)..."
+                  value={searchSecQuery}
+                  onChange={(e) => {
+                    setSearchSecQuery(e.target.value);
+                    setShowSecDropdown(true);
+                  }}
+                  onFocus={() => setShowSecDropdown(true)}
+                  className="pl-9 h-10 rounded-xl text-sm"
+                />
 
-              {showSecDropdown && searchSecQuery.length >= 2 && (
-                <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
-                  {searchingSec ? (
-                    <div className="p-3 text-xs text-slate-500 text-center">Mencari ICD-10...</div>
-                  ) : secResults.length > 0 ? (
-                    <ul className="divide-y divide-slate-100 text-sm">
-                      {secResults.map(item => (
-                        <li 
-                          key={item.code}
-                          onClick={() => handleAddSecondary(item)}
-                          className="p-2.5 hover:bg-indigo-50 cursor-pointer flex justify-between items-center transition-colors"
-                        >
-                          <span className="text-slate-800">{item.name}</span>
-                          <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
-                            {item.code}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="p-3 text-xs text-slate-500 text-center">ICD-10 tidak ditemukan</div>
-                  )}
-                </div>
-              )}
+                {showSecDropdown && searchSecQuery.length >= 2 && (
+                  <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                    {searchingSec ? (
+                      <div className="p-3 text-xs text-slate-500 text-center">Mencari ICD-10...</div>
+                    ) : secResults.length > 0 ? (
+                      <ul className="divide-y divide-slate-100 text-sm">
+                        {secResults.map(item => (
+                          <li 
+                            key={item.code}
+                            onClick={() => handleAddSecondary(item)}
+                            className="p-2.5 hover:bg-indigo-50 cursor-pointer flex justify-between items-center transition-colors"
+                          >
+                            <span className="text-slate-800">{item.name}</span>
+                            <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                              {item.code}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="p-3 text-xs text-slate-500 text-center">ICD-10 tidak ditemukan</div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* List of Secondary Diagnoses */}
           {secondaryList.length > 0 ? (
@@ -346,13 +354,15 @@ export function DiagnosisForm({
                       {sec.category}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSecondary(sec.icd10_code)}
-                    className="text-slate-400 hover:text-red-600 transition-colors p-1 rounded-md"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSecondary(sec.icd10_code)}
+                      className="text-slate-400 hover:text-red-600 transition-colors p-1 rounded-md cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -362,16 +372,18 @@ export function DiagnosisForm({
         </div>
 
         {/* Submit */}
-        <div className="pt-3 flex justify-end">
-          <Button 
-            type="submit" 
-            disabled={loading || !selectedKbm}
-            className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
-          >
-            <Save className="h-4 w-4" />
-            {loading ? "Menyimpan..." : "Simpan Diagnosa"}
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="pt-3 flex justify-end">
+            <Button 
+              type="submit" 
+              disabled={loading || !selectedKbm}
+              className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+            >
+              <Save className="h-4 w-4" />
+              {loading ? "Menyimpan..." : "Simpan Diagnosa"}
+            </Button>
+          </div>
+        )}
       </form>
     </div>
   );

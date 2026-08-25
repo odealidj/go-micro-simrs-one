@@ -20,6 +20,7 @@ type EMRRepository interface {
 	AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, kbmName, notes, doctorId, deptCode, gender, ageBracket string) error
 	VerifyICD10Mapping(ctx context.Context, encounterNo string, icd10Codes []string, notes string) error
 	ListPendingICD10Verifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error)
+	CompleteEncounter(ctx context.Context, encounterNo string) error
 }
 
 type EMRService interface {
@@ -37,6 +38,7 @@ type EMRService interface {
 	AddDiagnosisKBM(ctx context.Context, encounterNo, kbmCode, notes, doctorId, deptCode, gender, ageBracket string) error
 	VerifyICD10Mapping(ctx context.Context, encounterNo string, icd10Codes []string, notes string) error
 	ListPendingICD10Verifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error)
+	CompleteEncounter(ctx context.Context, encounterNo string) error
 }
 
 // EventSubscriber interface to listen to outbox events

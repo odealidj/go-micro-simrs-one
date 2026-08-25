@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -34,6 +35,20 @@ func (s *EMRGrpcServer) StartEncounter(ctx context.Context, req *pb.StartEncount
 	return &pb.StartEncounterResponse{
 		Success: true,
 		Message: "Encounter started",
+	}, nil
+}
+
+func (s *EMRGrpcServer) CompleteEncounter(ctx context.Context, req *pb.CompleteEncounterRequest) (*pb.CompleteEncounterResponse, error) {
+	err := s.emrService.CompleteEncounter(ctx, req.EncounterNo)
+	if err != nil {
+		if strings.Contains(err.Error(), "validasi") || strings.Contains(err.Error(), "wajib") {
+			return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
+		}
+		return nil, status.Errorf(codes.Internal, "failed to complete encounter: %v", err)
+	}
+	return &pb.CompleteEncounterResponse{
+		Success: true,
+		Message: "Encounter completed successfully",
 	}, nil
 }
 
@@ -206,6 +221,18 @@ func (s *EMRGrpcServer) GetMedicalRecord(ctx context.Context, req *pb.GetMedical
 		})
 	}
 
+	checklist := &pb.ClinicalChecklist{
+		TriageCompleted:        mr.Checklist.TriageCompleted,
+		DiagnosisCompleted:     mr.Checklist.DiagnosisCompleted,
+		ActionsCompleted:       mr.Checklist.ActionsCompleted,
+		ActionsCount:           mr.Checklist.ActionsCount,
+		PrescriptionCompleted:  mr.Checklist.PrescriptionCompleted,
+		PrescriptionCount:      mr.Checklist.PrescriptionCount,
+		IsReadyToComplete:      mr.Checklist.IsReadyToComplete,
+		MissingMandatoryFields: mr.Checklist.MissingMandatoryFields,
+		BaseConsultationFee:    mr.Checklist.BaseConsultationFee,
+	}
+
 	return &pb.GetMedicalRecordResponse{
 		EncounterNo:        mr.EncounterNo,
 		PatientMrn:         mr.MRN,
@@ -214,8 +241,10 @@ func (s *EMRGrpcServer) GetMedicalRecord(ctx context.Context, req *pb.GetMedical
 		KbmName:            mr.KBMName,
 		Icd10MappingStatus: mr.ICD10MappingStatus,
 		Notes:              mr.Notes,
+		Status:             mr.Status,
 		Triage:             triage,
 		Actions:            actions,
+		Checklist:          checklist,
 	}, nil
 }
 

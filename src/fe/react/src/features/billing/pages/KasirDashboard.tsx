@@ -168,7 +168,7 @@ export function KasirDashboard() {
         </Link>
 
         <Link
-          to="/kasir/invoice"
+          to="/kasir/riwayat-pembayaran"
           className="group bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-blue-400 transition-all"
         >
           <div className="p-3.5 bg-blue-50 rounded-2xl group-hover:bg-blue-100 transition-colors border border-blue-200">
