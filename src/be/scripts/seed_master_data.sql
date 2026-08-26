@@ -89,16 +89,72 @@ INSERT INTO emr.master_tindakan (kode_tindakan, nama_tindakan, base_price) VALUE
 ('TND-006', 'Jahit Luka', 100000.00)
 ON CONFLICT (kode_tindakan) DO NOTHING;
 
--- 3. PHARMACY SCHEMA (Obat / Inventory)
+-- 3. PHARMACY SCHEMA (KFA Catalog, BPJS DPHO Catalog, Inventory Obat, Mappings)
+
+-- Standard KFA Catalog Dataset (Kemenkes RI - SATUSEHAT FHIR)
+INSERT INTO pharmacy.kfa_catalog (kfa_code, name, active_substance, dosage_form, strength, bpom_nie, atc_code, snomed_concept_id) VALUES
+('93000108', 'Paracetamol 500 mg Tablet', 'Paracetamol', 'Tablet', '500 mg', 'DKL1234567890A1', 'N02BE01', '387517004'),
+('93000215', 'Amoxicillin 500 mg Kapsul', 'Amoxicillin Trihydrate', 'Kapsul', '500 mg', 'GKL9876543210B1', 'J01CA04', '372687004'),
+('93000342', 'Omeprazole 20 mg Kapsul Lepas Tunda', 'Omeprazole', 'Kapsul', '20 mg', 'GKL5678901234A1', 'A02BC01', '387207008'),
+('93000456', 'Loratadine 10 mg Tablet', 'Loratadine', 'Tablet', '10 mg', 'DKL8901234567A1', 'R06AX13', '387494007'),
+('93000567', 'Ascorbic Acid (Vitamin C) 500 mg Tablet', 'Ascorbic Acid', 'Tablet', '500 mg', 'SD012345678', 'A11GA01', '387168000'),
+('93000678', 'Metformin HCl 500 mg Tablet Salut Selaput', 'Metformin Hydrochloride', 'Tablet', '500 mg', 'GKL3456789012A1', 'A10BA02', '387463004'),
+('93000789', 'Amlodipine 10 mg Tablet', 'Amlodipine Besylate', 'Tablet', '10 mg', 'GKL7890123456A1', 'C08CA01', '386864001'),
+('93000890', 'Ceftriaxone 1 g Serbuk Injeksi', 'Ceftriaxone Sodium', 'Serbuk Injeksi', '1 g', 'GKL2345678901A1', 'J01DD04', '387362001'),
+('93000901', 'Salbutamol 100 mcg/puff Inhaler', 'Salbutamol Sulfate', 'Inhaler Cair', '100 mcg/puff', 'DKI4567890123A1', 'R03AC02', '372826007'),
+('93001012', 'Antasida DOEN Tablet Kunyah', 'Aluminium Hidroksida + Magnesium Hidroksida', 'Tablet Kunyah', '200 mg / 200 mg', 'GBL0123456789A1', 'A02AD01', '764660000'),
+('93001123', 'Ibuprofen 400 mg Tablet Salut Selaput', 'Ibuprofen', 'Tablet', '400 mg', 'GKL1230984567A1', 'M01AE01', '387207008'),
+('93001234', 'Dexamethasone 0.5 mg Tablet', 'Dexamethasone', 'Tablet', '0.5 mg', 'GKL6789012345A1', 'H02AB02', '372584000')
+ON CONFLICT (kfa_code) DO NOTHING;
+
+-- Standard BPJS DPHO Catalog Dataset (Formularium Nasional / DPHO BPJS)
+INSERT INTO pharmacy.bpjs_dpho_catalog (dpho_code, dpho_name, is_fornas, is_prb, restriction, max_qty_per_claim) VALUES
+('DPHO-001', 'Paracetamol 500 mg tab', true, false, 'Diberikan untuk terapi simtomatik demam/nyeri. Maksimal 30 tablet per kasus.', 30),
+('DPHO-002', 'Amoxicillin 500 mg kap', true, false, 'Antibiotik lini pertama infeksi bakteri rentan. Maksimal 15-20 tablet per resep (durasi 5-7 hari).', 20),
+('DPHO-003', 'Omeprazole 20 mg kap', true, false, 'Untuk tukak lambung/duodenum dan GERD. Maksimal 30 kapsul per bulan.', 30),
+('DPHO-004', 'Loratadine 10 mg tab', true, false, 'Antihistamin non-sedatif untuk rinitis alergi dan urtikaria. Maksimal 10 tablet per resep.', 10),
+('DPHO-005', 'Metformin 500 mg tab', true, true, 'Obat Program Rujuk Balik (PRB) Diabetes Melitus Tipe 2. Maksimal 90 tablet per bulan.', 90),
+('DPHO-006', 'Amlodipine 10 mg tab', true, true, 'Obat Program Rujuk Balik (PRB) Hipertensi derajat 1-2. Maksimal 30 tablet per bulan.', 30),
+('DPHO-007', 'Ceftriaxone 1 g serb inj', true, false, 'Antibiotik lini ketiga untuk infeksi berat di rawat inap / IGD. Maksimal 2 vial per hari selama maks 7 hari.', 14),
+('DPHO-008', 'Salbutamol 100 mcg/puff inhaler', true, true, 'Obat PRB / Asma bronkial dan PPOK. Maksimal 1 can per bulan.', 1),
+('DPHO-009', 'Antasida DOEN tab kunyah', true, false, 'Untuk hiperasiditas lambung. Maksimal 30 tablet per kasus.', 30),
+('DPHO-010', 'Ibuprofen 400 mg tab', true, false, 'Antiinflamasi non-steroid untuk nyeri/inflamasi sedang. Maksimal 30 tablet per kasus.', 30),
+('DPHO-011', 'Dexamethasone 0.5 mg tab', true, false, 'Kortikosteroid antiinflamasi dan imunosupresan. Maksimal 20 tablet per kasus.', 20)
+ON CONFLICT (dpho_code) DO NOTHING;
+
+-- Standard SIMRS Pharmacy Inventory (Obat RS)
 INSERT INTO pharmacy.inventory (item_code, name, stock_quantity, price) VALUES
 ('OBT-001', 'Paracetamol 500mg (Tablet)', 1000, 5000.00),
 ('OBT-002', 'Amoxicillin 500mg (Kapsul)', 500, 15000.00),
 ('OBT-003', 'Omeprazole 20mg (Kapsul)', 300, 25000.00),
 ('OBT-004', 'Loratadine 10mg (Tablet)', 400, 10000.00),
-('OBT-005', 'Vitamin C 500mg (Tablet)', 2000, 2000.00)
+('OBT-005', 'Vitamin C 500mg (Tablet)', 2000, 2000.00),
+('OBT-006', 'Metformin HCl 500mg (Tablet)', 800, 8000.00),
+('OBT-007', 'Amlodipine 10mg (Tablet)', 600, 12000.00),
+('OBT-008', 'Ceftriaxone 1g Injeksi (Vial)', 150, 65000.00),
+('OBT-009', 'Salbutamol 100mcg Inhaler (Can)', 80, 85000.00),
+('OBT-010', 'Antasida DOEN Tablet Kunyah', 1200, 3000.00),
+('OBT-011', 'Ibuprofen 400mg (Tablet)', 750, 7500.00),
+('OBT-012', 'Dexamethasone 0.5mg (Tablet)', 900, 4000.00)
 ON CONFLICT (item_code) DO UPDATE SET 
     name = EXCLUDED.name, 
     price = EXCLUDED.price;
+
+-- Initial Cross-Mappings (Inventory -> KFA & DPHO)
+INSERT INTO pharmacy.inventory_kfa_mapping (item_code, kfa_code, dpho_code, is_primary, mapping_confidence) VALUES
+('OBT-001', '93000108', 'DPHO-001', true, 100.00),
+('OBT-002', '93000215', 'DPHO-002', true, 100.00),
+('OBT-003', '93000342', 'DPHO-003', true, 100.00),
+('OBT-004', '93000456', 'DPHO-004', true, 100.00),
+('OBT-005', '93000567', NULL, true, 100.00),
+('OBT-006', '93000678', 'DPHO-005', true, 100.00),
+('OBT-007', '93000789', 'DPHO-006', true, 100.00),
+('OBT-008', '93000890', 'DPHO-007', true, 100.00),
+('OBT-009', '93000901', 'DPHO-008', true, 100.00),
+('OBT-010', '93001012', 'DPHO-009', true, 100.00),
+('OBT-011', '93001123', 'DPHO-010', true, 100.00),
+('OBT-012', '93001234', 'DPHO-011', true, 100.00)
+ON CONFLICT (item_code, kfa_code) DO NOTHING;
 
 -- Note: Mapping Dokter ke Poli & Jadwal Praktek (auth schema)
 -- Because this requires UUIDs from auth.profil_dokter and auth.profil_perawat,
@@ -220,14 +276,33 @@ INSERT INTO emr.snomed_icd9_mapping (snomed_concept_id, icd9_code, is_primary) V
 ('386053000', '89.02', true)
 ON CONFLICT (snomed_concept_id, icd9_code) DO NOTHING;
 
--- Mappings Pharmacy
+-- Mappings Pharmacy (Inventory to Polyclinic)
 INSERT INTO pharmacy.inventory_polyclinic_mappings (item_code, polyclinic_code) VALUES
 ('OBT-001', '01'),
+('OBT-001', '02'),
 ('OBT-001', '03'),
 ('OBT-002', '01'),
+('OBT-002', '02'),
+('OBT-002', '03'),
 ('OBT-003', '01'),
 ('OBT-004', '01'),
-('OBT-005', '01')
+('OBT-004', '03'),
+('OBT-005', '01'),
+('OBT-005', '03'),
+('OBT-005', '04'),
+('OBT-006', '01'),
+('OBT-007', '01'),
+('OBT-008', '01'),
+('OBT-008', '04'),
+('OBT-009', '01'),
+('OBT-009', '03'),
+('OBT-010', '01'),
+('OBT-010', '03'),
+('OBT-011', '01'),
+('OBT-011', '02'),
+('OBT-011', '03'),
+('OBT-012', '01'),
+('OBT-012', '03')
 ON CONFLICT DO NOTHING;
 
 -- ==========================================
