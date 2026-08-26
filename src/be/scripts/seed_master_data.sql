@@ -77,7 +77,11 @@ INSERT INTO emr.icd9cm_catalog (icd9_code, name_en, name_id, category, is_active
 ('99.04', 'Transfusion of packed cells', 'Transfusi sel darah merah', '99', true),
 ('99.21', 'Injection of antibiotic', 'Injeksi antibiotik', '99', true),
 ('99.29', 'Injection or infusion of other therapeutic or prophylactic substance', 'Injeksi atau infus zat terapeutik lainnya', '99', true)
-ON CONFLICT (icd9_code) DO NOTHING;
+ON CONFLICT (icd9_code) DO UPDATE SET
+    name_en = EXCLUDED.name_en,
+    name_id = EXCLUDED.name_id,
+    category = EXCLUDED.category,
+    is_active = EXCLUDED.is_active;
 
 -- Tindakan Medis
 INSERT INTO emr.master_tindakan (kode_tindakan, nama_tindakan, base_price) VALUES
@@ -208,11 +212,15 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO emr.tindakan_polyclinic_mappings (kode_tindakan, polyclinic_code) VALUES
 ('TND-001', '01'),
+('TND-001', '03'),
+('TND-001', '05'),
 ('TND-002', '02'),
 ('TND-003', '02'),
 ('TND-004', '04'),
 ('TND-005', '01'),
-('TND-006', '01')
+('TND-005', '04'),
+('TND-006', '01'),
+('TND-006', '04')
 ON CONFLICT DO NOTHING;
 
 -- Tindakan ICD-9 Mappings
