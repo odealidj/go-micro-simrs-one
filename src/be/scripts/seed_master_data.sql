@@ -164,9 +164,9 @@ ON CONFLICT (item_code, kfa_code) DO NOTHING;
 INSERT INTO emr.polyclinics (code, name) VALUES
 ('01', 'Poliklinik Umum'),
 ('02', 'Poliklinik Gigi'),
-('04', 'Poliklinik Kandungan (Obgyn)'),
 ('03', 'Poliklinik Anak'),
-('MATA', 'Poliklinik Mata')
+('04', 'Poliklinik Kandungan (Obgyn)'),
+('05', 'Poliklinik Mata')
 ON CONFLICT (code) DO NOTHING;
 
 -- Seed KBM Catalog
@@ -283,14 +283,14 @@ INSERT INTO pharmacy.inventory_polyclinic_mappings (item_code, polyclinic_code) 
 ('OBT-001', '02'),
 ('OBT-001', '03'),
 ('OBT-001', '04'),
-('OBT-001', 'MATA'),
+('OBT-001', '05'),
 
 -- OBT-002: Amoxicillin (Umum, Gigi, Anak, Obgyn, Mata)
 ('OBT-002', '01'),
 ('OBT-002', '02'),
 ('OBT-002', '03'),
 ('OBT-002', '04'),
-('OBT-002', 'MATA'),
+('OBT-002', '05'),
 
 -- OBT-003: Omeprazole (Umum, Obgyn)
 ('OBT-003', '01'),
@@ -299,13 +299,13 @@ INSERT INTO pharmacy.inventory_polyclinic_mappings (item_code, polyclinic_code) 
 -- OBT-004: Loratadine (Umum, Anak, Mata)
 ('OBT-004', '01'),
 ('OBT-004', '03'),
-('OBT-004', 'MATA'),
+('OBT-004', '05'),
 
 -- OBT-005: Vitamin C (Umum, Anak, Obgyn, Mata)
 ('OBT-005', '01'),
 ('OBT-005', '03'),
 ('OBT-005', '04'),
-('OBT-005', 'MATA'),
+('OBT-005', '05'),
 
 -- OBT-006: Metformin (Umum - PRB DM2, Obgyn - PCOS)
 ('OBT-006', '01'),
@@ -334,7 +334,7 @@ INSERT INTO pharmacy.inventory_polyclinic_mappings (item_code, polyclinic_code) 
 -- OBT-012: Dexamethasone (Umum, Anak, Mata - Uveitis/Radang Orbita)
 ('OBT-012', '01'),
 ('OBT-012', '03'),
-('OBT-012', 'MATA')
+('OBT-012', '05')
 ON CONFLICT DO NOTHING;
 
 -- ==========================================
