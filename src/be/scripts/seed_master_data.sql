@@ -76,7 +76,10 @@ INSERT INTO emr.icd9cm_catalog (icd9_code, name_en, name_id, category, is_active
 ('93.94', 'Respiratory medication administered by nebulizer', 'Pemberian obat pernapasan dengan nebulizer', '93', true),
 ('99.04', 'Transfusion of packed cells', 'Transfusi sel darah merah', '99', true),
 ('99.21', 'Injection of antibiotic', 'Injeksi antibiotik', '99', true),
-('99.29', 'Injection or infusion of other therapeutic or prophylactic substance', 'Injeksi atau infus zat terapeutik lainnya', '99', true)
+('99.29', 'Injection or infusion of other therapeutic or prophylactic substance', 'Injeksi atau infus zat terapeutik lainnya', '99', true),
+('23.2', 'Restoration of tooth by filling', 'Penambalan Gigi', '23', true),
+('95.02', 'Comprehensive eye examination', 'Pemeriksaan Mata Komprehensif', '95', true),
+('96.54', 'Dental scaling and polishing', 'Pembersihan Karang Gigi (Scaling)', '96', true)
 ON CONFLICT (icd9_code) DO UPDATE SET
     name_en = EXCLUDED.name_en,
     name_id = EXCLUDED.name_id,
@@ -90,8 +93,20 @@ INSERT INTO emr.master_tindakan (kode_tindakan, nama_tindakan, base_price) VALUE
 ('TND-003', 'Cabut Gigi', 150000.00),
 ('TND-004', 'USG Kandungan', 200000.00),
 ('TND-005', 'Cek Gula Darah', 25000.00),
-('TND-006', 'Jahit Luka', 100000.00)
-ON CONFLICT (kode_tindakan) DO NOTHING;
+('TND-006', 'Jahit Luka', 100000.00),
+('TND-007', 'Rekam Jantung (EKG)', 80000.00),
+('TND-008', 'Terapi Nebulisasi (Inhalasi)', 65000.00),
+('TND-009', 'Ekstraksi Benda Asing Mata (Corpus Alienum)', 125000.00),
+('TND-010', 'Rontgen Dada (Thorax)', 120000.00),
+('TND-011', 'Injeksi Obat / Antibiotik', 35000.00),
+('TND-012', 'Penanganan Epistaksis (Tampon Hidung Anterior)', 75000.00),
+('TND-013', 'Transfusi Darah (PRC)', 150000.00),
+('TND-014', 'Pembersihan Karang Gigi (Scaling)', 150000.00),
+('TND-015', 'Penambalan Gigi (Tambal Gigi)', 120000.00),
+('TND-016', 'Pemeriksaan Refraksi & Mata Komprehensif', 75000.00)
+ON CONFLICT (kode_tindakan) DO UPDATE SET 
+    nama_tindakan = EXCLUDED.nama_tindakan, 
+    base_price = EXCLUDED.base_price;
 
 -- 3. PHARMACY SCHEMA (KFA Catalog, BPJS DPHO Catalog, Inventory Obat, Mappings)
 
@@ -211,16 +226,64 @@ INSERT INTO emr.kbm_polyclinic_mappings (kbm_code, polyclinic_code) VALUES
 ON CONFLICT DO NOTHING;
 
 INSERT INTO emr.tindakan_polyclinic_mappings (kode_tindakan, polyclinic_code) VALUES
+-- TND-001: Pemeriksaan Umum / Konsultasi Dokter (Umum, Anak, Mata)
 ('TND-001', '01'),
 ('TND-001', '03'),
 ('TND-001', '05'),
+
+-- TND-002: Pemeriksaan Gigi (Gigi)
 ('TND-002', '02'),
+
+-- TND-003: Cabut Gigi (Gigi)
 ('TND-003', '02'),
+
+-- TND-004: USG Kandungan (Obgyn)
 ('TND-004', '04'),
+
+-- TND-005: Cek Gula Darah (Umum, Obgyn)
 ('TND-005', '01'),
 ('TND-005', '04'),
+
+-- TND-006: Jahit Luka (Umum, Obgyn)
 ('TND-006', '01'),
-('TND-006', '04')
+('TND-006', '04'),
+
+-- TND-007: Rekam Jantung (EKG) (Umum, Obgyn)
+('TND-007', '01'),
+('TND-007', '04'),
+
+-- TND-008: Terapi Nebulisasi (Umum, Anak)
+('TND-008', '01'),
+('TND-008', '03'),
+
+-- TND-009: Ekstraksi Benda Asing Mata (Mata)
+('TND-009', '05'),
+
+-- TND-010: Rontgen Dada (Thorax) (Umum, Anak)
+('TND-010', '01'),
+('TND-010', '03'),
+
+-- TND-011: Injeksi Obat / Antibiotik (Umum, Anak, Obgyn)
+('TND-011', '01'),
+('TND-011', '03'),
+('TND-011', '04'),
+
+-- TND-012: Penanganan Epistaksis (Umum, Anak)
+('TND-012', '01'),
+('TND-012', '03'),
+
+-- TND-013: Transfusi Darah (PRC) (Umum, Obgyn)
+('TND-013', '01'),
+('TND-013', '04'),
+
+-- TND-014: Pembersihan Karang Gigi (Gigi)
+('TND-014', '02'),
+
+-- TND-015: Penambalan Gigi (Gigi)
+('TND-015', '02'),
+
+-- TND-016: Pemeriksaan Refraksi & Mata (Mata)
+('TND-016', '05')
 ON CONFLICT DO NOTHING;
 
 -- Tindakan ICD-9 Mappings
@@ -230,7 +293,17 @@ INSERT INTO emr.tindakan_icd9_mapping (kode_tindakan, icd9_code, is_primary) VAL
 ('TND-003', '23.09', true), -- Cabut Gigi -> Pencabutan Gigi Lainnya
 ('TND-004', '88.78', true), -- USG Kandungan -> USG Kandungan
 ('TND-005', '90.59', true), -- Cek Gula Darah -> Pemeriksaan mikroskopik darah
-('TND-006', '86.59', true)  -- Jahit Luka -> Jahit Luka
+('TND-006', '86.59', true), -- Jahit Luka -> Jahit Luka
+('TND-007', '89.52', true), -- Rekam Jantung (EKG) -> Elektrokardiogram
+('TND-008', '93.94', true), -- Terapi Nebulisasi -> Pemberian obat pernapasan dengan nebulizer
+('TND-009', '10.0', true),  -- Ekstraksi Benda Asing Mata -> Pengangkatan benda asing dari konjungtiva dengan insisi
+('TND-010', '87.44', true), -- Rontgen Dada -> Rontgen Dada
+('TND-011', '99.21', true), -- Injeksi Antibiotik -> Injeksi antibiotik
+('TND-012', '21.01', true), -- Tampon Hidung Epistaksis -> Kontrol epistaksis dengan tampon hidung anterior
+('TND-013', '99.04', true), -- Transfusi Darah -> Transfusi sel darah merah
+('TND-014', '96.54', true), -- Pembersihan Karang Gigi -> Dental scaling and polishing
+('TND-015', '23.2', true),  -- Penambalan Gigi -> Restoration of tooth by filling
+('TND-016', '95.02', true)  -- Pemeriksaan Refraksi Mata -> Comprehensive eye examination
 ON CONFLICT (kode_tindakan, icd9_code) DO NOTHING;
 
 -- KBM to ICD-10 Mappings
@@ -260,7 +333,17 @@ INSERT INTO emr.snomed_concepts (concept_id, fsn, term_id, semantic_tag, is_acti
 ('265747005', 'Diagnostic ultrasound of pregnancy (procedure)', 'USG Kehamilan / Kandungan', 'procedure', true),
 ('104091002', 'Measurement of blood glucose (procedure)', 'Pemeriksaan Gula Darah', 'procedure', true),
 ('225965007', 'Suture of skin (procedure)', 'Penjahitan Luka Kulit', 'procedure', true),
-('386053000', 'Evaluation procedure (procedure)', 'Pemeriksaan Medis Umum', 'procedure', true)
+('386053000', 'Evaluation procedure (procedure)', 'Pemeriksaan Medis Umum', 'procedure', true),
+('29303009', 'Electrocardiographic procedure (procedure)', 'Rekam Jantung (EKG)', 'procedure', true),
+('410206007', 'Inhalation therapy (procedure)', 'Terapi Inhalasi / Nebulisasi', 'procedure', true),
+('284210009', 'Removal of foreign body from conjunctiva (procedure)', 'Ekstraksi Benda Asing Konjungtiva', 'procedure', true),
+('399208008', 'Plain chest X-ray (procedure)', 'Foto Rontgen Dada / Thorax', 'procedure', true),
+('281789004', 'Antibiotic therapy (procedure)', 'Injeksi / Terapi Antibiotik', 'procedure', true),
+('182832007', 'Procedure on nose (procedure)', 'Tampon Hidung Anterior (Epistaksis)', 'procedure', true),
+('396154006', 'Transfusion of packed red blood cells (procedure)', 'Transfusi Sel Darah Merah (PRC)', 'procedure', true),
+('232585006', 'Scaling of teeth (procedure)', 'Pembersihan Karang Gigi / Scaling', 'procedure', true),
+('113040004', 'Restoration of tooth (procedure)', 'Penambalan / Restorasi Gigi', 'procedure', true),
+('397524001', 'Comprehensive eye examination (procedure)', 'Pemeriksaan Refraksi & Mata Lengkap', 'procedure', true)
 ON CONFLICT (concept_id) DO NOTHING;
 
 -- SNOMED-CT to ICD-10 Mappings
@@ -281,7 +364,17 @@ INSERT INTO emr.snomed_icd9_mapping (snomed_concept_id, icd9_code, is_primary) V
 ('265747005', '88.78', true),
 ('104091002', '90.59', true),
 ('225965007', '86.59', true),
-('386053000', '89.02', true)
+('386053000', '89.02', true),
+('29303009', '89.52', true),
+('410206007', '93.94', true),
+('284210009', '10.0', true),
+('399208008', '87.44', true),
+('281789004', '99.21', true),
+('182832007', '21.01', true),
+('396154006', '99.04', true),
+('232585006', '96.54', true),
+('113040004', '23.2', true),
+('397524001', '95.02', true)
 ON CONFLICT (snomed_concept_id, icd9_code) DO NOTHING;
 
 -- Mappings Pharmacy (Inventory to Polyclinic)
