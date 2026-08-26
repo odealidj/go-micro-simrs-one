@@ -278,31 +278,63 @@ ON CONFLICT (snomed_concept_id, icd9_code) DO NOTHING;
 
 -- Mappings Pharmacy (Inventory to Polyclinic)
 INSERT INTO pharmacy.inventory_polyclinic_mappings (item_code, polyclinic_code) VALUES
+-- OBT-001: Paracetamol (Umum, Gigi, Anak, Obgyn, Mata)
 ('OBT-001', '01'),
 ('OBT-001', '02'),
 ('OBT-001', '03'),
+('OBT-001', '04'),
+('OBT-001', 'MATA'),
+
+-- OBT-002: Amoxicillin (Umum, Gigi, Anak, Obgyn, Mata)
 ('OBT-002', '01'),
 ('OBT-002', '02'),
 ('OBT-002', '03'),
+('OBT-002', '04'),
+('OBT-002', 'MATA'),
+
+-- OBT-003: Omeprazole (Umum, Obgyn)
 ('OBT-003', '01'),
+('OBT-003', '04'),
+
+-- OBT-004: Loratadine (Umum, Anak, Mata)
 ('OBT-004', '01'),
 ('OBT-004', '03'),
+('OBT-004', 'MATA'),
+
+-- OBT-005: Vitamin C (Umum, Anak, Obgyn, Mata)
 ('OBT-005', '01'),
 ('OBT-005', '03'),
 ('OBT-005', '04'),
+('OBT-005', 'MATA'),
+
+-- OBT-006: Metformin (Umum - PRB DM2, Obgyn - PCOS)
 ('OBT-006', '01'),
+('OBT-006', '04'),
+
+-- OBT-007: Amlodipine (Umum - PRB Hipertensi)
 ('OBT-007', '01'),
+
+-- OBT-008: Ceftriaxone (Umum - Tindakan/IGD, Obgyn - Bedah/Pelvis)
 ('OBT-008', '01'),
 ('OBT-008', '04'),
+
+-- OBT-009: Salbutamol Inhaler (Umum - PRB Asma/PPOK, Anak - Asma)
 ('OBT-009', '01'),
 ('OBT-009', '03'),
+
+-- OBT-010: Antasida DOEN (Umum, Anak)
 ('OBT-010', '01'),
 ('OBT-010', '03'),
+
+-- OBT-011: Ibuprofen (Umum - Nyeri/Artritis, Gigi - Bedah Mulut, Obgyn - Dismenore)
 ('OBT-011', '01'),
 ('OBT-011', '02'),
-('OBT-011', '03'),
+('OBT-011', '04'),
+
+-- OBT-012: Dexamethasone (Umum, Anak, Mata - Uveitis/Radang Orbita)
 ('OBT-012', '01'),
-('OBT-012', '03')
+('OBT-012', '03'),
+('OBT-012', 'MATA')
 ON CONFLICT DO NOTHING;
 
 -- ==========================================
