@@ -635,12 +635,12 @@ erDiagram
 
 ### 4.4 Rawat Jalan Service DB (Schema: `rawat_jalan`)
 
-> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNq9V99v4jgQ_lcsHk5dabtqV-pL3wLJbXMlgCBUdxJSZOJZ6iaxI9vpHSr9328cIASapOyquzwg5Jn5PJ4f3wwvvVgy6N2SHiiX05Wi2UIQ_OQyXccpFzzW5GV7ZD8PznRw50yjmytiDcnknix6s9k4JAHVBhSZyJQn1i4hF4r-S83lE02p-LTovQX5enNDBM0AIUY0ozXbunbo_R0SBjpWPDdcioOkPx4PPWdEuI5obPgz1Iz8wJuFTjAhsQJqgEXUNEmLnHVIGaRgpawmnc99txIs11vB62LnFohYFgIDoSP11BQ4--ZKKRJyG8GRzKQiSSGeCrGioi1YmRKl8hcyhYRmJADGdZMypodBTpXJQJiozNSf9h78SqCe2y9W1oRwfYUQMjZSRZyhJT7alYnN8EUqVzym6aeWi7WhptBoMvW--bPQm3ruxhmE_oO3GYyDydALPfcovz-ZqirmRmHhQqQgloodVWuZK3S_jPEKRKSoYDKLioKzi9aSPErP_P6g5I9CskylZFGuQOtCQaTX2mDVxp1KjNNTrdE88Kb-ILqJvhIDWQ4Kg6ZsJwwg1bw4yqqFfATMJvpvrE5_EpzK8a6co1iqdal10j-6WD5B2SNYDVmeUi4MAjnYfgI011gWafFIBSkMdmJbQYhCacB6OCd5VXoyLFIsl7JFpTjti0OK3k9Gs1Nb3LLImyF2CjummY2cyewOCUtYyjFcMJocd5zrDfzAGUbXNjm54vGRmaGKfyeaUlMZE8ZTmhQnMGXchTSg3-muH4rmIR5YVSshNXx8RJNl1hFOK22M5X0_aKEEHrPrqw7IrbwR1B-4l9dXbRy3DQHyv1nn1nYyxcxN_9nMvMF45OKvxh5HjoJnUNysoxR_pGgY-EN3E4xdb-qEHpo_IG2dR1JVZmxcDswaZTTPuVi1Tc99jDFNn5GbG3VqaI2qZzi1L9Ef8KwyKWvoVzq3Tfv5nh3K6Lc4FlNDcdbhYMmRu-m7a9DU6iWUpDKhaUfh2or_-X2mdQyWFXWWy7Xae-N2SxPXG7-ZNJaSrctxCNlHvSgrV8qoKsjuV9XmQNPDwj1Z_0FCS-Ftr6xNi66R0MLpx0vXRwVCFmYp_4uQq4TpWixbWL-ckquVghXC76nS24-BTbAd0E758LbRX969tz2ycBgDtqngBna9sMtxHemv2XjUJzldp5Ky7q1x4o1cf_RtM5n3h_7s7txdsYpV_Y_LZnN5KV9OlvJbvESDesYkVltWg1EbnZfmscxB13ulAaCTemsopytIA1Q7UdZwjgnn-M0lzuZ0U7bGj1TvjjssX5qWuL317qjTvGVr2UNUh50gb7rgdrvV293ZmvY-k14GKqOc2T-0ZY8seuYRsJN7VpfBd1qkxl7yapVpYeRsLWIUGlUAnmw7cPdHeHf8-j-kmadb)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+> 🔗 **[Buka di Live Mermaid Editor (Interaktif)](https://mermaid.live/edit#pako:eNq9V91vozgQ_1esPF-ldqW-9C0J3JZrIBGk1a0UCTkwm7qAjWxTXdT2f78xJAQokOyqd3mIEs-H5_M347dJJGKY3JEJSIvRnaTZhhP85CLdRynjLFLkrToyn6epP7-f-uHtNTGCZPVANpMgWK6JS5UGSVYiZYmRSzaTz2Lfbm8JpxmgkEczOsC9tv9ekxhUJFmumeAnymy5XNhTjzAV0kizV2gIOa4drKfuikQSqIY4pLqPWuTxCDWGFAw1blAfHx2rJmz3FeFjczALeCQKjq6rUL70hcr4XDOFXFQx80QmJEkK_lLwHeVDwcokL5mJDwnNiAsxU328mI8Ycip1BlyHZWr-NNfgVwLNZPYJ31yjtIi0kCGLUQjdtUSC1g7cpDTVhUJG3_7uBGvbty2Czkzna-fJNr_mS3e1sNe21crqbyaojrSWWKAQSoiEjFtVWWYITS8juwMeSspjkYVFweKhyLZS8vhwYnK8NdmmQsRhLkGpQkKo9kpjpUajTDGjXS7v0bV9Zx7eht-IhiwHiYGTpvrnkCpWtLJhVD4DphCt14ZntnK7dLwrZ0gWcl9ydXpGFdsXKPsCSyDLU8q4RkUPkBbPlJNCY88NFQAvpALM_yUJq1OSYT1GNC2bUfBuB5zScj4F_UZVest67ldxYDhgSuBNV8E9ghE34KIZj2nS7i3LnjvudBHemJTkkkUtMU0l-_kJibjQoM50zS9F7eQ31syOCwVfH7lkm42EzVB7Y_YwcweankXxzfWIyoreq9SZW1c310OwVYUAEV3vcyO78jFD_g-DI4E9X3oW_ultYgQieAXJ9D5M8UeKsq6zKKHIXVq2P13blZInRKjLkKhOkQnQCTXDjOY547uhUXgMdgVAiLlaVGdU01TsBjxv6O8KDwD2BYYfi_4XrK9Fjgha2ZCVAz3s66L_2omqli734FSbzfsPp_9_DloX47zKcSjQs1uUb_gSSlKR0HSkZ0yz_f5yNDhdG_V6xuR2tbfNHsCPJub049VWxPtyzkL2VR51CviMV41R0-fYeqQNOoNobNoMjJH26vZVARCF3op_QsRGrse204FBUw7g3U7CDtUf0dk-Tp4SZqvxPy19H1osyutrcfOnfAI02f8Klt6M5HSfChqPr5wr27Mc77u5ffU4WzjB_aVbZh2W5tPm_f3qSrx1lvg7vEeBfMV81a3fIzQ0I0rxSOSgmu3Qo2AUqxtauhDco2oYMRt62pjS9rnU897dsY3wM1WH4xHJt75V8Ch9OBoVH9iJjirqw1Elnwr-rnoPmL3biE7-IJMMZEZZbJ68ZTtsJvoZTDka3hh-0iLV5pIPw0wLLYI9j5CoZQF4UjXb4al8OP74F6VTsH4)** | **[Lihat Gambar Langsung (Direct SVG)](https://mermaid.ink/svg/pako:eNq9V91vozgQ_1esPF-ldqW-9C0J3JZrIBGk1a0UCTkwm7qAjWxTXdT2f78xJAQokOyqd3mIEs-H5_M347dJJGKY3JEJSIvRnaTZhhP85CLdRynjLFLkrToyn6epP7-f-uHtNTGCZPVANpMgWK6JS5UGSVYiZYmRSzaTz2Lfbm8JpxmgkEczOsC9tv9ekxhUJFmumeAnymy5XNhTjzAV0kizV2gIOa4drKfuikQSqIY4pLqPWuTxCDWGFAw1blAfHx2rJmz3FeFjczALeCQKjq6rUL70hcr4XDOFXFQx80QmJEkK_lLwHeVDwcokL5mJDwnNiAsxU328mI8Ycip1BlyHZWr-NNfgVwLNZPYJ31yjtIi0kCGLUQjdtUSC1g7cpDTVhUJG3_7uBGvbty2Czkzna-fJNr_mS3e1sNe21crqbyaojrSWWKAQSoiEjFtVWWYITS8juwMeSspjkYVFweKhyLZS8vhwYnK8NdmmQsRhLkGpQkKo9kpjpUajTDGjXS7v0bV9Zx7eht-IhiwHiYGTpvrnkCpWtLJhVD4DphCt14ZntnK7dLwrZ0gWcl9ydXpGFdsXKPsCSyDLU8q4RkUPkBbPlJNCY88NFQAvpALM_yUJq1OSYT1GNC2bUfBuB5zScj4F_UZVest67ldxYDhgSuBNV8E9ghE34KIZj2nS7i3LnjvudBHemJTkkkUtMU0l-_kJibjQoM50zS9F7eQ31syOCwVfH7lkm42EzVB7Y_YwcweankXxzfWIyoreq9SZW1c310OwVYUAEV3vcyO78jFD_g-DI4E9X3oW_ultYgQieAXJ9D5M8UeKsq6zKKHIXVq2P13blZInRKjLkKhOkQnQCTXDjOY547uhUXgMdgVAiLlaVGdU01TsBjxv6O8KDwD2BYYfi_4XrK9Fjgha2ZCVAz3s66L_2omqli734FSbzfsPp_9_DloX47zKcSjQs1uUb_gSSlKR0HSkZ0yz_f5yNDhdG_V6xuR2tbfNHsCPJub049VWxPtyzkL2VR51CviMV41R0-fYeqQNOoNobNoMjJH26vZVARCF3op_QsRGrse204FBUw7g3U7CDtUf0dk-Tp4SZqvxPy19H1osyutrcfOnfAI02f8Klt6M5HSfChqPr5wr27Mc77u5ffU4WzjB_aVbZh2W5tPm_f3qSrx1lvg7vEeBfMV81a3fIzQ0I0rxSOSgmu3Qo2AUqxtauhDco2oYMRt62pjS9rnU897dsY3wM1WH4xHJt75V8Ch9OBoVH9iJjirqw1Elnwr-rnoPmL3biE7-IJMMZEZZbJ68ZTtsJvoZTDka3hh-0iLV5pIPw0wLLYI9j5CoZQF4UjXb4al8OP74F6VTsH4)** *(Tips: Tekan Ctrl+Klik atau klik kanan → Buka di Tab Baru)*
 
 ```mermaid
 erDiagram
     polyclinics {
-        VARCHAR_50 code PK "SSOT Master Poliklinik (rawat-jalan)"
+        VARCHAR_50 code PK "SSOT Master Poliklinik"
         VARCHAR_255 name "Nama Poliklinik"
         TEXT description
         BOOLEAN is_active
@@ -652,23 +652,23 @@ erDiagram
 
     encounters_rj {
         VARCHAR_255 encounter_no PK "Nomor kunjungan"
-        VARCHAR_255 mrn "No. Rekam Medis"
-        VARCHAR_50 department_code FK "FK ke polyclinics.code"
-        VARCHAR_100 doctor_id "ID Dokter (logical)"
-        VARCHAR_50 status "REGISTERED|ACTIVE|COMPLETED"
+        VARCHAR_255 mrn "No Rekam Medis"
+        VARCHAR_50 department_code FK "FK ke polyclinics"
+        VARCHAR_100 doctor_id "ID Dokter"
+        VARCHAR_50 status "REGISTERED or ACTIVE or COMPLETED"
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
 
     triage_records {
-        UUID id PK "gen_random_uuid()"
+        UUID id PK "gen_random_uuid"
         VARCHAR_255 encounter_no UK
         INT blood_pressure_systolic
         INT blood_pressure_diastolic
         NUMERIC_5_2 temperature "Celsius"
         INT heart_rate "BPM"
         INT respiratory_rate
-        TEXT subjective_complaint "Anamnesis keluhan utama"
+        TEXT subjective_complaint "Keluhan utama"
         VARCHAR_100 nurse_id
         TIMESTAMP created_at
     }
@@ -678,7 +678,7 @@ erDiagram
         VARCHAR_255 encounter_no
         VARCHAR_100 action_code
         VARCHAR_255 action_name "SNAPSHOT nama tindakan"
-        DECIMAL_15_2 price "SNAPSHOT tarif saat tindakan dilakukan"
+        DECIMAL_15_2 price "SNAPSHOT tarif"
         TEXT notes
         VARCHAR_100 doctor_id
         TIMESTAMP created_at
@@ -691,26 +691,26 @@ erDiagram
         VARCHAR_255 kbm_name "SNAPSHOT nama KBM"
         VARCHAR_50 icd10_code
         VARCHAR_255 icd10_name "SNAPSHOT nama ICD-10"
-        VARCHAR_50 diagnosis_type "PRIMARY|SECONDARY"
-        VARCHAR_20 severity_level "MILD|MODERATE|SEVERE"
+        VARCHAR_50 diagnosis_type "PRIMARY or SECONDARY"
+        VARCHAR_20 severity_level "MILD or MODERATE or SEVERE"
         TIMESTAMP created_at
     }
 
     kbm_polyclinic_mappings {
-        VARCHAR_50 kbm_code PK, FK
-        VARCHAR_50 polyclinic_code PK, FK
+        VARCHAR_50 kbm_code PK "FK to kbm_catalog"
+        VARCHAR_50 polyclinic_code PK "FK to polyclinics"
         TIMESTAMP created_at
     }
 
     tindakan_polyclinic_mappings {
-        VARCHAR_50 tindakan_id PK, FK
-        VARCHAR_50 polyclinic_code PK, FK
+        VARCHAR_50 tindakan_id PK "FK to master_tindakan"
+        VARCHAR_50 polyclinic_code PK "FK to polyclinics"
         TIMESTAMP created_at
     }
 
     icd10_polyclinic_mappings {
-        VARCHAR_50 icd10_code PK, FK
-        VARCHAR_50 polyclinic_code PK, FK
+        VARCHAR_50 icd10_code PK "FK to icd10_catalog"
+        VARCHAR_50 polyclinic_code PK "FK to polyclinics"
         TIMESTAMP created_at
     }
 
@@ -730,7 +730,7 @@ erDiagram
     }
 
     master_tindakan_replica {
-        VARCHAR_50 action_code PK "Replika lokal Tindakan & Tarif"
+        VARCHAR_50 action_code PK "Replika lokal Tindakan"
         VARCHAR_255 action_name
         DECIMAL_15_2 price
         VARCHAR_100 department_code
@@ -740,10 +740,10 @@ erDiagram
 
     outbox_events_rj {
         VARCHAR_255 id PK
-        VARCHAR_100 aggregate_type "Encounter|MedicalAction"
-        VARCHAR_100 event_type "MedicalActionAdded|EncounterCompleted"
+        VARCHAR_100 aggregate_type "Encounter or MedicalAction"
+        VARCHAR_100 event_type "Event name"
         JSONB payload
-        VARCHAR_50 status "PENDING|PUBLISHED"
+        VARCHAR_50 status "PENDING or PUBLISHED"
         TIMESTAMP created_at
     }
 
@@ -763,18 +763,18 @@ erDiagram
 
 ### 4.5 Medical Record Service DB (Schema: `medical_record`)
 
-> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNqtVm1v2jAQ_itWPkydVCRaqR_abxDSNoUAgtBNE5Llxi61iu3Idqah0v--M0lToE6h05AQIb473z333MtLkCnKgisUMN3jZKGJmEsEH8Eoz8gSa5YpTQ0WGr2UJ-4zm8U9xCka99E8WDCJNZFUCVwUnJ58nwfvkvedSXjbmeDziwvEZKYKaZnGUqFZ3y8ktPx4cNZuI6oyqzTmtOGY5URbwaTFLqR3oTT6mSLNTCEYdlGZj_oXbWQssYWBaDphGt9H6-t42BnEv6Le2snAm952VGmcRNO0k4xRphmxjGJifadFTndOX-dVcO9QUEBdKsOaIT4MpjcintGz9h4W3dFoEHWGiBucay6IXnlVnx_EnuLW4W-m-SNww3IlcQ3bOBr24uHN-j6axNcxwDaJ7qIw3YVtO1-lGcDmYQXqEOuYafZMBEo2OfKCXetso12DAklkTsKu8BIelmB2sPmNT1EMX2JJAQ8xOoHctsLujamZWudlEzkILtUCG6PsdkY8AJUFMOVysWRoqgqdMaQeUaoL-4T63aSpEpy-JGKfpZSZTPPcIesH7UHRFTYrY5k4hox1WBUXDgd2MKg47LXO2ujH7agpNm8QW8QjmeW_mQf30klB8hyuNoeRP0XX_QPM_yD1WQEcgaPlkpJnIo-B0sUJFfKOaEIgbxqllQ30DaUE-NyEY6W_S5NeFMZJZ4DPLvA5gggy9oVuuE2Hy6-xofLdZf-yFSZorKFl0UL_VxLU6G78O0CEXXg_48Ll16hQu2OkgnlxHE4yY7nFbxOxQms6HCVRrxWmqM8gFc9st625igcx4c-gYYJIyzNsycLv2FH1suPav1RMPEwR3OEwUq637vmiCvug_mDos9Luj7BtQjRMMhcpWSw0W0DBYbvKGcAXLrl0y0cJ4zopV5HJZhNpGicbB_wGZuUQXpcGOjp7AurtGLqbjoZdlJPVUhH6-XrwNufGs-4gnt4euxbUeHn2qvW61VIvTSvBFVwKSbSEy5o-H6ZUZcLTRZ06_DHIqjdtzzA4qJ8zih61Em82_I2wMtNQxx5XfCVWGfGTfIMG9B7TcpbmQXCKAgE1RDh1S-yGfPPAPkG9zQMnTNkjKZbWXfjqhElh1XQlMzi0umDwptzRquW3ev36F4X1YEs)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+> 🔗 **[Buka di Live Mermaid Editor (Interaktif)](https://mermaid.live/edit#pako:eNqtVm1v2jAQ_itWPheJTuJD9w1CuqYQQBC6aUKy3NilVrEd2c401Pa_75ykaaDOoFKRIpL47nL33HMvz0GmKAu-o4DpMSdbTcRGIvgJRnlGdlizTGlqsNDouTpxv_U6HiNO0WKCNsGWSayJpErgouB0E7zL3Q2X4c1wib8NBojJTBXSMo2lQuuJX0ho-fHgst9HVGVWaQzm_ccsJ9oKJi12Ab0LpdGvFGlmCsGwi8l81B_0kbHEFgZiGYZpfBchpdF1PBtO49_R2D04SXg_bseWxkm0SofJAmWaEcsoJtZ3WuT04PR1U4f4DggF5KUyrBvm05B64-IZvewfITKaz6fRcIa4wbnmgui9V_XpXhwptg7_MM0fgB-WK4kb8BbRbBzPfjjA7qJlfB1X4C2j2yhMD8Fr564yBgjd78EIRLxgmj0RgZIyX17IG5025g00kFDmJOwe7-BmB2an5X98gWK4iCUF3MQIctwLRz-ajzS5KaMHsZ3aYmOUbWfFA1JVCCsutzuGVqrQGUPqAaW6sI9oMkq6asLpSyKO-UqZyTTPHbp-yO4V3WOzN5aJcwjZhFXz4XRgJ4OKw3Hvso9-3sy7YvMG0SIfySz_wzy4V04KkufwaXMW8tcTZFU7aT6nDuqhrXeASlvzf6VyBtqWS0qeiDwHcIcG1NK7awmB7GqU1jYQhSslwPouvGsLh3QaR2GcDKf4coC_IYghY5_on23aXH2ONbX3jiVXvTBBCw3tjRb6S8nS4Fv6d4IwHwCucn-co27iXPl4c_UZ2jSOG6lgFp2HqMxYbvHbrK1xXc3mSTTuhSmaMEjaEztsk66HgJjw59owQaTlGbZk63fsrAo8dq3C5DC0rynDeJYicMaBqVxTP3JaFfZe_cXQ4KU9nqBtjnUMUgcJ2W4120IVY7vPGXgU7rh0-0-NN0yxpFqIluU-1DXKSh_8NtbVGlAOxNLGUGePwOkDW7er-WyEcrLfKUL_v6m0hu1iPZrGq5tz15MGOM-O9_LS66nnrtXkO3wX0m4Jlw3hPkzK2oSnkzt1eDCQ7Ddtz0A6qZ8Dig9aiTcb_jZbm-noER5XfEVZG_GXRYkG9DXTc5Y2QXCBAgFVRzh1C3XJwk1gH6FCN4ETpuyBFDvrPvjqhElh1WovMzi0umDwptoV60W8fv36D75nj9w)** | **[Lihat Gambar Langsung (Direct SVG)](https://mermaid.ink/svg/pako:eNqtVm1v2jAQ_itWPheJTuJD9w1CuqYQQBC6aUKy3NilVrEd2c401Pa_75ykaaDOoFKRIpL47nL33HMvz0GmKAu-o4DpMSdbTcRGIvgJRnlGdlizTGlqsNDouTpxv_U6HiNO0WKCNsGWSayJpErgouB0E7zL3Q2X4c1wib8NBojJTBXSMo2lQuuJX0ho-fHgst9HVGVWaQzm_ccsJ9oKJi12Ab0LpdGvFGlmCsGwi8l81B_0kbHEFgZiGYZpfBchpdF1PBtO49_R2D04SXg_bseWxkm0SofJAmWaEcsoJtZ3WuT04PR1U4f4DggF5KUyrBvm05B64-IZvewfITKaz6fRcIa4wbnmgui9V_XpXhwptg7_MM0fgB-WK4kb8BbRbBzPfjjA7qJlfB1X4C2j2yhMD8Fr564yBgjd78EIRLxgmj0RgZIyX17IG5025g00kFDmJOwe7-BmB2an5X98gWK4iCUF3MQIctwLRz-ajzS5KaMHsZ3aYmOUbWfFA1JVCCsutzuGVqrQGUPqAaW6sI9oMkq6asLpSyKO-UqZyTTPHbp-yO4V3WOzN5aJcwjZhFXz4XRgJ4OKw3Hvso9-3sy7YvMG0SIfySz_wzy4V04KkufwaXMW8tcTZFU7aT6nDuqhrXeASlvzf6VyBtqWS0qeiDwHcIcG1NK7awmB7GqU1jYQhSslwPouvGsLh3QaR2GcDKf4coC_IYghY5_on23aXH2ONbX3jiVXvTBBCw3tjRb6S8nS4Fv6d4IwHwCucn-co27iXPl4c_UZ2jSOG6lgFp2HqMxYbvHbrK1xXc3mSTTuhSmaMEjaEztsk66HgJjw59owQaTlGbZk63fsrAo8dq3C5DC0rynDeJYicMaBqVxTP3JaFfZe_cXQ4KU9nqBtjnUMUgcJ2W4120IVY7vPGXgU7rh0-0-NN0yxpFqIluU-1DXKSh_8NtbVGlAOxNLGUGePwOkDW7er-WyEcrLfKUL_v6m0hu1iPZrGq5tz15MGOM-O9_LS66nnrtXkO3wX0m4Jlw3hPkzK2oSnkzt1eDCQ7Ddtz0A6qZ8Dig9aiTcb_jZbm-noER5XfEVZG_GXRYkG9DXTc5Y2QXCBAgFVRzh1C3XJwk1gH6FCN4ETpuyBFDvrPvjqhElh1WovMzi0umDwptoV60W8fv36D75nj9w)** *(Tips: Tekan Ctrl+Klik atau klik kanan → Buka di Tab Baru)*
 
 ```mermaid
 erDiagram
     medical_records_mr {
-        UUID id PK "gen_random_uuid()"
+        UUID id PK "gen_random_uuid"
         VARCHAR_255 encounter_no UK
         VARCHAR_255 mrn
         VARCHAR_100 doctor_id
         VARCHAR_100 department_code
         TEXT resume_medis
-        VARCHAR_50 status "ACTIVE|FINALIZED|ARCHIVED"
+        VARCHAR_50 status "ACTIVE or FINALIZED or ARCHIVED"
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
@@ -785,10 +785,10 @@ erDiagram
         VARCHAR_50 icd10_code
         BOOLEAN is_primary
         VARCHAR_50 kbm_code
-        VARCHAR_50 verification_status "PENDING|VERIFIED|REJECTED"
+        VARCHAR_50 verification_status "PENDING or VERIFIED or REJECTED"
         VARCHAR_100 verified_by "ID Perekam Medis"
         TIMESTAMP verified_at
-        VARCHAR_20 severity_level "Level I, II, atau III (INA-CBGs)"
+        VARCHAR_20 severity_level "Level I, II, atau III INA-CBGs"
     }
 
     kbm_catalog_ssot {
@@ -806,14 +806,14 @@ erDiagram
     }
 
     kbm_icd10_mappings {
-        VARCHAR_50 kbm_code PK, FK
-        VARCHAR_50 icd10_code PK, FK
+        VARCHAR_50 kbm_code PK "FK to kbm_catalog"
+        VARCHAR_50 icd10_code PK "FK to icd10_catalog"
         BOOLEAN is_primary
         TIMESTAMP created_at
     }
 
     tindakan_catalog_ssot {
-        VARCHAR_50 action_code PK "Master Tindakan & Tarif"
+        VARCHAR_50 action_code PK "Master Tindakan dan Tarif"
         VARCHAR_255 action_name
         DECIMAL_15_2 price
         VARCHAR_100 department_code
@@ -826,8 +826,8 @@ erDiagram
     }
 
     tindakan_icd9_mappings {
-        VARCHAR_50 action_code PK, FK
-        VARCHAR_50 icd9_code PK, FK
+        VARCHAR_50 action_code PK "FK to tindakan_catalog"
+        VARCHAR_50 icd9_code PK "FK to icd9_catalog"
         BOOLEAN is_primary
     }
 
@@ -838,17 +838,17 @@ erDiagram
     }
 
     snomed_icd10_mappings {
-        VARCHAR_50 concept_id PK, FK
-        VARCHAR_50 icd10_code PK, FK
+        VARCHAR_50 concept_id PK "FK to snomed_catalog"
+        VARCHAR_50 icd10_code PK "FK to icd10_catalog"
         INT map_priority
     }
 
     outbox_events_mr {
         VARCHAR_255 id PK
-        VARCHAR_100 aggregate_type "ClinicalMaster|MedicalRecord"
-        VARCHAR_100 event_type "ClinicalMasterUpdated|RecordArchived"
+        VARCHAR_100 aggregate_type "ClinicalMaster or MedicalRecord"
+        VARCHAR_100 event_type "ClinicalMasterUpdated or RecordArchived"
         JSONB payload
-        VARCHAR_50 status "PENDING|PUBLISHED"
+        VARCHAR_50 status "PENDING or PUBLISHED"
         TIMESTAMP created_at
     }
 
