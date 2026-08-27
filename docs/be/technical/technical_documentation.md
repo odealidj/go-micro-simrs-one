@@ -21,6 +21,8 @@
 
 Sistem SIMRS mengadopsi pola **Microservices** dengan komunikasi internal menggunakan **gRPC**, sementara klien eksternal (Frontend/Mobile) berinteraksi hanya melalui satu pintu yaitu **API Gateway** yang mengekspos **REST HTTP**.
 
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNp9Ve9Po0AQ_VcmfKoJxPa0P64fLqGVVnpFOUDNRS5mC2u7Z4FmWTSN-r_fbIHK1p58Wt683Z038wZetSiLqTYEbcnJZgXBKEwBn7xYlMB4bltXwX2ojdeMpgLmZEt5qP0pafKZWBid8CwVNI3BoyQS0Lplgp7AKTjZgq0pmJvNfg-ywvTglqkZWHfmbzzIdG2YEkFfyBZal0HgwnDQHrRPlCund8gkG2YsS2YYpp7lBxAW7faiDx6iMGcJ5sBrzCzEClzTt4JrZNsxTTYZJhxta8KY8ahgAkackieUGKa-b-2D157_pQDf8m7tseVjXiMSPclKOCziWU75M4toDq2l545VFeZNcCl1YGZGxcNbh912u9tRiK4ZVE3YECG7cEj_ptA9a4pUTpcsFxw3ZOkh_0zlzySdvBBh_CVr8ondV9iOh-yExiwia4PTKOPx4YZzNftL03NMmfyK8IRE20N6V6GP7PncvpIK0Dlrli4P6b0vG2FfTTx5mZ0-coL6i0gUnKoJTe9boeZmuVhy6v-aQ6eLZ-cs4flDvMBlyynWghl-tKIJgZ9WYAZDhGWjdKhaoEOzwDqGdxV82FVQh6pAD2WBZLhWr0OlC81w0uzCxUim5eHGHPpSbO-s_13aUKAjk1yHMcGEdEBbqjtnpjW1ZFdmhC7R8QEnEZ4vj-j0eoMe3NhyfX7WGcB1MHeP1W9igWH8eJMDdypH6a0eyTI8vduFpYffdr49AlcuPRJBQx5DZ0dAxzt28s5BRwKVV2oRMjGMGtjhEqhS-i-GNS9BzFAh1e8fhJkan6lhx1PC1es-XApQ0_iA9rRKjsJrYjtiowyNrdV7aYWDajTBpvomXgtWsNknqBKmnPghpAk38y5xTQf8buAMsFj-b14lL9QEzhiO5xCXMX0kOHihFqbvkozzlvnbNMIgzjE6Xys2MX7aLxjBWU8q-P0fT9jy9w)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+
 ```mermaid
 graph TB
     subgraph CLIENT["Client Layer"]
@@ -102,6 +104,8 @@ graph TB
 
 ### Komponen Infrastruktur
 
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNpdkc1OwzAQhF9l5TOVCGnTkBs0VX9UQUjDCSPkxksamsSR7Qihqu_OuoHSsgdL881qx17vWa4ksghYoUW7hVXKG6Ay3aYHnMUq36GGiapbZRAe0H4qveOsb3SVzF5IdjL0JZ25F0KijC00rp9W4I0GomrLBjlv5oQjaHvTEEiUJjAa-jck4vsITFlr8yY3JJ8N6gi0Upaz17-wdBov1ud50h9CirI0MP6fpB0-xQT--PZi1PJuOpumF7OuJSwFFvReUVWDshmos3EfR8ddbRFB5AVBGJB4zFYJzLMsITb0vfAXFWky6dH4lIqNZFfAatS1KKVb-94ZnNkt1sgJcCbxXXSVdQs-uGbRWbX-anIyre6QSNdKYTEuBX1R_YMP3wLIkQc)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+
 ```mermaid
 graph LR
     subgraph "Docker Compose Network"
@@ -115,6 +119,8 @@ graph LR
 
 Redis digunakan untuk **tiga fungsi berbeda**:
 
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNptkdFLwzAQxv-VI08bWAYqin0QpilacHS2HRSWPWTtaaNtWttkWub-dy_bFEHzkIfvLt_v8t2W5U2BzAf23Mm2hJQLDXTigIfJciRYjIXqwb84u7wSbLwS-lcdPO_6U7C5XU8Su4bbUmqNlRD6zaJFP6-UVrnfmw5l_aO2pexqmQ_fOvuEJAmWgtEN91IXFXbUPIpRVp5RNcKjeweLtpAG-7Fgq78jZF6MZN8bL-TwigMZpOmDD6fn8HJghDyYESQssG4bgzofYKYKgr3LDh2P27ZSOSHgaAXzDjeojWr0_9BDNMn-Gz1ZZFPOYQJZHEz5XRwt5o4bLdKbKCNyZM26-SDzSrrxRtN-0DkEjgAcK7XBbnAcdgKsRopIFW4tW8cVzJRYoyBBsAKfpK2MYELvXLO0pknIi4qms0iK3UfFlaSd1kd59wVIzqEr)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+
 ```mermaid
 graph TD
     REDIS[("Redis :6379")]
@@ -125,6 +131,8 @@ graph TD
 ```
 
 ### Alur Request End-to-End
+
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNptU02P2jAQ_SujnFi1ENpDDzmsBKHKQndLNkGlh1xGziy4JE7WdmjRav97x8ESy4dvmffm2e_N5C0QTUlBBIGh146UoJnEjca6UMCnRW2lkC0qCzGggbiSpOw1mKwdOknnkKClv3i4pmSzqeNkVEpzjea_ev0pih2pEnLSeynomncUSRtjN5ry58drxiJxjAXShnShjng8vL9P1hGky3wFIbYy3H8JR6MRfILfw8w5N3Y4nx3JydqzVxoFzWfwJMuyYlOaYCDVHxKWu3qQe-4umjL2D4-ylpY0DL6NQdNraKDlr3l6SZ50dnsmv8dKlk5hsV6FKRqyzccezjCCeEtiB7Kkum0sj-wAO_J5Y8VzQrEleJB-Su5w29Df2KMlP8q0jTJ04rA-U-IIvo7HsPwBA9Ez_e1UGfLKT9KYszbvezqJz6y4WKWmrKno7gY_llp00sJUE-44HOFcXfB4KSLYZGkMAqvqBHKdUZfFc0f6AKEblTIorGzUiXZ03YtkZLrKniv4h_T6N_Pweee2YT8f8-6juaAukgi-_2sbbcG61QDD23gj3kW-_HlxHS988BmCmnSNsnQ_45sDisBuqaaCC0VQ0gs6B0Gh3h0ZO9vkByUYtLojrnStWxz_-_ry-38yaizh)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 sequenceDiagram
@@ -170,6 +178,8 @@ Port     : 8080 (Docker: 60080)
 
 **Middleware Stack (urutan eksekusi):**
 
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNpt0ltLwzAUAOC_EvqkYLHt7nsQ5iZY2VDboYL1ISZnbaBptjTdGGP_3dOaVcbsU0m-cziXHBymODhj4qxytWMZ1YbMo6Qg-EUPr5-JExZMSVGkSVJEsKmgNInzRVz3jiz8X7fwkdm7cIbuimXiulWBVUGjaB6-XJCOJR0kc5WmoC9I15Juk4WpLeh_VM-qHqqlkKAqg6bvleTc9a3ro5s-RzGiR1rwHFOeyMCSQZ1KUwZNawvBUe2ohhYOLRzWlVEDZC6kME1xfY9o2NyW5LvSpRn7gddGjWzUCKMmlcnI0_uybmetlQFmgBONxUP5V7Pvncbt1WvhINdIC7bHsA_Xzt8NZyToZn9B7Y6aJd1PpnaPQkOk8raL-G2K9zHorWBwNg3nhjgStKSC18_kUOdLHJOBxOAx_nJY0SrHV5EUxxrTyqh4XzC8NLoCPKnWHOcyEzTVVNrj4w9U08BE)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+
 ```mermaid
 flowchart LR
     REQ["Incoming\nRequest"] --> M1
@@ -211,6 +221,8 @@ Database : simrs_db (table: users)
 | `Login` | `username`, `password` | `access_token`, `role` | Validasi kredensial + generate Paseto token |
 
 **Flow Login:**
+
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNplkV9rwjAUxb_KJU86qg9jT4U5qu06oWPOCH0JjCy9a8ts0uXPRMTvvsQqyMzjub9z7iH3QISqkMRADP44lALTltead0yCfz3XthVtz6WFvARuIFktIecWd3x_iyT0hDjbAEX92wq8ZdJ5YFbK2FojfS-YHJi8nMxmCY2hUHUrR86glrzDyJuN2SldjQcuoZ5L5zHQrMgWG7iD5_XbKwTeQPmSrTO4eOERngZTOp-c08MMtNpdhQX5U-h9b6cL1fmuOLrsjKDhphn_g_0UrZouNPqP2KhvHOou08gnb33l-4crjzflZQwHLgQa82EDP4BHEgHpUHe8rcIJDsHDiG2wQ-YFRir84m5rGWHyBHNnFd1L4YdWO7-JuL7yJc5HO8vHPwSVlqU)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 sequenceDiagram
@@ -425,6 +437,8 @@ Consumer : billing_consumer.go
 
 ### 4.1 Auth Service DB
 
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNp1UE1LAzEQ_StDTgoeRNiLt8UKFtta2l1PgTAmYzfQJMskQUq3_93stqBCndv7HHhHoYMh8QiCeGZxx-ikh3I5Ekc4nsF4bTufgTWwfgUpduQVozfBqZytubmV4sf5Xm-eXuqNeqiqqcajI2jH2OqtgVW7WPzn7jHGr8BGdRi74v_QfOgTjOhapLoHDnsqRjTO-sEEnQIPPnOkoe-QHWob06BL3hL_rmjmy-dtUy_XoJkwkVGYrqm5N3_Uk7gD4ag0WzOuNg0kRerIkSyEFIY-Me_T-GwyY05he_C6iIkzFebceVn7Qp--Aca0ehc)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+
 ```mermaid
 erDiagram
     users {
@@ -441,6 +455,8 @@ erDiagram
 
 ### 4.2 Patient Service DB
 
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNp10D1vwkAMBuC_YnkuiNJmYQsfUlFIGoXAdFJkcgZO9C7o6gwI8d-5AAMDePPrR5bsM9aNZhwBsp8a2nmyykGoI4lhJ_9wvvddreNi8hMX1TCKwHoHeQIKub_rQ1pkvc_h17fC19qR5WCz3xKy1WLxikUDcObQoXkCSZm_MbrZBDMlYWi2MDZe9s-ynKezZRmnOdSeA9IVyX16wQ9Ay96S0d29t7sUyp4tqxAo1Lyl9k-6dTdMrTTLk6vDUHzLIWmPOux8_OkRX65K-lyM)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+
 ```mermaid
 erDiagram
     patients {
@@ -455,6 +471,8 @@ erDiagram
 ---
 
 ### 4.3 Registration Service DB
+
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNqVkl1vgjAUhv9K06stGQbdvPEOoSpTlAB6RUI6esZIoCWlLDPif1_xY_MCl6w3bU7f55yet-eAU8EATxAG6eQ0k7SMOdILeCoarkDW6HCOdGtnBfbCCpLRePyrSLhA_hLFGAbZAJG1bQxHzy8x7sdKybV0tkRKoIqqHLiqB13woRBZntLisY8cmiZiUFGpSg1ca_mblWtsva13FxGpEjLJ2ZVwAsM0h33ysYlqRVVTa2lA5m4YkYA4rWVH7o609sbzVyQizi0auR4JI8vzUSqBKmAJVefbY8zPB9GoN_GVwGfXZiIhu-emfqK_7G-CZpkGdf5E7Sv48flq_73eTzX7kQCyvNY7sFv4Ndysp_pP9oWg7G-DfLJ23PW89bfTlRsutE8zy139252bIWtbwxCHHr8mulwGHKROUccYPyFcgixpzrqpPbkZY_UBJcS40zJ4p02hupccOzFtlAj3PNWXSjagI03FdK7LtF_Cx2942Oj2)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 erDiagram
@@ -482,6 +500,8 @@ erDiagram
 ---
 
 ### 4.4 Rawat Jalan Service DB (Schema: `rawat_jalan`)
+
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNqtVttu4zYQ_RXCD0ULNIWzQF7yJlvCRo1lG7IctIABYSxyFdoSKfCyrRHl33co372y4gXiJ5mcM5w5M3PIt14mKes9kh5TPodcQbkQBH9MZNIKw5RO1Yq8bRfd78WLh09enH55eDgapUKS6TNZ9MaylIqsrVhZkYNY9NqBpRKN8V8kZmsoScQo123G9_0-oawCZUomTOqCReBUFpwYu7LtJzQgmRmpUk7R3JdrjJFUTIDIcwyMrOA_WLZBH_pEGzBWIywOvoazJIgDv_aGSfgS1MNJNB0FSeCfQpMwCmaJF01JphgYRlMwbbu2ome77wux_TAKiWepYplUVJ9yPZ-HPsEUGmpzJlIFgsoytZbT3_-4Ru5ZVebPR6NwnJBlISVNK8W0toqleqMNkpl1GlEOl1bjeRTE4TB9SL8Qw8qKKSRNudoMWaG5PSumc_nKsIYYv3E2g2l0uY9nVRy3pdo0VicMBv8kRNvlimWGf2fYA2VVABcGHXkCSsE012TNCvsKglgDJVxrCmGVZtgTtxTvUJ4SezODIgU8XorLcTiW6ONitAe19du0druLnQGm6ribjb3p7GmSEPwPxHBBYX0-Bn4wDCNvlN674lSKZ2cwA4p_IxrAHMCE8gLW9sJNw7uQhukPJuyX2DzygV2VC6nZ5zO6XpYddLrdVi6fB9EVSeAZve93uNzutzoNh_7dff-K3x0FXKdmUzXCFmPl4n_rWTCcjH38ap1x1Cj2nSluNmmBHwUCo3Dk19HED2IvCRD-grJ1m0gdKrNLEgwUMkc1qnDgoU35MfBGhxtVip3dGkgh11B0ZOtookxnileum48Gg8lkFHhjgiRAM-C_pJ1NqW8Ked8UbWFfqfxpt7R32lLSTaOhrPysjErUWuzt_Wx-kNWJeLQlluwn_DeSuLm_luWJxHTpyE3382cRIa1Zyv9TbHBhuh4hV6SikdY8VyxH9_v5CvbaUUdbVfeaxK_dF83Ze-wZwqOU0frgbujuJIZpnHr6ezYZD0gFm0IC7X5qTIOxH46_1tP5YBTOnm59YPysqg1RdX13J-vLd8UjnvMKere8P6AF-dZ25e3Ru6VO-BWN37s4LHY6-an8j9s3kHtpOGjvT9IrmSqBU_d8bZpj0TOvDFu452wp-wa2MO6Qd2cM1sjZRmS4aZRluLJtvd2zd7f8_gOhQGI_)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 erDiagram
@@ -573,6 +593,8 @@ erDiagram
 ---
 
 ### 4.5 Medical Record Service DB (Schema: `medical_record`)
+
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNqtVm1v2jAQ_itWPkydVCRaqR_abxDSNoUAgtBNE5Llxi61iu3Idqah0v--M0lToE6h05AQIb473z333MtLkCnKgisUMN3jZKGJmEsEH8Eoz8gSa5YpTQ0WGr2UJ-4zm8U9xCka99E8WDCJNZFUCVwUnJ58nwfvkvedSXjbmeDziwvEZKYKaZnGUqFZ3y8ktPx4cNZuI6oyqzTmtOGY5URbwaTFLqR3oTT6mSLNTCEYdlGZj_oXbWQssYWBaDphGt9H6-t42BnEv6Le2snAm952VGmcRNO0k4xRphmxjGJifadFTndOX-dVcO9QUEBdKsOaIT4MpjcintGz9h4W3dFoEHWGiBucay6IXnlVnx_EnuLW4W-m-SNww3IlcQ3bOBr24uHN-j6axNcxwDaJ7qIw3YVtO1-lGcDmYQXqEOuYafZMBEo2OfKCXetso12DAklkTsKu8BIelmB2sPmNT1EMX2JJAQ8xOoHctsLujamZWudlEzkILtUCG6PsdkY8AJUFMOVysWRoqgqdMaQeUaoL-4T63aSpEpy-JGKfpZSZTPPcIesH7UHRFTYrY5k4hox1WBUXDgd2MKg47LXO2ujH7agpNm8QW8QjmeW_mQf30klB8hyuNoeRP0XX_QPM_yD1WQEcgaPlkpJnIo-B0sUJFfKOaEIgbxqllQ30DaUE-NyEY6W_S5NeFMZJZ4DPLvA5gggy9oVuuE2Hy6-xofLdZf-yFSZorKFl0UL_VxLU6G78O0CEXXg_48Ll16hQu2OkgnlxHE4yY7nFbxOxQms6HCVRrxWmqM8gFc9st625igcx4c-gYYJIyzNsycLv2FH1suPav1RMPEwR3OEwUq637vmiCvug_mDos9Luj7BtQjRMMhcpWSw0W0DBYbvKGcAXLrl0y0cJ4zopV5HJZhNpGicbB_wGZuUQXpcGOjp7AurtGLqbjoZdlJPVUhH6-XrwNufGs-4gnt4euxbUeHn2qvW61VIvTSvBFVwKSbSEy5o-H6ZUZcLTRZ06_DHIqjdtzzA4qJ8zih61Em82_I2wMtNQxx5XfCVWGfGTfIMG9B7TcpbmQXCKAgE1RDh1S-yGfPPAPkG9zQMnTNkjKZbWXfjqhElh1XQlMzi0umDwptzRquW3ev36F4X1YEs)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 erDiagram
@@ -672,6 +694,8 @@ erDiagram
 
 ### 4.6 Pharmacy Service DB (Schema: `pharmacy`)
 
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNqVVd9v2jAQ_lesPG1SqWj3VmmTgKQrIwQERdoDUnTE19SC2JntdEOl_3vP4fcwbM1LrLvvzue77-5eg0xxDO5YgDoUkGsoppLRJ-QLSqv0kr2uBe4zVguZM2GxSJ0dG_bYNMDr_Jr1o7DRbN5MgxO0hAL3QiEtKVQ2T39VIK2wS_LQeYg6PfbtK2se2nPMRAELVmqRIaHCqNPtt2J207y63eLepnJ9KDWaTIvSCiWNL2Z-EOzoZ-Pm9osnVpSZqqRFnUpF4FjlIqMIND4xq_Za4zE1Fmxl3GNGUesxCldhdzyMkjGdOq2kE8UxnUaDOG63Or0oPPQwU2qBIJkwlNWipDs4cvIEJczhmW43WDINmZiD9CVYWTQn0vlsU6Np0Gv3GQctGFdzit7jwoFdnQicQAGMLDyoHCkwTZg-AwsVu_dgIMd0RrHO0Z7ouMqIUangpxosQduCGFfHvNdbUSBltihZphEs8hSsT1uV_Ejr5UXqiHuWHCfSY1PO7nsXOuFQ6Ti-Zfd5Oj-DzoEZALupMBeziuL_m9l7TpawdCnyveCIuJ637Ng5bHXD1SRxP_bJLGVGTHvSqmAzsVgQ8vNhTff5LUF8PPX0wgKyZfobhE2dQQp5rjEn-NEbXL62_TmORl3q8dbkceBhF6cRJZUR7iXJ4JElkzj2wbZE-wfsmHWXwTvyX8AckP8M8Fyr-7AuLfCC2nmtU1gIWR21ej1MqQYLTOvyf6g8qrIz9SdFN-dNui7Wf_fGrpCpXZZ4SkfntFY5yh30UShMidIg92SP6L1Q4LLxYzxI2pdmLA3WsJt8Xw0n7bg7fqDJet_qxsdT9fzoOLM0VqtGQ736JsYdXZkpaUHI3ejfL8jLdrQ7UGPdZ7Pl1th7sbcgzgVRj1jgKh8EVywokBSCu6Vdl2sa2GekHRs4LMcnqBb1FHlzYKisGlObk9LqCkmyJsRm2W_Eb-8Rn47H)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+
 ```mermaid
 erDiagram
     inventory {
@@ -743,6 +767,8 @@ erDiagram
 
 ### 4.7 Billing Service DB (Schema: `billing`)
 
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNqdU8tuwjAQ_BXL54KAigu3NKRqyisCinqIZJlkSS0lduRsUBHw77V5lEcDautDJHtndjyz8ZpGKgbaIRR0V_BE8yyUxCwhl0pEUJD1fm_XzBm7L86YtdptImIS9EhIoZ7UiT-c1Zqtx5BWY0FGqpQImkllKH2ViIinRMOCoDpVi3N-13P9gdNnzQZrGRTylPHM4n5KtBukQI5lYXq_DQPH727s57zb1B94k6kzCEjORcw4VpUiDRzhVN2G8iILJhCy-4HcKB35MXnuVd7fdma4ysFYcNypPxpugrE3ccd-YDcXVrz3KYmhiLTIUSh5I7LrsH5hU5U4V58MliCxYHORpkImf7TbbDQITxINidHYOarG7ESOjv19PoEZzbnT18lo-GQGtkoVj--M_T-zLMhmU6up9dVsO-Y2kZLIhfz-G68Z1TFZZgIStJE1VPpAaAY6M5bs49qFGFL8gAxCarExLHiZohXZWjAvUU1WMjJF1CWYkzKPTa_Dozwcb78Au0Ub2w)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+
 ```mermaid
 erDiagram
     invoices {
@@ -788,6 +814,8 @@ erDiagram
 ---
 
 ### 4.9 Relasi Antar Service (Logical ERD)
+
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNqtVdtu4jAQ_RXLz9t8AG8IqLZaqla9PUWKBtvAtLEdOQ4VAv59x80FkbjpdtW8QMbneM6ZGTsHLqxUfMK4cnOEjQOdGkZPAR6V8SU71O_heZk-zH5PH5h2ht3_YSlvQEkLTvkQbECrSBTfhkFpV3XwlJr6jzLCVsYrV2ZObWJaOkRmbC2KgFh6R5KsSc4bxLQFI9eBs7QbFJAzp9bMWzbmR6oCnNe0HDMgvHUZyuFS6cFX5Yi91390B-_gs1fI4StzdUaiTGdPNy-L4-zu9n65eFrMW3AnQysZ3FOJhXUy2nKUdfpLaNJjxmRcWHiOFPt7LkKYfocmCqdK4bAIbR-1UGzBaRD75ILxpfTr_5Tek4lmZ1GoUYUrzHM0m6TF_qC2-WJ2cztdEsBT20AHyHeHNStgrz-7G4YT29V7uMFow8u9EUqytbOaNRUZNr29pY7Hqyt76N8XE9pmCyXbYYnnbD3QB_XYO4s108icFKz248z-8QlccGKLOyKjGSMfemPbCo6OZnyDbqAmzeRQ0h1CS-qW-zbPXZyci-1tyvkvRsecWoYyfBc-epxyv1V0j_OAlWoNVe5DhlMAQ-XtI_Fp0btKUaQqJHjVfE-a8Okvs0YN7A)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 erDiagram
@@ -984,6 +1012,8 @@ doctor_id, department_code, gender, age_bracket, is_compounded
 
 ### Arsitektur Outbox
 
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNp9kl1vwiAUhv8K4com88ZLL5aoNJtJ1aadi4ssBstZJVowQM2M-t8HtX5M3bhqDg8vh-d0hzPFAbcRzjVbL1CUUIncMuX8WKA41oqXGWiUgt6IDCg-In6l770pxfUGilQuMoo_L_ukO_NI48KQLqWyoUo7V98z2IC0JqA4uDqThFHnw6WOKgYlsGJbf4ZvJStEhozVwAqkXYaQeXC-DySn8q77ARjDckBdrZagr3tPQtJPfWsJcGFQWsUad9OkQ8ilpcexPSVNWTyW0hsN0_EgTNwbQv9AdIL9KyZJ2CEvyWgcB79MOU2t6VXuXy5bvuMz5Ww-atRxqNl83lPcsco7e9NMGpZZoSTF-zrqyFa6azpWqxWKwyHpD1_-47wh1KgHwYWfi5_i_uj0nh8wvUTxuBv109eQ3CaffJ3Cz4ZuEq-5ytf5sa2qVAvCTwg7NwUT3P_XO09RbBdQuCm13SeHL1aurB_ZwcOstCrdysxtWl2Cq5RrziwQwdy4i7p8-AEejfUr)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+
 ```mermaid
 graph LR
     subgraph "Producer Service"
@@ -1012,6 +1042,8 @@ graph LR
 ```
 
 ### Alur Event Lengkap
+
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNq9Vdtq20AQ_ZVFT22xk_bV0IAcQWsnCkZuoA8GM9ZO5I20l-6u3JqQf--sVr4lcehTDQZpdM7MnDOj1VNSao7JiCUOf7WoSswEVBbkQjH6GbBelMKA8qyYM3CswEo4b8ELrdgc7UaU-AY2G0cwF47NvUWQ7g3UtAPBb_BsCg28kzAvAjSnfCU0lLfUlp9Hz76nRZ4GxmwNVkK5PY8dT25vJ3ffAngsmkao6oCN6DvtkekNWrJgxGbgBComUXF48GBZ3arHVlXUvdGNiJRiPry6IhNG7GeaZcwemXaBG1TesScyW7fKo10qPWDSqueem42HgT0dsWutXCupsA0eDR-DR8PK6tYwI8raMbro0vXMac-bCzA1NUT6yHrFOP335fo2X2kjXqbrABDKtJ55QQpDFtlNkYtjfdNTfaG9Zdfe0nXT3o0qLYPmlHPkR4oHDLr4gBlLRp8K7wdypH4V57I8r7znHLN_gFzBOvQvPMqDmhqZh0qsQb32IO7NiKWGQjUFHNqYQ69oRz-QDwaVw4-RGOEnTph-33Y2zCy60goT1GY9-9QJ-2cp-H80ghpC864Le-Z-1ZtW0eWOEVahpnv7suTBhl2jvQsTtdEkbwaCv9x7ER-RB6fid6PYa987e178fh478r3hQKoOFQ1sZff2OQ--dV9n6SR7bUBe0ApwKdTlDR2Olqp0aWrw0OiKTa6z4ZfPlzfjPBLz4kR7ScrD6i8luFCz9-C6D-ddNHbWueGF3w7oFfXwjwdAzDt0W1W-fwzcG9pfH2e9woZGbxpRA2t0TYfo0Ut78SkZsITqSJpQ-Bg8hUyLxK9R4oICi4TjA7SNXyQL9RzA0Ho9pw7oobctUiS61H8--vDzXzkkKRs)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 sequenceDiagram
@@ -1064,6 +1096,8 @@ sequenceDiagram
 ## 7. Shared Packages
 
 Semua shared code berada di module `shared` dan diakses oleh semua service via Go Workspaces.
+
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNptVNtu4jAQ_RUrTyCVhXZvUt8oZCmrUmhCL9JmVRlnknjxJesLXVT133ecQEWk5gV75vjMmcPYrxHTOUSXJCoNrSuyvsoUwc_6TRtIr8dJPP2VRbaiBvJhvS2HWfS7RYVvfL--xjT1rhpmmaqpBac_lRrXa70FtaCKlmBw25sYoA6a6Bl5AMOLfbPpdwgnV0jHuGGeuw2e2IIJxIdly3wLL7NkNblqY70-hpY1qEvylTCtLDDv-A5IQbmwQQiXoL27JJ9HYXtNRTHQDf6CGPjrwTrb0TANGvJN05C2rjRg28ITrRQwtzoEe5ZVIGmoP1d_MEEsUMOq55q6qsO4eERGyfNcwAsaGZgdCJDgzB6pSeYvRudfyNpQBvMp4Q0bgngOstYOFDuFPQ2SVvYAsQnkPLRl0FzBJXeNS0fot1FocWiJC1aTjWdbcB1py9As2rPR_4IsA4Ke1pruFZWcEevQbUkMIrkqERic9rJTrJFCnpJ4PJ0ly_sVoiTOl7AnmHgHygU2z7o67lAGNuUbc7A3LqnTp-x3IRkfE-gRdlqgXwi3jjqOGUbF80dH6a7E5WiUfyf4h3LHtcJTlH8IrgWSVlrkYMh4Tt4hHbVJnKJenIE6DFxrXLtuJyX1jIG1ySH4-oax2BhtOpGf6fK21ycViBq6_Gl76bzL9YsK9Md1S_9IufuhTcpLRQUyHKSn89n8dj3En3WcLBA3CwNVePF-Bc5H3VF_GN9goR0VPA89hkrvm8Nl0y6Wtdv3-mdkwdUNqNJVzZ17aIEwFicSpBeODwoOIicHpuD2sSaoPDojEc6NpDwPL89rSGSRw5sEGQbw5kFBkSWLMvUWwPi46HSvGCZxbAAjvg51p5ziKyUP4bf_PNyikg)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 graph TB
@@ -1120,6 +1154,8 @@ graph TB
 | `Jaeger OTLP HTTP` | 4318 | **4318** | - | HTTP | - |
 
 ### Dependency Graph (Docker Compose)
+
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNp1k9FugyAUhl-FcLUl-gK9WGLTxtbUprEuuxhLw5QpjaJBXNM0ffcdEGPpolfy8_Odww_ccNbkDC8QLiRtS5SuiEDwHcJPgtumU4VkHSHiJe4rxf1jVrKaLhDtVemhlirOhPKQZIUHJkkvVJ3OtKLCQzXLeUark2RZI3Mwl1TW1EPfvKq4KF4J_kJDrWS1hGIS_B2Igxbp-mfKCiaNNqjBe7oBXVf3OyZ_ecY0xvffoOHJYoQoHFcdgnS73qd6Q0PDc2ut0WjQ1H9xYibr0PRc8E5JoDZiDgpOFzgKD7BIs3R4vglvFhU9kaInUJwAyAbvD8HPseLEZdnxQ2qbIIkDHZo5uOw6m5oxPoU2aRNxud3ttnudm70Dc0RrdJGP4sQMP_R9aLlfUMUu9Dqi9DUYHQN7OEZHg5Nwx5EzjBOXYPbkSLYnFzI2bMdRiD0EhwIZ8lw_tJueJljBS4KdL-A3Zz8UnhfBRNy1Ge53c7yKDCaV7BkofZvD_lacwiutrXz_A0FmERE)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 graph TD
@@ -1188,6 +1224,8 @@ open http://localhost:16686
 ```
 
 ### Alur Bisnis Lengkap (Happy Path)
+
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNqVlW1P20gQx7_KyC9OoLucA1cox4uT8gQNIdSNKW_qE5p412Fre23tA1VE-e6dtbOJU6hU8sKKxrv7--_Mf8ZPQVoxHpxDkBXVt_QBlYHbcSKBfoMvSZBYdvYPo2d6-g4GrBQyvLFK8ySRY8wMKohQCy5hiMpSMPoY30JYo6GYCRVfCW24SoL_odf773sSzBc3SfAdholsGcPfYsys_GrlCiVEVSG2mPZ4RbBK6h2Dy7SykrD3snKwkYeNujB29A4mj6TyHCZ-w2KjlzNiHCw4ExpioziW59CF_c3dRn24Yyr8hqb3FQuUvZWqbO3AYw8ee3BKz4yfwMIthyu3HGKuHkXqbhsLrHOKbPU014VBbkS2QcHEnznxZ3J68vcIPmdTWVsqohK44hDCnTBYQCxWlKJt4nZqQ9Ms9Mdf-OMv9gtzltjjfp_-H5_-e5LYjPczGFepqRQdOrcFCoh4yZXINaJ8FbQtS6ippsYTLz3x8g3E9o5jUi4rjXAwG87D6WjcO-ofwp-U0UdSYtavymDtJuENAx-8gA9vFnArJENXsbmzyqs4TH9y58ZzbkeKxaB5PWCstVyz877Zea8b4x06I029xOmexGUfhqIohFx1TDRCQ9a6xZV4IGFbhTmHGXWq036wxDR3JpUMUtJmqW7eynDlUVdvzsaCa17DxyXhJwXPjaqkyHczgWZLiek6rBXXqRJ1Ny8w89jZG7AxL7hG4a7XMd9PM-JVB6ZVWRfcbG1_7fHX-516CiPUD4I72jUllC4pZCpcYn2CuaqRudF3OSHcsq1HKORjRfUIn7rD6Nnj5h43_zUuUpXmmi5WWIm6veIS16g67eVpNa5fGGzaKohQNM7aLO266saruNnL-RlCtKlVx1afa4aGA7WusaRqMB3DH-AHlqv5y0JTS9Rc6m2SI8-L9njsyDcDOSitFOtQ76ioGRVYC5hVzBm97XJiXwiJhdDule93GEZXcefrkGPZK11n7po-fBLsOXTLs3UvX5Ze2yev7VOj7fh9_8SlnvItmxHdGI2oVO6chGw0xVxbCscGqcvcVy74CwIyYklJd9_UJ3dmEpgHcmdCgSRgPENb0PBL5LNbjNZU8Vqm9NIoyylim0S70aaw3ISffwBpcJhy)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 flowchart TD
