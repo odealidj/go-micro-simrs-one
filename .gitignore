@@ -3,3 +3,5 @@ run.log
 run.pid
 *.log
 *.pid
+.idea/
+
