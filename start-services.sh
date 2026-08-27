@@ -11,7 +11,8 @@ declare -A SERVICES=(
   ["auth-service"]="50051"
   ["patient-service"]="50052"
   ["registration-service"]="50053"
-  ["emr-service"]="50054"
+  ["medical-record-service"]="50054"
+  ["rawat-jalan-service"]="50057"
   ["pharmacy-service"]="50055"
   ["billing-service"]="50056"
 )
@@ -23,7 +24,7 @@ fi
 
 stop_all() {
   echo "Stopping all services..."
-  for port in 50051 50052 50053 50054 50055 50056 8080; do
+  for port in 50051 50052 50053 50054 50055 50056 50057 8080; do
     PID=$(lsof -t -i :$port -sTCP:LISTEN 2>/dev/null)
     if [ -n "$PID" ]; then
       echo "  Killing port $port (PID $PID)..."
@@ -62,7 +63,9 @@ REDIS_HOST="$REDIS" \
   AUTH_SERVICE_ADDR=localhost:50051 \
   PATIENT_SERVICE_ADDR=localhost:50052 \
   REGISTRATION_SERVICE_ADDR=localhost:50053 \
+  MEDICAL_RECORD_SERVICE_ADDR=localhost:50054 \
   EMR_SERVICE_ADDR=localhost:50054 \
+  RAWAT_JALAN_SERVICE_ADDR=localhost:50057 \
   PHARMACY_SERVICE_ADDR=localhost:50055 \
   BILLING_SERVICE_ADDR=localhost:50056 \
   PORT=8080 \
@@ -78,7 +81,7 @@ sleep 5
 
 echo ""
 echo "Service status:"
-for port in 50051 50052 50053 50054 50055 50056 8080; do
+for port in 50051 50052 50053 50054 50055 50056 50057 8080; do
   lsof -i :$port -sTCP:LISTEN 2>/dev/null | grep -q LISTEN \
     && echo "  PORT $port: ✓ UP" \
     || echo "  PORT $port: ✗ DOWN"

@@ -1,0 +1,328 @@
+syntax = "proto3";
+
+package rawat_jalan.v1;
+
+option go_package = "github.com/aliube/go-micro-simrs-one/shared/proto/rawat_jalan/v1;rawatjalanv1";
+
+service RawatJalanService {
+  // 1. Encounter Lifecycle & Point-of-Care
+  rpc StartEncounter (StartEncounterRequest) returns (StartEncounterResponse);
+  rpc CompleteEncounter (CompleteEncounterRequest) returns (CompleteEncounterResponse);
+  rpc GetMedicalRecord (GetMedicalRecordRequest) returns (GetMedicalRecordResponse);
+  rpc GetEstimatedWaitTime (GetEstimatedWaitTimeRequest) returns (GetEstimatedWaitTimeResponse);
+  rpc FinalizeMedicalRecord (FinalizeMedicalRecordRequest) returns (FinalizeMedicalRecordResponse);
+
+  // 2. Triage (Perawat)
+  rpc SubmitTriage (SubmitTriageRequest) returns (SubmitTriageResponse);
+
+  // 3. Tindakan Medis (Dokter/Perawat)
+  rpc AddMedicalAction (AddMedicalActionRequest) returns (AddMedicalActionResponse);
+
+  // 4. Diagnosis (Dokter - ICD-10 First)
+  rpc AddEncounterDiagnosis (AddEncounterDiagnosisRequest) returns (AddEncounterDiagnosisResponse);
+  rpc UpdateEncounterDiagnosis (UpdateEncounterDiagnosisRequest) returns (UpdateEncounterDiagnosisResponse);
+  rpc RemoveEncounterDiagnosis (RemoveEncounterDiagnosisRequest) returns (RemoveEncounterDiagnosisResponse);
+  rpc FinalizeSeverity (FinalizeSeverityRequest) returns (FinalizeSeverityResponse);
+  rpc GetKBMSuggestionsForICD10 (GetKBMSuggestionsForICD10Request) returns (GetKBMSuggestionsForICD10Response);
+
+  // 5. Master Data Reads (Poli-Scoped Autocomplete)
+  rpc GetMasterTindakanByPoli (GetMasterTindakanByPoliRequest) returns (GetMasterTindakanByPoliResponse);
+  rpc GetMasterICD10ByPoli (GetMasterICD10ByPoliRequest) returns (GetMasterICD10ByPoliResponse);
+  rpc GetMasterKBMsByPoli (GetMasterKBMsByPoliRequest) returns (GetMasterKBMsByPoliResponse);
+  rpc SearchKBM (SearchKBMRequest) returns (SearchKBMResponse);
+  rpc GetKBMDetail (GetKBMDetailRequest) returns (GetKBMDetailResponse);
+}
+
+// ─── Encounter Lifecycle Messages ─────────────────────────────────────────────
+
+message StartEncounterRequest {
+  string encounter_no = 1;
+}
+
+message StartEncounterResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message CompleteEncounterRequest {
+  string encounter_no = 1;
+}
+
+message CompleteEncounterResponse {
+  bool success = 1;
+  string message = 2;
+  ClinicalChecklist checklist = 3;
+}
+
+message GetEstimatedWaitTimeRequest {
+  string doctor_id = 1;
+  string department_code = 2;
+  string gender = 3;
+  string age_bracket = 4;
+}
+
+message GetEstimatedWaitTimeResponse {
+  int64 estimated_minutes = 1;
+}
+
+message FinalizeMedicalRecordRequest {
+  string encounter_no = 1;
+  string doctor_id = 2;
+}
+
+message FinalizeMedicalRecordResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string validation_errors = 3;
+}
+
+// ─── Triage Messages ──────────────────────────────────────────────────────────
+
+message SubmitTriageRequest {
+  string encounter_no = 1;
+  int32 blood_pressure_systolic = 2;
+  int32 blood_pressure_diastolic = 3;
+  double temperature = 4;
+  int32 heart_rate = 5;
+  string notes = 6;
+}
+
+message SubmitTriageResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ─── Medical Action Messages ──────────────────────────────────────────────────
+
+message AddMedicalActionRequest {
+  string encounter_no = 1;
+  string action_code = 2;
+  string action_name = 3;
+  double price = 4;
+  string notes = 5;
+}
+
+message AddMedicalActionResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// ─── Diagnosis Messages ───────────────────────────────────────────────────────
+
+message AddEncounterDiagnosisRequest {
+  string encounter_no = 1;
+  string icd10_code = 2;
+  string diagnosis_type = 3; // PRIMARY | SECONDARY | COMPLICATION | DIFFERENTIAL
+  int32 sequence = 4;
+  string clinical_notes = 5;
+  string severity_level = 6; // RINGAN | SEDANG | BERAT
+  string doctor_id = 7;
+  string department_code = 8;
+  string gender = 9;
+  string age_bracket = 10;
+}
+
+message AddEncounterDiagnosisResponse {
+  bool success = 1;
+  string message = 2;
+  EncounterDiagnosis data = 3;
+}
+
+message UpdateEncounterDiagnosisRequest {
+  string id = 1;
+  string diagnosis_type = 2;
+  int32 sequence = 3;
+  string clinical_notes = 4;
+  string severity_level = 5;
+}
+
+message UpdateEncounterDiagnosisResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message RemoveEncounterDiagnosisRequest {
+  string id = 1;
+}
+
+message RemoveEncounterDiagnosisResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message FinalizeSeverityRequest {
+  string encounter_no = 1;
+  string severity_level = 2; // RINGAN | SEDANG | BERAT
+  string user_id = 3;
+}
+
+message FinalizeSeverityResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message GetKBMSuggestionsForICD10Request {
+  string icd10_code = 1;
+}
+
+message KBMSuggestion {
+  string kbm_code = 1;
+  string kbm_name = 2;
+  bool is_primary = 3;
+  string mapping_confidence = 4;
+}
+
+message GetKBMSuggestionsForICD10Response {
+  repeated KBMSuggestion suggestions = 1;
+}
+
+// ─── Record & Common Structures ───────────────────────────────────────────────
+
+message GetMedicalRecordRequest {
+  string encounter_no = 1;
+}
+
+message MedicalAction {
+  string action_code = 1;
+  string action_name = 2;
+  double price = 3;
+}
+
+message TriageData {
+  int32 blood_pressure_systolic = 1;
+  int32 blood_pressure_diastolic = 2;
+  double temperature = 3;
+  int32 heart_rate = 4;
+  string notes = 5;
+}
+
+message EncounterDiagnosis {
+  string id = 1;
+  string icd10_code = 2;
+  string icd10_name = 3;
+  string diagnosis_type = 4;
+  int32 sequence = 5;
+  string clinical_notes = 6;
+  string severity_level = 7;
+  string severity_set_role = 8;
+  string auto_kbm_code = 9;
+  string auto_kbm_name = 10;
+  string kbm_mapping_confidence = 11;
+  bool is_verified_by_rm = 12;
+  string verified_by = 13;
+}
+
+message ClinicalChecklist {
+  bool triage_completed = 1;
+  bool diagnosis_completed = 2;
+  bool actions_completed = 3;
+  int32 actions_count = 4;
+  bool prescription_completed = 5;
+  int32 prescription_count = 6;
+  bool is_ready_to_complete = 7;
+  repeated string missing_mandatory_fields = 8;
+  string base_consultation_fee = 9;
+}
+
+message GetMedicalRecordResponse {
+  string encounter_no = 1;
+  string patient_mrn = 2;
+  TriageData triage = 3;
+  repeated EncounterDiagnosis diagnoses = 4;
+  repeated MedicalAction actions = 5;
+  string notes = 6;
+  string status = 7;
+  string encounter_severity_level = 8;
+  ClinicalChecklist checklist = 9;
+}
+
+// ─── Master Data Scoped by Polyclinic ─────────────────────────────────────────
+
+message MasterTindakan {
+  string kode_tindakan = 1;
+  string nama_tindakan = 2;
+  double base_price = 3;
+  repeated string polyclinics = 4;
+  int32 icd9_count = 5;
+}
+
+message GetMasterTindakanByPoliRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string poli_code = 3;
+  string search_name = 4;
+  string search_code = 5;
+}
+
+message GetMasterTindakanByPoliResponse {
+  repeated MasterTindakan data = 1;
+  int32 total_count = 2;
+}
+
+message MasterICD10 {
+  string icd10_code = 1;
+  string name_en = 2;
+  string name_id = 3;
+  string chapter_code = 4;
+  string block_code = 5;
+  bool is_active = 6;
+  repeated string polyclinics = 7;
+  int32 kbm_count = 8;
+  int32 snomed_count = 9;
+}
+
+message GetMasterICD10ByPoliRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string poli_code = 3;
+  string search_name = 4;
+  string search_code = 5;
+}
+
+message GetMasterICD10ByPoliResponse {
+  repeated MasterICD10 data = 1;
+  int32 total_count = 2;
+}
+
+message KBMItem {
+  string kbm_code = 1;
+  string kbm_name = 2;
+  string description = 3;
+  string body_system = 4;
+  repeated string polyclinics = 5;
+  int32 icd10_count = 6;
+}
+
+message GetMasterKBMsByPoliRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string poli_code = 3;
+  string search_name = 4;
+  string search_code = 5;
+}
+
+message GetMasterKBMsByPoliResponse {
+  repeated KBMItem data = 1;
+  int32 total_count = 2;
+}
+
+message SearchKBMRequest {
+  string query = 1;
+  string body_system = 2;
+  int32  limit = 3;
+  int32  offset = 4;
+  string department_code = 5;
+}
+
+message SearchKBMResponse {
+  repeated KBMItem items = 1;
+  int32 total = 2;
+}
+
+message GetKBMDetailRequest {
+  string kbm_code = 1;
+}
+
+message GetKBMDetailResponse {
+  KBMItem item = 1;
+}
