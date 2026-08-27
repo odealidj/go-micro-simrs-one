@@ -435,21 +435,155 @@ Consumer : billing_consumer.go
 
 > Semua service berbagi satu database `simrs_db` namun mengakses tabel yang berbeda-beda (Database-per-Service pattern secara logical).
 
-### 4.1 Auth Service DB
+### 4.1 Auth Service DB (Schema: `auth`)
 
-> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNp1UE1LAzEQ_StDTgoeRNiLt8UKFtta2l1PgTAmYzfQJMskQUq3_93stqBCndv7HHhHoYMh8QiCeGZxx-ikh3I5Ekc4nsF4bTufgTWwfgUpduQVozfBqZytubmV4sf5Xm-eXuqNeqiqqcajI2jH2OqtgVW7WPzn7jHGr8BGdRi74v_QfOgTjOhapLoHDnsqRjTO-sEEnQIPPnOkoe-QHWob06BL3hL_rmjmy-dtUy_XoJkwkVGYrqm5N3_Uk7gD4ag0WzOuNg0kRerIkSyEFIY-Me_T-GwyY05he_C6iIkzFebceVn7Qp--Aca0ehc)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNrlV99v2zYQ_lcIPa1AHDgt8rACHeDFauslcQPHKfpggLiIZ5mRRAok1cyL8r_vKEuJpMpBVgRrgerBsO4Xjx_vjp_ugkgLDN6yAM1UQmwgWylGT2HRWHa3e_HP1dVsyqRgF6dsFcSouAEldMaLQorfXq2CR8vPk8XJx8mCvz4-rsIoyJBdnQ4b5GDtrTaCb8BuKPJ1ZLa5Y_5tKObxmBmdIhm-P2UJsgysQ8O97FCKwSzGzDpwhSWfi3A-nc0_lJOT5exzWC7Cv8KTZTgtZ_OdpO3_56dPZ-FkztbaRMijDagYeZPto9lydh5eLifnFyylVHiqY6k4uCGDyCA4FHu0RS6e0ApM0WuF651Io7je7hT3K7X700KmfYwtIJvDtEVOhiAyqcrHXytLoRMKUZIWbsGVCVhpSvqhwLTHXDtMvJokqNrQLcMvS0rMJkbmVr7MdgyuDdoNdzpBtacwezJfe5wU7_eUXhWqqruhFPHvXNKKzzzLPuwpXGPKc6PXaGU729l8-QD8ZbiYTc6GivZoPGbUNrCL821RSsorcvIrvgy41CDrdZWtTPG_gnsw2NtUX0rme9t-XaQp94NhWI0ZyHSwl_ONVtiFs4N1_8B_VPvtwOS7FnoRRH1N2Jy2CKm00O6rjgWBTpVVGHBs9o9U7MJA4mTS6c8fi0k9T14OFGceYjZbX9LlBGyBMQ0r48EKfoaJnOdSxXVN8Fyn8lkY1PZ7Jhk1mo_E_T1O2z-jCyiClO7GLRv9wSpU-A2koA7JbBulUsnIHnrrNibTyTL0Y8A47jfdU6ASlZji_07P6Oj16M0Ru5EJMF9c6-9B9_vxq8_6-QA2Dr88gjcgbsGPSloTk5-m-PwQ34CRnLhHHBegKNT43Xn1csCO3l2ikuqACev6MNGOMp4VKcgBuSUYbFvj10kK7eD_wNpuiQj4JJyjjdghDuZvOg9VG_SKO32FtMBv-VREfMpJrZ47rDpEvNY_yRPLcjTSdzX3f0unIHAtFTGCSqsfqnRnUFv3mJl3I07FLFpLudoBn7JPOBqfWtC4DHKpetWBCJXd8Hrd27hZTujIacMIGHjKq7lbGjdVGIsdr274OsOhce9D0CeEjBUK4p89_2ahXoDOvHs6QjeDXrt7V_pPvDEixKhQguCABRkaIlvCfwJWJboK3AaJlwX1-UORVm13742hcPpyqyJSOlMgSXZ1VX861uL7fwHA_1ov)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 erDiagram
     users {
         UUID id PK "gen_random_uuid()"
-        VARCHAR_255 username UK "NOT NULL"
+        VARCHAR_255 username UK
         VARCHAR_255 password_hash "bcrypt hash"
-        VARCHAR_50 role "admin|doctor|nurse|pharmacist|cashier"
+        VARCHAR_50 role "FK ke master_role.id"
+        VARCHAR_20 status "PENDING|ACTIVE|REJECTED|INACTIVE"
+        BOOLEAN force_change_password
+        TIMESTAMP last_login_at
         TIMESTAMP created_at
         TIMESTAMP updated_at
+        TIMESTAMP deleted_dt
+        UUID deleted_by
     }
+
+    master_role {
+        VARCHAR_50 id PK "super_admin|admin|admisi|dokter|perawat|kasir|asisten_apoteker|pasien"
+        TEXT deskripsi
+        TIMESTAMP deleted_dt
+        UUID deleted_by
+    }
+
+    refresh_tokens {
+        UUID id PK
+        UUID user_id FK
+        VARCHAR_255 token_hash
+        TIMESTAMP expires_at
+        TIMESTAMP created_at
+    }
+
+    master_label_profesi {
+        INT id PK "SERIAL"
+        VARCHAR_100 nama_label
+        BOOLEAN is_active
+        TIMESTAMP deleted_dt
+        UUID deleted_by
+    }
+
+    staff_profiles {
+        UUID id PK
+        UUID user_id FK, UK
+        VARCHAR_50 nip UK
+        VARCHAR_255 full_name
+        VARCHAR_255 email
+        VARCHAR_20 phone
+        INT label_profesi_id FK
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        TIMESTAMP deleted_dt
+        UUID deleted_by
+    }
+
+    profil_dokter {
+        UUID id PK
+        UUID user_id FK, UK
+        VARCHAR_100 spesialisasi
+        VARCHAR_100 sip "Surat Izin Praktik"
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        TIMESTAMP deleted_dt
+        UUID deleted_by
+    }
+
+    profil_perawat {
+        UUID id PK
+        UUID user_id FK, UK
+        VARCHAR_100 str_perawat "Surat Tanda Registrasi"
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        TIMESTAMP deleted_dt
+        UUID deleted_by
+    }
+
+    mapping_dokter_poli {
+        UUID id PK
+        UUID dokter_id FK
+        VARCHAR_50 poli_code "Logical key -> rawat_jalan.polyclinics.code"
+        DATE start_date
+        DATE end_date "9999-12-31 jika aktif"
+        TIMESTAMP created_at
+        TIMESTAMP deleted_dt
+        UUID deleted_by
+    }
+
+    mapping_perawat_poli {
+        UUID id PK
+        UUID perawat_id FK
+        VARCHAR_50 poli_code "Logical key -> rawat_jalan.polyclinics.code"
+        DATE start_date
+        DATE end_date "9999-12-31 jika aktif"
+        TIMESTAMP created_at
+        TIMESTAMP deleted_dt
+        UUID deleted_by
+    }
+
+    jadwal_praktek {
+        UUID id PK
+        UUID dokter_id FK
+        VARCHAR_50 poli_code "Logical key -> rawat_jalan.polyclinics.code"
+        INT hari_mingguan "0=Minggu, 1=Senin, dst"
+        TIME jam_mulai
+        TIME jam_selesai
+        INT kuota
+        TIMESTAMP created_at
+        TIMESTAMP deleted_dt
+        UUID deleted_by
+    }
+
+    system_settings {
+        VARCHAR_255 key PK
+        TEXT value
+        TEXT description
+        TIMESTAMP updated_at
+        VARCHAR_255 updated_by
+    }
+
+    master_role ||--o{ users : "defines role of"
+    users ||--o{ refresh_tokens : "has sessions"
+    users ||--o| staff_profiles : "has profile"
+    master_label_profesi ||--o{ staff_profiles : "labels"
+    users ||--o| profil_dokter : "has doctor data"
+    users ||--o| profil_perawat : "has nurse data"
+    profil_dokter ||--o{ mapping_dokter_poli : "assigned to"
+    profil_perawat ||--o{ mapping_perawat_poli : "assigned to"
+    profil_dokter ||--o{ jadwal_praktek : "practices at"
 ```
+
+Tabel-tabel pada skema `auth` dikelola secara eksklusif oleh `auth-service` untuk manajemen identitas pengguna, otentikasi PASETO, otorisasi RBAC (*Role-Based Access Control*), profil kepegawaian staf (SDM), kredensial klinis dokter/perawat (SIP/STR), serta penugasan dinas dan jadwal praktek ke poliklinik:
+
+| Tabel | Fungsi & Tanggung Jawab | Keterangan Relasi |
+|---|---|---|
+| `users` | Akun pengguna sistem (username, password hash bcrypt, status aktif/pending, dan role). | Induk seluruh akun login SIMRS. |
+| `master_role` | Definisi peran resmi sistem (`super_admin`, `admin`, `admisi`, `dokter`, `perawat`, `kasir`, `asisten_apoteker`, `pasien`). | Foreign Key ke `users.role`. |
+| `refresh_tokens` | Penyimpanan token hash sesi refresh token PASETO untuk perpanjangan token akses. | Relasi ke `users.id` (ON DELETE CASCADE). |
+| `master_label_profesi` | Master label profesi kepegawaian (Dokter Poliklinik, Perawat Poliklinik, Administrator IT, dll.). | Relasi ke `staff_profiles.label_profesi_id`. |
+| `staff_profiles` | Profil data identitas kepegawaian internal (NIP, nama lengkap, email, nomor HP). | Relasi 1-to-1 ke `users.id`. |
+| `profil_dokter` | Data profesional dokter rumah sakit: bidang `spesialisasi` dan nomor `sip` (Surat Izin Praktik). | Relasi 1-to-1 ke `users.id` (role `dokter`). |
+| `profil_perawat` | Data profesional perawat rumah sakit: nomor `str_perawat` (Surat Tanda Registrasi). | Relasi 1-to-1 ke `users.id` (role `perawat`). |
+| `mapping_dokter_poli` | Riwayat dan status penugasan dokter ke poliklinik dengan periode dinas (`start_date` s.d. `end_date`). | `poli_code` merujuk secara **logikal** ke `rawat_jalan.polyclinics(code)`. |
+| `mapping_perawat_poli` | Riwayat dan status penugasan perawat ke poliklinik dengan periode dinas (`start_date` s.d. `end_date`). | `poli_code` merujuk secara **logikal** ke `rawat_jalan.polyclinics(code)`. |
+| `jadwal_praktek` | Jadwal mingguan praktek dokter di poliklinik (`hari_mingguan` 0=Minggu s.d. 6=Sabtu, `jam_mulai`, `jam_selesai`, `kuota` pasien). | `poli_code` merujuk secara **logikal** ke `rawat_jalan.polyclinics(code)`. |
+| `system_settings` | Konfigurasi sistem global berbasis key-value (misal model OCR KTP `gemini_ocr_model`). | Berdiri sendiri (konfigurasi runtime). |
+
+> 📌 **Catatan Arsitektur (Ketentuan KETAT):** Kolom `poli_code` pada tabel `mapping_dokter_poli`, `mapping_perawat_poli`, dan `jadwal_praktek` tidak memiliki Foreign Key fisik ke skema lain, melainkan berupa **Logical Business Key** yang merujuk ke tabel master `polyclinics` yang dimiliki oleh **`rawat-jalan-service`**.
 
 ---
 
@@ -501,15 +635,26 @@ erDiagram
 
 ### 4.4 Rawat Jalan Service DB (Schema: `rawat_jalan`)
 
-> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNqtVttu4zYQ_RXCD0ULNIWzQF7yJlvCRo1lG7IctIABYSxyFdoSKfCyrRHl33co372y4gXiJ5mcM5w5M3PIt14mKes9kh5TPodcQbkQBH9MZNIKw5RO1Yq8bRfd78WLh09enH55eDgapUKS6TNZ9MaylIqsrVhZkYNY9NqBpRKN8V8kZmsoScQo123G9_0-oawCZUomTOqCReBUFpwYu7LtJzQgmRmpUk7R3JdrjJFUTIDIcwyMrOA_WLZBH_pEGzBWIywOvoazJIgDv_aGSfgS1MNJNB0FSeCfQpMwCmaJF01JphgYRlMwbbu2ome77wux_TAKiWepYplUVJ9yPZ-HPsEUGmpzJlIFgsoytZbT3_-4Ru5ZVebPR6NwnJBlISVNK8W0toqleqMNkpl1GlEOl1bjeRTE4TB9SL8Qw8qKKSRNudoMWaG5PSumc_nKsIYYv3E2g2l0uY9nVRy3pdo0VicMBv8kRNvlimWGf2fYA2VVABcGHXkCSsE012TNCvsKglgDJVxrCmGVZtgTtxTvUJ4SezODIgU8XorLcTiW6ONitAe19du0druLnQGm6ribjb3p7GmSEPwPxHBBYX0-Bn4wDCNvlN674lSKZ2cwA4p_IxrAHMCE8gLW9sJNw7uQhukPJuyX2DzygV2VC6nZ5zO6XpYddLrdVi6fB9EVSeAZve93uNzutzoNh_7dff-K3x0FXKdmUzXCFmPl4n_rWTCcjH38ap1x1Cj2nSluNmmBHwUCo3Dk19HED2IvCRD-grJ1m0gdKrNLEgwUMkc1qnDgoU35MfBGhxtVip3dGkgh11B0ZOtookxnileum48Gg8lkFHhjgiRAM-C_pJ1NqW8Ked8UbWFfqfxpt7R32lLSTaOhrPysjErUWuzt_Wx-kNWJeLQlluwn_DeSuLm_luWJxHTpyE3382cRIa1Zyv9TbHBhuh4hV6SikdY8VyxH9_v5CvbaUUdbVfeaxK_dF83Ze-wZwqOU0frgbujuJIZpnHr6ezYZD0gFm0IC7X5qTIOxH46_1tP5YBTOnm59YPysqg1RdX13J-vLd8UjnvMKere8P6AF-dZ25e3Ru6VO-BWN37s4LHY6-an8j9s3kHtpOGjvT9IrmSqBU_d8bZpj0TOvDFu452wp-wa2MO6Qd2cM1sjZRmS4aZRluLJtvd2zd7f8_gOhQGI_)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNq9V99v4jgQ_lcsHk5dabtqV-pL3wLJbXMlgCBUdxJSZOJZ6iaxI9vpHSr9328cIASapOyquzwg5Jn5PJ4f3wwvvVgy6N2SHiiX05Wi2UIQ_OQyXccpFzzW5GV7ZD8PznRw50yjmytiDcnknix6s9k4JAHVBhSZyJQn1i4hF4r-S83lE02p-LTovQX5enNDBM0AIUY0ozXbunbo_R0SBjpWPDdcioOkPx4PPWdEuI5obPgz1Iz8wJuFTjAhsQJqgEXUNEmLnHVIGaRgpawmnc99txIs11vB62LnFohYFgIDoSP11BQ4--ZKKRJyG8GRzKQiSSGeCrGioi1YmRKl8hcyhYRmJADGdZMypodBTpXJQJiozNSf9h78SqCe2y9W1oRwfYUQMjZSRZyhJT7alYnN8EUqVzym6aeWi7WhptBoMvW--bPQm3ruxhmE_oO3GYyDydALPfcovz-ZqirmRmHhQqQgloodVWuZK3S_jPEKRKSoYDKLioKzi9aSPErP_P6g5I9CskylZFGuQOtCQaTX2mDVxp1KjNNTrdE88Kb-ILqJvhIDWQ4Kg6ZsJwwg1bw4yqqFfATMJvpvrE5_EpzK8a6co1iqdal10j-6WD5B2SNYDVmeUi4MAjnYfgI011gWafFIBSkMdmJbQYhCacB6OCd5VXoyLFIsl7JFpTjti0OK3k9Gs1Nb3LLImyF2CjummY2cyewOCUtYyjFcMJocd5zrDfzAGUbXNjm54vGRmaGKfyeaUlMZE8ZTmhQnMGXchTSg3-muH4rmIR5YVSshNXx8RJNl1hFOK22M5X0_aKEEHrPrqw7IrbwR1B-4l9dXbRy3DQHyv1nn1nYyxcxN_9nMvMF45OKvxh5HjoJnUNysoxR_pGgY-EN3E4xdb-qEHpo_IG2dR1JVZmxcDswaZTTPuVi1Tc99jDFNn5GbG3VqaI2qZzi1L9Ef8KwyKWvoVzq3Tfv5nh3K6Lc4FlNDcdbhYMmRu-m7a9DU6iWUpDKhaUfh2or_-X2mdQyWFXWWy7Xae-N2SxPXG7-ZNJaSrctxCNlHvSgrV8qoKsjuV9XmQNPDwj1Z_0FCS-Ftr6xNi66R0MLpx0vXRwVCFmYp_4uQq4TpWixbWL-ckquVghXC76nS24-BTbAd0E758LbRX969tz2ycBgDtqngBna9sMtxHemv2XjUJzldp5Ky7q1x4o1cf_RtM5n3h_7s7txdsYpV_Y_LZnN5KV9OlvJbvESDesYkVltWg1EbnZfmscxB13ulAaCTemsopytIA1Q7UdZwjgnn-M0lzuZ0U7bGj1TvjjssX5qWuL317qjTvGVr2UNUh50gb7rgdrvV293ZmvY-k14GKqOc2T-0ZY8seuYRsJN7VpfBd1qkxl7yapVpYeRsLWIUGlUAnmw7cPdHeHf8-j-kmadb)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 erDiagram
+    polyclinics {
+        VARCHAR_50 code PK "SSOT Master Poliklinik (rawat-jalan)"
+        VARCHAR_255 name "Nama Poliklinik"
+        TEXT description
+        BOOLEAN is_active
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+        TIMESTAMP deleted_dt
+        UUID deleted_by
+    }
+
     encounters_rj {
         VARCHAR_255 encounter_no PK "Nomor kunjungan"
         VARCHAR_255 mrn "No. Rekam Medis"
-        VARCHAR_100 department_code "Poli tujuan"
-        VARCHAR_100 doctor_id "Dokter penanggung jawab"
+        VARCHAR_50 department_code FK "FK ke polyclinics.code"
+        VARCHAR_100 doctor_id "ID Dokter (logical)"
         VARCHAR_50 status "REGISTERED|ACTIVE|COMPLETED"
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -551,6 +696,24 @@ erDiagram
         TIMESTAMP created_at
     }
 
+    kbm_polyclinic_mappings {
+        VARCHAR_50 kbm_code PK, FK
+        VARCHAR_50 polyclinic_code PK, FK
+        TIMESTAMP created_at
+    }
+
+    tindakan_polyclinic_mappings {
+        VARCHAR_50 tindakan_id PK, FK
+        VARCHAR_50 polyclinic_code PK, FK
+        TIMESTAMP created_at
+    }
+
+    icd10_polyclinic_mappings {
+        VARCHAR_50 icd10_code PK, FK
+        VARCHAR_50 polyclinic_code PK, FK
+        TIMESTAMP created_at
+    }
+
     icd10_catalog_replica {
         VARCHAR_50 code PK "Replika lokal ICD-10"
         VARCHAR_255 description
@@ -584,11 +747,17 @@ erDiagram
         TIMESTAMP created_at
     }
 
+    polyclinics ||--o{ encounters_rj : "services"
+    polyclinics ||--o{ kbm_polyclinic_mappings : "scopes KBM"
+    polyclinics ||--o{ tindakan_polyclinic_mappings : "scopes tindakan"
+    polyclinics ||--o{ icd10_polyclinic_mappings : "scopes ICD-10"
     encounters_rj ||--o| triage_records : "has triage"
     encounters_rj ||--o{ medical_actions_rj : "has actions"
     encounters_rj ||--o{ encounter_diagnoses_rj : "has diagnoses"
     encounters_rj ||--o{ outbox_events_rj : "generates"
 ```
+
+> 🏥 **Pemilik Utama Master Poliklinik (SSOT):** `rawat-jalan-service` adalah pemilik utama (*Single Source of Truth*) dari tabel `polyclinics`. Seluruh modul lain (`auth-service` untuk penugasan dinas staf, `registration-service` untuk loket pendaftaran, dan `pharmacy-service` untuk pemetaan formularium poli) merujuk ke kode poliklinik `polyclinics.code` sebagai referensi logikal. Selain itu, relasi tindakan medis, diagnosa KBM, dan ICD-10 yang relevan dibatasi per spesialisasi poliklinik melalui tabel mapping `kbm_polyclinic_mappings`, `tindakan_polyclinic_mappings`, dan `icd10_polyclinic_mappings`.
 
 ---
 
@@ -807,35 +976,74 @@ erDiagram
 ### 4.8 Aturan Isolasi Relasi Antar Skema KETAT
 
 1. **Zero Foreign Keys Lintas Skema**: Tidak ada constraint `FOREIGN KEY` antar tabel beda skema (contoh: `billing.invoices.encounter_no` tidak memiliki FK ke `registration.encounters`).
-2. **Korelasi Menggunakan Business Key**: Entitas dikorelasikan secara logikal melalui `mrn` dan `encounter_no`. Integritas divalidasi pada *application domain layer*.
+2. **Korelasi Menggunakan Business Key**: Entitas dikorelasikan secara logikal melalui `mrn`, `encounter_no`, `doctor_id`, dan `poli_code`. Integritas divalidasi pada *application domain layer*.
 3. **Clinical Snapshot Pattern**: Perubahan harga master tindakan atau nama diagnosa di masa mendatang tidak akan merubah transaksi pelayanan masa lalu di poliklinik atau invoice kasir.
-4. **Local Read-Replica**: Rawat Jalan membaca data dari tabel replika lokal dalam skema `rawat_jalan`, bukan via `JOIN` ke `medical_record`.
+4. **Local Read-Replica**: Rawat Jalan membaca data katalog klinis (ICD-10, KBM, Tindakan) dari tabel replika lokal dalam skema `rawat_jalan`, bukan via `JOIN` langsung ke `medical_record`.
+5. **Master Poliklinik SSOT di Rawat Jalan**: Tabel master `polyclinics` dimiliki dan dikelola secara terpusat oleh `rawat-jalan-service`. Service lain (`auth`, `registration`, `pharmacy`) mereferensikan kode poliklinik secara logikal.
 
 ---
 
 ### 4.9 Relasi Antar Service (Logical ERD)
 
-> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNqtVdtu4jAQ_RXLz9t8AG8IqLZaqla9PUWKBtvAtLEdOQ4VAv59x80FkbjpdtW8QMbneM6ZGTsHLqxUfMK4cnOEjQOdGkZPAR6V8SU71O_heZk-zH5PH5h2ht3_YSlvQEkLTvkQbECrSBTfhkFpV3XwlJr6jzLCVsYrV2ZObWJaOkRmbC2KgFh6R5KsSc4bxLQFI9eBs7QbFJAzp9bMWzbmR6oCnNe0HDMgvHUZyuFS6cFX5Yi91390B-_gs1fI4StzdUaiTGdPNy-L4-zu9n65eFrMW3AnQysZ3FOJhXUy2nKUdfpLaNJjxmRcWHiOFPt7LkKYfocmCqdK4bAIbR-1UGzBaRD75ILxpfTr_5Tek4lmZ1GoUYUrzHM0m6TF_qC2-WJ2cztdEsBT20AHyHeHNStgrz-7G4YT29V7uMFow8u9EUqytbOaNRUZNr29pY7Hqyt76N8XE9pmCyXbYYnnbD3QB_XYO4s108icFKz248z-8QlccGKLOyKjGSMfemPbCo6OZnyDbqAmzeRQ0h1CS-qW-zbPXZyci-1tyvkvRsecWoYyfBc-epxyv1V0j_OAlWoNVe5DhlMAQ-XtI_Fp0btKUaQqJHjVfE-a8Okvs0YN7A)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNq9Vm1v2jAQ_itWPm3Smh_Ah0kMqFpBR9WWfkKK3MSEK4kd2Q4Tgv73nUNeHZO20za-APbz3D13vjv76IUiYt6IeExOgcaSpmtO8JMrJhU5nv-Yz2p1OyUQkfs5WXs011u_gKy9BvI8fpjcjB8KLqcp6-9IkZSrb2t-_pFJsYEkiMROMznssANtOy6gxmuA-Ot536_KmAKagKIKHLuQuUVlTNJfVH9IVYn9nCwta15XQEqzDHhcxhpkIoFhFQ5CT0q5d0GMoQSmGtDkQsQQ0oRItiFX383WIUyAQ6h8g6gs9-SWwXxCb5vRE1xt_gPFLUBbaGW6sFqoPSt4pQnlfpv05fFx-UTuWQoJ7MhK05R-dTVDtxF-LJeL2fgnARXQUMO-1w1UA-PaqSmV_CypBPkV-H239SrsLIeMhyLnWBYqkCx2ua0RARdlSlgMWLroXXC_MeCSYTRfz63z0YIMSY9YRqVOcdvBa07ASRWhFkWF95mXhkfTjFTnaiA9rx_MTqtghpPTBOqq4v8RLRLHk6fb59lpsry7X8yeZtN-b7PIWMbyCIWMnJVZdXYX6ltMl4xO-laOQhnOoB2FWcbvfhCZZCqUkJmSHQwh21KZ0vDgdxjvSr_-Q-mWTOB7ASEbVPgCCZZE7FfYv6htOpvc3o0XCNB4bDQ1kM82SpDRQ3pphPW7pc5338DggasDD1lENlKkpMxI79DPb5jT6epKnKx3xghNbGntwoWsLn8L2rVTUI7O69rwqFIQc9SphcWvrFsGOhfoJQutW-gd_9h5DC8ZVY6KD1joCahN8FwqNmDBukkMF7O6bwq0vtsuEzDPZA8KmsO3QOURdcfymcmjBNP0chhm2tOsyLEMtxhihO03RD5aU6QS7JwUbgN1f4_KRkane6AVqd62w2yaatTUvqkI7xvBqYsdBJF5xBctt_b0luHt7xlsxDY0T4pn6ZsB4-NLPCIfN7XMGa7kWUQ1Kx__5fLbbz7f4_Q)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
 
 ```mermaid
 erDiagram
+    users {
+        UUID id PK "auth.users"
+        VARCHAR username
+        VARCHAR role
+    }
+
+    profil_dokter {
+        UUID id PK "auth.profil_dokter"
+        UUID user_id FK
+        VARCHAR spesialisasi
+        VARCHAR sip
+    }
+
+    profil_perawat {
+        UUID id PK "auth.profil_perawat"
+        UUID user_id FK
+        VARCHAR str_perawat
+    }
+
+    mapping_dokter_poli {
+        UUID id PK "auth.mapping_dokter_poli"
+        UUID dokter_id FK
+        VARCHAR poli_code "Logical ref -> polyclinics.code"
+    }
+
+    mapping_perawat_poli {
+        UUID id PK "auth.mapping_perawat_poli"
+        UUID perawat_id FK
+        VARCHAR poli_code "Logical ref -> polyclinics.code"
+    }
+
+    polyclinics {
+        VARCHAR code PK "rawat_jalan.polyclinics (SSOT Pemilik Utama)"
+        VARCHAR name
+        BOOLEAN is_active
+    }
+
     patients {
         VARCHAR mrn PK "patient.patients"
         VARCHAR name
         VARCHAR nik
-        VARCHAR dob
     }
 
     encounters_reg {
         VARCHAR encounter_no PK "registration.encounters"
         VARCHAR mrn FK "Logical ref to patients"
-        VARCHAR department
-        VARCHAR doctor_id
+        VARCHAR department "Logical ref to polyclinics"
+        VARCHAR doctor_id "Logical ref to profil_dokter"
         VARCHAR status
     }
 
     encounters_rj {
         VARCHAR encounter_no PK "rawat_jalan.encounters"
+        VARCHAR department_code "Logical ref to polyclinics"
+        VARCHAR doctor_id "Logical ref to profil_dokter"
         VARCHAR status "ACTIVE|COMPLETED"
     }
 
@@ -863,6 +1071,13 @@ erDiagram
         VARCHAR status "synced from billing"
     }
 
+    users ||--o| profil_dokter : "has"
+    users ||--o| profil_perawat : "has"
+    profil_dokter ||--o{ mapping_dokter_poli : "assigned to"
+    profil_perawat ||--o{ mapping_perawat_poli : "assigned to"
+    polyclinics ||--o{ mapping_dokter_poli : "receives doctor"
+    polyclinics ||--o{ mapping_perawat_poli : "receives nurse"
+    polyclinics ||--o{ encounters_reg : "serves"
     patients ||--o{ encounters_reg : "has visits"
     encounters_reg ||--o| encounters_rj : "handled by"
     encounters_reg ||--o| medical_records : "archived in"
