@@ -77,7 +77,7 @@ Mini SIMRS kita telah membangun fondasi arsitektural dan pemetaan terminologi ya
 3. **Pemisahan Entitas EMR Terstruktur**:
    - Tidak menggabungkan SOAP ke dalam satu teks bebas (*free-text blob*), melainkan menyimpannya ke kolom dan tabel terpisah (Tanda Vital terukur, Diagnosa terpisah dengan status Primer/Sekunder, Resep terpisah per item obat).
 4. **Arsitektur Microservices Modular**:
-   - Terdiri dari `emr-service`, `pharmacy-service`, `registration-service`, `billing-service`, dan `api-gateway` yang siap diintegrasikan dengan modul integrasi eksternal.
+   - Terdiri dari `rawat-jalan-service` (pelayanan poliklinik), `medical-record-service` (arsip rekam medis & koding), `pharmacy-service`, `registration-service`, `billing-service`, dan `api-gateway` yang siap diintegrasikan dengan modul integrasi eksternal.
 
 ---
 
@@ -111,9 +111,10 @@ Meskipun model data internal sudah sesuai, terdapat beberapa komponen infrastruk
 flowchart TD
     subgraph SIMRS_CORE ["Mini SIMRS Core Microservices"]
         REG_SVC["registration-service<br/>(Patient & Encounter)"]
-        EMR_SVC["emr-service<br/>(SOAP, Vital, ICD-10, SNOMED)"]
+        RJ_SVC["rawat-jalan-service<br/>(Triage, Tindakan, KBM)"]
+        MR_SVC["medical-record-service<br/>(Arsip MR, ICD-10, SNOMED)"]
         PHARM_SVC["pharmacy-service<br/>(Prescription, KFA, DPHO)"]
-        PG_DB[(PostgreSQL SIMRS Database)]
+        PG_DB[(PostgreSQL SIMRS Database<br/>Multi-Schema KETAT)]
     end
 
     subgraph INTEROP_LAYER ["Interop & Integration Middleware"]

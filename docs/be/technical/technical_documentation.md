@@ -24,25 +24,26 @@ Sistem SIMRS mengadopsi pola **Microservices** dengan komunikasi internal menggu
 ```mermaid
 graph TB
     subgraph CLIENT["Client Layer"]
-        FE["Frontend / Mobile App"]
+        FE["Frontend React (Vite) / Mobile App"]
     end
 
     subgraph GATEWAY["API Gateway (HTTP :8080)"]
-        GW["api-gateway\nREST · Rate Limiter · Auth JWT\nIdempotency · Circuit Breaker\nSSE · CORS"]
+        GW["api-gateway\nREST · Rate Limiter · Auth PASETO\nIdempotency · Circuit Breaker\nSSE · CORS"]
     end
 
     subgraph SERVICES["Backend Microservices (gRPC)"]
         AUTH["auth-service\n:50051"]
         PATIENT["patient-service\n:50052"]
         REG["registration-service\n:50053"]
-        EMR["emr-service\n:50054"]
+        RJ["rawat-jalan-service\n:50057"]
+        MR["medical-record-service\n:50054"]
         PHARMA["pharmacy-service\n:50055"]
         BILLING["billing-service\n:50056"]
     end
 
     subgraph INFRA["Infrastructure"]
-        PG[("PostgreSQL 15\nsimrs_db\n:5432")]
-        RDB[("Redis 7\n:6379")]
+        PG[("PostgreSQL 15\nsimrs_db\n(Multi-Schema KETAT:\nauth, patient, registration,\nrawat_jalan, medical_record,\npharmacy, billing)")]
+        RDB[("Redis 7\n:6379\nStreams, Cache, SSE")]
         JAEGER["Jaeger Tracing\n:16686 UI\n:4318 OTLP"]
     end
 
@@ -50,7 +51,8 @@ graph TB
     GW -->|gRPC| AUTH
     GW -->|gRPC| PATIENT
     GW -->|gRPC| REG
-    GW -->|gRPC| EMR
+    GW -->|gRPC| RJ
+    GW -->|gRPC| MR
     GW -->|gRPC| PHARMA
     GW -->|gRPC| BILLING
 
@@ -59,8 +61,10 @@ graph TB
     PATIENT --- RDB
     REG --- PG
     REG --- RDB
-    EMR --- PG
-    EMR --- RDB
+    RJ --- PG
+    RJ --- RDB
+    MR --- PG
+    MR --- RDB
     PHARMA --- PG
     PHARMA --- RDB
     BILLING --- PG
@@ -71,7 +75,8 @@ graph TB
     AUTH --- JAEGER
     PATIENT --- JAEGER
     REG --- JAEGER
-    EMR --- JAEGER
+    RJ --- JAEGER
+    MR --- JAEGER
     PHARMA --- JAEGER
     BILLING --- JAEGER
 ```
@@ -80,13 +85,16 @@ graph TB
 
 | Prinsip | Implementasi |
 |---|---|
-| **Database per Service** | Setiap service memiliki skema tabel sendiri pada database `simrs_db` |
-| **Loose Coupling** | Komunikasi antar service via event (Outbox + Redis Streams) |
-| **Single Entry Point** | Semua traffic eksternal hanya melalui API Gateway |
-| **Resilience** | Circuit Breaker (Sony gobreaker) pada setiap panggilan gRPC di Gateway |
-| **Idempotency** | Middleware `X-Request-ID` + Redis cache (TTL 24 jam) |
-| **Observability** | Structured logging (`log/slog`) + Jaeger Distributed Tracing |
-| **Security** | JWT/Paseto token + RBAC per endpoint |
+| **Multi-Schema Database KETAT** | Setiap service memiliki skema PostgreSQL terisolasi (`auth`, `patient`, `registration`, `rawat_jalan`, `medical_record`, `pharmacy`, `billing`). **Dilarang keras cross-schema JOIN dan Foreign Keys**. |
+| **Clinical Snapshot Pattern** | Transaksi poliklinik (`rawat_jalan`) menyimpan snapshot nama tindakan & diagnosa saat pelayanan berlangsung, mencegah ketergantungan relasi langsung ke master data. |
+| **Async Master Data Replication** | Katalog master klinis (ICD-10, KBM, Tindakan) dimiliki oleh `medical-record-service` (SSOT) dan direplikasi secara asinkron ke tabel replika lokal `rawat-jalan-service` via Redis Streams (`clinical_master_stream`). |
+| **Loose Coupling & Outbox** | Komunikasi asinkron antar service menggunakan *Transactional Outbox Pattern* + Redis Streams (`XADD` / `XREADGROUP`). |
+| **Single Entry Point** | Semua traffic eksternal hanya melalui API Gateway dengan pemetaan rute domain spesifik (`/rawat-jalan/*`, `/rekam-medis/*`). |
+| **Resilience** | Circuit Breaker (`hystrix-go`) pada setiap koneksi gRPC di API Gateway. |
+| **Idempotency** | Middleware `X-Request-ID` + Redis cache (TTL 24 jam) untuk seluruh operasi POST. |
+| **Observability** | Structured logging (`log/slog`) + OpenTelemetry Distributed Tracing yang diekspor ke Jaeger. |
+| **Security** | Token PASETO simetris + claims RBAC (*Admin, Doctor, Nurse, Medical Records, Pharmacist, Cashier*). |
+
 
 ---
 
@@ -264,48 +272,98 @@ Database : simrs_db (tables: encounters, outbox_events)
 
 ---
 
-### 3.5 EMR Service
+### 3.5 Rawat Jalan Service
 
 ```
-Module   : emr-service
+Module   : rawat-jalan-service
 Protocol : gRPC
-Port     : 50054 (Docker: 60054)
-Database : simrs_db (tables: medical_records, medical_actions,
-           clinic_wait_time_aggregates, outbox_events)
-Peran    : Modul Poliklinik
+Port     : 50057 (Docker: 60057, Metrics: 9097)
+Database : simrs_db (Schema: rawat_jalan)
+           (tables: encounters, triage_records, medical_actions,
+            encounter_diagnoses, clinic_wait_time_aggregates,
+            icd10_catalog [replica], kbm_catalog [replica],
+            master_tindakan [replica], outbox_events)
+Peran    : Operasional Pelayanan Poliklinik Dokter & Perawat
+Consumer : 
+  1. registration.events (group: rawat-jalan-group)
+  2. clinical_master_stream (group: rawat-jalan-master-sync)
 Workers  : aggregator_cron.go (update wait time aggregates)
 ```
 
-> Berfungsi sebagai **modul Poliklinik** — area kerja dokter dan perawat di dalam poli. Mencakup pencatatan pemeriksaan awal (triage/vital signs), input diagnosa **Kamus Bahasa Medis (KBM)**, pemetaan dan verifikasi KBM ke ICD-10 oleh bagian Rekam Medis, pencatatan tindakan medis beserta tarif, dan kalkulasi estimasi waktu tunggu antrean poli berdasarkan data historis multidimensi.
+> Berfungsi sebagai **pusat operasional poliklinik (Point-of-Care)** bagi dokter dan perawat. Mencakup penerimaan pasien dari registrasi, pengisian triage/vital signs, pelaksanaan encounter, input tindakan medis berbayar, penentuan diagnosis klinis (KBM/ICD-10) beserta derajat keparahan (*Severity Level*), serta kalkulasi estimasi waktu tunggu antrean poliklinik berbasis moving average dan AI-ready.
 
 **gRPC Methods:**
 
 | Method | Request | Response | Keterangan |
 |---|---|---|---|
-| `SubmitTriage` | `encounter_no`, `mrn`, vital signs | `success` | Buat draft rekam medis + data triage |
-| `StartEncounter` | `encounter_no` | `success` | Ubah status MR dari DRAFT → ACTIVE |
-| `AddDiagnosis` | `encounter_no`, `icd10_code`, `doctor_id`, `dept_code`, `gender`, `age_bracket` | `success` | Simpan diagnosa + update agregat antrean |
-| `AddMedicalAction` | `encounter_no`, `action_code`, `action_name`, `price`, `notes` | `success` | Tambahkan tindakan medis + emit event |
-| `GetMedicalRecord` | `encounter_no` | Full MR data | Ambil rekam medis lengkap |
-| `GetEstimatedWaitTime` | `doctor_id`, `dept_code`, `gender`, `age_bracket` | `estimated_minutes` | Estimasi waktu tunggu poliklinik |
+| `SubmitTriage` | `encounter_no`, `mrn`, vital signs, keluhan | `success` | Rekam data triage awal perawat |
+| `StartEncounter` | `encounter_no` | `success` | Mulai sesi pemeriksaan dokter (ACTIVE) |
+| `CompleteEncounter` | `encounter_no` | `success` | Selesaikan pemeriksaan poli (COMPLETED) |
+| `AddMedicalAction` | `encounter_no`, `action_code`, `action_name`, `price`, `notes` | `action_id`, `success` | Catat tindakan + simpan snapshot harga + emit ke outbox |
+| `RemoveMedicalAction` | `action_id` | `success` | Batalkan tindakan medis |
+| `AddEncounterDiagnosis` | `encounter_no`, `kbm_code`, `icd10_code`, `diagnosis_type`, `severity_level` | `diagnosis_id`, `success` | Catat diagnosa klinis + snapshot |
+| `UpdateEncounterDiagnosis` | `diagnosis_id`, fields | `success` | Perbarui status diagnosa |
+| `RemoveEncounterDiagnosis` | `diagnosis_id` | `success` | Hapus diagnosa dari kunjungan |
+| `GetEncounterDetails` | `encounter_no` | Detail encounter | Ambil data lengkap pemeriksaan poli |
+| `GetWaitingList` | `department_code`, `doctor_id` | List antrean | Daftar antrean aktif poliklinik |
+| `GetEstimatedWaitTime` | `doctor_id`, `dept_code`, `gender`, `age_bracket` | `estimated_minutes` | Estimasi waktu antrean dokter poli |
 
 **Outbox Events yang diterbitkan:**
 
-| Event Type | Payload |
-|---|---|
-| `MedicalActionAdded` | `encounter_no`, `action_code`, `action_name`, `price` |
+| Event Type | Stream Target | Payload |
+|---|---|---|
+| `MedicalActionAdded` | `rawat_jalan_stream` | `encounter_no`, `action_code`, `action_name`, `price` |
+| `EncounterCompleted` | `rawat_jalan_stream` | `encounter_no`, `mrn`, `completed_at` |
 
 ---
 
-### 3.6 Pharmacy Service
+### 3.6 Medical Record Service
+
+```
+Module   : medical-record-service
+Protocol : gRPC
+Port     : 50054 (Docker: 60054, Metrics: 9094)
+Database : simrs_db (Schema: medical_record)
+           (tables: medical_records, encounter_diagnoses,
+            kbm_catalog [SSOT], icd10_catalog [SSOT],
+            icd9_catalog [SSOT], snomed_catalog [SSOT],
+            tindakan_catalog [SSOT], mappings, outbox_events)
+Peran    : Arsip Rekam Medis, Verifikasi Koding, Casemix BPJS & Master Data SSOT
+Workers  : MasterPublisher (Publish master events to outbox)
+```
+
+> Berfungsi sebagai **pengelola arsip legal rekam medis dan pusat kodifikasi klinis**. Bertanggung jawab atas verifikasi dan pemetaan kode KBM ke ICD-10/ICD-9 untuk klaim asuransi INA-CBGs BPJS Kesehatan, validasi tingkat keparahan (*Severity Level*), serta bertindak sebagai **Single Source of Truth (SSOT)** seluruh katalog terminologi klinis RS.
+
+**gRPC Methods:**
+
+| Method | Request | Response | Keterangan |
+|---|---|---|---|
+| `GetMedicalRecord` | `encounter_no` | Full MR data | Ambil berkas rekam medis permanen |
+| `GetPatientMedicalRecords` | `mrn` | List MR data | Riwayat seluruh kunjungan pasien |
+| `VerifyKBMDiagnosis` | `diagnosis_id`, `icd10_code`, `is_primary` | `success` | Perekam Medis memverifikasi kode ICD-10 untuk klaim BPJS |
+| `FinalizeEncounterSeverity` | `encounter_no`, `severity_level`, `notes` | `success` | Finalisasi severity level untuk tarif INA-CBGs |
+| `GetPendingVerification` | `page`, `page_size` | List diagnoses | Daftar diagnosa yang menunggu verifikasi koder |
+| `GetMaster*` / `UpsertMaster*` | Berbagai master terminologi | Master Data | CRUD katalog KBM, ICD-10, ICD-9, SNOMED, Tindakan |
+
+**Outbox Events yang diterbitkan:**
+
+| Event Type | Stream Target | Payload |
+|---|---|---|
+| `ClinicalMasterUpdated` | `clinical_master_stream` | `entity_type` (ICD10/KBM/Tindakan), `action` (UPSERT/DELETE), `data` |
+| `RecordArchived` | `medical_record_stream` | `encounter_no`, `mrn`, `archived_at` |
+
+---
+
+### 3.7 Pharmacy Service
 
 ```
 Module   : pharmacy-service
 Protocol : gRPC
-Port     : 50055 (Docker: 60055)
-Database : simrs_db (tables: inventory, prescriptions, prescription_items,
-           encounter_payments, pharmacy_wait_time_aggregates, outbox_events)
-Consumer : billing_consumer.go (listen InvoicePaid dari Billing)
+Port     : 50055 (Docker: 60055, Metrics: 9095)
+Database : simrs_db (Schema: pharmacy)
+           (tables: inventory, prescriptions, prescription_items,
+            encounter_payments, pharmacy_wait_time_aggregates, outbox_events)
+Consumer : billing_consumer.go (listen InvoicePaid dari Billing via billing_stream)
 Workers  : aggregator_cron.go (update wait time aggregates)
 ```
 
@@ -320,40 +378,44 @@ Workers  : aggregator_cron.go (update wait time aggregates)
 
 **Outbox Events yang diterbitkan:**
 
-| Event Type | Payload |
-|---|---|
-| `PrescriptionDispensed` | `encounter_no`, `prescription_id`, `price` |
+| Event Type | Stream Target | Payload |
+|---|---|---|
+| `PrescriptionDispensed` | `pharmacy_stream` | `encounter_no`, `prescription_id`, `price` |
 
 **Events yang dikonsumsi:**
 
-| Event Source | Event Type | Aksi |
-|---|---|---|
-| Billing Service | `InvoicePaid` | Update status payment `encounter_payments` → PAID |
+| Event Source | Stream | Event Type | Aksi |
+|---|---|---|---|
+| Billing Service | `billing_stream` | `InvoicePaid` | Update status payment `encounter_payments` → PAID |
 
 ---
 
-### 3.7 Billing Service
+### 3.8 Billing Service
 
 ```
 Module   : billing-service
 Protocol : gRPC
-Port     : 50056 (Docker: 60056)
-Database : simrs_db (tables: invoices, invoice_items, outbox_events)
-Consumer : (listen MedicalActionAdded + PrescriptionDispensed)
+Port     : 50056 (Docker: 60056, Metrics: 9096)
+Database : simrs_db (Schema: billing)
+           (tables: invoices, invoice_items, outbox_events)
+Consumer : billing_consumer.go
+  1. rawat_jalan_stream (group: billing_group, worker: billing_worker_rawat_jalan)
+  2. pharmacy_stream (group: billing_group, worker: billing_worker_pharmacy)
 ```
 
 **gRPC Methods:**
 
 | Method | Request | Response | Keterangan |
 |---|---|---|---|
-| `GenerateInvoice` | `encounter_no` | `invoice_id`, `total_amount` | Buat invoice dari semua tindakan + resep |
-| `PayInvoice` | `invoice_id` | `success` | Proses pembayaran + emit event |
+| `GenerateInvoice` | `encounter_no` | `invoice_id`, `total_amount` | Buat invoice dari tindakan poli + resep obat |
+| `PayInvoice` | `invoice_id` | `success` | Proses pelunasan kasir + emit event |
+| `GetInvoice` | `encounter_no` | Invoice details | Lihat rincian tagihan beserta status |
 
 **Outbox Events yang diterbitkan:**
 
-| Event Type | Payload |
-|---|---|
-| `InvoicePaid` | `encounter_no`, `invoice_id`, `paid_at` |
+| Event Type | Stream Target | Payload |
+|---|---|---|
+| `InvoicePaid` | `billing_stream` | `encounter_no`, `invoice_id`, `paid_at` |
 
 ---
 
@@ -419,88 +481,196 @@ erDiagram
 
 ---
 
-### 4.4 EMR Service DB
+### 4.4 Rawat Jalan Service DB (Schema: `rawat_jalan`)
 
 ```mermaid
 erDiagram
-    medical_records {
-        string id PK
-        string encounter_no UK "FK to encounters"
-        string mrn "FK to patients"
-        string icd10_codes "TEXT[] e.g. A09,J06"
-        string notes
-        string status "DRAFT|ACTIVE|COMPLETED"
-        int blood_pressure_systolic
-        int blood_pressure_diastolic
-        float temperature "NUMERIC 5,2 Celsius"
-        int heart_rate "BPM"
-        string doctor_id "dokter penanggung jawab"
-        string department_code "kode poli"
-        string kbm_code "kode KBM"
-        string kbm_name "nama KBM"
-        string icd10_mapping_status "PENDING|VERIFIED"
-        string gender "M atau F"
-        string age_bracket "0-5,6-17,18-60,60+"
-        timestamp started_at
-        timestamp completed_at
-        timestamp created_at
-        timestamp updated_at
+    encounters_rj {
+        VARCHAR_255 encounter_no PK "Nomor kunjungan"
+        VARCHAR_255 mrn "No. Rekam Medis"
+        VARCHAR_100 department_code "Poli tujuan"
+        VARCHAR_100 doctor_id "Dokter penanggung jawab"
+        VARCHAR_50 status "REGISTERED|ACTIVE|COMPLETED"
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
     }
 
-    kbm_catalog {
-        string kbm_code PK
-        string kbm_name
-        string description
-        string body_system
-        timestamp created_at
+    triage_records {
+        UUID id PK "gen_random_uuid()"
+        VARCHAR_255 encounter_no UK
+        INT blood_pressure_systolic
+        INT blood_pressure_diastolic
+        NUMERIC_5_2 temperature "Celsius"
+        INT heart_rate "BPM"
+        INT respiratory_rate
+        TEXT subjective_complaint "Anamnesis keluhan utama"
+        VARCHAR_100 nurse_id
+        TIMESTAMP created_at
     }
 
-    kbm_icd10_mappings {
-        string kbm_code PK, FK
-        string icd10_code PK
-        boolean is_primary
-        timestamp created_at
+    medical_actions_rj {
+        UUID id PK
+        VARCHAR_255 encounter_no
+        VARCHAR_100 action_code
+        VARCHAR_255 action_name "SNAPSHOT nama tindakan"
+        DECIMAL_15_2 price "SNAPSHOT tarif saat tindakan dilakukan"
+        TEXT notes
+        VARCHAR_100 doctor_id
+        TIMESTAMP created_at
     }
 
-    medical_actions {
-        string id PK
-        string medical_record_id FK
-        string action_code "e.g. ACT-001"
-        string action_name
-        decimal price "NUMERIC 15,2"
-        string notes
-        timestamp created_at
+    encounter_diagnoses_rj {
+        UUID id PK
+        VARCHAR_255 encounter_no
+        VARCHAR_100 kbm_code
+        VARCHAR_255 kbm_name "SNAPSHOT nama KBM"
+        VARCHAR_50 icd10_code
+        VARCHAR_255 icd10_name "SNAPSHOT nama ICD-10"
+        VARCHAR_50 diagnosis_type "PRIMARY|SECONDARY"
+        VARCHAR_20 severity_level "MILD|MODERATE|SEVERE"
+        TIMESTAMP created_at
     }
 
-    clinic_wait_time_aggregates {
-        int id PK "SERIAL AUTO"
-        string diagnosis "NOT NULL"
-        string doctor_id "NOT NULL"
-        string department_code "NOT NULL"
-        string gender "NOT NULL"
-        string age_bracket "NOT NULL"
-        int average_wait_minutes
-        int sample_count
-        timestamp updated_at
+    icd10_catalog_replica {
+        VARCHAR_50 code PK "Replika lokal ICD-10"
+        VARCHAR_255 description
+        BOOLEAN is_active
+        TIMESTAMP updated_at
     }
 
-    outbox_events_emr {
-        string id PK
-        string aggregate_type
-        string event_type "MedicalActionAdded"
-        string payload "JSONB"
-        string status "PENDING|PUBLISHED|FAILED"
-        timestamp created_at
+    kbm_catalog_replica {
+        VARCHAR_50 kbm_code PK "Replika lokal KBM"
+        VARCHAR_255 kbm_name
+        VARCHAR_100 body_system
+        BOOLEAN is_active
+        TIMESTAMP updated_at
     }
 
-    medical_records ||--o{ medical_actions : "has"
-    medical_records ||--o{ outbox_events_emr : "generates"
-    kbm_catalog ||--o{ kbm_icd10_mappings : "has"
+    master_tindakan_replica {
+        VARCHAR_50 action_code PK "Replika lokal Tindakan & Tarif"
+        VARCHAR_255 action_name
+        DECIMAL_15_2 price
+        VARCHAR_100 department_code
+        BOOLEAN is_active
+        TIMESTAMP updated_at
+    }
+
+    outbox_events_rj {
+        VARCHAR_255 id PK
+        VARCHAR_100 aggregate_type "Encounter|MedicalAction"
+        VARCHAR_100 event_type "MedicalActionAdded|EncounterCompleted"
+        JSONB payload
+        VARCHAR_50 status "PENDING|PUBLISHED"
+        TIMESTAMP created_at
+    }
+
+    encounters_rj ||--o| triage_records : "has triage"
+    encounters_rj ||--o{ medical_actions_rj : "has actions"
+    encounters_rj ||--o{ encounter_diagnoses_rj : "has diagnoses"
+    encounters_rj ||--o{ outbox_events_rj : "generates"
 ```
 
 ---
 
-### 4.5 Pharmacy Service DB
+### 4.5 Medical Record Service DB (Schema: `medical_record`)
+
+```mermaid
+erDiagram
+    medical_records_mr {
+        UUID id PK "gen_random_uuid()"
+        VARCHAR_255 encounter_no UK
+        VARCHAR_255 mrn
+        VARCHAR_100 doctor_id
+        VARCHAR_100 department_code
+        TEXT resume_medis
+        VARCHAR_50 status "ACTIVE|FINALIZED|ARCHIVED"
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+
+    encounter_diagnoses_mr {
+        UUID id PK
+        VARCHAR_255 encounter_no
+        VARCHAR_50 icd10_code
+        BOOLEAN is_primary
+        VARCHAR_50 kbm_code
+        VARCHAR_50 verification_status "PENDING|VERIFIED|REJECTED"
+        VARCHAR_100 verified_by "ID Perekam Medis"
+        TIMESTAMP verified_at
+        VARCHAR_20 severity_level "Level I, II, atau III (INA-CBGs)"
+    }
+
+    kbm_catalog_ssot {
+        VARCHAR_50 kbm_code PK "Single Source of Truth KBM"
+        VARCHAR_255 kbm_name
+        TEXT description
+        VARCHAR_100 body_system
+        TIMESTAMP created_at
+    }
+
+    icd10_catalog_ssot {
+        VARCHAR_50 code PK "Single Source of Truth ICD-10 WHO"
+        VARCHAR_255 description
+        BOOLEAN is_active
+    }
+
+    kbm_icd10_mappings {
+        VARCHAR_50 kbm_code PK, FK
+        VARCHAR_50 icd10_code PK, FK
+        BOOLEAN is_primary
+        TIMESTAMP created_at
+    }
+
+    tindakan_catalog_ssot {
+        VARCHAR_50 action_code PK "Master Tindakan & Tarif"
+        VARCHAR_255 action_name
+        DECIMAL_15_2 price
+        VARCHAR_100 department_code
+    }
+
+    icd9_catalog_ssot {
+        VARCHAR_50 code PK "Master ICD-9-CM Prosedur"
+        VARCHAR_255 description
+        BOOLEAN is_active
+    }
+
+    tindakan_icd9_mappings {
+        VARCHAR_50 action_code PK, FK
+        VARCHAR_50 icd9_code PK, FK
+        BOOLEAN is_primary
+    }
+
+    snomed_catalog_ssot {
+        VARCHAR_50 concept_id PK "Master SNOMED-CT Kemenkes"
+        TEXT term
+        VARCHAR_100 semantic_tag
+    }
+
+    snomed_icd10_mappings {
+        VARCHAR_50 concept_id PK, FK
+        VARCHAR_50 icd10_code PK, FK
+        INT map_priority
+    }
+
+    outbox_events_mr {
+        VARCHAR_255 id PK
+        VARCHAR_100 aggregate_type "ClinicalMaster|MedicalRecord"
+        VARCHAR_100 event_type "ClinicalMasterUpdated|RecordArchived"
+        JSONB payload
+        VARCHAR_50 status "PENDING|PUBLISHED"
+        TIMESTAMP created_at
+    }
+
+    medical_records_mr ||--o{ encounter_diagnoses_mr : "contains"
+    kbm_catalog_ssot ||--o{ kbm_icd10_mappings : "maps to"
+    icd10_catalog_ssot ||--o{ kbm_icd10_mappings : "mapped from"
+    tindakan_catalog_ssot ||--o{ tindakan_icd9_mappings : "maps to"
+    snomed_catalog_ssot ||--o{ snomed_icd10_mappings : "cross-maps"
+```
+
+---
+
+### 4.6 Pharmacy Service DB (Schema: `pharmacy`)
 
 ```mermaid
 erDiagram
@@ -513,7 +683,7 @@ erDiagram
 
     prescriptions {
         string id PK "e.g. RX-123"
-        string encounter_no "FK to encounters"
+        string encounter_no "Logical ref to encounters"
         string status "CREATED|DISPENSED|CANCELLED|ROLLBACKED"
         boolean is_compounded "apakah resep racikan"
         string notes
@@ -537,7 +707,7 @@ erDiagram
 
     encounter_payments {
         string encounter_no PK
-        string status "PAID|UNPAID"
+        string status "PAID|UNPAID (synced from billing)"
         timestamp paid_at
         timestamp updated_at
     }
@@ -571,13 +741,13 @@ erDiagram
 
 ---
 
-### 4.6 Billing Service DB
+### 4.7 Billing Service DB (Schema: `billing`)
 
 ```mermaid
 erDiagram
     invoices {
         VARCHAR_255 id PK "e.g. INV-123"
-        VARCHAR_255 encounter_no "FK to encounters"
+        VARCHAR_255 encounter_no "Logical ref to encounters"
         DECIMAL_10_2 total_amount
         VARCHAR_50 status "UNPAID|PAID"
         TIMESTAMP paid_at
@@ -608,59 +778,68 @@ erDiagram
 
 ---
 
-### 4.7 Relasi Antar Service (Logical ERD)
+### 4.8 Aturan Isolasi Relasi Antar Skema KETAT
+
+1. **Zero Foreign Keys Lintas Skema**: Tidak ada constraint `FOREIGN KEY` antar tabel beda skema (contoh: `billing.invoices.encounter_no` tidak memiliki FK ke `registration.encounters`).
+2. **Korelasi Menggunakan Business Key**: Entitas dikorelasikan secara logikal melalui `mrn` dan `encounter_no`. Integritas divalidasi pada *application domain layer*.
+3. **Clinical Snapshot Pattern**: Perubahan harga master tindakan atau nama diagnosa di masa mendatang tidak akan merubah transaksi pelayanan masa lalu di poliklinik atau invoice kasir.
+4. **Local Read-Replica**: Rawat Jalan membaca data dari tabel replika lokal dalam skema `rawat_jalan`, bukan via `JOIN` ke `medical_record`.
+
+---
+
+### 4.9 Relasi Antar Service (Logical ERD)
 
 ```mermaid
 erDiagram
     patients {
-        VARCHAR mrn PK
+        VARCHAR mrn PK "patient.patients"
         VARCHAR name
         VARCHAR nik
         VARCHAR dob
     }
 
-    encounters {
-        VARCHAR encounter_no PK
-        VARCHAR mrn FK
+    encounters_reg {
+        VARCHAR encounter_no PK "registration.encounters"
+        VARCHAR mrn FK "Logical ref to patients"
         VARCHAR department
         VARCHAR doctor_id
         VARCHAR status
     }
 
+    encounters_rj {
+        VARCHAR encounter_no PK "rawat_jalan.encounters"
+        VARCHAR status "ACTIVE|COMPLETED"
+    }
+
     medical_records {
-        VARCHAR id PK
-        VARCHAR encounter_no FK
-        VARCHAR kbm_code
-        VARCHAR doctor_id
-        VARCHAR gender
-        VARCHAR age_bracket
-        VARCHAR status
+        VARCHAR id PK "medical_record.medical_records"
+        VARCHAR encounter_no UK "Logical ref to encounters"
+        VARCHAR status "ACTIVE|ARCHIVED"
     }
 
     prescriptions {
-        VARCHAR id PK
-        VARCHAR encounter_no FK
+        VARCHAR id PK "pharmacy.prescriptions"
+        VARCHAR encounter_no FK "Logical ref to encounters"
         VARCHAR status
-        VARCHAR kbm_code
-        VARCHAR doctor_id
     }
 
     invoices {
-        VARCHAR id PK
-        VARCHAR encounter_no FK
+        VARCHAR id PK "billing.invoices"
+        VARCHAR encounter_no FK "Logical ref to encounters"
         DECIMAL total_amount
         VARCHAR status
     }
 
     encounter_payments {
-        VARCHAR encounter_no PK
+        VARCHAR encounter_no PK "pharmacy.encounter_payments"
         VARCHAR status "synced from billing"
     }
 
-    patients ||--o{ encounters : "has visits"
-    encounters ||--o| medical_records : "has record"
-    encounters ||--o{ prescriptions : "has prescriptions"
-    encounters ||--o{ invoices : "billed via"
+    patients ||--o{ encounters_reg : "has visits"
+    encounters_reg ||--o| encounters_rj : "handled by"
+    encounters_reg ||--o| medical_records : "archived in"
+    encounters_reg ||--o{ prescriptions : "has prescriptions"
+    encounters_reg ||--o{ invoices : "billed via"
     invoices ||--o| encounter_payments : "synced to"
 ```
 
@@ -672,7 +851,7 @@ erDiagram
 
 ### Legend
 - 🔓 = Publik (tidak perlu autentikasi)
-- 🔐 = Butuh JWT Bearer Token
+- 🔐 = Butuh PASETO Bearer Token
 - 👤 = RBAC: Role yang diizinkan
 - ⚡ = SSE (Server-Sent Events)
 
@@ -702,9 +881,11 @@ doctor_id, department_code, gender, age_bracket, is_compounded
 
 | Method | Path | Auth | Role | Keterangan |
 |---|---|---|---|---|
-| `POST` | `/auth/login` | 🔓 | - | Login, dapatkan JWT token |
+| `POST` | `/auth/login` | 🔓 | - | Login, dapatkan PASETO token |
+| `POST` | `/auth/refresh` | 🔓 | - | Rotasi sesi via refresh token |
+| `POST` | `/auth/signup/patient` | 🔓 | - | Pendaftaran mandiri pasien baru (akun + MRN) |
 
-**Request Body:**
+**Request Body `/auth/login`:**
 ```json
 {
   "username": "string (required)",
@@ -718,8 +899,8 @@ doctor_id, department_code, gender, age_bracket, is_compounded
 
 | Method | Path | Auth | Role | Keterangan |
 |---|---|---|---|---|
-| `POST` | `/patient/register` | 🔐 | 👤 admin, nurse | Daftar pasien baru |
-| `GET` | `/patient/{mrn}` | 🔐 | 👤 admin, nurse | Lookup pasien by MRN |
+| `POST` | `/patient/register` | 🔐 | 👤 admin, nurse | Registrasi master pasien oleh petugas |
+| `GET` | `/patient/{mrn}` | 🔐 | 👤 admin, doctor, nurse | Lookup identitas pasien by MRN |
 
 ---
 
@@ -727,42 +908,75 @@ doctor_id, department_code, gender, age_bracket, is_compounded
 
 | Method | Path | Auth | Role | Keterangan |
 |---|---|---|---|---|
-| `POST` | `/registrations` | 🔐 | 👤 admin, nurse | Daftar kunjungan pasien |
+| `POST` | `/registrations` | 🔐 | 👤 admin, nurse | Daftarkan antrean kunjungan ke Poliklinik |
 
 ---
 
-### 5.5 EMR (Rekam Medis)
+### 5.5 Pelayanan Rawat Jalan (Poliklinik)
 
 | Method | Path | Auth | Role | Keterangan |
 |---|---|---|---|---|
-| `POST` | `/emr/triage` | 🔐 | 👤 doctor, nurse | Input data triage (vital signs) |
-| `POST` | `/emr/start` | 🔐 | 👤 doctor, nurse | Mulai encounter (DRAFT → ACTIVE) |
-| `POST` | `/emr/diagnosis-kbm` | 🔐 | 👤 doctor, nurse | Tambah diagnosa KBM |
-| `GET` | `/emr/kbm/search` | 🔐 | 👤 doctor, nurse, medical_records, admin | Pencarian KBM |
-| `GET` | `/emr/kbm/{code}` | 🔐 | 👤 doctor, nurse, medical_records, admin | Detail KBM |
-| `GET` | `/emr/kbm/{code}/icd10-suggestions` | 🔐 | 👤 medical_records, admin | Rekomendasi ICD-10 dari KBM |
-| `GET` | `/emr/pending-icd10` | 🔐 | 👤 medical_records, admin | Daftar RM yang menunggu verifikasi ICD-10 |
-| `POST` | `/emr/verify-icd10` | 🔐 | 👤 medical_records, admin | Verifikasi & simpan mapping ICD-10 |
-| `POST` | `/emr/actions` | 🔐 | 👤 doctor, nurse | Tambah tindakan medis |
-| `GET` | `/emr/record/{encounter_no}` | 🔐 | 👤 doctor, nurse | Ambil rekam medis lengkap |
+| `POST` | `/rawat-jalan/triage` | 🔐 | 👤 doctor, nurse, admin | Input data triage awal & tanda vital |
+| `POST` | `/rawat-jalan/encounter/start` | 🔐 | 👤 doctor, admin | Mulai sesi pemeriksaan pasien di poli |
+| `POST` | `/rawat-jalan/encounter/complete` | 🔐 | 👤 doctor, admin | Selesaikan pemeriksaan poli |
+| `GET` | `/rawat-jalan/encounter/{encounter_no}` | 🔐 | 👤 doctor, nurse, admin | Ambil detail pemeriksaan rawat jalan |
+| `GET` | `/rawat-jalan/queue` | 🔐 | 👤 doctor, nurse, admin | Daftar antrean aktif di poli bersangkutan |
+| `POST` | `/rawat-jalan/actions` | 🔐 | 👤 doctor, nurse, admin | Tambah tindakan medis (otomatis tertagih ke kasir) |
+| `DELETE` | `/rawat-jalan/actions/{id}` | 🔐 | 👤 doctor, admin | Batalkan tindakan medis |
+| `POST` | `/rawat-jalan/diagnosis` | 🔐 | 👤 doctor, admin | Tambah diagnosa klinis (KBM/ICD-10) + severity |
+| `PUT` | `/rawat-jalan/diagnosis/{id}` | 🔐 | 👤 doctor, admin | Update diagnosa klinis |
+| `DELETE` | `/rawat-jalan/diagnosis/{id}` | 🔐 | 👤 doctor, admin | Hapus diagnosa klinis |
+| `GET` | `/rawat-jalan/master/icd10` | 🔐 | 👤 doctor, nurse, admin | Autocomplete ICD-10 dari replika lokal |
+| `GET` | `/rawat-jalan/master/kbm` | 🔐 | 👤 doctor, nurse, admin | Autocomplete KBM dari replika lokal |
+| `GET` | `/rawat-jalan/master/tindakan` | 🔐 | 👤 doctor, nurse, admin | Autocomplete Tindakan dari replika lokal |
+
+> *Catatan:* Endpoint legacy `/api/v1/emr/triage`, `/api/v1/emr/start`, `/api/v1/emr/complete`, `/api/v1/emr/actions`, dan `/api/v1/emr/diagnosis` secara transparan diteruskan ke `rawat-jalan-service` untuk menjaga kompatibilitas klien lama.
 
 ---
 
-### 5.6 Pharmacy (Farmasi)
+### 5.6 Pengelolaan Rekam Medis & Koding (Medical Records)
 
 | Method | Path | Auth | Role | Keterangan |
 |---|---|---|---|---|
-| `POST` | `/pharmacy/prescriptions` | 🔐 | 👤 pharmacist, admin | Buat resep obat |
-| `POST` | `/pharmacy/dispense` | 🔐 | 👤 pharmacist, admin | Keluarkan obat (setelah lunas) |
+| `GET` | `/rekam-medis/record/{encounter_no}` | 🔐 | 👤 medical_records, doctor, admin | Ambil berkas rekam medis permanen |
+| `GET` | `/rekam-medis/patient/{mrn}` | 🔐 | 👤 medical_records, doctor, admin | Riwayat rekam medis seluruh kunjungan pasien |
+| `POST` | `/rekam-medis/diagnosis/{id}/verify-kbm` | 🔐 | 👤 medical_records, admin | Verifikasi & mapping KBM ke kode ICD-10 final |
+| `POST` | `/rekam-medis/encounter/{encounter_no}/severity/finalize` | 🔐 | 👤 medical_records, admin | Finalisasi tingkat keparahan (Severity) klaim BPJS |
+| `GET` | `/rekam-medis/pending-verification` | 🔐 | 👤 medical_records, admin | Daftar diagnosa yang menunggu verifikasi koder |
 
 ---
 
-### 5.7 Billing (Kasir)
+### 5.7 Master Data Katalog Medis (SSOT)
 
 | Method | Path | Auth | Role | Keterangan |
 |---|---|---|---|---|
-| `GET` | `/billing/invoice/{encounter_no}` | 🔐 | 👤 cashier, admin | Generate / lihat invoice |
-| `POST` | `/billing/pay` | 🔐 | 👤 cashier, admin | Bayar invoice |
+| `GET` | `/master/kbm` | 🔐 | 👤 medical_records, admin | Daftar master KBM (Single Source of Truth) |
+| `GET` | `/master/kbm/poli/{poli_code}` | 🔐 | 👤 doctor, nurse, admin | KBM yang dipetakan ke poliklinik tertentu |
+| `GET` | `/master/icd10` | 🔐 | 👤 medical_records, admin | Daftar master ICD-10 WHO |
+| `GET` | `/master/icd10/kbm/{kbm_code}` | 🔐 | 👤 medical_records, admin | Rekomendasi ICD-10 berdasarkan KBM |
+| `GET` | `/master/icd9` | 🔐 | 👤 medical_records, admin | Daftar master ICD-9-CM Prosedur |
+| `GET` | `/master/snomed` | 🔐 | 👤 medical_records, admin | Master SNOMED-CT Kemenkes RI |
+| `GET` | `/master/snomed/{concept_id}/cross-map` | 🔐 | 👤 medical_records, admin | Cross-mapping SNOMED ke ICD-10/ICD-9 |
+| `GET` | `/master/tindakan` | 🔐 | 👤 medical_records, admin | Master katalog tindakan medis RS |
+
+---
+
+### 5.8 Pharmacy (Farmasi)
+
+| Method | Path | Auth | Role | Keterangan |
+|---|---|---|---|---|
+| `POST` | `/pharmacy/prescriptions` | 🔐 | 👤 doctor, pharmacist, admin | Buat resep obat elektronik |
+| `POST` | `/pharmacy/dispense` | 🔐 | 👤 pharmacist, admin | Keluarkan obat & potong stok (setelah PAID) |
+| `GET` | `/pharmacy/inventory` | 🔐 | 👤 pharmacist, admin | Pantau stok obat apotek |
+
+---
+
+### 5.9 Billing (Kasir)
+
+| Method | Path | Auth | Role | Keterangan |
+|---|---|---|---|---|
+| `GET` | `/billing/invoice/{encounter_no}` | 🔐 | 👤 cashier, admin | Generate / lihat invoice tagihan terpadu |
+| `POST` | `/billing/pay` | 🔐 | 👤 cashier, admin | Pelunasan tagihan kasir |
 
 ---
 
@@ -775,7 +989,7 @@ graph LR
     subgraph "Producer Service"
         SVC["Service Logic"]
         DB_SVC[("Service DB\n(outbox_events)")]
-        RELAY["Outbox Relay\n(polling 5s)"]
+        RELAY["Outbox Relay\n(dynamic stream routing)"]
     end
 
     subgraph "Message Broker"
@@ -790,7 +1004,7 @@ graph LR
 
     SVC -->|"Atomic Transaction"| DB_SVC
     RELAY -->|"Poll PENDING"| DB_SVC
-    RELAY -->|"XADD"| REDIS
+    RELAY -->|"XADD (stream dinamis)"| REDIS
     RELAY -->|"Mark PUBLISHED"| DB_SVC
     CONSUMER -->|"XREADGROUP"| REDIS
     CONSUMER --> SVC2
@@ -803,41 +1017,47 @@ graph LR
 sequenceDiagram
     participant RS as Registration Service
     participant RDB as Redis Streams
-    participant EMR as EMR Service
+    participant RJ as Rawat Jalan Service
+    participant MR as Medical Record Service
     participant PHARMA as Pharmacy Service
     participant BILLING as Billing Service
 
-    Note over RS: Pasien didaftarkan
-    RS->>RDB: XADD EncounterRegistered {encounter_no, mrn}
-    RDB-->>EMR: Consumer group picks up event
-    EMR->>EMR: CreateDraftMR(encounter_no, mrn)
+    Note over RS: Pasien mendaftar kunjungan poli
+    RS->>RDB: XADD registration.events {encounter_no, mrn}
+    RDB-->>RJ: Consumer rawat-jalan-group picks up event
+    RJ->>RJ: Siapkan antrean dan encounter poli
 
-    Note over EMR: Dokter menambah tindakan medis
-    EMR->>RDB: XADD MedicalActionAdded {encounter_no, action, price}
-    RDB-->>BILLING: Consumer picks up event
-    BILLING->>BILLING: Create/update invoice item
+    Note over RJ: Dokter input tindakan medis di poli
+    RJ->>RDB: XADD rawat_jalan_stream MedicalActionAdded {encounter, action, price}
+    RDB-->>BILLING: Consumer billing_group picks up event
+    BILLING->>BILLING: Tambahkan item tindakan ke tagihan
 
-    Note over PHARMA: Apoteker keluarkan obat
-    PHARMA->>RDB: XADD PrescriptionDispensed {encounter_no, rx_id, price}
-    RDB-->>BILLING: Consumer picks up event
-    BILLING->>BILLING: Create/update invoice item
+    Note over PHARMA: Apoteker serahkan obat (dispense)
+    PHARMA->>RDB: XADD pharmacy_stream PrescriptionDispensed {encounter, rx_id, price}
+    RDB-->>BILLING: Consumer billing_group picks up event
+    BILLING->>BILLING: Tambahkan item resep ke tagihan
 
-    Note over BILLING: Kasir proses pembayaran
-    BILLING->>RDB: XADD InvoicePaid {encounter_no, invoice_id}
-    RDB-->>PHARMA: Consumer picks up event
-    PHARMA->>PHARMA: UpsertEncounterPayment status=PAID
+    Note over BILLING: Pasien melunasi tagihan di kasir
+    BILLING->>RDB: XADD billing_stream InvoicePaid {encounter_no, invoice_id}
+    RDB-->>PHARMA: Consumer pharmacy_group picks up event
+    PHARMA->>PHARMA: Update encounter_payments status=PAID
 
-    Note over PHARMA: Setelah PAID → obat bisa dikeluarkan
+    Note over MR: Admin/Koder update katalog ICD-10/KBM
+    MR->>RDB: XADD clinical_master_stream ClinicalMasterUpdated {entity, data}
+    RDB-->>RJ: Consumer rawat-jalan-master-sync picks up event
+    RJ->>RJ: Upsert ke tabel replika lokal rawat_jalan.*
 ```
 
 ### Peta Event
 
-| Source Service | Event Type | Target Service | Aksi di Target |
-|---|---|---|---|
-| `registration-service` | `EncounterRegistered` | `emr-service` | `CreateDraftMR` |
-| `emr-service` | `MedicalActionAdded` | `billing-service` | Tambah invoice item ACTION |
-| `pharmacy-service` | `PrescriptionDispensed` | `billing-service` | Tambah invoice item PRESCRIPTION |
-| `billing-service` | `InvoicePaid` | `pharmacy-service` | Set `encounter_payments.status = PAID` |
+| Source Service | Event Type | Redis Stream Target | Target Consumer Group | Aksi di Target |
+|---|---|---|---|---|
+| `registration-service` | `EncounterRegistered` | `registration.events` | `rawat-jalan-group` | Siapkan encounter aktif di poli |
+| `rawat-jalan-service` | `MedicalActionAdded` | `rawat_jalan_stream` | `billing_group` | Catat tagihan tindakan medis |
+| `rawat-jalan-service` | `EncounterCompleted` | `rawat_jalan_stream` | `medical_record_group` | Selesaikan berkas rekam medis |
+| `pharmacy-service` | `PrescriptionDispensed` | `pharmacy_stream` | `billing_group` | Catat tagihan obat ke invoice |
+| `billing-service` | `InvoicePaid` | `billing_stream` | `pharmacy_group` | Set `encounter_payments.status = PAID` |
+| `medical-record-service` | `ClinicalMasterUpdated` | `clinical_master_stream` | `rawat-jalan-master-sync` | Upsert katalog replika lokal di `rawat_jalan` |
 
 ---
 
@@ -850,8 +1070,9 @@ graph TB
     subgraph SHARED["shared/pkg/"]
         AUTH["auth/\npaseto.go\nTokenManager\n(CreateToken, VerifyToken)"]
         CB["circuitbreaker/\nbreaker.go\nNewGRPCBreaker()\nOpen: 5 consecutive fails\nTimeout: 30s\nHalf-open: 2 requests"]
+        DB["db/\npostgres.go\nConnectPostgres(schema)\nInject search_path"]
         MW["middleware/\ntelemetry.go — TraceID inject\nidempotency.go — X-Request-ID Redis\nratelimiter.go — 60 req/s token bucket"]
-        OB["outbox/\nrelay.go — Poll DB → Redis XADD\nconsumer.go — Redis XREADGROUP\nmodels.go — Event struct"]
+        OB["outbox/\nrelay.go — Dynamic stream routing\nconsumer.go — Redis XREADGROUP\nmodels.go — Event struct"]
         Q["queue/\nestimator.go — QueueEstimator interface\nstatistical_estimator.go — avg × position\nai_estimator.go — placeholder AI estimator"]
         RES["response/\nresponse.go\nSuccessResponse{}\nErrorResponse{}\nJSON() helper"]
         SD["shutdown/\nshutdown.go\nWaitForSignal() — SIGINT/SIGTERM\nGracefulTimeout: 10s"]
@@ -863,17 +1084,18 @@ graph TB
 
 | Package | File | Fungsi Utama |
 |---|---|---|
-| `auth` | `paseto.go` | `TokenManager` — Buat & verifikasi Paseto token simetris (HS256). TTL default 24h. |
-| `circuitbreaker` | `breaker.go` | `NewGRPCBreaker(name)` — Buka circuit setelah 5 consecutive failures atau 60% failure rate (min 10 req). Timeout 30s. |
-| `middleware` | `telemetry.go` | `TraceIDMiddleware` — Inject `X-Trace-ID` ke setiap request, propagasi ke downstream via context. |
-| `middleware` | `idempotency.go` | `IdempotencyMiddleware` — Cache response di Redis dengan key `X-Request-ID` selama 24h. Wajib untuk semua POST. |
+| `auth` | `paseto.go` | `TokenManager` — Buat & verifikasi PASETO token simetris. TTL default 24h. |
+| `circuitbreaker` | `breaker.go` | `NewGRPCBreaker(name)` — Circuit breaker per service menggunakan Sony gobreaker / hystrix. |
+| `db` | `postgres.go` | `ConnectPostgres(schema)` — Koneksi PostgreSQL aman yang mengikat DSN ke `search_path` spesifik skema. |
+| `middleware` | `telemetry.go` | `TraceIDMiddleware` — Inject `X-Trace-ID` ke setiap request, propagasi via context gRPC. |
+| `middleware` | `idempotency.go` | `IdempotencyMiddleware` — Cache response di Redis dengan key `X-Request-ID` selama 24h. |
 | `middleware` | `ratelimiter.go` | `NewRateLimiter(rate, burst)` — Token bucket per IP. Default: 60 req/s, burst 120. |
-| `outbox` | `relay.go` | `Relay.Start()` — Polling DB `outbox_events` setiap interval, XADD ke Redis Stream, mark PUBLISHED. |
-| `outbox` | `consumer.go` | `Consumer` — XREADGROUP dari Redis Stream, proses event, ACK setelah berhasil. |
-| `queue` | `statistical_estimator.go` | `EstimateWaitTime(clinicID, position)` — `position × avgConsultTime`. |
-| `response` | `response.go` | `JSON(w, status, data)` — Standard envelope response dengan `RequestID`, `TraceID`, `Success`, `Data`. |
-| `shutdown` | `shutdown.go` | `WaitForSignal()` — Listen `SIGINT`/`SIGTERM`, return context yang di-cancel. Timeout graceful 10s. |
-| `validator` | `validator.go` | `ValidateAll(map[field]func() error)` — Validasi multi-field sekaligus, return first error. |
+| `outbox` | `relay.go` | Polling DB `outbox_events`, routing dinamis event (`clinical_master_stream`, `rawat_jalan_stream`, dll), mark PUBLISHED. |
+| `outbox` | `consumer.go` | `Consumer` — XREADGROUP dari Redis Stream, proses event, ACK setelah sukses. |
+| `queue` | `statistical_estimator.go` | `EstimateWaitTime(clinicID, position)` — Kalkulasi moving average antrean. |
+| `response` | `response.go` | Standard envelope response dengan `RequestID`, `TraceID`, `Success`, `Data`. |
+| `shutdown` | `shutdown.go` | Graceful shutdown listener `SIGINT`/`SIGTERM` dengan timeout 10 detik. |
+| `validator` | `validator.go` | `ValidateAll()` — Validasi multi-field form input. |
 
 ---
 
@@ -881,26 +1103,27 @@ graph TB
 
 ### Port Reference
 
-| Service | Internal Port | External Port (Docker) | Protocol |
-|---|---|---|---|
-| `auth-service` | 50051 | **60051** | gRPC |
-| `patient-service` | 50052 | **60052** | gRPC |
-| `registration-service` | 50053 | **60053** | gRPC |
-| `emr-service` | 50054 | **60054** | gRPC |
-| `pharmacy-service` | 50055 | **60055** | gRPC |
-| `billing-service` | 50056 | **60056** | gRPC |
-| `api-gateway` | 8080 | **60080** | HTTP/REST + SSE |
-| `PostgreSQL` | 5432 | **5432** | TCP |
-| `Redis` | 6379 | **6379** | TCP |
-| `Jaeger UI` | 16686 | **16686** | HTTP |
-| `Jaeger OTLP gRPC` | 4317 | **4317** | gRPC |
-| `Jaeger OTLP HTTP` | 4318 | **4318** | HTTP |
+| Service | Internal Port | External Port (Docker) | Metrics Port | Protocol | Skema Database |
+|---|---|---|---|---|---|
+| `auth-service` | 50051 | **60051** | 9091 | gRPC | `auth` |
+| `patient-service` | 50052 | **60052** | 9092 | gRPC | `patient` |
+| `registration-service` | 50053 | **60053** | 9093 | gRPC | `registration` |
+| `rawat-jalan-service` | 50057 | **60057** | 9097 | gRPC | `rawat_jalan` |
+| `medical-record-service` | 50054 | **60054** | 9094 | gRPC | `medical_record` |
+| `pharmacy-service` | 50055 | **60055** | 9095 | gRPC | `pharmacy` |
+| `billing-service` | 50056 | **60056** | 9096 | gRPC | `billing` |
+| `api-gateway` | 8080 | **60080** | - | HTTP/REST + SSE | - |
+| `PostgreSQL` | 5432 | **5432** | - | TCP | Multi-Schema |
+| `Redis` | 6379 | **6379** | - | TCP | - |
+| `Jaeger UI` | 16686 | **16686** | - | HTTP | - |
+| `Jaeger OTLP gRPC` | 4317 | **4317** | - | gRPC | - |
+| `Jaeger OTLP HTTP` | 4318 | **4318** | - | HTTP | - |
 
 ### Dependency Graph (Docker Compose)
 
 ```mermaid
 graph TD
-    PG["postgres"] 
+    PG["postgres\n(Multi-Schema: auth, patient, reg,\nrawat_jalan, medical_record, pharma, billing)"] 
     RDB["redis"]
     JG["jaeger"]
 
@@ -915,9 +1138,13 @@ graph TD
     REG --> RDB
     REG --> JG
 
-    EMR["emr-service"] --> PG
-    EMR --> RDB
-    EMR --> JG
+    RJ["rawat-jalan-service"] --> PG
+    RJ --> RDB
+    RJ --> JG
+
+    MR["medical-record-service"] --> PG
+    MR --> RDB
+    MR --> JG
 
     PHARMA["pharmacy-service"] --> PG
     PHARMA --> RDB
@@ -930,7 +1157,8 @@ graph TD
     GW["api-gateway"] --> AUTH
     GW --> PATIENT
     GW --> REG
-    GW --> EMR
+    GW --> RJ
+    GW --> MR
     GW --> PHARMA
     GW --> BILLING
     GW --> RDB
@@ -940,59 +1168,64 @@ graph TD
 ### Cara Menjalankan
 
 ```bash
-# Jalankan semua service + infrastruktur
-docker-compose up --build
+# 1. Jalankan database & infrastruktur
+make be-infra-up
+
+# 2. Inisialisasi skema database multi-schema
+make db-schemas
+
+# 3. Jalankan migrasi seluruh service
+make migrate-up
+
+# 4. Jalankan seluruh microservices lokal
+make be-run-local-all
 
 # Akses API Gateway
 curl http://localhost:60080/api/v1/health
 
 # Akses Jaeger Tracing UI
 open http://localhost:16686
-
-# Login
-curl -X POST http://localhost:60080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"secret123"}'
 ```
 
 ### Alur Bisnis Lengkap (Happy Path)
 
 ```mermaid
 flowchart TD
-    A["👤 Admin/Nurse\nDaftar Pasien\nPOST /patient/register"] -->|"MRN"| B
+    A["👤 Admin/Nurse\nDaftar Pasien Baru\nPOST /patient/register"] -->|"MRN"| B
 
-    B["👤 Admin/Nurse\nDaftar Kunjungan\nPOST /registrations"] -->|"encounter_no"| C
+    B["👤 Admin/Nurse\nDaftar Kunjungan Poli\nPOST /registrations"] -->|"encounter_no"| C
 
-    C["🔔 Event: EncounterRegistered\n(Redis Stream)"] -->|"Auto"| D
+    C["🔔 Event: EncounterRegistered\n(Redis Stream: registration.events)"] -->|"rawat-jalan-group"| D
 
-    D["EMR Service\nBuat Draft Rekam Medis\n(background event consumer)"] --> E
+    D["🏥 Rawat Jalan Service\nSiapkan Encounter Poli Aktif"] --> E
 
-    E["👨‍⚕️ Nurse\nInput Triage\nPOST /emr/triage"] --> F
+    E["🩺 Nurse\nInput Triage / Vital Signs\nPOST /rawat-jalan/triage"] --> F
 
-    F["👨‍⚕️ Doctor\nMulai Konsultasi\nPOST /emr/start"] --> G
+    F["👨‍⚕️ Doctor\nMulai Pemeriksaan\nPOST /rawat-jalan/encounter/start"] --> G
 
-    G["👨‍⚕️ Doctor\nInput Diagnosa KBM\nPOST /emr/diagnosis-kbm"] --> G2
+    G["👨‍⚕️ Doctor\nInput Diagnosa (KBM/ICD-10) + Severity\nPOST /rawat-jalan/diagnosis"] --> H
 
-    G2["👨‍⚕️ Medical Records\nVerifikasi ICD-10\nPOST /emr/verify-icd10"] --> H
+    H["👨‍⚕️ Doctor\nInput Tindakan Medis\nPOST /rawat-jalan/actions"] -->|"Event: MedicalActionAdded\n(rawat_jalan_stream)"| I
 
-    H["👨‍⚕️ Doctor\nTambah Tindakan\nPOST /emr/actions"] -->|"Event: MedicalActionAdded"| I
+    I["💰 Billing Service\nCatat Tagihan Tindakan ke Kasir\n(background consumer)"] --> J
 
-    I["💰 Billing Service\nUpdate Invoice Item\n(background)"] --> J
+    J["👨‍⚕️ Doctor\nInput Resep Obat Elektronik\nPOST /pharmacy/prescriptions"] --> K
 
-    J["💊 Pharmacist\nBuat Resep\nPOST /pharmacy/prescriptions"] --> K
+    K["👨‍⚕️ Doctor\nSelesaikan Pemeriksaan Poli\nPOST /rawat-jalan/encounter/complete"] --> L
 
-    K["🏦 Cashier\nGenerate Invoice\nGET /billing/invoice/{encounter_no}"] --> L
+    L["🏦 Cashier\nLihat Rincian Tagihan Terpadu\nGET /billing/invoice/{encounter_no}"] --> M
 
-    L["🏦 Cashier\nProses Pembayaran\nPOST /billing/pay"] -->|"Event: InvoicePaid"| M
+    M["🏦 Cashier\nProses Pelunasan Pembayaran\nPOST /billing/pay"] -->|"Event: InvoicePaid\n(billing_stream)"| N
 
-    M["💊 Pharmacy Service\nUpdate status PAID\n(background)"] --> N
+    N["💊 Pharmacy Service\nUpdate status PAID & Siapkan Obat\nPOST /pharmacy/dispense"] --> P
 
-    N["💊 Pharmacist\nKeluarkan Obat\nPOST /pharmacy/dispense"] --> O
+    P["📑 Medical Record Service\nVerifikasi Koding ICD-10 & Finalisasi Severity BPJS\nPOST /rekam-medis/diagnosis/{id}/verify-kbm"] --> Q
 
-    O["✅ Kunjungan Selesai"]
+    Q["✅ Pelayanan Selesai & Terkodifikasi Sesuai Standar"]
 ```
 
 ---
 
-*Dokumen ini dihasilkan dari analisa kode pada: 2026-08-12*  
+*Dokumen ini diperbarui sesuai implementasi: 2026-08-27*  
 *Module: `github.com/aliube/go-micro-simrs-one`*
+

@@ -10,39 +10,52 @@
 - **Message Broker**: Redis Streams (`XADD`, `XREADGROUP`) untuk menjamin *At-Least-Once Delivery* dan kapabilitas *Consumer Groups*.
 - **API Documentation**: Swagger UI (Setiap service WAJIB mengekspos endpoint `/swagger/*` untuk memudahkan testing API dan integrasi Frontend).
 
-## 2. Arsitektur Database & Distributed Transactions
-- **Database**: PostgreSQL (Satu DB fisik, namun dibagi ke dalam Multi-Schema untuk setiap service). Terdapat juga tabel sentral seperti `refresh_tokens` di skema `auth` untuk mengelola sesi berumur panjang.
-- **Aturan Relasi**: Tidak boleh ada *JOIN* lintas schema. Integrasi data dikaitkan menggunakan *Business Key* seperti `mrn` dan `encounter_no`.
-- **Saga Pattern (Choreography)**: Digunakan untuk membatalkan (*rollback*) transaksi yang melintasi beberapa service melalui pengiriman *event kompensasi* (Misal: membatalkan tagihan kasir jika obat habis).
-- **Transactional Outbox Pattern**: Menggunakan tabel `outbox_messages` di database. *Event message* disimpan dalam transaksi SQL yang sama saat data di-save, menjamin 100% konsistensi pengiriman pesan ke Redis.
+## 2. Arsitektur Database & Distributed Transactions (Strict Multi-Schema)
+- **Database Engine**: PostgreSQL 15.
+- **Strategi Multi-Schema KETAT**: Seluruh database diisolasi per bounded context ke dalam skema terpisah di `simrs_db`:
+  - `auth.*`: Master kredensial, role, refresh token, audit login.
+  - `patient.*`: Master demografi pasien dan penomoran MRN.
+  - `registration.*`: Pendaftaran kunjungan dan antrean poliklinik.
+  - `rawat_jalan.*`: Operasional poliklinik aktif (triage, tindakan, diagnosis, resep elektronik, agregat antrean) beserta **tabel replika lokal master data**.
+  - `medical_record.*`: Arsip rekam medis permanen, verifikasi KBM ke ICD-10, casemix INA-CBGs, dan **Single Source of Truth (SSOT) Master Klinis**.
+  - `pharmacy.*`: Inventaris obat, resep farmasi, status penyerahan obat, antrean farmasi.
+  - `billing.*`: Invoice tagihan, item tindakan, item obat, pembayaran kasir.
+- **Aturan Isolasi Relasi KETAT**:
+  - **Dilarang Mutlak Cross-Schema JOIN**: Setiap service hanya boleh query tabel di dalam skemanya sendiri.
+  - **Zero Cross-Schema Foreign Keys**: Integritas data antar-service dikaitkan menggunakan *Business Key* seperti `mrn` dan `encounter_no`. Validasi ditegakkan pada layer aplikasi.
+  - **Clinical Snapshot Pattern**: Saat dokter/perawat menginput tindakan atau diagnosis di poliklinik, sistem menyimpan snapshot nama dan tarif pada saat transaksi terjadi ke tabel `rawat_jalan`. Hal ini mencegah ketergantungan join ke tabel master sekaligus mematuhi standar hukum rekam medis.
+  - **Asynchronous Master Data Replication (Local Read-Replica)**: Unit Rekam Medis mengelola katalog master (ICD-10, ICD-9, SNOMED, KBM, Tindakan). Setiap pembaruan katalog dipublikasikan via Redis Stream `clinical_master_stream` dan disinkronkan secara asinkron ke tabel replika lokal di skema `rawat_jalan`.
+- **Saga Pattern (Choreography)**: Digunakan untuk membatalkan (*rollback*) transaksi lintas service melalui pengiriman *event kompensasi* (Misal: membatalkan tagihan kasir jika obat habis).
+- **Transactional Outbox Pattern**: Menggunakan tabel `outbox_events` di setiap skema. *Event message* disimpan dalam transaksi atomik SQL yang sama saat data di-save, menjamin 100% konsistensi pengiriman pesan ke Redis Streams.
 - **Concurrency & Race Conditions**: Menggunakan `SELECT ... FOR UPDATE` (Pessimistic Locking) dan operasi *Atomic Update* SQL untuk menahan *Race Condition* pada pemotongan stok obat.
 - **Global Sequence Generation**: Nomor identitas seperti *MRN* dan *Encounter* dibuat menggunakan operasi *Atomic* dari Redis (`INCR`) untuk mencegah duplikasi nomor antrean saat beban tinggi.
 
 ## 3. Version Control & Development Strategy (Git)
-- **Branching per Service**: Setiap pengerjaan/pembuatan Microservice baru (atau fitur besar) WAJIB dilakukan di **Branch Baru** (contoh branch: `feature/patient-service`, `feature/emr-service`). 
-- Penggabungan kode ke branch utama (`main`) baru dilakukan setelah servis di branch terisolasi tersebut rampung. Hal ini mensimulasikan lingkungan *engineering* profesional.
+- **Branching per Service**: Setiap pengerjaan/pembuatan Microservice baru (atau fitur besar) WAJIB dilakukan di **Branch Baru** (contoh branch: `feature/poli`). 
+- Penggabungan kode ke branch utama (`main`) baru dilakukan setelah servis di branch terisolasi tersebut rampung dan lolos uji integrasi.
 
 ## 4. Keamanan, Token & Pembagian Hak Akses (RBAC)
 Sistem ini membutuhkan otentikasi **PASETO (Platform-Agnostic Security Tokens)**—alternatif modern dan lebih aman dari JWT—dengan skema keamanan berlapis:
 - **Access Token & Refresh Token**: Login menghasilkan *access token* berumur pendek (15 menit) dan *refresh token* berumur panjang (7 hari) yang di-*hash* dengan SHA-256 dan disimpan di database. Hal ini memungkinkan rotasi sesi yang aman tanpa memaksa user sering login ulang.
-- **Auto-Provisioning Admin**: Pada saat *startup*, `auth-service` akan membaca *Environment Variables* (`INITIAL_ADMIN_USERNAME`, `INITIAL_ADMIN_PASSWORD`) dan secara otomatis membuat akun *Super Admin* jika belum ada, menghilangkan ketergantungan pada *database seeder* manual.
+- **Auto-Provisioning Admin**: Pada saat *startup*, `auth-service` akan membaca *Environment Variables* (`INITIAL_ADMIN_USERNAME`, `INITIAL_ADMIN_PASSWORD`) dan secara otomatis membuat akun *Super Admin* jika belum ada.
 
 Otorisasi dibedakan untuk beberapa Role:
-- **Admin / Resepsionis:** Pendaftaran pasien baru dan lama.
-- **Perawat:** Mengisi data pemeriksaan awal (triage/vital signs).
-- **Dokter:** Mengisi diagnosa (KBM), tindakan, dan request resep.
-- **Rekam Medis:** Melakukan verifikasi dan pemetaan (mapping) dari KBM ke standar ICD-10.
-- **Apoteker:** Memproses resep obat dan *dispense* ke pasien.
-- **Kasir:** Proses konfirmasi pembayaran (*billing*).
+- **Admin / Resepsionis:** Pendaftaran master pasien baru/lama dan pembuatan antrean poli (`registration-service`).
+- **Perawat:** Mengisi data pemeriksaan awal (triage/vital signs) di poliklinik (`rawat-jalan-service`).
+- **Dokter:** Memulai pemeriksaan, mengisi diagnosa (KBM/ICD-10), tindakan, dan request resep (`rawat-jalan-service`).
+- **Perekam Medis (Coder):** Melakukan verifikasi koding KBM ke ICD-10, penetapan severity level, pengkodean INA-CBGs BPJS, dan manajemen katalog master klinis (`medical-record-service`).
+- **Apoteker:** Memvalidasi pembayaran tagihan, memproses resep, dan *dispense* obat ke pasien (`pharmacy-service`).
+- **Kasir:** Melakukan verifikasi tagihan tindakan + resep dan konfirmasi pelunasan pembayaran (`billing-service`).
 
-## 5. Microservices Division
-1. **API Gateway**: Menerima request REST/JSON dari luar, meneruskan (proxy) request via gRPC ke service internal.
-2. **User/Auth Service:** Login, registrasi staff, dan penertiban token **PASETO**.
-3. **Patient Service:** Pengelolaan master pasien, generate MRN (Format `10-XX-XX-XX`).
-4. **Registration Service:** Kunjungan pasien (`encounter`) dan nomor antrean poliklinik.
-5. **EMR Service:** Pemeriksaan perawat, diagnosa (KBM) beserta mapping ICD-10, tindakan, resep, serta *Summary Tables* untuk perhitungan durasi.
-6. **Pharmacy Service:** Master data obat, pemotongan stok, proses resep (dispense).
-7. **Billing Service:** Pembuatan *invoice* (tagihan) dari EMR dan Apotek.
+## 5. Microservices Division (8 Services)
+1. **API Gateway (:8080)**: Menerima request REST/JSON dari luar, melakukan Circuit Breaking (`hystrix-go`), RBAC auth middleware, dan meneruskan (proxy) request via gRPC ke service internal.
+2. **User/Auth Service (:50051)**: Login, registrasi staff, manajemen master role/pegawai, dan penertiban token **PASETO**.
+3. **Patient Service (:50052)**: Pengelolaan master data pasien, generate MRN unik (Format `10-XX-XX-XX`).
+4. **Registration Service (:50053)**: Pendaftaran kunjungan pasien (`encounter`) dan nomor antrean poliklinik.
+5. **Rawat Jalan Service (:50057)**: Operasional poliklinik dokter dan perawat, form triage, tindakan klinis, diagnosis KBM/ICD-10, resep elektronik, antrean poli, dan replika lokal master klinis.
+6. **Medical Record Service (:50054)**: Pengelolaan berkas rekam medis, verifikasi koding KBM ke ICD-10/ICD-9, finalisasi severity klaim BPJS, dan Single Source of Truth (SSOT) katalog klinis.
+7. **Pharmacy Service (:50055)**: Master obat & inventaris farmasi, validasi stok, proses peracikan resep, dan penyerahan obat (dispense).
+8. **Billing Service (:50056)**: Penggabungan tagihan tindakan poliklinik dan tagihan obat dari resep menjadi satu invoice terpadu, serta pemrosesan pembayaran kasir.
 
 ## 6. Arsitektur "AI-Ready" untuk Estimasi Waktu Tunggu
 Untuk memfasilitasi kalkulasi waktu tunggu cerdas tanpa merombak sistem *core*, proyek ini menerapkan **Dependency Injection (SOLID)**.

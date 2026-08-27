@@ -19,22 +19,29 @@
 
 Berbeda dengan dokumen handover sebelumnya yang berisi daftar GAP, saat ini sistem telah berfungsi secara *end-to-end* dengan penyelesaian masalah-masalah kritikal berikut:
 
+### Arsitektur Microservices & Pemisahan Domain
+- **Pemisahan Domain Rawat Jalan & Rekam Medis:**
+  - `rawat-jalan-service` (:50057) menangani operasional dokter dan perawat poliklinik (triage, diagnosis, tindakan, resep elektronik, antrean).
+  - `medical-record-service` (:50054) menangani pengarsipan berkas rekam medis permanen, verifikasi koding KBM ke ICD-10, finalisasi severity casemix INA-CBGs BPJS, dan *Single Source of Truth* katalog klinis.
+- **Arsitektur Database Multi-Schema KETAT:**
+  - Database terisolasi ke skema: `auth`, `patient`, `registration`, `rawat_jalan`, `medical_record`, `pharmacy`, `billing`.
+  - Ditegakkan aturan: *Zero Cross-Schema JOINs* dan *Zero Cross-Schema Foreign Keys*.
+  - Transaksi poliklinik menggunakan *Clinical Snapshot Pattern* untuk menyimpan nama tindakan dan diagnosa secara independen.
+  - *Asynchronous Master Data Replication*: Katalog klinis direplikasi secara asinkron dari Rekam Medis ke tabel replika lokal Rawat Jalan via Redis Stream `clinical_master_stream` untuk menjamin pencarian autocomplete sub-detik (1-2 ms).
+
 ### Keamanan & Otorisasi
 - **PASETO Access & Refresh Token:** Skema rotasi token berumur panjang telah aktif (disimpan menggunakan hash SHA-256 di PostgreSQL). Terdapat endpoint `POST /api/v1/auth/refresh`.
-- **RBAC (Role-Based Access Control):** Role (*Admin*, *Dokter*, *Perawat*, dll) dimasukkan ke dalam claims token PASETO. Middleware `RequireRole` telah terpasang di API Gateway untuk melindungi *routes* sesuai otorisasinya.
+- **RBAC (Role-Based Access Control):** Role (*Admin*, *Dokter*, *Perawat*, *Perekam Medis*, *Apoteker*, *Kasir*) dimasukkan ke dalam claims token PASETO. Middleware `RequireRole` terpasang di API Gateway melindungi rute `/rawat-jalan/*` dan `/rekam-medis/*`.
 - **Auto-Provisioning Super Admin:** Akun admin otomatis dibuat saat `auth-service` menyala pertama kali berbekal *Environment Variables* (`INITIAL_ADMIN_USERNAME`, `INITIAL_ADMIN_PASSWORD`).
 
 ### Infrastruktur & Stabilitas
-- **Idempotency & Redis:** Seluruh koneksi ke Redis di *microservices* (`pharmacy-service`, `billing-service`) telah diperbaiki. *Idempotency Middleware* (menggunakan *Redis SETNX*) diaktifkan di API Gateway untuk mencegah eksekusi ganda pada endpoint POST.
-- **Docker Compose Healthchecks:** Infrastruktur (PostgreSQL, Redis, Jaeger) sekarang dijamin sehat (`service_healthy`) sebelum *microservices* dijalankan. Skrip `make be-infra-up` dan `make be-infra-down` beroperasi dengan sinkron dan anti *zombie process*.
-- **Outbox Pattern:** Event-driven arsitektur sepenuhnya fungsional. Transaksi di EMR dan Apotek mempublikasikan event ke Redis Streams dan diserap oleh Billing Consumer untuk membangun Invoice (Tagihan) secara otomatis.
-
-### Fungsionalitas Bisnis & API
-- **Billing Service:** Implementasi method gRPC `GenerateInvoice` dan `PayInvoice` telah diluruskan dan diselaraskan dengan kontrak `.proto`.
-- **Validasi Pembayaran Apotek:** `pharmacy-service` kini secara *synchronous* memvalidasi status invoice ke `billing-service`. Obat tidak dapat di-*dispense* jika invoice belum bersatus `PAID`.
-- **Global Exception Handling:** Seluruh respons error dari gRPC tidak lagi membocorkan detail teknis, melainkan diterjemahkan ke dalam Bahasa Indonesia yang ramah pengguna.
-- **Pendaftaran Pasien:** Alur untuk pendaftaran pasien mandiri (akun + MRN) dan pendaftaran kunjungan telah diperjelas di endpoint terpisah.
-- **Queue Estimator:** Antarmuka (Interface) AI-Ready untuk menghitung waktu antrean telah disediakan.
+- **Idempotency & Redis:** Seluruh koneksi ke Redis di *microservices* telah diperbaiki. *Idempotency Middleware* (menggunakan *Redis SETNX*) diaktifkan di API Gateway untuk mencegah eksekusi ganda pada endpoint POST.
+- **Docker Compose Healthchecks:** Infrastruktur (PostgreSQL, Redis, Jaeger) dijamin sehat (`service_healthy`) sebelum *microservices* dijalankan.
+- **Transactional Outbox Pattern & Redis Streams:**
+  - `registration.events` dikonsumsi oleh `rawat-jalan-group` (`rawat-jalan-service`).
+  - `rawat_jalan_stream` dikonsumsi oleh `billing_group` (`billing-service`) untuk tagihan tindakan medis poli.
+  - `pharmacy_stream` dikonsumsi oleh `billing_group` (`billing-service`) untuk tagihan obat.
+  - `clinical_master_stream` dikonsumsi oleh `rawat-jalan-master-sync` (`rawat-jalan-service`).
 
 ---
 
@@ -43,20 +50,20 @@ Berbeda dengan dokumen handover sebelumnya yang berisi daftar GAP, saat ini sist
 Seluruh siklus operasional dapat dilakukan menggunakan perintah `make`:
 
 ```bash
-# 1. Jalankan Infrastruktur Database (Akan menunggu hingga Postgres/Redis "healthy")
+# 1. Jalankan Infrastruktur Database (PostgreSQL, Redis, Jaeger)
 make be-infra-up
 
-# 2. Jalankan semua microservice secara lokal
+# 2. Siapkan skema database multi-schema
+make db-schemas
+
+# 3. Jalankan migrasi database seluruh service
+make migrate-up
+
+# 4. Jalankan semua microservice secara lokal
 make be-run-local-all
 
-# 3. Hentikan semua microservice lokal dengan bersih
+# 5. Hentikan semua microservice lokal dengan bersih
 make be-stop-local-all
-
-# 4. Matikan seluruh infrastruktur Database
-make be-infra-down
-
-# 5. Jalankan migrasi database
-make migrate-up
 ```
 
 ---
@@ -64,23 +71,32 @@ make migrate-up
 ## 4. Alur Sistem (Happy Path)
 
 ```text
-1. POST /api/v1/auth/signup/patient      → Auth & Patient Service (dapat MRN)
-2. POST /api/v1/auth/login               → Auth Service (dapat Access & Refresh PASETO token)
-3. POST /api/v1/registrations            → Registration Service (daftar antrean ke Poli)
-4. POST /api/v1/emr/triage               → EMR Service (perawat isi tanda-tanda vital)
-5. POST /api/v1/emr/diagnosis            → EMR Service (dokter input diagnosa KBM/ICD-10)
-6. POST /api/v1/emr/actions              → EMR Service (dokter input tindakan poli)
-                                            ↓ [Outbox Event: MedicalActionAdded → emr_stream]
-                                            ↓ Billing Consumer mencatat tagihan tindakan
-7. POST /api/v1/pharmacy/prescriptions   → Pharmacy Service (dokter buat resep obat)
-8. GET  /api/v1/billing/invoice/{enc}    → Billing Service (lihat rincian tagihan total)
-9. POST /api/v1/billing/pay              → Billing Service (kasir/pasien melunasi tagihan)
-10. POST /api/v1/pharmacy/dispense       → Pharmacy Service (apotek menyerahkan obat)
+1. POST /api/v1/auth/signup/patient           → Auth & Patient Service (generate MRN)
+2. POST /api/v1/auth/login                    → Auth Service (dapat PASETO token)
+3. POST /api/v1/registrations                 → Registration Service (daftar antrean ke Poli)
+                                                 ↓ [Outbox: registration.events → rawat-jalan-group]
+4. POST /api/v1/rawat-jalan/triage            → Rawat Jalan Service (perawat isi tanda-tanda vital)
+5. POST /api/v1/rawat-jalan/encounter/start   → Rawat Jalan Service (dokter mulai pemeriksaan)
+6. POST /api/v1/rawat-jalan/diagnosis         → Rawat Jalan Service (dokter input diagnosa KBM/ICD-10)
+7. POST /api/v1/rawat-jalan/actions           → Rawat Jalan Service (dokter input tindakan poli)
+                                                 ↓ [Outbox Event: MedicalActionAdded → rawat_jalan_stream]
+                                                 ↓ Billing Consumer mencatat tagihan tindakan
+8. POST /api/v1/pharmacy/prescriptions        → Pharmacy Service (dokter buat resep obat)
+9. POST /api/v1/rawat-jalan/encounter/complete→ Rawat Jalan Service (dokter selesaikan kunjungan)
+10. GET  /api/v1/billing/invoice/{enc}         → Billing Service (lihat rincian tagihan total)
+11. POST /api/v1/billing/pay                   → Billing Service (kasir/pasien melunasi tagihan)
+                                                 ↓ [Outbox Event: InvoicePaid → pharmacy_stream]
+12. POST /api/v1/pharmacy/dispense            → Pharmacy Service (apotek memotong stok & serahkan obat)
+13. POST /api/v1/rekam-medis/diagnosis/{id}/verify-kbm 
+                                              → Medical Record Service (verifikasi koding ICD-10/BPJS)
+14. POST /api/v1/rekam-medis/encounter/{enc}/severity/finalize 
+                                              → Medical Record Service (finalisasi severity klaim)
 ```
 
 ---
 
 ## 5. Referensi Dokumen Lainnya
 - Arsitektur teknis lebih mendetail: `/docs/be/technical/architecture.md`
-- Alur proses bisnis: `/docs/be/business/process.md`
-- Dokumentasi API (Swagger): `http://localhost:8080/swagger/` (Bila service berjalan)
+- Alur proses bisnis komprehensif: `/docs/be/business/process.md`
+- Dokumentasi API & ERD: `/docs/be/technical/technical_documentation.md`
+- Panduan Terminologi Klinis & Klaim: `/docs/PROSES_BISNIS_DAN_TEKNIS_TERMINOLOGI_MEDIS_DAN_KLAIM.md`

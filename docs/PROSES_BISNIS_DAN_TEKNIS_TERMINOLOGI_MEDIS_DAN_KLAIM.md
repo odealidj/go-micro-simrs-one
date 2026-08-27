@@ -169,39 +169,55 @@ flowchart TD
 
 ---
 
-## 4. Implementasi Teknis pada Sistem Saat Ini
+## 4. Implementasi Teknis pada Sistem Saat Ini (Strict Multi-Schema & Asynchronous Replication)
 
-### A. Struktur Skema Database (`emr-service`)
+Sistem menerapkan prinsip **Database-per-Service & Multi-Schema KETAT** tanpa *cross-schema join*:
 
-| Nama Tabel | Fungsi Utama | Relasi Kunci |
-|---|---|---|
-| `kbm_catalog` | Master Kamus Bahasa Medis (terminologi lokal RS) | `kbm_code` (PK) |
-| `icd10_catalog` | Master Kode Diagnosa ICD-10 WHO | `icd10_code` (PK) |
-| `kbm_icd10_mapping` | Relasi Many-to-Many antara KBM dan ICD-10 | `kbm_code` &harr; `icd10_code` |
-| `tindakan_catalog` | Master Tindakan & Tarif Medis RS | `action_code` (PK) |
-| `icd9_catalog` | Master Kode Prosedur ICD-9-CM | `icd9_code` (PK) |
-| `tindakan_icd9_mapping` | Relasi Many-to-Many antara Tindakan RS dan ICD-9-CM | `action_code` &harr; `icd9_code` |
-| `snomed_catalog` | Master Terminologi Ontologi SNOMED-CT Kemenkes | `concept_id` (PK) |
-| `snomed_icd10_mapping` | Cross-mapping antara SNOMED-CT dan ICD-10 | `snomed_concept_id` &harr; `icd10_code` |
-| `snomed_icd9_mapping` | Cross-mapping antara SNOMED-CT dan ICD-9-CM | `snomed_concept_id` &harr; `icd9_code` |
-| `kbm_polyclinic_mappings` | Filter KBM per Poliklinik | `kbm_code` &harr; `polyclinic_code` |
-| `action_polyclinic_mappings` | Filter Tindakan per Poliklinik | `action_code` &harr; `polyclinic_code` |
+### A. Struktur Skema Database Master Klinis (`medical_record.*` & `rawat_jalan.*`)
+
+1. **Single Source of Truth (SSOT) pada Skema `medical_record`**:
+   | Nama Tabel | Fungsi Utama | Relasi Kunci |
+   |---|---|---|
+   | `kbm_catalog` | Master Kamus Bahasa Medis (terminologi lokal RS) | `kbm_code` (PK) |
+   | `icd10_catalog` | Master Kode Diagnosa ICD-10 WHO | `icd10_code` (PK) |
+   | `kbm_icd10_mapping` | Relasi Many-to-Many antara KBM dan ICD-10 | `kbm_code` &harr; `icd10_code` |
+   | `tindakan_catalog` | Master Tindakan & Tarif Medis RS | `action_code` (PK) |
+   | `icd9_catalog` | Master Kode Prosedur ICD-9-CM | `icd9_code` (PK) |
+   | `tindakan_icd9_mapping` | Relasi Many-to-Many antara Tindakan RS dan ICD-9-CM | `action_code` &harr; `icd9_code` |
+   | `snomed_catalog` | Master Terminologi Ontologi SNOMED-CT Kemenkes | `concept_id` (PK) |
+   | `snomed_icd10_mapping` | Cross-mapping antara SNOMED-CT dan ICD-10 | `snomed_concept_id` &harr; `icd10_code` |
+   | `snomed_icd9_mapping` | Cross-mapping antara SNOMED-CT dan ICD-9-CM | `snomed_concept_id` &harr; `icd9_code` |
+   | `kbm_polyclinic_mappings` | Filter KBM per Poliklinik | `kbm_code` &harr; `polyclinic_code` |
+   | `action_polyclinic_mappings` | Filter Tindakan per Poliklinik | `action_code` &harr; `polyclinic_code` |
+
+2. **Local Read-Replica pada Skema `rawat_jalan`**:
+   Untuk menjamin kecepatan pencarian dokter di poliklinik (latensi 1-2 ms tanpa overhead jaringan gRPC lintas service), domain Rawat Jalan menyimpan snapshot replika lokal:
+   - `rawat_jalan.icd10_catalog`
+   - `rawat_jalan.kbm_catalog`
+   - `rawat_jalan.master_tindakan`
+
+   *Sinkronisasi Asinkron*: Setiap kali Admin/Rekam Medis menambah atau mengubah katalog master di `medical_record`, `MasterPublisher` mencatat event transaksional ke outbox. Worker Outbox Relay meneruskan ke Redis Stream `clinical_master_stream`. Di sisi `rawat-jalan-service`, `MasterSyncConsumer` menyerap pesan dan melakukan *upsert* ke tabel replika lokal.
 
 ### B. Arsitektur Backend & API Endpoints
 
-1. **gRPC Services (`src/be/emr-service`)**:
+1. **gRPC Services (`medical-record-service` :50054)**:
    - `GetMasterKBM`, `GetMasterKBMByPoli`
    - `GetMasterICD10`, `GetMasterICD10ByPoli`, `GetICD10ByKBM`
    - `GetMasterICD9`, `GetICD9SuggestionsForTindakan`
    - `GetMasterSNOMED`, `GetSNOMEDCrossMap`
    - `GetMasterTindakan`, `GetMasterTindakanByPoli`
+   - `VerifyKBMDiagnosis`, `FinalizeEncounterSeverity` (Koding Casemix BPJS)
 
-2. **API Gateway Endpoints (`src/be/api-gateway`)**:
-   - `GET /api/v1/master/kbm` & `GET /api/v1/master/kbm/poli/{poli_code}`
-   - `GET /api/v1/master/icd10` & `GET /api/v1/master/icd10/kbm/{kbm_code}`
-   - `GET /api/v1/master/icd9` & `GET /api/v1/master/icd9/poli/{poli_code}`
-   - `GET /api/v1/master/snomed` & `GET /api/v1/master/snomed/:concept_id/cross-map`
-   - `GET /api/v1/master/tindakan` & `GET /api/v1/master/tindakan/:action_code/icd9-suggestions`
+2. **gRPC Services (`rawat-jalan-service` :50057)**:
+   - `StartEncounter`, `CompleteEncounter`, `SubmitTriage`
+   - `AddMedicalAction`, `AddEncounterDiagnosis`
+   - `GetEncounterDetails`, `GetWaitingList`
+   - Query pencarian autokomplit lokal menggunakan ekstensi `pg_trgm` pada tabel replika lokal.
+
+3. **API Gateway Endpoints (`src/be/api-gateway`)**:
+   - Master Data: `GET /api/v1/master/kbm`, `GET /api/v1/master/icd10`, `GET /api/v1/master/icd9`, `GET /api/v1/master/snomed`, `GET /api/v1/master/tindakan`
+   - Pelayanan Poli: `POST /api/v1/rawat-jalan/triage`, `POST /api/v1/rawat-jalan/encounter/start`, `POST /api/v1/rawat-jalan/diagnosis`, `POST /api/v1/rawat-jalan/actions`, `POST /api/v1/rawat-jalan/encounter/complete`
+   - Koding Rekam Medis: `POST /api/v1/rekam-medis/diagnosis/{id}/verify-kbm`, `POST /api/v1/rekam-medis/encounter/{encounter_no}/severity/finalize`
 
 ### C. Antarmuka Frontend (React UI)
 
@@ -217,9 +233,9 @@ flowchart TD
      - *Katalog ICD10 - Poliklinik* (`/admin/master/assign-icd10`)
      - *Tindakan - Poliklinik* (`/admin/master/assign-tindakan`)
 
-2. **EMR Poliklinik & Kodifikasi Rekam Medis**:
-   - Dokter memilih diagnosa via KBM dan tindakan via master tindakan.
-   - Rekam medis memverifikasi mapping ke ICD-10/ICD-9 untuk klaim dan pengiriman SATUSEHAT.
+2. **Pelayanan Rawat Jalan & Kodifikasi Rekam Medis**:
+   - Dokter memilih diagnosa via KBM dan tindakan via replika master tindakan di modul Rawat Jalan.
+   - Rekam medis memverifikasi mapping ke ICD-10/ICD-9 di modul Rekam Medis untuk klaim dan pelaporan SATUSEHAT.
 
 ---
 

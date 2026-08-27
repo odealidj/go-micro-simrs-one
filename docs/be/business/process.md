@@ -16,41 +16,49 @@ Proses pendaftaran terbagi menjadi dua konsep utama: **Pendaftaran Master Data P
 2. **Pasien Lama:** Pasien yang sudah pernah mendaftar dan memiliki Nomor RM.
    - Karena master data sudah ada, pasien atau petugas hanya perlu memasukkan Nomor RM (MRN) dan memilih Poliklinik serta Dokter tujuan untuk berobat. Endpoint yang dipanggil langsung mengarah ke layanan pendaftaran kunjungan (`POST /api/v1/registrations`).
 
-### B. Poliklinik (Polyclinic / Examination)
+### B. Pelayanan Rawat Jalan (Poliklinik)
+Pelayanan di poliklinik dikelola secara mandiri oleh domain **Rawat Jalan** (`rawat-jalan-service`):
 1. **Pemeriksaan Awal (Perawat):**
-   - Perawat memanggil pasien berdasarkan antrean.
-   - Perawat menanyakan kembali keluhan, melakukan pemeriksaan tanda-tanda vital (tekanan darah, suhu, dll), dan mencatatnya ke dalam sistem.
-2. **Pemeriksaan Dokter:**
-   - Dokter melihat hasil pemeriksaan awal perawat.
-   - Dokter melakukan pemeriksaan medis.
-   - Dokter menginput **Diagnosa** berdasarkan **Kamus Bahasa Medis (KBM)**. Sistem akan menampilkan KBM yang relevan dan sudah dipetakan khusus untuk Poliklinik tempat dokter bertugas (many-to-many mapping).
-   - Dokter menginput **Tindakan Medis** (beserta tarif).
-   - Dokter membuat **Resep Obat** melalui sistem.
-   - Dokter mengarahkan pasien ke Kasir untuk melakukan pelunasan, kemudian ke Apotek.
+   - Perawat memanggil antrean pasien poliklinik.
+   - Perawat melakukan pengkajian awal dan pemeriksaan tanda-tanda vital (Triage: tensi sistolik/diastolik, suhu tubuh, denyut nadi, keluhan utama) dan mencatatnya ke sistem (`POST /api/v1/rawat-jalan/triage`).
+2. **Pemeriksaan Dokter (Point-of-Care):**
+   - Dokter memulai sesi pemeriksaan pasien (`POST /api/v1/rawat-jalan/encounter/start`).
+   - Dokter meninjau anamnesis dan hasil tanda-tanda vital perawat.
+   - Dokter menginput **Diagnosis Klinis** menggunakan **Kamus Bahasa Medis (KBM)** atau pencarian langsung katalog ICD-10 yang tersedia secara lokal di poliklinik (`POST /api/v1/rawat-jalan/diagnosis`). Dokter juga dapat menentukan derajat keparahan klinis (*Severity Level*).
+   - Dokter menginput **Tindakan Medis** (beserta tarif tindakan) (`POST /api/v1/rawat-jalan/actions`). Input tindakan ini secara otomatis memicu event ke bagian Kasir (Billing).
+   - Dokter membuat **Resep Obat** elektronik melalui sistem (`POST /api/v1/pharmacy/prescriptions`).
+   - Dokter menyelesaikan pemeriksaan poliklinik (`POST /api/v1/rawat-jalan/encounter/complete`).
 
-### C. Rekam Medis (Medical Records)
-1. **Verifikasi Diagnosa:**
-   - Bagian rekam medis menerima data KBM yang diinput oleh dokter.
-   - Sistem memberikan rekomendasi (suggestions) kode **ICD-10** berdasarkan master data mapping (many-to-many) dari KBM tersebut.
-   - Bagian rekam medis melakukan verifikasi dan menetapkan kode ICD-10 final (bisa lebih dari satu) untuk kepentingan pelaporan dan asuransi.
+### C. Pengelolaan Rekam Medis & Koding (Medical Records & Casemix)
+Unit **Rekam Medis** (`medical-record-service`) bertindak sebagai pengelola arsip legal dan koding klinis terstandar untuk pelaporan nasional dan klaim BPJS Kesehatan:
+1. **Verifikasi Koding Diagnosa & KBM:**
+   - Perekam Medis (Coder) menerima berkas rekam medis yang telah diselesaikan dokter poliklinik.
+   - Sistem Rekam Medis memberikan rekomendasi (*mapping suggestion*) kode **ICD-10** dan **ICD-9-CM** berdasarkan KBM atau SNOMED-CT yang diinput dokter.
+   - Perekam Medis memverifikasi atau menyesuaikan pemetaan kode (*cross-mapping*) dan menetapkan Diagnosa Utama (*Primary*) serta Diagnosa Sekunder (*Comorbidity*) untuk keperluan klaim INA-CBGs BPJS (`POST /api/v1/rekam-medis/diagnosis/{id}/verify-kbm`).
+2. **Finalisasi Severity & Casemix:**
+   - Perekam medis memvalidasi tingkat keparahan (*Severity Level I, II, atau III*) untuk pengelompokan tarif klaim BPJS (`POST /api/v1/rekam-medis/encounter/{encounter_no}/severity/finalize`).
+3. **Single Source of Truth (SSOT) Master Data Klinis:**
+   - Unit Rekam Medis mengelola katalog referensi standar (ICD-10, ICD-9, SNOMED, KBM, dan Tindakan).
+   - Setiap pembaruan katalog master data di Rekam Medis direplikasi secara asinkron ke database poliklinik (*Local Read-Replica*) agar pelayanan dokter di poli tidak terganggu.
 
-### D. Pembayaran / Kasir
-1. **Kalkulasi Tagihan:**
-   - Sistem akan mengkalkulasi total tagihan secara otomatis, yang mencakup biaya tindakan medis di poliklinik dan harga obat dari resep.
+### D. Pembayaran / Kasir (Billing)
+1. **Kalkulasi Tagihan Otomatis:**
+   - Sistem Billing mengonsumsi event tindakan medis dari Poliklinik (`rawat_jalan_stream`) dan event dispensing obat dari Farmasi (`pharmacy_stream`) untuk menyusun tagihan (*invoice*) pasien secara otomatis tanpa entri ulang.
 2. **Pelunasan Pembayaran:**
-   - Pasien melakukan pelunasan tagihan di Kasir.
-   - Setelah lunas, status pasien di-update sehingga obat dapat mulai diproses di Apotek.
+   - Pasien melakukan pelunasan tagihan di Kasir (`POST /api/v1/billing/pay`).
+   - Setelah tagihan berstatus `PAID`, sistem memperbarui status pasien sehingga obat dapat disiapkan dan diserahkan di Apotek.
 
 ### E. Apotek (Pharmacy)
 1. **Penerimaan Resep:**
-   - Data resep obat pasien akan muncul di sistem Apotek (diutamakan bagi pasien yang status pembayarannya sudah lunas).
+   - Resep elektronik dari poliklinik muncul di antrean Apotek.
+   - Sistem memvalidasi status pembayaran tagihan sebelum obat dapat dikeluarkan (*dispense*).
 2. **Penyerahan Obat:**
-   - Petugas apotek menyiapkan obat berdasarkan resep.
-   - Obat diserahkan kepada pasien dan keseluruhan proses rawat jalan dinyatakan selesai.
+   - Petugas apotek meracik/menyiapkan obat sesuai dosis dan instruksi dokter.
+   - Petugas apotek memproses penyerahan obat (`POST /api/v1/pharmacy/dispense`) yang secara atomik memotong stok inventaris farmasi.
 
-### F. Estimasi Waktu Tunggu (Fitur Unggulan)
-Sistem memiliki fitur untuk memberikan estimasi waktu secara real-time kepada pasien:
-1. **Estimasi Waktu Poliklinik:** 
-   - Pasien dapat melihat berapa menit lagi giliran mereka akan dipanggil. Kalkulasi didasarkan pada Rata-Rata Waktu Pelayanan (AHT - Average Handling Time) dari masing-masing dokter dikalikan dengan jumlah antrean di depan pasien.
-2. **Estimasi Waktu Pengambilan Obat:** 
-   - Pasien mengetahui kapan obat siap diambil. Kalkulasi didasarkan pada jenis resep (Racikan atau Non-Racikan) dan jumlah antrean resep yang sedang diproses oleh Apoteker.
+### F. Estimasi Waktu Tunggu (Fitur Cerdas AI-Ready)
+Sistem menyediakan estimasi waktu tunggu secara real-time:
+1. **Estimasi Waktu Pelayanan Poliklinik:** 
+   - Dihitung berdasarkan riwayat waktu pelayanan (AHT - *Average Handling Time*) dari dokter bersangkutan dikalikan antrean pasien di depan.
+2. **Estimasi Waktu Pengambilan Obat Farmasi:** 
+   - Dihitung berdasarkan jenis resep (Racikan vs Non-Racikan) dan antrean resep yang sedang diproses.
