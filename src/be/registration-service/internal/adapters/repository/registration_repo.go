@@ -30,6 +30,7 @@ func (r *registrationRepoSqlc) SaveEncounter(ctx context.Context, encounter *dom
 		Mrn:         encounter.MRN,
 		Department:  encounter.Department,
 		DoctorID:    encounter.DoctorID,
+		PerawatID:   sql.NullString{String: encounter.PerawatID, Valid: encounter.PerawatID != ""},
 		Status:      encounter.Status,
 	})
 	return err
@@ -113,6 +114,7 @@ func (r *registrationRepoSqlc) GetTodayEncounters(ctx context.Context, targetDat
 			MRN:         row.Mrn,
 			Department:  row.Department,
 			DoctorID:    row.DoctorID,
+			PerawatID:   row.PerawatID.String,
 			Status:      row.Status,
 			CreatedAt:   row.CreatedAt.Time,
 		}
@@ -207,3 +209,38 @@ func (r *registrationRepoSqlc) UpdateGuarantor(ctx context.Context, encounterNo,
 		Guarantor:   sql.NullString{String: guarantor, Valid: true},
 	})
 }
+
+func (r *registrationRepoSqlc) GetActivePerawatByPoli(ctx context.Context, poliCode string) (string, error) {
+	var perawatID string
+	err := r.db.QueryRowContext(ctx, `
+		SELECT perawat_id
+		FROM auth.mapping_perawat_poli
+		WHERE poli_code = $1
+		  AND CURRENT_DATE BETWEEN start_date AND end_date
+		  AND deleted_dt IS NULL
+		ORDER BY start_date DESC
+		LIMIT 1
+	`, poliCode).Scan(&perawatID)
+	if err != nil {
+		return "", err
+	}
+	return perawatID, nil
+}
+
+func (r *registrationRepoSqlc) GetActiveDoctorByPoli(ctx context.Context, poliCode string) (string, error) {
+	var doctorID string
+	err := r.db.QueryRowContext(ctx, `
+		SELECT dokter_id
+		FROM auth.mapping_dokter_poli
+		WHERE poli_code = $1
+		  AND CURRENT_DATE BETWEEN start_date AND end_date
+		  AND deleted_dt IS NULL
+		ORDER BY start_date DESC
+		LIMIT 1
+	`, poliCode).Scan(&doctorID)
+	if err != nil {
+		return "", err
+	}
+	return doctorID, nil
+}
+

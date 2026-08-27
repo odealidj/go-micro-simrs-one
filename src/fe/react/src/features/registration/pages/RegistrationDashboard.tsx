@@ -1,23 +1,17 @@
 import { useState, useEffect } from "react";
 import { Users, UserPlus, Clock, Stethoscope, Server, Activity, UserCog, CalendarDays } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { AdmisiPageHeader } from "../components/AdmisiPageHeader";
+import { admisiTheme, getAdmisiStatusBadge } from "../theme";
 
 const ServiceStatusBadge = ({ status }: { status: string }) => {
-  if (status === "SERVING" || status === "UP") {
-    return (
-      <div className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-800">
-        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></div>
-        Online
-      </div>
-    );
-  }
+  const badge = getAdmisiStatusBadge(status);
   return (
-    <div className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-rose-100 text-rose-800">
-      <div className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></div>
-      Offline
+    <div className={cn("inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border", badge.className)}>
+      <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", badge.dotClass)}></div>
+      {badge.label}
     </div>
   );
 };
@@ -72,46 +66,40 @@ export function RegistrationDashboard() {
 
   const stats = [
     {
-      title: "Total Pasien",
+      title: "Total Pasien Hari Ini",
       value: totalPatients.toString(),
       icon: Users,
-      bgColor: "bg-blue-100",
-      color: "text-blue-600",
+      bgColor: "bg-sky-50 text-sky-600 border border-sky-100",
     },
     {
       title: "Pasien Baru",
       value: metrics?.new_patients?.toString() || "0",
       icon: UserPlus,
-      bgColor: "bg-emerald-100",
-      color: "text-emerald-600",
+      bgColor: "bg-emerald-50 text-emerald-600 border border-emerald-100",
     },
     {
       title: "Pasien Lama",
       value: metrics?.old_patients?.toString() || "0",
       icon: Activity,
-      bgColor: "bg-indigo-100",
-      color: "text-indigo-600",
+      bgColor: "bg-indigo-50 text-indigo-600 border border-indigo-100",
     },
     {
       title: "Poli Aktif",
       value: metrics?.active_polis?.toString() || "0",
       icon: Stethoscope,
-      bgColor: "bg-purple-100",
-      color: "text-purple-600",
+      bgColor: "bg-purple-50 text-purple-600 border border-purple-100",
     },
     {
-      title: "Dokter Aktif",
+      title: "Dokter Bertugas",
       value: metrics?.active_doctors?.toString() || "0",
       icon: UserCog,
-      bgColor: "bg-amber-100",
-      color: "text-amber-600",
+      bgColor: "bg-amber-50 text-amber-600 border border-amber-100",
     },
     {
-      title: "Perawat Aktif",
+      title: "Perawat Bertugas",
       value: metrics?.active_nurses?.toString() || "0",
       icon: Activity,
-      bgColor: "bg-rose-100",
-      color: "text-rose-600",
+      bgColor: "bg-teal-50 text-teal-600 border border-teal-100",
     }
   ];
 
@@ -132,110 +120,121 @@ export function RegistrationDashboard() {
     : [];
 
   return (
-    <div className="space-y-6 pb-12">
-      <div>
-        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard Pendaftaran</h2>
-        <p className="text-slate-500 mt-1">Ringkasan aktivitas rawat jalan dan status sistem.</p>
-      </div>
+    <div className={admisiTheme.layout.container}>
+      {/* Header */}
+      <AdmisiPageHeader
+        title="Dashboard Pendaftaran"
+        description="Ringkasan aktivitas kunjungan pasien, utilitas poliklinik, dan integritas sistem."
+        badge="Monitoring Real-Time"
+        actions={
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200/80 px-3.5 py-2 rounded-xl shadow-2xs">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span>Sinkronisasi Otomatis</span>
+          </div>
+        }
+      />
 
       {/* SERVICE HEALTH STATUS */}
-      <div>
-        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Service Health Status</h2>
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
+      <div className="space-y-3">
+        <h3 className={admisiTheme.typography.sectionTitle}>Status Layanan SIMRS</h3>
+        <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
           {[
             { key: "api_gateway", label: "API Gateway" },
-            { key: "patient_service", label: "Patient" },
-            { key: "registration_service", label: "Registration" },
-            { key: "billing_service", label: "Billing" },
+            { key: "patient_service", label: "Patient Service" },
+            { key: "registration_service", label: "Registration Service" },
+            { key: "billing_service", label: "Billing Service" },
           ].map((srv) => (
-            <Card key={srv.key} className="shadow-sm border-slate-200">
-              <CardContent className="p-4 flex flex-col items-center text-center justify-center space-y-2">
-                <Server className={`h-6 w-6 ${systemHealth[srv.key] === "SERVING" ? "text-emerald-500" : "text-rose-500"}`} />
-                <div className="text-xs font-semibold text-slate-700">{srv.label}</div>
-                <ServiceStatusBadge status={systemHealth[srv.key] || "DOWN"} />
-              </CardContent>
-            </Card>
+            <div key={srv.key} className="card-premium p-4 flex flex-col items-center text-center justify-center space-y-2">
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-100">
+                <Server className={`h-5 w-5 ${systemHealth[srv.key] === "SERVING" ? "text-emerald-600" : "text-rose-500"}`} />
+              </div>
+              <div className="text-xs font-bold text-slate-800">{srv.label}</div>
+              <ServiceStatusBadge status={systemHealth[srv.key] || "DOWN"} />
+            </div>
           ))}
         </div>
       </div>
 
+      {/* METRIC STATS */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {stats.map((stat, index) => (
-          <Card key={index} className="bg-white border-slate-200 shadow-sm rounded-xl overflow-hidden col-span-1 lg:col-span-2">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-slate-500">{stat.title}</p>
-                  <p className="text-2xl font-bold text-slate-800">{stat.value}</p>
-                </div>
-                <div className={cn("p-2.5 rounded-lg", stat.bgColor, stat.color)}>
-                  <stat.icon className="h-5 w-5" />
-                </div>
+          <div key={index} className="card-premium p-5 col-span-1 lg:col-span-2 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{stat.title}</p>
+                <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{stat.value}</p>
               </div>
-            </CardContent>
-          </Card>
+              <div className={cn("p-3 rounded-xl shadow-2xs shrink-0", stat.bgColor)}>
+                <stat.icon className="h-5 w-5" />
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 
+      {/* CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-sm border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold flex items-center">
-              <CalendarDays className="h-4 w-4 mr-2 text-blue-500" />
+        <div className="card-premium p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-sky-50 text-sky-600 border border-sky-100">
+              <CalendarDays className="h-4 w-4" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900 tracking-tight">
               Grafik Kunjungan 5 Hari Terakhir
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
-              {weeklyVisitsData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={weeklyVisitsData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="date" tick={{fontSize: 12}} tickLine={false} axisLine={false} />
-                    <YAxis allowDecimals={false} tick={{fontSize: 12}} tickLine={false} axisLine={false} />
-                    <RechartsTooltip 
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    />
-                    <Line type="monotone" dataKey="kunjungan" stroke="#3b82f6" strokeWidth={3} activeDot={{ r: 8 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-slate-400 text-sm">Belum ada data kunjungan</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </h3>
+          </div>
+          <div className="h-[280px] w-full pt-2">
+            {weeklyVisitsData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={weeklyVisitsData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="date" tick={{fontSize: 11, fill: '#64748b'}} tickLine={false} axisLine={false} />
+                  <YAxis allowDecimals={false} tick={{fontSize: 11, fill: '#64748b'}} tickLine={false} axisLine={false} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.05)' }}
+                  />
+                  <Line type="monotone" dataKey="kunjungan" stroke="#0284c7" strokeWidth={3} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-slate-400 text-sm">Belum ada data kunjungan</div>
+            )}
+          </div>
+        </div>
 
-        <Card className="shadow-sm border-slate-200">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold flex items-center">
-              <Clock className="h-4 w-4 mr-2 text-amber-500" />
+        <div className="card-premium p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-amber-50 text-amber-600 border border-amber-100">
+              <Clock className="h-4 w-4" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900 tracking-tight">
               Rata-rata Waktu Tunggu per Poli (Menit)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
-              {waitTimesData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={waitTimesData} layout="vertical" margin={{ top: 5, right: 30, bottom: 5, left: 30 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                    <XAxis type="number" tick={{fontSize: 12}} tickLine={false} axisLine={false} />
-                    <YAxis dataKey="poli" type="category" tick={{fontSize: 12}} tickLine={false} axisLine={false} width={80} />
-                    <RechartsTooltip 
-                      contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      cursor={{fill: '#f1f5f9'}}
-                    />
-                    <Bar dataKey="waktuTunggu" fill="#f59e0b" radius={[0, 4, 4, 0]} barSize={24} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-slate-400 text-sm">Belum ada data waktu tunggu</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </h3>
+          </div>
+          <div className="h-[280px] w-full pt-2">
+            {waitTimesData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={waitTimesData} layout="vertical" margin={{ top: 5, right: 30, bottom: 5, left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                  <XAxis type="number" tick={{fontSize: 11, fill: '#64748b'}} tickLine={false} axisLine={false} />
+                  <YAxis dataKey="poli" type="category" tick={{fontSize: 11, fill: '#64748b'}} tickLine={false} axisLine={false} width={80} />
+                  <RechartsTooltip 
+                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.05)' }}
+                    cursor={{fill: '#f8fafc'}}
+                  />
+                  <Bar dataKey="waktuTunggu" fill="#0284c7" radius={[0, 6, 6, 0]} barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-slate-400 text-sm">Belum ada data waktu tunggu</div>
+            )}
+          </div>
+        </div>
       </div>
-
     </div>
   );
 }
+

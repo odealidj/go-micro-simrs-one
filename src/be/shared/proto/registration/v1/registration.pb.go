@@ -131,6 +131,7 @@ type RegisterEncounterRequest struct {
 	DepartmentCode string                 `protobuf:"bytes,2,opt,name=department_code,json=departmentCode,proto3" json:"department_code,omitempty"` // e.g. "IGD", "P01"
 	DoctorId       string                 `protobuf:"bytes,3,opt,name=doctor_id,json=doctorId,proto3" json:"doctor_id,omitempty"`
 	Guarantor      string                 `protobuf:"bytes,4,opt,name=guarantor,proto3" json:"guarantor,omitempty"` // e.g. "Umum", "BPJS"
+	PerawatId      string                 `protobuf:"bytes,5,opt,name=perawat_id,json=perawatId,proto3" json:"perawat_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -189,6 +190,13 @@ func (x *RegisterEncounterRequest) GetDoctorId() string {
 func (x *RegisterEncounterRequest) GetGuarantor() string {
 	if x != nil {
 		return x.Guarantor
+	}
+	return ""
+}
+
+func (x *RegisterEncounterRequest) GetPerawatId() string {
+	if x != nil {
+		return x.PerawatId
 	}
 	return ""
 }
@@ -329,6 +337,7 @@ type EncounterDetail struct {
 	DoctorId       string                 `protobuf:"bytes,4,opt,name=doctor_id,json=doctorId,proto3" json:"doctor_id,omitempty"`
 	Status         string                 `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
 	RegisteredTime string                 `protobuf:"bytes,6,opt,name=registered_time,json=registeredTime,proto3" json:"registered_time,omitempty"`
+	PerawatId      string                 `protobuf:"bytes,7,opt,name=perawat_id,json=perawatId,proto3" json:"perawat_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -401,6 +410,13 @@ func (x *EncounterDetail) GetStatus() string {
 func (x *EncounterDetail) GetRegisteredTime() string {
 	if x != nil {
 		return x.RegisteredTime
+	}
+	return ""
+}
+
+func (x *EncounterDetail) GetPerawatId() string {
+	if x != nil {
+		return x.PerawatId
 	}
 	return ""
 }
@@ -883,12 +899,14 @@ const file_registration_v1_registration_proto_rawDesc = "" +
 	"\tguarantor\x18\x02 \x01(\tR\tguarantor\"V\n" +
 	" UpdateEncounterGuarantorResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\x90\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xaf\x01\n" +
 	"\x18RegisterEncounterRequest\x12\x10\n" +
 	"\x03mrn\x18\x01 \x01(\tR\x03mrn\x12'\n" +
 	"\x0fdepartment_code\x18\x02 \x01(\tR\x0edepartmentCode\x12\x1b\n" +
 	"\tdoctor_id\x18\x03 \x01(\tR\bdoctorId\x12\x1c\n" +
-	"\tguarantor\x18\x04 \x01(\tR\tguarantor\"r\n" +
+	"\tguarantor\x18\x04 \x01(\tR\tguarantor\x12\x1d\n" +
+	"\n" +
+	"perawat_id\x18\x05 \x01(\tR\tperawatId\"r\n" +
 	"\x19RegisterEncounterResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12!\n" +
 	"\fencounter_no\x18\x02 \x01(\tR\vencounterNo\x12\x18\n" +
@@ -897,14 +915,16 @@ const file_registration_v1_registration_proto_rawDesc = "" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
 	"\x06search\x18\x03 \x01(\tR\x06search\x12\x12\n" +
-	"\x04date\x18\x04 \x01(\tR\x04date\"\xcd\x01\n" +
+	"\x04date\x18\x04 \x01(\tR\x04date\"\xec\x01\n" +
 	"\x0fEncounterDetail\x12!\n" +
 	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x12\x10\n" +
 	"\x03mrn\x18\x02 \x01(\tR\x03mrn\x12'\n" +
 	"\x0fdepartment_code\x18\x03 \x01(\tR\x0edepartmentCode\x12\x1b\n" +
 	"\tdoctor_id\x18\x04 \x01(\tR\bdoctorId\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\tR\x06status\x12'\n" +
-	"\x0fregistered_time\x18\x06 \x01(\tR\x0eregisteredTime\"\x7f\n" +
+	"\x0fregistered_time\x18\x06 \x01(\tR\x0eregisteredTime\x12\x1d\n" +
+	"\n" +
+	"perawat_id\x18\a \x01(\tR\tperawatId\"\x7f\n" +
 	"\x1aGetTodayEncountersResponse\x12@\n" +
 	"\n" +
 	"encounters\x18\x01 \x03(\v2 .registration.v1.EncounterDetailR\n" +

@@ -58,7 +58,21 @@ func (s *registrationServiceImpl) generateEncounterNo(ctx context.Context, deptC
 	return encounterNo, nil
 }
 
-func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID, guarantor string) (string, error) {
+func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID, perawatID, guarantor string) (string, error) {
+	// Auto-assign doctor if not provided
+	if doctorID == "" && s.repo != nil {
+		if activeDoc, err := s.repo.GetActiveDoctorByPoli(ctx, departmentCode); err == nil && activeDoc != "" {
+			doctorID = activeDoc
+		}
+	}
+
+	// Auto-assign perawat based on poli mapping if not provided
+	if perawatID == "" && s.repo != nil {
+		if activePerawat, err := s.repo.GetActivePerawatByPoli(ctx, departmentCode); err == nil && activePerawat != "" {
+			perawatID = activePerawat
+		}
+	}
+
 	encounterNo, err := s.generateEncounterNo(ctx, departmentCode)
 	if err != nil {
 		return "", err
@@ -76,6 +90,7 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 		MRN:         mrn,
 		Department:  departmentCode,
 		DoctorID:    doctorID,
+		PerawatID:   perawatID,
 		Status:      status,
 		CreatedAt:   time.Now(),
 	}
@@ -85,7 +100,7 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 		ID:        fmt.Sprintf("evt-%d", time.Now().UnixNano()),
 		Aggregate: "Encounter",
 		Type:      "EncounterRegistered",
-		Payload:   fmt.Sprintf(`{"encounter_no":"%s","mrn":"%s"}`, encounterNo, mrn),
+		Payload:   fmt.Sprintf(`{"encounter_no":"%s","mrn":"%s","doctor_id":"%s","perawat_id":"%s"}`, encounterNo, mrn, doctorID, perawatID),
 		Status:    "PENDING",
 		CreatedAt: time.Now(),
 	}

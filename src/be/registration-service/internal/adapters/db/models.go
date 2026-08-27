@@ -23,6 +23,7 @@ type Encounter struct {
 	ConsultationStartTime sql.NullTime
 	PaymentStatus         sql.NullString
 	Guarantor             sql.NullString
+	PerawatID             sql.NullString
 }
 
 type OutboxEvent struct {

@@ -22,6 +22,8 @@ type RegistrationRepository interface {
 	GetDashboardMetrics(ctx context.Context, targetDate time.Time) (newPatients int32, oldPatients int32, waitTimes map[string]int32, weeklyVisits map[string]int32, err error)
 	UpdatePaymentStatus(ctx context.Context, encounterNo, status string) error
 	UpdateGuarantor(ctx context.Context, encounterNo, guarantor string) error
+	GetActivePerawatByPoli(ctx context.Context, poliCode string) (string, error)
+	GetActiveDoctorByPoli(ctx context.Context, poliCode string) (string, error)
 }
 
 type EventPublisher interface {
@@ -29,7 +31,7 @@ type EventPublisher interface {
 }
 
 type RegistrationService interface {
-	RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID, guarantor string) (string, error)
+	RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID, perawatID, guarantor string) (string, error)
 	GetTodayEncounters(ctx context.Context, targetDate time.Time) ([]*domain.Encounter, error)
 	CancelEncounter(ctx context.Context, encounterNo, reason string) error
 	UpdateEncounterStatus(ctx context.Context, encounterNo, status string) error

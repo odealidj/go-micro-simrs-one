@@ -1,7 +1,7 @@
 -- name: CreateEncounter :one
-INSERT INTO encounters (encounter_no, mrn, department, doctor_id, guarantor, status)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING encounter_no, mrn, department, doctor_id, guarantor, payment_status, status, created_at;
+INSERT INTO encounters (encounter_no, mrn, department, doctor_id, perawat_id, guarantor, status)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING encounter_no, mrn, department, doctor_id, perawat_id, guarantor, payment_status, status, created_at;
 
 -- name: CreateOutboxEvent :one
 INSERT INTO outbox_events (id, aggregate_type, event_type, payload, status)
@@ -27,7 +27,7 @@ WHERE department = $1
   AND deleted_dt IS NULL;
 
 -- name: GetTodayEncounters :many
-SELECT encounter_no, mrn, department, doctor_id, guarantor, payment_status, status, created_at
+SELECT encounter_no, mrn, department, doctor_id, perawat_id, guarantor, payment_status, status, created_at
 FROM encounters
 WHERE created_at >= $1 AND created_at < $2
   AND deleted_dt IS NULL

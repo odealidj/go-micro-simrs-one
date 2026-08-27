@@ -5,9 +5,9 @@ use (
 	./auth-service
 	./billing-service
 	./medical-record-service
-	./rawat-jalan-service
 	./patient-service
 	./pharmacy-service
+	./rawat-jalan-service
 	./registration-service
 	./shared
 )
