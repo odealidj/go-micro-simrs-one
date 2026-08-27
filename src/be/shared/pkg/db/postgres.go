@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -21,8 +22,12 @@ func ConnectPostgres(schema string) (*sql.DB, error) {
 		dsn = "postgres://root:secretpassword@localhost:5432/simrs_db?sslmode=disable"
 	}
 
-	if schema != "" {
-		dsn = fmt.Sprintf("%s&search_path=%s", dsn, schema)
+	if schema != "" && !strings.Contains(dsn, "search_path") {
+		separator := "&"
+		if !strings.Contains(dsn, "?") {
+			separator = "?"
+		}
+		dsn = fmt.Sprintf("%s%ssearch_path=%s", dsn, separator, schema)
 	}
 
 	db, err := sql.Open("postgres", dsn)

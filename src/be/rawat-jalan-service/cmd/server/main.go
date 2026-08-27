@@ -52,7 +52,7 @@ func main() {
 	rdb := redis.NewClient(&redis.Options{Addr: redisHost})
 
 	// 3. Init Database
-	dbConn, err := db.ConnectPostgres("emr")
+	dbConn, err := db.ConnectPostgres("rawat_jalan")
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
@@ -79,10 +79,14 @@ func main() {
 		log.Fatalf("emrRepo does not implement outbox.Repository")
 	}
 
-	// 6.5 Init Aggregator Worker
+	// 6.5 Init Aggregator Worker & Master Data Sync Worker
 	queriesRepo := adapterDB.New(dbConn)
 	worker.StartAggregatorWorker(queriesRepo)
 	slog.Info("Rawat Jalan Aggregator Worker started")
+
+	masterSyncConsumer := broker.NewClinicalMasterSyncConsumer(rdb, queriesRepo)
+	go masterSyncConsumer.Start(ctx)
+	slog.Info("Rawat Jalan Clinical Master Sync Consumer started", "stream", "clinical_master_stream", "group", "rawat-jalan-master-sync")
 
 	// 7. Init gRPC Server
 	grpcServer := grpc.NewServer(

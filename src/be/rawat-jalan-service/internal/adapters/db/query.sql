@@ -422,3 +422,44 @@ FROM snomed_icd9_mapping m
 JOIN icd9cm_catalog i ON m.icd9_code = i.icd9_code
 WHERE m.snomed_concept_id = $1
 ORDER BY m.is_primary DESC;
+
+-- name: UpsertICD10Replica :exec
+INSERT INTO icd10_catalog (icd10_code, name_en, name_id, chapter_code, block_code, is_active, coding_rule, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+ON CONFLICT (icd10_code) DO UPDATE
+SET name_en = EXCLUDED.name_en,
+    name_id = EXCLUDED.name_id,
+    chapter_code = EXCLUDED.chapter_code,
+    block_code = EXCLUDED.block_code,
+    is_active = EXCLUDED.is_active,
+    coding_rule = EXCLUDED.coding_rule,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- name: SoftDeleteICD10Replica :exec
+UPDATE icd10_catalog SET deleted_dt = CURRENT_TIMESTAMP WHERE icd10_code = $1;
+
+-- name: UpsertKBMReplica :exec
+INSERT INTO kbm_catalog (kbm_code, kbm_name, description, body_system, is_active, updated_at)
+VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+ON CONFLICT (kbm_code) DO UPDATE
+SET kbm_name = EXCLUDED.kbm_name,
+    description = EXCLUDED.description,
+    body_system = EXCLUDED.body_system,
+    is_active = EXCLUDED.is_active,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- name: SoftDeleteKBMReplica :exec
+UPDATE kbm_catalog SET deleted_dt = CURRENT_TIMESTAMP WHERE kbm_code = $1;
+
+-- name: UpsertTindakanReplica :exec
+INSERT INTO master_tindakan (kode_tindakan, nama_tindakan, base_price, is_active, internal_category, updated_at)
+VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+ON CONFLICT (kode_tindakan) DO UPDATE
+SET nama_tindakan = EXCLUDED.nama_tindakan,
+    base_price = EXCLUDED.base_price,
+    is_active = EXCLUDED.is_active,
+    internal_category = EXCLUDED.internal_category,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- name: SoftDeleteTindakanReplica :exec
+UPDATE master_tindakan SET deleted_dt = CURRENT_TIMESTAMP WHERE kode_tindakan = $1;

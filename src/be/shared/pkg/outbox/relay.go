@@ -58,9 +58,14 @@ func (r *Relay) processEvents(ctx context.Context) {
 
 	// 2. Publish and update status
 	for _, event := range events {
+		streamTarget := r.streamName
+		if event.AggregateType == "ClinicalMaster" {
+			streamTarget = "clinical_master_stream"
+		}
+
 		// Prepare Redis XADD args
 		args := &redis.XAddArgs{
-			Stream: r.streamName,
+			Stream: streamTarget,
 			Values: map[string]interface{}{
 				"id":             event.ID,
 				"aggregate_type": event.AggregateType,

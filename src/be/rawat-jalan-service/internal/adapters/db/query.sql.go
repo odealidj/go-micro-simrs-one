@@ -2280,6 +2280,33 @@ func (q *Queries) SearchKBMByPolyclinic(ctx context.Context, arg SearchKBMByPoly
 	return items, nil
 }
 
+const softDeleteICD10Replica = `-- name: SoftDeleteICD10Replica :exec
+UPDATE icd10_catalog SET deleted_dt = CURRENT_TIMESTAMP WHERE icd10_code = $1
+`
+
+func (q *Queries) SoftDeleteICD10Replica(ctx context.Context, icd10Code string) error {
+	_, err := q.db.ExecContext(ctx, softDeleteICD10Replica, icd10Code)
+	return err
+}
+
+const softDeleteKBMReplica = `-- name: SoftDeleteKBMReplica :exec
+UPDATE kbm_catalog SET deleted_dt = CURRENT_TIMESTAMP WHERE kbm_code = $1
+`
+
+func (q *Queries) SoftDeleteKBMReplica(ctx context.Context, kbmCode string) error {
+	_, err := q.db.ExecContext(ctx, softDeleteKBMReplica, kbmCode)
+	return err
+}
+
+const softDeleteTindakanReplica = `-- name: SoftDeleteTindakanReplica :exec
+UPDATE master_tindakan SET deleted_dt = CURRENT_TIMESTAMP WHERE kode_tindakan = $1
+`
+
+func (q *Queries) SoftDeleteTindakanReplica(ctx context.Context, kodeTindakan string) error {
+	_, err := q.db.ExecContext(ctx, softDeleteTindakanReplica, kodeTindakan)
+	return err
+}
+
 const startEncounter = `-- name: StartEncounter :exec
 UPDATE medical_records
 SET status = 'IN_PROGRESS', started_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
@@ -2390,6 +2417,102 @@ func (q *Queries) UpsertClinicWaitAggregate(ctx context.Context, arg UpsertClini
 		arg.AgeBracket,
 		arg.AverageWaitMinutes,
 		arg.SampleCount,
+	)
+	return err
+}
+
+const upsertICD10Replica = `-- name: UpsertICD10Replica :exec
+INSERT INTO icd10_catalog (icd10_code, name_en, name_id, chapter_code, block_code, is_active, coding_rule, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+ON CONFLICT (icd10_code) DO UPDATE
+SET name_en = EXCLUDED.name_en,
+    name_id = EXCLUDED.name_id,
+    chapter_code = EXCLUDED.chapter_code,
+    block_code = EXCLUDED.block_code,
+    is_active = EXCLUDED.is_active,
+    coding_rule = EXCLUDED.coding_rule,
+    updated_at = CURRENT_TIMESTAMP
+`
+
+type UpsertICD10ReplicaParams struct {
+	Icd10Code   string
+	NameEn      string
+	NameID      string
+	ChapterCode sql.NullString
+	BlockCode   sql.NullString
+	IsActive    sql.NullBool
+	CodingRule  sql.NullString
+}
+
+func (q *Queries) UpsertICD10Replica(ctx context.Context, arg UpsertICD10ReplicaParams) error {
+	_, err := q.db.ExecContext(ctx, upsertICD10Replica,
+		arg.Icd10Code,
+		arg.NameEn,
+		arg.NameID,
+		arg.ChapterCode,
+		arg.BlockCode,
+		arg.IsActive,
+		arg.CodingRule,
+	)
+	return err
+}
+
+const upsertKBMReplica = `-- name: UpsertKBMReplica :exec
+INSERT INTO kbm_catalog (kbm_code, kbm_name, description, body_system, is_active, updated_at)
+VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+ON CONFLICT (kbm_code) DO UPDATE
+SET kbm_name = EXCLUDED.kbm_name,
+    description = EXCLUDED.description,
+    body_system = EXCLUDED.body_system,
+    is_active = EXCLUDED.is_active,
+    updated_at = CURRENT_TIMESTAMP
+`
+
+type UpsertKBMReplicaParams struct {
+	KbmCode     string
+	KbmName     string
+	Description sql.NullString
+	BodySystem  sql.NullString
+	IsActive    bool
+}
+
+func (q *Queries) UpsertKBMReplica(ctx context.Context, arg UpsertKBMReplicaParams) error {
+	_, err := q.db.ExecContext(ctx, upsertKBMReplica,
+		arg.KbmCode,
+		arg.KbmName,
+		arg.Description,
+		arg.BodySystem,
+		arg.IsActive,
+	)
+	return err
+}
+
+const upsertTindakanReplica = `-- name: UpsertTindakanReplica :exec
+INSERT INTO master_tindakan (kode_tindakan, nama_tindakan, base_price, is_active, internal_category, updated_at)
+VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+ON CONFLICT (kode_tindakan) DO UPDATE
+SET nama_tindakan = EXCLUDED.nama_tindakan,
+    base_price = EXCLUDED.base_price,
+    is_active = EXCLUDED.is_active,
+    internal_category = EXCLUDED.internal_category,
+    updated_at = CURRENT_TIMESTAMP
+`
+
+type UpsertTindakanReplicaParams struct {
+	KodeTindakan     string
+	NamaTindakan     string
+	BasePrice        string
+	IsActive         bool
+	InternalCategory sql.NullString
+}
+
+func (q *Queries) UpsertTindakanReplica(ctx context.Context, arg UpsertTindakanReplicaParams) error {
+	_, err := q.db.ExecContext(ctx, upsertTindakanReplica,
+		arg.KodeTindakan,
+		arg.NamaTindakan,
+		arg.BasePrice,
+		arg.IsActive,
+		arg.InternalCategory,
 	)
 	return err
 }
