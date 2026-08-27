@@ -135,7 +135,7 @@ services:
       args:
         SERVICE_NAME: medical-record-service
     environment:
-      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
+      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable&search_path=medical_record
       - JAEGER_ENDPOINT=jaeger:4318
       - REDIS_HOST=redis:6379
       - PORT=50054
@@ -155,7 +155,7 @@ services:
       args:
         SERVICE_NAME: rawat-jalan-service
     environment:
-      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
+      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable&search_path=rawat_jalan
       - JAEGER_ENDPOINT=jaeger:4318
       - REDIS_HOST=redis:6379
       - PORT=50057

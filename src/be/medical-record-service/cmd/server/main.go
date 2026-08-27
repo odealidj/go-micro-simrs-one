@@ -50,7 +50,7 @@ func main() {
 	rdb := redis.NewClient(&redis.Options{Addr: redisHost})
 
 	// 3. Init Database
-	dbConn, err := db.ConnectPostgres("emr")
+	dbConn, err := db.ConnectPostgres("medical_record")
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}

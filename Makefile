@@ -19,7 +19,8 @@ db-down:
 db-schemas:
 	@for service in $(SERVICES); do \
 		schema=$$(echo $$service | cut -d'-' -f1); \
-		if [ "$$service" = "medical-record-service" ] || [ "$$service" = "rawat-jalan-service" ]; then schema="emr"; fi; \
+		if [ "$$service" = "medical-record-service" ]; then schema="medical_record"; fi; \
+		if [ "$$service" = "rawat-jalan-service" ]; then schema="rawat_jalan"; fi; \
 		echo "Creating schema: $$schema..."; \
 		podman exec -i $$(podman ps --filter "name=postgres" -q | head -n 1) psql -U root -d simrs_db -c "CREATE SCHEMA IF NOT EXISTS $$schema;"; \
 	done
@@ -31,17 +32,19 @@ sqlc-generate:
 	done
 
 migrate-up:
-	@for service in auth-service patient-service registration-service medical-record-service pharmacy-service billing-service; do \
+	@for service in $(SERVICES); do \
 		schema=$$(echo $$service | cut -d'-' -f1); \
-		if [ "$$service" = "medical-record-service" ]; then schema="emr"; fi; \
+		if [ "$$service" = "medical-record-service" ]; then schema="medical_record"; fi; \
+		if [ "$$service" = "rawat-jalan-service" ]; then schema="rawat_jalan"; fi; \
 		echo "Migrating up schema: $$schema..."; \
 		go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path ./src/be/$$service/internal/adapters/db/migrations -database "$(DB_URL)&search_path=$$schema" up; \
 	done
 
 migrate-down:
-	@for service in auth-service patient-service registration-service medical-record-service pharmacy-service billing-service; do \
+	@for service in $(SERVICES); do \
 		schema=$$(echo $$service | cut -d'-' -f1); \
-		if [ "$$service" = "medical-record-service" ]; then schema="emr"; fi; \
+		if [ "$$service" = "medical-record-service" ]; then schema="medical_record"; fi; \
+		if [ "$$service" = "rawat-jalan-service" ]; then schema="rawat_jalan"; fi; \
 		echo "Migrating down schema: $$schema..."; \
 		go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path ./src/be/$$service/internal/adapters/db/migrations -database "$(DB_URL)&search_path=$$schema" down -all; \
 	done
