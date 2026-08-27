@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useMasterData } from "@/hooks/useMasterData";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useState } from "react";
-import type { KFAItem } from "@/features/emr/api/emrApi";
+import type { KFAItem } from "@/lib/masterDataApi";
 
 export function KFAPage() {
   const [search, setSearch] = useState("");

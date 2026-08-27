@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useMasterData } from "@/hooks/useMasterData";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useState } from "react";
-import type { DPHOItem } from "@/features/emr/api/emrApi";
+import type { DPHOItem } from "@/lib/masterDataApi";
 
 export function DPHOPage() {
   const [search, setSearch] = useState("");

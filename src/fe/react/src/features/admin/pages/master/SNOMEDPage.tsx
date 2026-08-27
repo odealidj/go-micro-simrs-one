@@ -12,7 +12,7 @@ import {
 import { useMasterData } from "@/hooks/useMasterData";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useEffect, useState } from "react";
-import { getSNOMEDMappings, type SNOMEDMappingResponse } from "@/features/emr/api/emrApi";
+import { getSNOMEDMappings, type SNOMEDMappingResponse } from "@/lib/masterDataApi";
 
 interface SNOMEDItem {
   concept_id: string;
