@@ -25,7 +25,7 @@ import {
   getObatMappingDetails,
   type ObatKFAMapDetail,
   type ObatDPHOMapDetail,
-} from "@/features/emr/api/emrApi";
+} from "@/lib/masterDataApi";
 import { useMasterData } from "@/hooks/useMasterData";
 import { useDebounce } from "@/hooks/useDebounce";
 

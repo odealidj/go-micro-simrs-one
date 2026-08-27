@@ -12,7 +12,7 @@ import {
 import { useMasterData } from "@/hooks/useMasterData";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useEffect, useState } from "react";
-import { getICD9Mappings, type ICD9MappingDetailsResponse } from "@/features/emr/api/emrApi";
+import { getICD9Mappings, type ICD9MappingDetailsResponse } from "@/lib/masterDataApi";
 
 interface ICD9Data {
   icd9_code: string;

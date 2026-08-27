@@ -12,7 +12,7 @@ import {
 import { useMasterData } from "@/hooks/useMasterData";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useEffect, useState } from "react";
-import { getKBMICD10Suggestions, type ICD10SuggestionItem, type PolyclinicItem } from "@/features/emr/api/emrApi";
+import { getKBMICD10Suggestions, type ICD10SuggestionItem, type PolyclinicItem } from "@/lib/masterDataApi";
 
 interface KBMItem {
   kbm_code: string;

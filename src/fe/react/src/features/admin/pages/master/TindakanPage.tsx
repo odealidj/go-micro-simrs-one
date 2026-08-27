@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { getICD9SuggestionsForTindakan, type ICD9SuggestionItem, type PolyclinicItem } from "@/features/emr/api/emrApi";
+import { getICD9SuggestionsForTindakan, type ICD9SuggestionItem, type PolyclinicItem } from "@/lib/masterDataApi";
 
 interface TindakanItem {
   kode_tindakan: string;
