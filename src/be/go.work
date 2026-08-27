@@ -4,7 +4,8 @@ use (
 	./api-gateway
 	./auth-service
 	./billing-service
-	./emr-service
+	./medical-record-service
+	./rawat-jalan-service
 	./patient-service
 	./pharmacy-service
 	./registration-service

@@ -39,6 +39,7 @@ import (
 	emrpb "github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1"
 	patientpb "github.com/aliube/go-micro-simrs-one/shared/proto/patient/v1"
 	pharmacypb "github.com/aliube/go-micro-simrs-one/shared/proto/pharmacy/v1"
+	rawatjalanpb "github.com/aliube/go-micro-simrs-one/shared/proto/rawat_jalan/v1"
 	regpb "github.com/aliube/go-micro-simrs-one/shared/proto/registration/v1"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -118,17 +119,33 @@ func main() {
 	defer regConn.Close()
 	regClient := regpb.NewRegistrationServiceClient(regConn)
 
-	// Connect to EMR gRPC
-	emrAddr := os.Getenv("EMR_SERVICE_ADDR")
+	// Connect to EMR / Medical Record gRPC
+	emrAddr := os.Getenv("MEDICAL_RECORD_SERVICE_ADDR")
+	if emrAddr == "" {
+		emrAddr = os.Getenv("EMR_SERVICE_ADDR")
+	}
 	if emrAddr == "" {
 		emrAddr = "localhost:50054"
 	}
 	emrConn, err := grpc.NewClient(emrAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("failed to connect to emr service: %v", err)
+		log.Fatalf("failed to connect to emr/medical-record service: %v", err)
 	}
 	defer emrConn.Close()
 	emrClient := emrpb.NewEMRServiceClient(emrConn)
+	medicalRecordClient := emrClient
+
+	// Connect to Rawat Jalan gRPC
+	rawatJalanAddr := os.Getenv("RAWAT_JALAN_SERVICE_ADDR")
+	if rawatJalanAddr == "" {
+		rawatJalanAddr = "localhost:50057"
+	}
+	rawatJalanConn, err := grpc.NewClient(rawatJalanAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed to connect to rawat-jalan service: %v", err)
+	}
+	defer rawatJalanConn.Close()
+	rawatJalanClient := rawatjalanpb.NewRawatJalanServiceClient(rawatJalanConn)
 
 	// Connect to Pharmacy gRPC
 	pharmacyAddr := os.Getenv("PHARMACY_SERVICE_ADDR")
@@ -166,6 +183,8 @@ func main() {
 	cbPatient := circuitbreaker.NewGRPCBreaker("patient-service")
 	cbRegistration := circuitbreaker.NewGRPCBreaker("registration-service")
 	cbEMR := circuitbreaker.NewGRPCBreaker("emr-service")
+	cbMedicalRecord := circuitbreaker.NewGRPCBreaker("medical-record-service")
+	cbRawatJalan := circuitbreaker.NewGRPCBreaker("rawat-jalan-service")
 	cbPharmacy := circuitbreaker.NewGRPCBreaker("pharmacy-service")
 	cbBilling := circuitbreaker.NewGRPCBreaker("billing-service")
 
@@ -2477,6 +2496,343 @@ func main() {
 						Message: "Success",
 						Data:    res,
 					})
+				})
+			})
+
+			// ─── Rawat Jalan Service Routes ─────────────────────────────
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireRole("dokter", "perawat", "admin", "super_admin"))
+
+				r.Post("/rawat-jalan/triage", func(w http.ResponseWriter, req *http.Request) {
+					var payload rawatjalanpb.SubmitTriageRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.SubmitTriageResponse, error) {
+						return rawatJalanClient.SubmitTriage(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Post("/rawat-jalan/encounter/start", func(w http.ResponseWriter, req *http.Request) {
+					var payload rawatjalanpb.StartEncounterRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					if err := validator.ValidateAll(map[string]func() error{
+						"encounter_no": validator.NotEmpty(payload.EncounterNo),
+					}); err != nil {
+						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.StartEncounterResponse, error) {
+						return rawatJalanClient.StartEncounter(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					_, _ = circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
+						return regClient.UpdateEncounterStatus(req.Context(), &regpb.UpdateEncounterStatusRequest{
+							EncounterNo: payload.EncounterNo,
+							Status:      "IN_PROGRESS",
+						})
+					})
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Post("/rawat-jalan/encounter/complete", func(w http.ResponseWriter, req *http.Request) {
+					var payload rawatjalanpb.CompleteEncounterRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					if err := validator.ValidateAll(map[string]func() error{
+						"encounter_no": validator.NotEmpty(payload.EncounterNo),
+					}); err != nil {
+						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.CompleteEncounterResponse, error) {
+						return rawatJalanClient.CompleteEncounter(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					_, _ = circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
+						return regClient.UpdateEncounterStatus(req.Context(), &regpb.UpdateEncounterStatusRequest{
+							EncounterNo: payload.EncounterNo,
+							Status:      "COMPLETED",
+						})
+					})
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Pemeriksaan pasien berhasil diselesaikan", Data: res})
+				})
+
+				r.Post("/rawat-jalan/diagnosis", func(w http.ResponseWriter, req *http.Request) {
+					var payload rawatjalanpb.AddEncounterDiagnosisRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					if err := validator.ValidateAll(map[string]func() error{
+						"encounter_no":   validator.NotEmpty(payload.EncounterNo),
+						"icd10_code":     validator.NotEmpty(payload.Icd10Code),
+						"diagnosis_type": validator.NotEmpty(payload.DiagnosisType),
+						"severity_level": validator.NotEmpty(payload.SeverityLevel),
+					}); err != nil {
+						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.AddEncounterDiagnosisResponse, error) {
+						return rawatJalanClient.AddEncounterDiagnosis(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Put("/rawat-jalan/diagnosis/{id}", func(w http.ResponseWriter, req *http.Request) {
+					id := chi.URLParam(req, "id")
+					var payload rawatjalanpb.UpdateEncounterDiagnosisRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					payload.Id = id
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.UpdateEncounterDiagnosisResponse, error) {
+						return rawatJalanClient.UpdateEncounterDiagnosis(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Delete("/rawat-jalan/diagnosis/{id}", func(w http.ResponseWriter, req *http.Request) {
+					id := chi.URLParam(req, "id")
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.RemoveEncounterDiagnosisResponse, error) {
+						return rawatJalanClient.RemoveEncounterDiagnosis(req.Context(), &rawatjalanpb.RemoveEncounterDiagnosisRequest{Id: id})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Post("/rawat-jalan/encounter/{encounter_no}/severity/finalize", func(w http.ResponseWriter, req *http.Request) {
+					encounterNo := chi.URLParam(req, "encounter_no")
+					var payload struct {
+						SeverityLevel string `json:"severity_level"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					userId, _ := req.Context().Value("user_id").(string)
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.FinalizeSeverityResponse, error) {
+						return rawatJalanClient.FinalizeSeverity(req.Context(), &rawatjalanpb.FinalizeSeverityRequest{
+							EncounterNo:   encounterNo,
+							SeverityLevel: payload.SeverityLevel,
+							UserId:        userId,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Severity finalized successfully", Data: res})
+				})
+
+				r.Post("/rawat-jalan/actions", func(w http.ResponseWriter, req *http.Request) {
+					var payload rawatjalanpb.AddMedicalActionRequest
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.AddMedicalActionResponse, error) {
+						return rawatJalanClient.AddMedicalAction(req.Context(), &payload)
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Get("/rawat-jalan/record/{encounter_no}", func(w http.ResponseWriter, req *http.Request) {
+					encounterNo := chi.URLParam(req, "encounter_no")
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.GetMedicalRecordResponse, error) {
+						return rawatJalanClient.GetMedicalRecord(req.Context(), &rawatjalanpb.GetMedicalRecordRequest{EncounterNo: encounterNo})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Get("/rawat-jalan/kbm/search", func(w http.ResponseWriter, req *http.Request) {
+					query := req.URL.Query().Get("q")
+					deptCode := req.URL.Query().Get("dept_code")
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.SearchKBMResponse, error) {
+						return rawatJalanClient.SearchKBM(req.Context(), &rawatjalanpb.SearchKBMRequest{
+							Query:          query,
+							DepartmentCode: deptCode,
+							Limit:          20,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Get("/rawat-jalan/kbm/{code}", func(w http.ResponseWriter, req *http.Request) {
+					code := chi.URLParam(req, "code")
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.GetKBMDetailResponse, error) {
+						return rawatJalanClient.GetKBMDetail(req.Context(), &rawatjalanpb.GetKBMDetailRequest{KbmCode: code})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Get("/rawat-jalan/icd10/{code}/kbm-suggestions", func(w http.ResponseWriter, req *http.Request) {
+					code := chi.URLParam(req, "code")
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.GetKBMSuggestionsForICD10Response, error) {
+						return rawatJalanClient.GetKBMSuggestionsForICD10(req.Context(), &rawatjalanpb.GetKBMSuggestionsForICD10Request{Icd10Code: code})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Get("/rawat-jalan/master/tindakan/poli/{poli_code}", func(w http.ResponseWriter, req *http.Request) {
+					poliCode := chi.URLParam(req, "poli_code")
+					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.GetMasterTindakanByPoliResponse, error) {
+						return rawatJalanClient.GetMasterTindakanByPoli(req.Context(), &rawatjalanpb.GetMasterTindakanByPoliRequest{
+							PoliCode:   poliCode,
+							Page:       int32(page),
+							PageSize:   int32(pageSize),
+							SearchName: req.URL.Query().Get("search_name"),
+							SearchCode: req.URL.Query().Get("search_code"),
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res.Data})
+				})
+
+				r.Get("/rawat-jalan/master/icd10/poli/{poli_code}", func(w http.ResponseWriter, req *http.Request) {
+					poliCode := chi.URLParam(req, "poli_code")
+					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.GetMasterICD10ByPoliResponse, error) {
+						return rawatJalanClient.GetMasterICD10ByPoli(req.Context(), &rawatjalanpb.GetMasterICD10ByPoliRequest{
+							PoliCode:   poliCode,
+							Page:       int32(page),
+							PageSize:   int32(pageSize),
+							SearchName: req.URL.Query().Get("search_name"),
+							SearchCode: req.URL.Query().Get("search_code"),
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res.Data})
+				})
+
+				r.Get("/rawat-jalan/master/kbm/poli/{poli_code}", func(w http.ResponseWriter, req *http.Request) {
+					poliCode := chi.URLParam(req, "poli_code")
+					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
+					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.GetMasterKBMsByPoliResponse, error) {
+						return rawatJalanClient.GetMasterKBMsByPoli(req.Context(), &rawatjalanpb.GetMasterKBMsByPoliRequest{
+							PoliCode:   poliCode,
+							Page:       int32(page),
+							PageSize:   int32(pageSize),
+							SearchName: req.URL.Query().Get("search_name"),
+							SearchCode: req.URL.Query().Get("search_code"),
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res.Data})
+				})
+			})
+
+			// ─── Rekam Medis Service Routes ─────────────────────────────
+			r.Group(func(r chi.Router) {
+				r.Use(middleware.RequireRole("rekam_medis", "admin", "super_admin", "dokter"))
+
+				r.Get("/rekam-medis/record/{encounter_no}", func(w http.ResponseWriter, req *http.Request) {
+					encounterNo := chi.URLParam(req, "encounter_no")
+					res, err := circuitbreaker.CallGRPC(cbMedicalRecord, func() (*emrpb.GetMedicalRecordResponse, error) {
+						return medicalRecordClient.GetMedicalRecord(req.Context(), &emrpb.GetMedicalRecordRequest{EncounterNo: encounterNo})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Post("/rekam-medis/coding/verify-kbm/{id}", func(w http.ResponseWriter, req *http.Request) {
+					id := chi.URLParam(req, "id")
+					var payload struct {
+						KbmCode string `json:"kbm_code"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					userId, _ := req.Context().Value("user_id").(string)
+					res, err := circuitbreaker.CallGRPC(cbMedicalRecord, func() (*emrpb.VerifyKBMMappingResponse, error) {
+						return medicalRecordClient.VerifyKBMMapping(req.Context(), &emrpb.VerifyKBMMappingRequest{
+							Id:      id,
+							KbmCode: payload.KbmCode,
+							UserId:  userId,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "KBM mapped successfully", Data: res})
+				})
+
+				r.Get("/rekam-medis/coding/pending-kbm", func(w http.ResponseWriter, req *http.Request) {
+					res, err := circuitbreaker.CallGRPC(cbMedicalRecord, func() (*emrpb.ListPendingKBMVerificationsResponse, error) {
+						return medicalRecordClient.ListPendingKBMVerifications(req.Context(), &emrpb.ListPendingKBMVerificationsRequest{})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
 				})
 			})
 

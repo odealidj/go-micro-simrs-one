@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS icd10_catalog CASCADE;
+
+CREATE TABLE icd10_catalog (
+    icd10_code VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_icd10_name_trgm ON icd10_catalog USING GIN (name gin_trgm_ops);

@@ -5,7 +5,7 @@ import type { GetMedicalRecordResponse } from "../types";
 
 export const getMedicalRecord = async (encounterNo: string): Promise<GetMedicalRecordResponse | null> => {
   try {
-    const { data } = await api.get<{ data: GetMedicalRecordResponse }>(`/emr/record/${encounterNo}`);
+    const { data } = await api.get<{ data: GetMedicalRecordResponse }>(`/rekam-medis/record/${encounterNo}`);
     return data?.data;
   } catch (error) {
     console.error("Failed to fetch medical record", error);
@@ -15,7 +15,7 @@ export const getMedicalRecord = async (encounterNo: string): Promise<GetMedicalR
 
 export const searchPatientHistory = async (mrn: string): Promise<GetMedicalRecordResponse[]> => {
   try {
-    const { data } = await api.get<{ data: GetMedicalRecordResponse[] }>(`/emr/patient/${mrn}/history`);
+    const { data } = await api.get<{ data: GetMedicalRecordResponse[] }>(`/rekam-medis/patient/${mrn}/history`);
     return data?.data || [];
   } catch (error) {
     console.error("Failed to fetch patient history", error);
@@ -27,7 +27,7 @@ export const searchPatientHistory = async (mrn: string): Promise<GetMedicalRecor
 
 export const listPendingKBMVerifications = async (): Promise<any[]> => {
   try {
-    const { data } = await api.get<{ data: any[] }>("/emr/coding/pending-kbm");
+    const { data } = await api.get<{ data: any[] }>("/rekam-medis/coding/pending-kbm");
     return data?.data || [];
   } catch {
     return [];
@@ -35,11 +35,11 @@ export const listPendingKBMVerifications = async (): Promise<any[]> => {
 };
 
 export const verifyKBMMapping = async (id: string, kbmCode: string): Promise<void> => {
-  await api.post(`/emr/diagnosis/${id}/verify-kbm`, { kbm_code: kbmCode });
+  await api.post(`/rekam-medis/coding/verify-kbm/${id}`, { kbm_code: kbmCode });
 };
 
 export const finalizeSeverity = async (encounterNo: string, severityLevel: string): Promise<void> => {
-  await api.post(`/emr/finalize-severity`, { encounter_no: encounterNo, severity_level: severityLevel });
+  await api.post(`/rekam-medis/coding/finalize-severity`, { encounter_no: encounterNo, severity_level: severityLevel });
 };
 
 // ─── Master Data Catalog (Global, tanpa filter poli) ─────────────────────────

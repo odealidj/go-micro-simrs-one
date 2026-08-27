@@ -16,7 +16,8 @@ COPY shared/go.mod shared/go.sum ./shared/
 COPY api-gateway/go.mod api-gateway/go.sum ./api-gateway/
 COPY auth-service/go.mod auth-service/go.sum ./auth-service/
 COPY billing-service/go.mod billing-service/go.sum ./billing-service/
-COPY emr-service/go.mod emr-service/go.sum ./emr-service/
+COPY medical-record-service/go.mod medical-record-service/go.sum ./medical-record-service/
+COPY rawat-jalan-service/go.mod rawat-jalan-service/go.sum ./rawat-jalan-service/
 COPY patient-service/go.mod patient-service/go.sum ./patient-service/
 COPY pharmacy-service/go.mod pharmacy-service/go.sum ./pharmacy-service/
 COPY registration-service/go.mod registration-service/go.sum ./registration-service/

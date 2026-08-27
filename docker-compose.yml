@@ -129,11 +129,11 @@ services:
       jaeger:
         condition: service_started
 
-  emr-service:
+  medical-record-service:
     build:
       context: ./src/be
       args:
-        SERVICE_NAME: emr-service
+        SERVICE_NAME: medical-record-service
     environment:
       - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
       - JAEGER_ENDPOINT=jaeger:4318
@@ -141,6 +141,26 @@ services:
       - PORT=50054
     ports:
       - "60054:50054"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      jaeger:
+        condition: service_started
+
+  rawat-jalan-service:
+    build:
+      context: ./src/be
+      args:
+        SERVICE_NAME: rawat-jalan-service
+    environment:
+      - DATABASE_URL=postgres://root:secretpassword@postgres:5432/simrs_db?sslmode=disable
+      - JAEGER_ENDPOINT=jaeger:4318
+      - REDIS_HOST=redis:6379
+      - PORT=50057
+    ports:
+      - "60057:50057"
     depends_on:
       postgres:
         condition: service_healthy
@@ -200,7 +220,9 @@ services:
       - AUTH_SERVICE_ADDR=auth-service:50051
       - PATIENT_SERVICE_ADDR=patient-service:50052
       - REGISTRATION_SERVICE_ADDR=registration-service:50053
-      - EMR_SERVICE_ADDR=emr-service:50054
+      - MEDICAL_RECORD_SERVICE_ADDR=medical-record-service:50054
+      - EMR_SERVICE_ADDR=medical-record-service:50054
+      - RAWAT_JALAN_SERVICE_ADDR=rawat-jalan-service:50057
       - PHARMACY_SERVICE_ADDR=pharmacy-service:50055
       - BILLING_SERVICE_ADDR=billing-service:50056
       - REDIS_HOST=redis:6379
@@ -214,7 +236,8 @@ services:
       - auth-service
       - patient-service
       - registration-service
-      - emr-service
+      - medical-record-service
+      - rawat-jalan-service
       - pharmacy-service
       - billing-service
       - redis

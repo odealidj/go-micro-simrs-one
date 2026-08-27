@@ -6,7 +6,7 @@ endif
 DB_URL="postgresql://root:secretpassword@localhost:5432/simrs_db?sslmode=disable"
 
 # Services list
-SERVICES = auth-service patient-service registration-service emr-service pharmacy-service billing-service
+SERVICES = auth-service patient-service registration-service medical-record-service rawat-jalan-service pharmacy-service billing-service
 
 .PHONY: db-up db-down sqlc-generate migrate-up migrate-down db-schemas
 
@@ -19,6 +19,7 @@ db-down:
 db-schemas:
 	@for service in $(SERVICES); do \
 		schema=$$(echo $$service | cut -d'-' -f1); \
+		if [ "$$service" = "medical-record-service" ] || [ "$$service" = "rawat-jalan-service" ]; then schema="emr"; fi; \
 		echo "Creating schema: $$schema..."; \
 		podman exec -i $$(podman ps --filter "name=postgres" -q | head -n 1) psql -U root -d simrs_db -c "CREATE SCHEMA IF NOT EXISTS $$schema;"; \
 	done
@@ -30,15 +31,17 @@ sqlc-generate:
 	done
 
 migrate-up:
-	@for service in $(SERVICES); do \
+	@for service in auth-service patient-service registration-service medical-record-service pharmacy-service billing-service; do \
 		schema=$$(echo $$service | cut -d'-' -f1); \
+		if [ "$$service" = "medical-record-service" ]; then schema="emr"; fi; \
 		echo "Migrating up schema: $$schema..."; \
 		go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path ./src/be/$$service/internal/adapters/db/migrations -database "$(DB_URL)&search_path=$$schema" up; \
 	done
 
 migrate-down:
-	@for service in $(SERVICES); do \
+	@for service in auth-service patient-service registration-service medical-record-service pharmacy-service billing-service; do \
 		schema=$$(echo $$service | cut -d'-' -f1); \
+		if [ "$$service" = "medical-record-service" ]; then schema="emr"; fi; \
 		echo "Migrating down schema: $$schema..."; \
 		go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest -path ./src/be/$$service/internal/adapters/db/migrations -database "$(DB_URL)&search_path=$$schema" down -all; \
 	done
@@ -49,11 +52,11 @@ migrate-down:
 .PHONY: up down be-infra-up be-infra-down be-infra-clean be-run-all be-stop-all be-run-local-all be-stop-local-all
 .PHONY: be-run-exporters be-stop-exporters be-run-podman-exporter be-stop-podman-exporter
 .PHONY: be-run-local-auth-service be-stop-local-auth-service be-run-local-patient-service be-stop-local-patient-service
-.PHONY: be-run-local-registration-service be-stop-local-registration-service be-run-local-emr-service be-stop-local-emr-service
+.PHONY: be-run-local-registration-service be-stop-local-registration-service be-run-local-medical-record-service be-stop-local-medical-record-service be-run-local-rawat-jalan-service be-stop-local-rawat-jalan-service be-run-local-emr-service be-stop-local-emr-service
 .PHONY: be-run-local-pharmacy-service be-stop-local-pharmacy-service be-run-local-billing-service be-stop-local-billing-service
 .PHONY: be-run-local-api-gateway be-stop-local-api-gateway
 .PHONY: be-run-auth-service be-stop-auth-service be-run-patient-service be-stop-patient-service
-.PHONY: be-run-registration-service be-stop-registration-service be-run-emr-service be-stop-emr-service
+.PHONY: be-run-registration-service be-stop-registration-service be-run-medical-record-service be-stop-medical-record-service be-run-rawat-jalan-service be-stop-rawat-jalan-service be-run-emr-service be-stop-emr-service
 .PHONY: be-run-pharmacy-service be-stop-pharmacy-service be-run-billing-service be-stop-billing-service
 .PHONY: be-run-api-gateway be-stop-api-gateway
 
@@ -78,7 +81,7 @@ be-infra-up:
 
 be-infra-down:
 	@echo "Stopping application containers first (they depend on infra)..."
-	-podman compose stop auth-service patient-service registration-service emr-service pharmacy-service billing-service api-gateway 2>/dev/null || true
+	-podman compose stop auth-service patient-service registration-service medical-record-service rawat-jalan-service pharmacy-service billing-service api-gateway 2>/dev/null || true
 	@echo "Stopping exporters..."
 	-podman compose stop postgres-exporter redis-exporter podman-exporter 2>/dev/null || true
 	@echo "Removing infra containers (data is preserved in named volumes)..."
@@ -91,10 +94,10 @@ be-infra-clean:
 	@echo "Done. All simrs containers removed. Data volumes are preserved."
 
 be-run-all:
-	podman compose up -d --build auth-service patient-service registration-service emr-service pharmacy-service billing-service api-gateway
+	podman compose up -d --build auth-service patient-service registration-service medical-record-service rawat-jalan-service pharmacy-service billing-service api-gateway
 
 be-stop-all:
-	podman compose stop auth-service patient-service registration-service emr-service pharmacy-service billing-service api-gateway
+	podman compose stop auth-service patient-service registration-service medical-record-service rawat-jalan-service pharmacy-service billing-service api-gateway
 
 be-run-demo-data:
 	@echo "Seeding demo data (admin user)..."
@@ -123,11 +126,20 @@ be-run-registration-service:
 be-stop-registration-service:
 	podman compose stop registration-service
 
-be-run-emr-service:
-	podman compose up -d emr-service
+be-run-medical-record-service:
+	podman compose up -d medical-record-service
 
-be-stop-emr-service:
-	podman compose stop emr-service
+be-stop-medical-record-service:
+	podman compose stop medical-record-service
+
+be-run-rawat-jalan-service:
+	podman compose up -d rawat-jalan-service
+
+be-stop-rawat-jalan-service:
+	podman compose stop rawat-jalan-service
+
+be-run-emr-service: be-run-medical-record-service
+be-stop-emr-service: be-stop-medical-record-service
 
 be-run-pharmacy-service:
 	podman compose up -d pharmacy-service
@@ -201,9 +213,9 @@ define wait_port_free
 	done
 endef
 
-be-run-local-all: be-run-local-auth-service be-run-local-patient-service be-run-local-registration-service be-run-local-emr-service be-run-local-pharmacy-service be-run-local-billing-service be-run-local-api-gateway be-run-local-prometheus
+be-run-local-all: be-run-local-auth-service be-run-local-patient-service be-run-local-registration-service be-run-local-medical-record-service be-run-local-rawat-jalan-service be-run-local-pharmacy-service be-run-local-billing-service be-run-local-api-gateway be-run-local-prometheus
 
-be-stop-local-all: be-stop-local-prometheus be-stop-local-api-gateway be-stop-local-billing-service be-stop-local-pharmacy-service be-stop-local-emr-service be-stop-local-registration-service be-stop-local-patient-service be-stop-local-auth-service
+be-stop-local-all: be-stop-local-prometheus be-stop-local-api-gateway be-stop-local-billing-service be-stop-local-pharmacy-service be-stop-local-rawat-jalan-service be-stop-local-medical-record-service be-stop-local-registration-service be-stop-local-patient-service be-stop-local-auth-service
 	@echo "All local services stopped."
 
 # ---- auth-service (port 50051) ----
@@ -239,16 +251,30 @@ be-stop-local-registration-service:
 	$(call kill_port,50053)
 	@rm -f src/be/registration-service/run.pid src/be/registration-service/tmp-main
 
-# ---- emr-service (port 50054) ----
-be-run-local-emr-service:
-	@echo "Starting local emr-service..."
-	@cd src/be/emr-service && go build -o tmp-main cmd/server/main.go
-	@cd src/be/emr-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50054 setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
+# ---- medical-record-service (port 50054) ----
+be-run-local-medical-record-service:
+	@echo "Starting local medical-record-service..."
+	@cd src/be/medical-record-service && go build -o tmp-main cmd/server/main.go
+	@cd src/be/medical-record-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50054 setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
 
-be-stop-local-emr-service:
-	@echo "Stopping local emr-service..."
+be-stop-local-medical-record-service:
+	@echo "Stopping local medical-record-service..."
 	$(call kill_port,50054)
-	@rm -f src/be/emr-service/run.pid src/be/emr-service/tmp-main
+	@rm -f src/be/medical-record-service/run.pid src/be/medical-record-service/tmp-main
+
+be-run-local-emr-service: be-run-local-medical-record-service
+be-stop-local-emr-service: be-stop-local-medical-record-service
+
+# ---- rawat-jalan-service (port 50057) ----
+be-run-local-rawat-jalan-service:
+	@echo "Starting local rawat-jalan-service..."
+	@cd src/be/rawat-jalan-service && go build -o tmp-main cmd/server/main.go
+	@cd src/be/rawat-jalan-service && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) JAEGER_ENDPOINT=$(LOCAL_JAEGER_ENDPOINT) PORT=50057 setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
+
+be-stop-local-rawat-jalan-service:
+	@echo "Stopping local rawat-jalan-service..."
+	$(call kill_port,50057)
+	@rm -f src/be/rawat-jalan-service/run.pid src/be/rawat-jalan-service/tmp-main
 
 # ---- pharmacy-service (port 50055) ----
 be-run-local-pharmacy-service:
@@ -276,7 +302,7 @@ be-stop-local-billing-service:
 be-run-local-api-gateway:
 	@echo "Starting local api-gateway..."
 	@cd src/be/api-gateway && go build -o tmp-main ./cmd/server
-	@cd src/be/api-gateway && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) PROMETHEUS_URL=$(LOCAL_PROMETHEUS_URL) AUTH_SERVICE_ADDR=localhost:50051 PATIENT_SERVICE_ADDR=localhost:50052 REGISTRATION_SERVICE_ADDR=localhost:50053 EMR_SERVICE_ADDR=localhost:50054 PHARMACY_SERVICE_ADDR=localhost:50055 BILLING_SERVICE_ADDR=localhost:50056 PORT=8080 GOOGLE_API_KEY=$(GOOGLE_API_KEY) setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
+	@cd src/be/api-gateway && DATABASE_URL=$(LOCAL_DB_URL) REDIS_HOST=$(LOCAL_REDIS_HOST) PROMETHEUS_URL=$(LOCAL_PROMETHEUS_URL) AUTH_SERVICE_ADDR=localhost:50051 PATIENT_SERVICE_ADDR=localhost:50052 REGISTRATION_SERVICE_ADDR=localhost:50053 MEDICAL_RECORD_SERVICE_ADDR=localhost:50054 EMR_SERVICE_ADDR=localhost:50054 RAWAT_JALAN_SERVICE_ADDR=localhost:50057 PHARMACY_SERVICE_ADDR=localhost:50055 BILLING_SERVICE_ADDR=localhost:50056 PORT=8080 GOOGLE_API_KEY=$(GOOGLE_API_KEY) setsid ./tmp-main < /dev/null > run.log 2>&1 & echo $$! > run.pid
 
 be-stop-local-api-gateway:
 	@echo "Stopping local api-gateway..."

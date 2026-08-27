@@ -39,11 +39,11 @@ export const getTodayEncounters = async (poliCode?: string): Promise<EncounterDe
 };
 
 export const startEncounter = async (encounterNo: string): Promise<void> => {
-  await api.post("/emr/start", { encounter_no: encounterNo });
+  await api.post("/rawat-jalan/encounter/start", { encounter_no: encounterNo });
 };
 
 export const completeEncounter = async (encounterNo: string): Promise<void> => {
-  await api.post("/emr/complete", { encounter_no: encounterNo });
+  await api.post("/rawat-jalan/encounter/complete", { encounter_no: encounterNo });
 };
 
 // ─── Triage ───────────────────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ export const submitTriage = async (
   encounterNo: string,
   triageData: TriageData
 ): Promise<void> => {
-  await api.post("/emr/triage", {
+  await api.post("/rawat-jalan/triage", {
     encounter_no: encounterNo,
     blood_pressure_systolic: triageData.blood_pressure_systolic,
     blood_pressure_diastolic: triageData.blood_pressure_diastolic,
@@ -62,7 +62,7 @@ export const submitTriage = async (
   });
 };
 
-// ─── Diagnosis ────────────────────────────────────────────────────────────────
+// ─── Diagnosis (ICD-10 First) ──────────────────────────────────────────────────
 
 export const searchICD10 = async (search: string, poliCode?: string): Promise<{ code: string; name: string }[]> => {
   try {
@@ -87,7 +87,7 @@ export const addEncounterDiagnosis = async (
   severityLevel: string,
   clinicalNotes: string
 ): Promise<void> => {
-  await api.post("/emr/diagnosis", {
+  await api.post("/rawat-jalan/diagnosis", {
     encounter_no: encounterNo,
     icd10_code: icd10Code,
     diagnosis_type: diagnosisType,
@@ -99,32 +99,31 @@ export const addEncounterDiagnosis = async (
 export const updateEncounterDiagnosis = async (
   id: string,
   diagnosisType: string,
-  clinicalNotes: string,
-  severityLevel: string
+  severityLevel: string,
+  clinicalNotes: string
 ): Promise<void> => {
-  await api.put(`/emr/diagnosis/${id}`, {
+  await api.put(`/rawat-jalan/diagnosis/${id}`, {
     diagnosis_type: diagnosisType,
-    clinical_notes: clinicalNotes,
     severity_level: severityLevel,
+    clinical_notes: clinicalNotes,
   });
 };
 
 export const removeEncounterDiagnosis = async (id: string): Promise<void> => {
-  await api.delete(`/emr/diagnosis/${id}`);
+  await api.delete(`/rawat-jalan/diagnosis/${id}`);
 };
 
 export const finalizeSeverity = async (
   encounterNo: string,
   severityLevel: string
 ): Promise<void> => {
-  await api.post(`/emr/finalize-severity`, {
-    encounter_no: encounterNo,
+  await api.post(`/rawat-jalan/encounter/${encounterNo}/severity/finalize`, {
     severity_level: severityLevel,
   });
 };
 
 export const getKBMSuggestionsForICD10 = async (icd10Code: string): Promise<any[]> => {
-  const { data } = await api.get<{ data: { suggestions: any[] } }>(`/emr/icd10/${icd10Code}/kbm-suggestions`);
+  const { data } = await api.get<{ data: { suggestions: any[] } }>(`/rawat-jalan/icd10/${icd10Code}/kbm-suggestions`);
   return data?.data?.suggestions || [];
 };
 
@@ -175,7 +174,7 @@ export const addMedicalAction = async (
   price: number,
   notes: string
 ): Promise<void> => {
-  await api.post("/emr/actions", {
+  await api.post("/rawat-jalan/actions", {
     encounter_no: encounterNo,
     action_code: actionCode,
     action_name: actionName,
@@ -233,7 +232,7 @@ export const createPrescription = async (
 
 export const getMedicalRecord = async (encounterNo: string): Promise<GetMedicalRecordResponse | null> => {
   try {
-    const { data } = await api.get<{ data: GetMedicalRecordResponse }>(`/emr/record/${encounterNo}`);
+    const { data } = await api.get<{ data: GetMedicalRecordResponse }>(`/rawat-jalan/record/${encounterNo}`);
     return data?.data;
   } catch (error) {
     console.error("Failed to fetch medical record", error);

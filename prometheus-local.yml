@@ -19,9 +19,13 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9093']
 
-  - job_name: 'emr-service'
+  - job_name: 'medical-record-service'
     static_configs:
       - targets: ['localhost:9094']
+
+  - job_name: 'rawat-jalan-service'
+    static_configs:
+      - targets: ['localhost:9097']
 
   - job_name: 'pharmacy-service'
     static_configs:
