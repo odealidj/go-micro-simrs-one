@@ -61,9 +61,9 @@ export function LoginPage() {
         } else if (role === "admisi") {
           navigate("/admisi");
         } else if (role === "dokter") {
-          navigate("/dokter");
+          navigate("/rawat-jalan/dokter");
         } else if (role === "perawat") {
-          navigate("/perawat");
+          navigate("/rawat-jalan/perawat");
         } else if (role === "kasir") {
           navigate("/kasir");
         } else if (role === "asisten_apoteker") {
