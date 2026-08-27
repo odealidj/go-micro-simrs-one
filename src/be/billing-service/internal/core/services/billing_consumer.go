@@ -24,8 +24,8 @@ type PrescriptionDispensedPayload struct {
 }
 
 func StartBillingConsumers(ctx context.Context, rdb *redis.Client, billingService ports.BillingService) {
-	// 1. Consumer for EMR Stream
-	emrHandler := func(ctx context.Context, msg redis.XMessage) error {
+	// 1. Consumer for Rawat Jalan Stream (MedicalActionAdded from Polyclinics)
+	actionHandler := func(ctx context.Context, msg redis.XMessage) error {
 		eventType, ok := msg.Values["event_type"].(string)
 		if !ok || eventType != "MedicalActionAdded" {
 			return nil // ignore other events
@@ -44,7 +44,11 @@ func StartBillingConsumers(ctx context.Context, rdb *redis.Client, billingServic
 		return billingService.AddActionItem(ctx, payload.EncounterNo, payload.ActionCode, payload.ActionName, payload.Price)
 	}
 
-	emrConsumer := outbox.NewConsumer(rdb, "emr_stream", "billing_group", "billing_worker_1", emrHandler)
+	rawatJalanConsumer := outbox.NewConsumer(rdb, "rawat_jalan_stream", "billing_group", "billing_worker_rawat_jalan", actionHandler)
+	go rawatJalanConsumer.Start(ctx)
+
+	// Fallback consumer for legacy emr_stream
+	emrConsumer := outbox.NewConsumer(rdb, "emr_stream", "billing_group", "billing_worker_emr", actionHandler)
 	go emrConsumer.Start(ctx)
 
 	// 2. Consumer for Pharmacy Stream

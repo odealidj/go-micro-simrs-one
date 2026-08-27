@@ -27,25 +27,25 @@ func NewRegistrationEventConsumer(
 	handler := func(ctx context.Context, msg redis.XMessage) error {
 		payloadStr, ok := msg.Values["payload"].(string)
 		if !ok {
-			slog.Warn("[EMR Consumer] payload field missing or not a string", "msg_id", msg.ID)
+			slog.Warn("[Rawat Jalan Consumer] payload field missing or not a string", "msg_id", msg.ID)
 			// ACK to avoid infinite retry on bad message format
 			return nil
 		}
 
 		var payload RegistrationPayload
 		if err := json.Unmarshal([]byte(payloadStr), &payload); err != nil {
-			slog.Error("[EMR Consumer] Failed to unmarshal payload", "msg_id", msg.ID, "error", err)
+			slog.Error("[Rawat Jalan Consumer] Failed to unmarshal payload", "msg_id", msg.ID, "error", err)
 			// ACK to avoid infinite retry on permanently-bad messages
 			return nil
 		}
 
-		slog.Info("[EMR Consumer] Creating Draft MR",
+		slog.Info("[Rawat Jalan Consumer] Creating Draft Encounter",
 			"encounter_no", payload.EncounterNo,
 			"mrn", payload.MRN,
 		)
 		if err := emrService.CreateDraftMR(ctx, payload.EncounterNo, payload.MRN); err != nil {
 			// Return error so the message stays in PEL and is retried
-			slog.Error("[EMR Consumer] Failed to create Draft MR", "encounter_no", payload.EncounterNo, "error", err)
+			slog.Error("[Rawat Jalan Consumer] Failed to create Draft Encounter", "encounter_no", payload.EncounterNo, "error", err)
 			return err
 		}
 		return nil
@@ -54,8 +54,8 @@ func NewRegistrationEventConsumer(
 	return outbox.NewConsumer(
 		client,
 		"registration.events", // stream name (must match Registration Relay)
-		"emr-service",          // consumer group name
-		"emr-instance-1",       // consumer ID (unique per replica)
+		"rawat-jalan-group",   // dedicated consumer group name for rawat-jalan
+		"rawat-jalan-instance-1", // consumer ID (unique per replica)
 		handler,
 	)
 }

@@ -68,7 +68,7 @@ func main() {
 	// 5. Start Registration Event Consumer (Consumer Group — safe on restart)
 	registrationConsumer := broker.NewRegistrationEventConsumer(rdb, emrService)
 	go registrationConsumer.Start(ctx)
-	slog.Info("Rawat Jalan Registration Event Consumer started", "stream", "registration.events", "group", "rawat-jalan-service")
+	slog.Info("Rawat Jalan Registration Event Consumer started", "stream", "registration.events", "group", "rawat-jalan-group")
 
 	// 6. Init Outbox Relay Worker
 	if outboxRepo, ok := emrRepo.(outbox.Repository); ok {
