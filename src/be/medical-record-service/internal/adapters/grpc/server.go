@@ -3,7 +3,6 @@ package grpc
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,40 +26,15 @@ func NewEMRGrpcServer(service ports.EMRService, queries *db.Queries) *EMRGrpcSer
 }
 
 func (s *EMRGrpcServer) StartEncounter(ctx context.Context, req *pb.StartEncounterRequest) (*pb.StartEncounterResponse, error) {
-	err := s.emrService.StartEncounter(ctx, req.EncounterNo)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to start encounter: %v", err)
-	}
-	return &pb.StartEncounterResponse{
-		Success: true,
-		Message: "Encounter started",
-	}, nil
+	return nil, status.Errorf(codes.Unimplemented, "StartEncounter has moved to rawat-jalan-service")
 }
 
 func (s *EMRGrpcServer) CompleteEncounter(ctx context.Context, req *pb.CompleteEncounterRequest) (*pb.CompleteEncounterResponse, error) {
-	err := s.emrService.CompleteEncounter(ctx, req.EncounterNo)
-	if err != nil {
-		if strings.Contains(err.Error(), "validasi") || strings.Contains(err.Error(), "wajib") {
-			return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
-		}
-		return nil, status.Errorf(codes.Internal, "failed to complete encounter: %v", err)
-	}
-	return &pb.CompleteEncounterResponse{
-		Success: true,
-		Message: "Encounter completed successfully",
-	}, nil
+	return nil, status.Errorf(codes.Unimplemented, "CompleteEncounter has moved to rawat-jalan-service")
 }
 
 func (s *EMRGrpcServer) SubmitTriage(ctx context.Context, req *pb.SubmitTriageRequest) (*pb.SubmitTriageResponse, error) {
-	err := s.emrService.SubmitTriage(ctx, req.EncounterNo, &req.BloodPressureSystolic, &req.BloodPressureDiastolic, &req.Temperature, &req.HeartRate, req.Notes)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to submit triage: %v", err)
-	}
-
-	return &pb.SubmitTriageResponse{
-		Success: true,
-		Message: "Triage submitted successfully",
-	}, nil
+	return nil, status.Errorf(codes.Unimplemented, "SubmitTriage has moved to rawat-jalan-service")
 }
 
 func (s *EMRGrpcServer) SearchKBM(ctx context.Context, req *pb.SearchKBMRequest) (*pb.SearchKBMResponse, error) {
@@ -104,46 +78,15 @@ func (s *EMRGrpcServer) GetKBMDetail(ctx context.Context, req *pb.GetKBMDetailRe
 }
 
 func (s *EMRGrpcServer) AddEncounterDiagnosis(ctx context.Context, req *pb.AddEncounterDiagnosisRequest) (*pb.AddEncounterDiagnosisResponse, error) {
-	diag, err := s.emrService.AddEncounterDiagnosis(ctx, req.EncounterNo, req.Icd10Code, req.DiagnosisType, req.ClinicalNotes, req.SeverityLevel, req.DoctorId, req.DepartmentCode, req.Gender, req.AgeBracket, req.Sequence)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add diagnosis: %v", err)
-	}
-
-	return &pb.AddEncounterDiagnosisResponse{
-		Success: true,
-		Message: "Diagnosis added successfully",
-		Data: &pb.EncounterDiagnosis{
-			Id:                   diag.ID,
-			Icd10Code:            diag.ICD10Code,
-			Icd10Name:            diag.ICD10Name,
-			DiagnosisType:        diag.DiagnosisType,
-			Sequence:             diag.Sequence,
-			ClinicalNotes:        diag.ClinicalNotes,
-			SeverityLevel:        diag.SeverityLevel,
-			SeveritySetRole:      diag.SeveritySetRole,
-			AutoKbmCode:          diag.AutoKBMCode,
-			AutoKbmName:          diag.AutoKBMName,
-			KbmMappingConfidence: diag.KBMMappingConfidence,
-			IsVerifiedByRm:       diag.IsVerifiedByRM,
-			VerifiedBy:           diag.VerifiedBy,
-		},
-	}, nil
+	return nil, status.Errorf(codes.Unimplemented, "AddEncounterDiagnosis has moved to rawat-jalan-service")
 }
 
 func (s *EMRGrpcServer) UpdateEncounterDiagnosis(ctx context.Context, req *pb.UpdateEncounterDiagnosisRequest) (*pb.UpdateEncounterDiagnosisResponse, error) {
-	err := s.emrService.UpdateEncounterDiagnosis(ctx, req.Id, req.DiagnosisType, req.ClinicalNotes, req.SeverityLevel, req.Sequence)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to update diagnosis: %v", err)
-	}
-	return &pb.UpdateEncounterDiagnosisResponse{Success: true, Message: "Updated"}, nil
+	return nil, status.Errorf(codes.Unimplemented, "UpdateEncounterDiagnosis has moved to rawat-jalan-service")
 }
 
 func (s *EMRGrpcServer) RemoveEncounterDiagnosis(ctx context.Context, req *pb.RemoveEncounterDiagnosisRequest) (*pb.RemoveEncounterDiagnosisResponse, error) {
-	err := s.emrService.RemoveEncounterDiagnosis(ctx, req.Id)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to remove diagnosis: %v", err)
-	}
-	return &pb.RemoveEncounterDiagnosisResponse{Success: true, Message: "Removed"}, nil
+	return nil, status.Errorf(codes.Unimplemented, "RemoveEncounterDiagnosis has moved to rawat-jalan-service")
 }
 
 func (s *EMRGrpcServer) GetKBMSuggestionsForICD10(ctx context.Context, req *pb.GetKBMSuggestionsForICD10Request) (*pb.GetKBMSuggestionsForICD10Response, error) {
@@ -193,15 +136,7 @@ func (s *EMRGrpcServer) ListPendingKBMVerifications(ctx context.Context, req *pb
 }
 
 func (s *EMRGrpcServer) AddMedicalAction(ctx context.Context, req *pb.AddMedicalActionRequest) (*pb.AddMedicalActionResponse, error) {
-	err := s.emrService.AddMedicalAction(ctx, req.EncounterNo, req.ActionCode, req.ActionName, req.Price, req.Notes)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add medical action: %v", err)
-	}
-
-	return &pb.AddMedicalActionResponse{
-		Success: true,
-		Message: "Medical action added successfully",
-	}, nil
+	return nil, status.Errorf(codes.Unimplemented, "AddMedicalAction has moved to rawat-jalan-service")
 }
 
 func (s *EMRGrpcServer) GetMedicalRecord(ctx context.Context, req *pb.GetMedicalRecordRequest) (*pb.GetMedicalRecordResponse, error) {

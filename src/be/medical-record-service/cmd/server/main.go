@@ -15,11 +15,9 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/aliube/go-micro-simrs-one/medical-record-service/internal/adapters/broker"
 	adapterDB "github.com/aliube/go-micro-simrs-one/medical-record-service/internal/adapters/db"
 	grpcAdapter "github.com/aliube/go-micro-simrs-one/medical-record-service/internal/adapters/grpc"
 	"github.com/aliube/go-micro-simrs-one/medical-record-service/internal/adapters/repository"
-	"github.com/aliube/go-micro-simrs-one/medical-record-service/internal/adapters/worker"
 	"github.com/aliube/go-micro-simrs-one/medical-record-service/internal/core/services"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/db"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/outbox"
@@ -65,12 +63,7 @@ func main() {
 	ctx, cancel := shutdown.WaitForSignal()
 	defer cancel()
 
-	// 5. Start Registration Event Consumer (Consumer Group — safe on restart)
-	registrationConsumer := broker.NewRegistrationEventConsumer(rdb, emrService)
-	go registrationConsumer.Start(ctx)
-	slog.Info("Medical Record Registration Event Consumer started", "stream", "registration.events", "group", "medical-record-service")
-
-	// 6. Init Outbox Relay Worker
+	// 5. Init Outbox Relay Worker (for Medical Record domain events)
 	if outboxRepo, ok := emrRepo.(outbox.Repository); ok {
 		emrRelay := outbox.NewRelay(outboxRepo, rdb, "medical_record_stream", 5*time.Second)
 		go emrRelay.Start(ctx)
@@ -79,10 +72,7 @@ func main() {
 		log.Fatalf("emrRepo does not implement outbox.Repository")
 	}
 
-	// 6.5 Init Aggregator Worker
 	queriesRepo := adapterDB.New(dbConn)
-	worker.StartAggregatorWorker(queriesRepo)
-	slog.Info("Medical Record Aggregator Worker started")
 
 	// 7. Init gRPC Server
 	grpcServer := grpc.NewServer(

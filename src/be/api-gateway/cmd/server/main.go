@@ -2174,13 +2174,13 @@ func main() {
 				})
 
 				r.Post("/emr/triage", func(w http.ResponseWriter, req *http.Request) {
-					var payload emrpb.SubmitTriageRequest
+					var payload rawatjalanpb.SubmitTriageRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.SubmitTriageResponse, error) {
-						return emrClient.SubmitTriage(req.Context(), &payload)
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.SubmitTriageResponse, error) {
+						return rawatJalanClient.SubmitTriage(req.Context(), &payload)
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
@@ -2194,7 +2194,7 @@ func main() {
 				})
 
 				r.Post("/emr/start", func(w http.ResponseWriter, req *http.Request) {
-					var payload emrpb.StartEncounterRequest
+					var payload rawatjalanpb.StartEncounterRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
@@ -2205,8 +2205,8 @@ func main() {
 						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.StartEncounterResponse, error) {
-						return emrClient.StartEncounter(req.Context(), &payload)
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.StartEncounterResponse, error) {
+						return rawatJalanClient.StartEncounter(req.Context(), &payload)
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
@@ -2229,7 +2229,7 @@ func main() {
 				})
 
 				r.Post("/emr/complete", func(w http.ResponseWriter, req *http.Request) {
-					var payload emrpb.CompleteEncounterRequest
+					var payload rawatjalanpb.CompleteEncounterRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
@@ -2240,8 +2240,8 @@ func main() {
 						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.CompleteEncounterResponse, error) {
-						return emrClient.CompleteEncounter(req.Context(), &payload)
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.CompleteEncounterResponse, error) {
+						return rawatJalanClient.CompleteEncounter(req.Context(), &payload)
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
@@ -2264,7 +2264,7 @@ func main() {
 				})
 
 				r.Post("/emr/diagnosis", func(w http.ResponseWriter, req *http.Request) {
-					var payload emrpb.AddEncounterDiagnosisRequest
+					var payload rawatjalanpb.AddEncounterDiagnosisRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
@@ -2278,8 +2278,8 @@ func main() {
 						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.AddEncounterDiagnosisResponse, error) {
-						return emrClient.AddEncounterDiagnosis(req.Context(), &payload)
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.AddEncounterDiagnosisResponse, error) {
+						return rawatJalanClient.AddEncounterDiagnosis(req.Context(), &payload)
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
@@ -2294,14 +2294,14 @@ func main() {
 
 				r.Put("/emr/diagnosis/{id}", func(w http.ResponseWriter, req *http.Request) {
 					id := chi.URLParam(req, "id")
-					var payload emrpb.UpdateEncounterDiagnosisRequest
+					var payload rawatjalanpb.UpdateEncounterDiagnosisRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
 					payload.Id = id
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.UpdateEncounterDiagnosisResponse, error) {
-						return emrClient.UpdateEncounterDiagnosis(req.Context(), &payload)
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.UpdateEncounterDiagnosisResponse, error) {
+						return rawatJalanClient.UpdateEncounterDiagnosis(req.Context(), &payload)
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
@@ -2316,8 +2316,8 @@ func main() {
 
 				r.Delete("/emr/diagnosis/{id}", func(w http.ResponseWriter, req *http.Request) {
 					id := chi.URLParam(req, "id")
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.RemoveEncounterDiagnosisResponse, error) {
-						return emrClient.RemoveEncounterDiagnosis(req.Context(), &emrpb.RemoveEncounterDiagnosisRequest{Id: id})
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.RemoveEncounterDiagnosisResponse, error) {
+						return rawatJalanClient.RemoveEncounterDiagnosis(req.Context(), &rawatjalanpb.RemoveEncounterDiagnosisRequest{Id: id})
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
@@ -2340,8 +2340,8 @@ func main() {
 						return
 					}
 					userId, _ := req.Context().Value("user_id").(string)
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.FinalizeSeverityResponse, error) {
-						return emrClient.FinalizeSeverity(req.Context(), &emrpb.FinalizeSeverityRequest{
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.FinalizeSeverityResponse, error) {
+						return rawatJalanClient.FinalizeSeverity(req.Context(), &rawatjalanpb.FinalizeSeverityRequest{
 							EncounterNo:   encounterNo,
 							SeverityLevel: payload.SeverityLevel,
 							UserId:        userId,
@@ -2368,8 +2368,8 @@ func main() {
 						return
 					}
 					userId, _ := req.Context().Value("user_id").(string)
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.VerifyKBMMappingResponse, error) {
-						return emrClient.VerifyKBMMapping(req.Context(), &emrpb.VerifyKBMMappingRequest{
+					res, err := circuitbreaker.CallGRPC(cbMedicalRecord, func() (*emrpb.VerifyKBMMappingResponse, error) {
+						return medicalRecordClient.VerifyKBMMapping(req.Context(), &emrpb.VerifyKBMMappingRequest{
 							Id:      id,
 							KbmCode: payload.KbmCode,
 							UserId:  userId,
@@ -2387,13 +2387,13 @@ func main() {
 				})
 
 				r.Post("/emr/actions", func(w http.ResponseWriter, req *http.Request) {
-					var payload emrpb.AddMedicalActionRequest
+					var payload rawatjalanpb.AddMedicalActionRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.AddMedicalActionResponse, error) {
-						return emrClient.AddMedicalAction(req.Context(), &payload)
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.AddMedicalActionResponse, error) {
+						return rawatJalanClient.AddMedicalAction(req.Context(), &payload)
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
@@ -2408,8 +2408,8 @@ func main() {
 
 				r.Get("/emr/record/{encounter_no}", func(w http.ResponseWriter, req *http.Request) {
 					encounterNo := chi.URLParam(req, "encounter_no")
-					res, err := circuitbreaker.CallGRPC(cbEMR, func() (*emrpb.GetMedicalRecordResponse, error) {
-						return emrClient.GetMedicalRecord(req.Context(), &emrpb.GetMedicalRecordRequest{EncounterNo: encounterNo})
+					res, err := circuitbreaker.CallGRPC(cbMedicalRecord, func() (*emrpb.GetMedicalRecordResponse, error) {
+						return medicalRecordClient.GetMedicalRecord(req.Context(), &emrpb.GetMedicalRecordRequest{EncounterNo: encounterNo})
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
