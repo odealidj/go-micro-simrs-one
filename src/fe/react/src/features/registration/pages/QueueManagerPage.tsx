@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
-import { Mic, SkipForward, RotateCcw, CheckCircle2, User } from "lucide-react";
+import { Mic, SkipForward, RotateCcw, CheckCircle2, User, MonitorPlay } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { AdmisiPageHeader } from "../components/AdmisiPageHeader";
+import { admisiTheme } from "../theme";
 
 interface QueuePatient {
   id: string;
@@ -103,29 +105,31 @@ export function QueueManagerPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
-      <div>
-        <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Manajemen Antrean</h2>
-        <p className="text-slate-500 mt-1">Kontrol pemanggilan pasien dan estimasi pelayanan.</p>
-      </div>
+    <div className={admisiTheme.layout.container}>
+      <AdmisiPageHeader
+        title="Manajemen Antrean"
+        description="Kontrol pemanggilan antrean pasien, estimasi pelayanan, dan alur per poliklinik."
+        badge="Live Queue Control"
+        icon={MonitorPlay}
+      />
 
       {/* Tabs Navigation */}
-      <div className="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="flex space-x-2 overflow-x-auto pb-1 scrollbar-hide">
         {queueTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={cn(
-              "px-5 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-2",
+              "px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-2 border",
               activeTab === tab.id 
-                ? "bg-blue-600 text-white shadow-sm" 
-                : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                ? "bg-sky-600 border-sky-600 text-white shadow-xs" 
+                : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
             )}
           >
             {tab.label}
             <span className={cn(
-              "px-2 py-0.5 rounded-full text-xs",
-              activeTab === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+              "px-2 py-0.5 rounded-full text-[10px] font-bold",
+              activeTab === tab.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
             )}>
               {tab.activeCount}
             </span>

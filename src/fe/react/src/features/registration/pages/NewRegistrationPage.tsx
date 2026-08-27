@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { Search, CreditCard, UserCircle, Camera, UploadCloud, X, Loader2, Check, Activity, Clock } from "lucide-react";
+import { Search, CreditCard, UserCircle, Camera, UploadCloud, X, Loader2, Check, Activity, Clock, Stethoscope, UserCheck, UserPlus, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,8 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { useNavigate } from "react-router-dom";
+import { AdmisiPageHeader } from "../components/AdmisiPageHeader";
+import { admisiTheme } from "../theme";
 
 interface Patient {
   mrn: string;
@@ -28,7 +31,7 @@ export function NewRegistrationPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalData, setTotalData] = useState(0);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   // Recent Registrations Sidebar State
   const [recentRegistrations, setRecentRegistrations] = useState<any[]>([]);
@@ -39,6 +42,7 @@ export function NewRegistrationPage() {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [selectedPoli, setPoli] = useState("");
   const [selectedDoctor, setDoctor] = useState("");
+  const [selectedNurse, setNurse] = useState("");
   const [selectedPayment, setPayment] = useState("Umum / Mandiri");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -65,13 +69,21 @@ export function NewRegistrationPage() {
   const [patientPhotoPreview, setPatientPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchPatients(searchQuery, currentPage);
-  }, [currentPage]);
+    fetchPatients(searchQuery, currentPage, pageSize);
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     fetchRecentRegistrations();
     fetchMasterData();
   }, []);
+
+  const formatGender = (gender?: string) => {
+    if (!gender) return "-";
+    const g = gender.trim().toUpperCase();
+    if (g === "M" || g === "MALE" || g === "LAKI-LAKI" || g === "L") return "Laki-laki";
+    if (g === "F" || g === "FEMALE" || g === "PEREMPUAN" || g === "P") return "Perempuan";
+    return gender;
+  };
 
   const fetchMasterData = async () => {
     setIsFetchingMaster(true);
@@ -92,11 +104,11 @@ export function NewRegistrationPage() {
     }
   };
 
-  const fetchPatients = async (query: string, page: number = 1) => {
+  const fetchPatients = async (query: string, page: number = 1, size: number = pageSize) => {
     setIsSearching(true);
     try {
       const response = await api.get(`/patients`, {
-        params: { search: query, page, page_size: pageSize }
+        params: { search: query, page, page_size: size }
       });
       const data = response.data;
       if (data.success && data.data) {
@@ -140,7 +152,7 @@ export function NewRegistrationPage() {
   const handleSearchPatient = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setCurrentPage(1);
-    fetchPatients(searchQuery, 1);
+    fetchPatients(searchQuery, 1, pageSize);
   };
 
   const handleSearchKtpUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,7 +173,7 @@ export function NewRegistrationPage() {
         if (ocrData.nik) {
           setSearchQuery(ocrData.nik);
           setCurrentPage(1);
-          fetchPatients(ocrData.nik, 1);
+          fetchPatients(ocrData.nik, 1, pageSize);
         } else {
           toast.error("Gagal membaca NIK dari KTP");
         }
@@ -259,6 +271,9 @@ export function NewRegistrationPage() {
       if (selectedPayment === "BPJS Kesehatan") guarantor = "BPJS";
       else if (selectedPayment === "Asuransi Lainnya") guarantor = "Asuransi";
 
+      const doctorIdToSend = assignedDoctor?.id || selectedDoctor;
+      const perawatIdToSend = assignedNurse?.id || selectedNurse;
+
       let response;
       if (selectedPatient?.mrn === "NEW") {
         response = await api.post(`/registrations/new-patient`, {
@@ -270,14 +285,16 @@ export function NewRegistrationPage() {
           address: newPatientForm.address,
           email: newPatientForm.email,
           department_code: selectedPoli,
-          doctor_id: selectedDoctor,
+          doctor_id: doctorIdToSend,
+          perawat_id: perawatIdToSend,
           guarantor: guarantor
         });
       } else {
         response = await api.post(`/registrations`, {
           mrn: selectedPatient?.mrn,
           department_code: selectedPoli,
-          doctor_id: selectedDoctor,
+          doctor_id: doctorIdToSend,
+          perawat_id: perawatIdToSend,
           guarantor: guarantor
         });
       }
@@ -308,27 +325,41 @@ export function NewRegistrationPage() {
     return hasDoctor && hasNurse;
   });
 
-  const availableDoctors = masterDoctors.filter(d => d.poli_code === selectedPoli);
+  const assignedDoctor = masterDoctors.find(d => d.poli_code === selectedPoli);
+  const assignedNurse = masterNurses.find(n => n.poli_code === selectedPoli);
+
+  const handlePoliChange = (poliCode: string) => {
+    setPoli(poliCode);
+    const doc = masterDoctors.find(d => d.poli_code === poliCode);
+    const nurse = masterNurses.find(n => n.poli_code === poliCode);
+    setDoctor(doc?.id || "");
+    setNurse(nurse?.id || "");
+  };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Pendaftaran Pasien</h2>
-          <p className="text-slate-500 mt-1">Kelola data pasien dan pendaftaran rawat jalan.</p>
-        </div>
-        <Button onClick={() => setIsNewPatientModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md shadow-blue-200">
-          <UserCircle className="mr-2 h-5 w-5" />
-          Pasien Baru
-        </Button>
-      </div>
+    <div className={admisiTheme.layout.container}>
+      {/* Page Header */}
+      <AdmisiPageHeader
+        title="Pendaftaran Pasien"
+        description="Kelola data pasien, pencarian rekam medis, dan pendaftaran kunjungan rawat jalan."
+        badge="Admisi Pasien"
+        icon={UserPlus}
+        actions={
+          <Button 
+            onClick={() => setIsNewPatientModalOpen(true)} 
+            className="bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-md shadow-sky-600/20 font-bold px-5 h-11 transition-all"
+          >
+            <UserCircle className="mr-2 h-5 w-5" />
+            Pasien Baru
+          </Button>
+        }
+      />
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
         {/* Left Column - Patient Directory (8 cols) */}
-        <div className="xl:col-span-8 space-y-6">
-          <Card className="bg-white border-slate-200/60 shadow-md shadow-slate-200/40 overflow-hidden rounded-2xl">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100/80 p-5">
+        <div className="xl:col-span-8 flex flex-col">
+          <Card className="card-premium overflow-hidden flex flex-col h-full">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100/80 p-5 shrink-0">
               <form onSubmit={handleSearchPatient} className="relative flex gap-3">
                 <div className="relative flex-1 max-w-2xl">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
@@ -336,11 +367,11 @@ export function NewRegistrationPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Cari berdasarkan No. RM, Nama, atau NIK..." 
-                    className="pl-12 pr-12 h-12 bg-white border-slate-200/80 text-slate-900 placeholder:text-slate-400 focus-visible:ring-blue-600 focus-visible:border-blue-600 rounded-xl shadow-sm"
+                    className="pl-12 pr-12 h-12 bg-white border-slate-200/80 text-slate-900 placeholder:text-slate-400 focus-visible:ring-sky-600 focus-visible:border-sky-600 rounded-xl shadow-xs"
                   />
                   <Button 
                     type="button" variant="ghost" size="icon" 
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-blue-600 rounded-full"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-sky-600 rounded-full"
                     onClick={() => searchKtpInputRef.current?.click()} title="Scan KTP"
                   >
                     {isSearchingKtp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
@@ -350,119 +381,209 @@ export function NewRegistrationPage() {
                     accept="image/*" capture="environment" onChange={handleSearchKtpUpload} 
                   />
                 </div>
-                <Button type="submit" disabled={isSearching} className="h-12 px-8 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20 transition-all font-medium">
+                <Button type="submit" disabled={isSearching} className="h-12 px-7 rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-md shadow-sky-600/20 transition-all font-bold">
                   {isSearching ? <Loader2 className="h-5 w-5 animate-spin" /> : "Cari Pasien"}
                 </Button>
               </form>
             </CardHeader>
             
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-[11px] text-slate-500 bg-slate-50/80 border-b border-slate-100 uppercase font-bold tracking-wider">
-                  <tr>
-                    <th className="px-6 py-4">No. RM</th>
-                    <th className="px-6 py-4">Nama Pasien</th>
-                    <th className="px-6 py-4">Tgl Lahir</th>
-                    <th className="px-6 py-4">Kelamin</th>
-                    <th className="px-6 py-4 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
+            {/* Main Patient Table */}
+            <div className="p-0 overflow-x-auto custom-scrollbar flex-1 flex flex-col min-h-[460px]">
+              <Table className="w-full">
+                <TableHeader className="bg-slate-50/70 border-b border-slate-100 shrink-0">
+                  <TableRow>
+                    <TableHead className="w-[140px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">No. RM</TableHead>
+                    <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">Nama Pasien</TableHead>
+                    <TableHead className="w-[130px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">Tgl Lahir</TableHead>
+                    <TableHead className="w-[120px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">Kelamin</TableHead>
+                    <TableHead className="text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4 w-[130px]">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {patientsList.length > 0 ? (
                     patientsList.map((patient, idx) => {
                       const isRegisteredToday = recentRegistrations.some(enc => enc.mrn === patient.mrn);
                       return (
-                      <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors group">
-                        <td className="px-6 py-5 font-medium text-slate-900">{patient.mrn}</td>
-                        <td className={cn("px-6 py-5 font-semibold", isRegisteredToday ? "text-emerald-600" : "text-slate-800")}>
-                          {patient.name}
-                        </td>
-                        <td className="px-6 py-5 text-slate-500">{patient.date_of_birth}</td>
-                        <td className="px-6 py-5 text-slate-500">{patient.gender}</td>
-                        <td className="px-6 py-5 text-right">
-                          {isRegisteredToday ? (
-                            <div className="flex items-center justify-end">
-                              <Button onClick={() => openRegisterModal(patient)} size="sm" variant="outline" className="h-8 text-xs px-4 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg whitespace-nowrap transition-colors" title="Sudah terdaftar hari ini, klik untuk daftar poli lain">
-                                + Poli Lain
-                              </Button>
+                        <TableRow key={idx} className="hover:bg-sky-50/40 transition-colors border-b border-slate-100/80">
+                          <TableCell className="py-3 px-4">
+                            <span className="font-mono font-bold text-slate-900 bg-slate-100 border border-slate-200/90 px-2.5 py-1 rounded-md text-xs tracking-wider inline-block shadow-2xs">
+                              {patient.mrn}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-3 px-4 font-semibold text-slate-900 text-xs">
+                            <div className="flex items-center gap-2">
+                              <span>{patient.name}</span>
+                              {isRegisteredToday && (
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                  Terdaftar
+                                </span>
+                              )}
                             </div>
-                          ) : (
-                            <Button onClick={() => openRegisterModal(patient)} size="sm" className="h-8 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm shadow-emerald-600/20 transition-all">
-                              Daftarkan
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
+                          </TableCell>
+                          <TableCell className="py-3 px-4 font-mono text-xs text-slate-600">
+                            {patient.date_of_birth || "-"}
+                          </TableCell>
+                          <TableCell className="py-3 px-4 text-xs text-slate-600 font-medium">
+                            {formatGender(patient.gender)}
+                          </TableCell>
+                          <TableCell className="py-3 px-4 text-right">
+                            {isRegisteredToday ? (
+                              <Button 
+                                onClick={() => openRegisterModal(patient)} 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-8 text-xs font-semibold px-3 border-sky-200 text-sky-700 bg-sky-50/50 hover:bg-sky-100 hover:text-sky-800 rounded-lg whitespace-nowrap transition-colors shadow-2xs gap-1.5" 
+                                title="Sudah terdaftar hari ini, klik untuk daftar poli lain"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                                Poli Lain
+                              </Button>
+                            ) : (
+                              <Button 
+                                onClick={() => openRegisterModal(patient)} 
+                                size="sm" 
+                                className="h-8 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm shadow-emerald-600/20 font-semibold text-xs transition-all gap-1.5"
+                              >
+                                <UserCheck className="h-3.5 w-3.5" />
+                                Daftarkan
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
                       );
                     })
                   ) : (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                        {isSearching ? "Mencari pasien..." : "Tidak ada pasien ditemukan."}
-                      </td>
-                    </tr>
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-16 text-center text-slate-500 text-xs">
+                        {isSearching ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin text-sky-600" />
+                            <span>Mencari data pasien...</span>
+                          </div>
+                        ) : (
+                          "Tidak ada pasien ditemukan."
+                        )}
+                      </TableCell>
+                    </TableRow>
                   )}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
 
-            {/* Pagination Controls */}
-            {totalPages > 0 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-white rounded-b-2xl">
-                <div className="text-sm text-slate-500">
-                  Total data: {totalData}
-                </div>
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="outline" size="sm" className="h-9 px-3 text-slate-600 hover:text-slate-900"
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Prev
-                  </Button>
-                  <span className="text-sm font-medium text-slate-700">
-                    Halaman {currentPage} dari {totalPages}
-                  </span>
-                  <Button
-                    variant="outline" size="sm" className="h-9 px-3 text-slate-600 hover:text-slate-900"
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
+            {/* Unified SIMRS Pagination Bar */}
+            <div className="mt-auto flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-100 bg-slate-50/40 rounded-b-2xl shrink-0">
+              <div className="text-xs text-slate-500 font-medium">
+                {totalData > 0 ? (
+                  <>
+                    Menampilkan <span className="font-semibold text-slate-700">{((currentPage - 1) * pageSize) + 1}</span> - <span className="font-semibold text-slate-700">{Math.min(currentPage * pageSize, totalData)}</span> dari <span className="font-semibold text-slate-700">{totalData}</span> data
+                    {totalPages > 1 && <span className="text-slate-400 ml-1.5">(Halaman {currentPage} dari {totalPages})</span>}
+                  </>
+                ) : (
+                  <span>Total: 0 data</span>
+                )}
               </div>
-            )}
+
+              <div className="flex items-center gap-2">
+                {/* Rows Per Page Selector */}
+                <div className="flex items-center gap-1.5 mr-2">
+                  <span className="text-xs text-slate-500">Baris:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="h-8 text-xs bg-white border border-slate-200 rounded-lg px-2 text-slate-700 font-medium outline-none focus:ring-1 focus:ring-sky-500"
+                  >
+                    {[5, 10, 20, 50].map((size) => (
+                      <option key={size} value={size}>{size} / hal</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Prev Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2.5 text-xs gap-1 text-slate-600 rounded-lg border-slate-200 hover:bg-white hover:border-slate-300 transition-all"
+                  disabled={currentPage <= 1 || isSearching}
+                  onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  Sebelumnya
+                </Button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(page => {
+                      return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                    })
+                    .map((page, idx, arr) => {
+                      const prev = arr[idx - 1];
+                      const showEllipsis = prev && page - prev > 1;
+                      return (
+                        <div key={page} className="flex items-center">
+                          {showEllipsis && <span className="px-1 text-slate-400 text-xs">...</span>}
+                          <Button
+                            variant={currentPage === page ? "default" : "outline"}
+                            size="sm"
+                            className={cn(
+                              "h-8 w-8 p-0 text-xs rounded-lg font-semibold",
+                              currentPage === page 
+                                ? "bg-sky-600 hover:bg-sky-700 text-white shadow-2xs" 
+                                : "text-slate-600 border-slate-200 hover:bg-slate-100"
+                            )}
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Next Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2.5 text-xs gap-1 text-slate-600 rounded-lg border-slate-200 hover:bg-white hover:border-slate-300 transition-all"
+                  disabled={currentPage >= totalPages || isSearching}
+                  onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                >
+                  Selanjutnya
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
           </Card>
         </div>
 
-        {/* Right Column - Recent Activity Sidebar (4 cols) */}
-        <div className="xl:col-span-4 space-y-6">
-          <Card className="bg-white border-slate-200 shadow-sm sticky top-6">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-4">
+        {/* Right Column - Summary Sidebar (4 cols) */}
+        <div className="xl:col-span-4 flex flex-col">
+          <Card className="card-premium overflow-hidden flex flex-col h-full">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-5 shrink-0">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-blue-600" />
-                  Pendaftaran Hari Ini
-                </CardTitle>
-                <div className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
-                  {recentRegistrations.length} Pasien
+                <div>
+                  <CardTitle className="text-base font-bold text-slate-900">Pendaftaran Hari Ini</CardTitle>
+                  <CardDescription className="text-xs text-slate-500 mt-0.5">Pasien yang terdaftar hari ini</CardDescription>
                 </div>
+                <span className="text-xs font-bold text-sky-700 bg-sky-50 border border-sky-100 px-2.5 py-1 rounded-full">
+                  {recentRegistrations.length} Pasien
+                </span>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="px-4 pt-4 pb-2 border-b border-slate-100">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Cari pasien / poli..."
-                    value={summaryFilter}
-                    onChange={(e) => setSummaryFilter(e.target.value)}
-                    className="pl-9 h-9 text-sm rounded-lg border-slate-200 focus-visible:ring-blue-500 bg-slate-50"
-                  />
-                </div>
+            <CardContent className="p-4 flex-1 flex flex-col space-y-4">
+              <div className="relative shrink-0">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input 
+                  placeholder="Cari pasien / poli..." 
+                  value={summaryFilter}
+                  onChange={(e) => setSummaryFilter(e.target.value)}
+                  className="pl-9 h-10 text-xs bg-slate-50 border-slate-200/80 rounded-xl focus-visible:ring-sky-600"
+                />
               </div>
-              <div className="max-h-[500px] overflow-y-auto custom-scrollbar p-4 space-y-3">
+              <div className="flex-1 min-h-[360px] max-h-[460px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                 {recentRegistrations.length > 0 ? (
                   recentRegistrations
                     .filter(enc => 
@@ -501,12 +622,12 @@ export function NewRegistrationPage() {
                   </div>
                 )}
               </div>
-              <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-                <Button variant="outline" className="w-full font-medium text-blue-600 border-blue-200 hover:bg-blue-50" onClick={() => navigate('/admisi/daftar')}>
-                  Lihat Semua Kunjungan
-                </Button>
-              </div>
             </CardContent>
+            <div className="mt-auto p-4 border-t border-slate-100 bg-slate-50/40 rounded-b-2xl shrink-0">
+              <Button variant="outline" className="w-full font-semibold text-sky-600 border-sky-200 hover:bg-sky-50 rounded-xl" onClick={() => navigate('/admisi/kunjungan')}>
+                Lihat Semua Kunjungan
+              </Button>
+            </div>
           </Card>
         </div>
       </div>
@@ -514,7 +635,7 @@ export function NewRegistrationPage() {
       {/* Register Visit Modal */}
       <Dialog open={isRegisterModalOpen} onOpenChange={setIsRegisterModalOpen}>
         <DialogContent showCloseButton={false} className="sm:max-w-2xl md:max-w-3xl rounded-2xl p-0 overflow-hidden border-0 shadow-2xl w-[95vw]">
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-700 px-6 py-8 text-white relative overflow-hidden">
+          <div className="bg-gradient-to-r from-sky-600 via-sky-700 to-indigo-700 px-6 py-8 text-white relative overflow-hidden">
             <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             
             <Button 
@@ -527,73 +648,108 @@ export function NewRegistrationPage() {
             </Button>
 
             <DialogTitle className="text-2xl font-bold">Pendaftaran Kunjungan</DialogTitle>
-            <DialogDescription className="text-blue-100 mt-2 text-base">
+            <DialogDescription className="text-sky-100 mt-2 text-base">
               Atur tujuan poliklinik dan penjamin untuk pasien <strong className="text-white">{selectedPatient?.name}</strong>.
             </DialogDescription>
           </div>
           <div className="p-6 space-y-8 bg-slate-50/50">
-            {/* Poli & Doctor Selection */}
+            {/* Poli Selection & Assigned Medical Personnel */}
             <div className="space-y-4">
               <div className="flex justify-between items-end">
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Tujuan Poliklinik</h3>
-                {isFetchingMaster && <span className="text-xs text-blue-600 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Memuat data...</span>}
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Tujuan Poliklinik</h3>
+                {isFetchingMaster && <span className="text-xs text-sky-600 flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Memuat data...</span>}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-slate-700 font-medium text-sm">Poli Tujuan</Label>
-                    <span className="text-[10px] text-slate-400 font-medium bg-slate-100 px-1.5 py-0.5 rounded">Langkah 1</span>
-                  </div>
-                  <select 
-                    value={selectedPoli} onChange={(e) => { setPoli(e.target.value); setDoctor(""); }}
-                    disabled={isFetchingMaster}
-                    className="w-full h-12 bg-white border border-slate-200 rounded-xl px-4 text-slate-700 outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition-shadow disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
-                  >
-                    <option value="">-- Pilih Poli --</option>
-                    {validPolyclinics.map(p => (
-                      <option key={p.code} value={p.code}>{p.name}</option>
-                    ))}
-                  </select>
+
+              {/* Poli Selector */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label className="text-slate-700 font-medium text-sm">Poli Tujuan</Label>
+                  <span className="text-[10px] text-sky-700 font-bold bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">Pilih Poli</span>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <Label className={cn("font-medium text-sm transition-colors", !selectedPoli ? "text-slate-400" : "text-slate-700")}>Dokter Pemeriksa</Label>
-                    {!selectedPoli ? (
-                      <span className="text-[10px] text-amber-600 font-medium bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100">Pilih poli terlebih dahulu</span>
-                    ) : (
-                      <span className="text-[10px] text-blue-600 font-medium bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">Langkah 2</span>
-                    )}
-                  </div>
-                  <select 
-                    value={selectedDoctor} onChange={(e) => setDoctor(e.target.value)}
-                    disabled={!selectedPoli || isFetchingMaster}
-                    className="w-full h-12 bg-white border border-slate-200 rounded-xl px-4 text-slate-700 outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition-shadow disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
-                  >
-                    <option value="">-- Pilih Dokter --</option>
-                    {availableDoctors.map(d => (
-                      <option key={d.id} value={d.id}>{d.username || d.name}</option>
-                    ))}
-                  </select>
-                </div>
+                <select 
+                  value={selectedPoli} 
+                  onChange={(e) => handlePoliChange(e.target.value)}
+                  disabled={isFetchingMaster}
+                  className="w-full h-12 bg-white border border-slate-200 rounded-xl px-4 text-slate-800 font-medium outline-none focus:ring-2 focus:ring-sky-600 shadow-2xs transition-all disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                >
+                  <option value="">-- Pilih Poliklinik Tujuan --</option>
+                  {validPolyclinics.map(p => (
+                    <option key={p.code} value={p.code}>{p.name}</option>
+                  ))}
+                </select>
               </div>
+
+              {/* Direct Personnel Display */}
+              {selectedPoli ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                  {/* Dokter Pemeriksa Card */}
+                  <div className="p-4 rounded-xl border border-sky-100 bg-gradient-to-br from-sky-50/80 to-indigo-50/30 flex items-start gap-3 shadow-2xs">
+                    <div className="p-2.5 rounded-xl bg-sky-600 text-white shadow-sm shadow-sky-600/20 shrink-0">
+                      <Stethoscope className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[11px] font-bold text-sky-700 uppercase tracking-wide">Dokter Pemeriksa</span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                          Bertugas
+                        </span>
+                      </div>
+                      <p className="text-base font-bold text-slate-900 truncate mt-0.5">
+                        {assignedDoctor?.username || assignedDoctor?.name || "Dokter Belum Ditugaskan"}
+                      </p>
+                      <p className="text-xs text-slate-500 truncate mt-0.5">
+                        Spesialisasi: <span className="font-medium text-slate-700">{assignedDoctor?.spesialisasi || "Umum"}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Perawat Pendamping Card */}
+                  <div className="p-4 rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-emerald-50/30 flex items-start gap-3 shadow-2xs">
+                    <div className="p-2.5 rounded-xl bg-teal-600 text-white shadow-sm shadow-teal-600/20 shrink-0">
+                      <UserCheck className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[11px] font-bold text-teal-700 uppercase tracking-wide">Perawat Pendamping</span>
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                          Bertugas
+                        </span>
+                      </div>
+                      <p className="text-base font-bold text-slate-900 truncate mt-0.5">
+                        {assignedNurse?.username || assignedNurse?.name || "Perawat Belum Ditugaskan"}
+                      </p>
+                      <p className="text-xs text-slate-500 truncate mt-0.5">
+                        STR: <span className="font-medium text-slate-700">{assignedNurse?.str_perawat || "Aktif"}</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 flex items-center gap-3 text-slate-500 text-sm">
+                  <Activity className="h-5 w-5 text-slate-400 shrink-0" />
+                  <span>Pilih poliklinik tujuan di atas untuk melihat dokter dan perawat yang bertugas.</span>
+                </div>
+              )}
             </div>
 
             {/* Payment Method */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Penjamin / Pembayaran</h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Penjamin / Pembayaran</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {["Umum / Mandiri", "BPJS Kesehatan", "Asuransi Lainnya"].map((method) => (
                   <div 
                     key={method} onClick={() => setPayment(method)}
                     className={cn(
-                      "rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all border-2 shadow-sm",
+                      "rounded-xl p-5 flex flex-col items-center justify-center cursor-pointer transition-all border-2 shadow-2xs",
                       selectedPayment === method 
-                        ? "border-blue-600 bg-blue-50/50 shadow-blue-100 scale-[1.02]" 
-                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 hover:scale-[1.01]"
+                        ? "border-sky-600 bg-sky-50/60 shadow-sky-100 scale-[1.02]" 
+                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80 hover:scale-[1.01]"
                     )}
                   >
-                     <CreditCard className={cn("h-7 w-7 mb-3 transition-colors", selectedPayment === method ? "text-blue-600" : "text-slate-400")} />
-                     <span className={cn("font-semibold text-center text-sm transition-colors", selectedPayment === method ? "text-blue-700" : "text-slate-600")}>
+                     <CreditCard className={cn("h-7 w-7 mb-3 transition-colors", selectedPayment === method ? "text-sky-600" : "text-slate-400")} />
+                     <span className={cn("font-bold text-center text-sm transition-colors", selectedPayment === method ? "text-sky-700" : "text-slate-600")}>
                        {method}
                      </span>
                   </div>
@@ -605,7 +761,7 @@ export function NewRegistrationPage() {
             <Button variant="outline" onClick={() => setIsRegisterModalOpen(false)} className="rounded-xl px-6 font-semibold border-slate-200 text-slate-700 hover:bg-slate-50">
               Batal
             </Button>
-            <Button onClick={handleRegister} disabled={!selectedPoli || !selectedDoctor || isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-8 font-bold shadow-md shadow-blue-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <Button onClick={handleRegister} disabled={!selectedPoli || !assignedDoctor || isSubmitting} className="bg-sky-600 hover:bg-sky-700 text-white rounded-xl px-8 font-bold shadow-md shadow-sky-600/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
               {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Check className="h-5 w-5 mr-2" />}
               Konfirmasi Pendaftaran
             </Button>
@@ -616,7 +772,7 @@ export function NewRegistrationPage() {
       {/* New Patient Modal Overlay */}
       {isNewPatientModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <Card className="bg-white border-slate-200 shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <Card className="bg-white border-slate-200 shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
             <CardHeader className="border-b border-slate-100 pb-4 flex flex-row items-center justify-between sticky top-0 bg-white z-10">
               <div>
                 <CardTitle className="text-xl text-slate-800">Daftar Pasien Baru</CardTitle>

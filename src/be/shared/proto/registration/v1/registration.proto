@@ -32,6 +32,7 @@ message RegisterEncounterRequest {
   string department_code = 2; // e.g. "IGD", "P01"
   string doctor_id = 3;
   string guarantor = 4; // e.g. "Umum", "BPJS"
+  string perawat_id = 5;
 }
 
 message RegisterEncounterResponse {
@@ -54,6 +55,7 @@ message EncounterDetail {
   string doctor_id = 4;
   string status = 5;
   string registered_time = 6;
+  string perawat_id = 7;
 }
 
 message GetTodayEncountersResponse {

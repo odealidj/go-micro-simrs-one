@@ -1,0 +1,1 @@
+ALTER TABLE encounters ADD COLUMN IF NOT EXISTS perawat_id VARCHAR(100);

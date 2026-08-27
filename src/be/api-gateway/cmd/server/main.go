@@ -965,6 +965,12 @@ func main() {
 					poliCode := chi.URLParam(req, "poli_code")
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if page < 1 {
+						page = 1
+					}
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					search := req.URL.Query().Get("search")
 
 					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
@@ -979,16 +985,11 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
@@ -996,6 +997,12 @@ func main() {
 					poliCode := chi.URLParam(req, "poli_code")
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if page < 1 {
+						page = 1
+					}
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					search := req.URL.Query().Get("search")
 
 					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
@@ -1010,16 +1017,11 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 				r.Get("/master/polyclinics", func(w http.ResponseWriter, req *http.Request) {
@@ -1722,6 +1724,7 @@ func main() {
 						Address        string `json:"address"`
 						DepartmentCode string `json:"department_code"`
 						DoctorId       string `json:"doctor_id"`
+						PerawatId      string `json:"perawat_id"`
 						Guarantor      string `json:"guarantor"` // Umum or BPJS
 						Email          string `json:"email"`
 					}
@@ -1741,6 +1744,34 @@ func main() {
 					}); err != nil {
 						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
+					}
+
+					// Auto-assign doctor if empty
+					if payload.DoctorId == "" {
+						docRes, errDoc := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
+							return authClient.GetDoctorsByPoli(req.Context(), &authpb.GetDoctorsByPoliRequest{
+								PoliCode: payload.DepartmentCode,
+								Page:     1,
+								PageSize: 1,
+							})
+						})
+						if errDoc == nil && len(docRes.Data) > 0 {
+							payload.DoctorId = docRes.Data[0].Id
+						}
+					}
+
+					// Auto-assign perawat if empty
+					if payload.PerawatId == "" {
+						nurseRes, errNurse := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
+							return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
+								PoliCode: payload.DepartmentCode,
+								Page:     1,
+								PageSize: 1,
+							})
+						})
+						if errNurse == nil && len(nurseRes.Data) > 0 {
+							payload.PerawatId = nurseRes.Data[0].Id
+						}
 					}
 
 					// SAGA: 1. Create User in Auth Service
@@ -1788,6 +1819,7 @@ func main() {
 							Mrn:            patientRes.Mrn,
 							DepartmentCode: payload.DepartmentCode,
 							DoctorId:       payload.DoctorId,
+							PerawatId:      payload.PerawatId,
 							Guarantor:      payload.Guarantor,
 						})
 					})
@@ -1853,12 +1885,40 @@ func main() {
 					if err := validator.ValidateAll(map[string]func() error{
 						"mrn":             validator.NotEmpty(payload.Mrn),
 						"department_code": validator.NotEmpty(payload.DepartmentCode),
-						"doctor_id":       validator.NotEmpty(payload.DoctorId),
 						"guarantor":       validator.NotEmpty(payload.Guarantor),
 					}); err != nil {
 						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
 						return
 					}
+
+					// Auto-assign doctor if empty
+					if payload.DoctorId == "" {
+						docRes, errDoc := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
+							return authClient.GetDoctorsByPoli(req.Context(), &authpb.GetDoctorsByPoliRequest{
+								PoliCode: payload.DepartmentCode,
+								Page:     1,
+								PageSize: 1,
+							})
+						})
+						if errDoc == nil && len(docRes.Data) > 0 {
+							payload.DoctorId = docRes.Data[0].Id
+						}
+					}
+
+					// Auto-assign perawat if empty
+					if payload.PerawatId == "" {
+						nurseRes, errNurse := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
+							return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
+								PoliCode: payload.DepartmentCode,
+								Page:     1,
+								PageSize: 1,
+							})
+						})
+						if errNurse == nil && len(nurseRes.Data) > 0 {
+							payload.PerawatId = nurseRes.Data[0].Id
+						}
+					}
+
 					res, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.RegisterEncounterResponse, error) {
 						return regClient.RegisterEncounter(req.Context(), &payload)
 					})
@@ -2008,6 +2068,7 @@ func main() {
 						DateOfBirth    string `json:"date_of_birth"`
 						DepartmentCode string `json:"department_code"`
 						DoctorID       string `json:"doctor_id"`
+						PerawatID      string `json:"perawat_id"`
 						Status         string `json:"status"`
 						StatusPasien   string `json:"status_pasien"` // "Baru RS" or "Lama RS"
 						RegisteredTime string `json:"registered_time"`
@@ -2051,6 +2112,7 @@ func main() {
 							DateOfBirth:    pDob,
 							DepartmentCode: enc.DepartmentCode,
 							DoctorID:       enc.DoctorId,
+							PerawatID:      enc.PerawatId,
 							Status:         enc.Status,
 							StatusPasien:   isNew,
 							RegisteredTime: regTime,

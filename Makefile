@@ -355,6 +355,16 @@ reset-transactions:
 	podman exec -i $$(podman ps --filter "name=postgres" -q | head -n 1) psql -U root -d simrs_db -c "\
 		TRUNCATE TABLE registration.encounters CASCADE; \
 		TRUNCATE TABLE registration.outbox_events CASCADE; \
+		TRUNCATE TABLE rawat_jalan.encounter_diagnoses CASCADE; \
+		TRUNCATE TABLE rawat_jalan.encounter_resep CASCADE; \
+		TRUNCATE TABLE rawat_jalan.encounter_tindakan CASCADE; \
+		TRUNCATE TABLE rawat_jalan.medical_actions CASCADE; \
+		TRUNCATE TABLE rawat_jalan.medical_records CASCADE; \
+		TRUNCATE TABLE rawat_jalan.clinic_wait_time_aggregates CASCADE; \
+		TRUNCATE TABLE rawat_jalan.outbox_events CASCADE; \
+		TRUNCATE TABLE medical_record.encounter_diagnoses CASCADE; \
+		TRUNCATE TABLE medical_record.medical_records CASCADE; \
+		TRUNCATE TABLE medical_record.outbox_events CASCADE; \
 		TRUNCATE TABLE emr.medical_records CASCADE; \
 		TRUNCATE TABLE emr.medical_actions CASCADE; \
 		TRUNCATE TABLE emr.clinic_wait_time_aggregates CASCADE; \
@@ -368,3 +378,4 @@ reset-transactions:
 		TRUNCATE TABLE billing.invoice_items CASCADE; \
 		TRUNCATE TABLE billing.outbox_events CASCADE;"
 	@echo "Transaction data reset successfully."
+

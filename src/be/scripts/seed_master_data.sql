@@ -25,7 +25,7 @@ ON CONFLICT (id) DO NOTHING;
 -- ICD-10
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-INSERT INTO emr.icd10_catalog (icd10_code, name_en, name_id, chapter_code, block_code, coding_rule, is_active) VALUES
+INSERT INTO medical_record.icd10_catalog (icd10_code, name_en, name_id, chapter_code, block_code, coding_rule, is_active) VALUES
 ('A00.0', 'Cholera due to Vibrio cholerae 01, biovar cholerae', 'Kolera akibat Vibrio cholerae 01, biotipe cholerae', 'I', 'A00-A09', 'NORMAL', true),
 ('A01.0', 'Typhoid fever', 'Demam Tifoid', 'I', 'A00-A09', 'NORMAL', true),
 ('A09', 'Diarrhoea and gastroenteritis of presumed infectious origin', 'Diare dan gastroenteritis oleh penyebab infeksi tertentu', 'I', 'A00-A09', 'NORMAL', true),
@@ -138,7 +138,7 @@ ON CONFLICT (icd10_code) DO UPDATE
 SET name_en = EXCLUDED.name_en, name_id = EXCLUDED.name_id, chapter_code = EXCLUDED.chapter_code, block_code = EXCLUDED.block_code, coding_rule = EXCLUDED.coding_rule, is_active = EXCLUDED.is_active;
 
 -- ICD-9-CM
-INSERT INTO emr.icd9cm_catalog (icd9_code, name_en, name_id, category, is_active) VALUES
+INSERT INTO medical_record.icd9cm_catalog (icd9_code, name_en, name_id, category, is_active) VALUES
 ('00.01', 'Therapeutic ultrasound of vessels of head and neck', 'Ultrasonografi terapeutik pembuluh darah kepala dan leher', '00', true),
 ('00.11', 'Infusion of drotrecogin alfa (activated)', 'Infus drotrecogin alfa (diaktifkan)', '00', true),
 ('01.01', 'Cisternal puncture', 'Pungsi sisternal', '01', true),
@@ -177,7 +177,7 @@ ON CONFLICT (icd9_code) DO UPDATE SET
     is_active = EXCLUDED.is_active;
 
 -- Tindakan Medis
-INSERT INTO emr.master_tindakan (kode_tindakan, nama_tindakan, base_price) VALUES
+INSERT INTO medical_record.master_tindakan (kode_tindakan, nama_tindakan, base_price) VALUES
 ('TND-001', 'Pemeriksaan Umum', 50000.00),
 ('TND-002', 'Pemeriksaan Gigi', 75000.00),
 ('TND-003', 'Cabut Gigi', 150000.00),
@@ -269,7 +269,23 @@ ON CONFLICT (item_code, kfa_code) DO NOTHING;
 -- Because this requires UUIDs from auth.profil_dokter and auth.profil_perawat,
 -- it is best managed via API or application logic rather than hardcoded seed.
 
--- Seed Polyclinics (just in case they are missing)
+-- Seed Polyclinics into rawat_jalan (SSOT), medical_record, and emr
+INSERT INTO rawat_jalan.polyclinics (code, name) VALUES
+('01', 'Poliklinik Umum'),
+('02', 'Poliklinik Gigi'),
+('03', 'Poliklinik Anak'),
+('04', 'Poliklinik Kandungan (Obgyn)'),
+('05', 'Poliklinik Mata')
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO medical_record.polyclinics (code, name) VALUES
+('01', 'Poliklinik Umum'),
+('02', 'Poliklinik Gigi'),
+('03', 'Poliklinik Anak'),
+('04', 'Poliklinik Kandungan (Obgyn)'),
+('05', 'Poliklinik Mata')
+ON CONFLICT (code) DO NOTHING;
+
 INSERT INTO emr.polyclinics (code, name) VALUES
 ('01', 'Poliklinik Umum'),
 ('02', 'Poliklinik Gigi'),
@@ -279,7 +295,7 @@ INSERT INTO emr.polyclinics (code, name) VALUES
 ON CONFLICT (code) DO NOTHING;
 
 -- Seed KBM Catalog
-INSERT INTO emr.kbm_catalog (kbm_code, kbm_name, description, body_system, is_active) VALUES
+INSERT INTO medical_record.kbm_catalog (kbm_code, kbm_name, description, body_system, is_active) VALUES
 ('KBM-001', 'Demam Tinggi', 'Gejala demam di atas 38 derajat', 'Sistem Imun', true),
 ('KBM-011', 'Batuk Berdahak', 'Batuk disertai dahak kental', 'Sistem Pernapasan', true),
 ('KBM-021', 'Nyeri Perut', 'Nyeri pada area abdomen', 'Sistem Pencernaan', true),
@@ -295,7 +311,7 @@ ON CONFLICT (kbm_code) DO UPDATE
 SET kbm_name = EXCLUDED.kbm_name, description = EXCLUDED.description, body_system = EXCLUDED.body_system, is_active = EXCLUDED.is_active;
 
 -- Mappings EMR (ICD-10 to Polyclinic)
-INSERT INTO emr.icd10_polyclinic_mappings (icd10_code, polyclinic_code) VALUES
+INSERT INTO medical_record.icd10_polyclinic_mappings (icd10_code, polyclinic_code) VALUES
 -- Poli 01: Poliklinik Umum
 ('A00.0', '01'),
 ('A01.0', '01'),
@@ -429,7 +445,7 @@ INSERT INTO emr.icd10_polyclinic_mappings (icd10_code, polyclinic_code) VALUES
 ON CONFLICT DO NOTHING;
 
 -- Seed KBM Polyclinic Mappings (Dummy Data for existing KBMs)
-INSERT INTO emr.kbm_polyclinic_mappings (kbm_code, polyclinic_code) VALUES
+INSERT INTO medical_record.kbm_polyclinic_mappings (kbm_code, polyclinic_code) VALUES
 ('KBM-001', '01'),
 ('KBM-001', '03'),
 ('KBM-011', '01'),
@@ -438,7 +454,7 @@ INSERT INTO emr.kbm_polyclinic_mappings (kbm_code, polyclinic_code) VALUES
 ('KBM-031', '01')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO emr.tindakan_polyclinic_mappings (kode_tindakan, polyclinic_code) VALUES
+INSERT INTO medical_record.tindakan_polyclinic_mappings (kode_tindakan, polyclinic_code) VALUES
 -- TND-001: Pemeriksaan Umum / Konsultasi Dokter (Umum, Anak, Mata)
 ('TND-001', '01'),
 ('TND-001', '03'),
@@ -500,7 +516,7 @@ INSERT INTO emr.tindakan_polyclinic_mappings (kode_tindakan, polyclinic_code) VA
 ON CONFLICT DO NOTHING;
 
 -- Tindakan ICD-9 Mappings
-INSERT INTO emr.tindakan_icd9_mapping (kode_tindakan, icd9_code, is_primary) VALUES
+INSERT INTO medical_record.tindakan_icd9_mapping (kode_tindakan, icd9_code, is_primary) VALUES
 ('TND-001', '89.02', true), -- Pemeriksaan Umum -> Wawancara dan evaluasi, terbatas
 ('TND-002', '89.03', true), -- Pemeriksaan Gigi -> Wawancara dan evaluasi, komprehensif
 ('TND-003', '23.09', true), -- Cabut Gigi -> Pencabutan Gigi Lainnya
@@ -520,7 +536,7 @@ INSERT INTO emr.tindakan_icd9_mapping (kode_tindakan, icd9_code, is_primary) VAL
 ON CONFLICT (kode_tindakan, icd9_code) DO NOTHING;
 
 -- KBM to ICD-10 Mappings
-INSERT INTO emr.kbm_icd10_mappings (kbm_code, icd10_code, is_primary, mapping_confidence) VALUES
+INSERT INTO medical_record.kbm_icd10_mappings (kbm_code, icd10_code, is_primary, mapping_confidence) VALUES
 -- KBM-001: Demam Tinggi
 ('KBM-001', 'A01.0', true, '0.95'),
 ('KBM-001', 'A91', false, '0.90'),
@@ -603,7 +619,7 @@ ON CONFLICT (kbm_code, icd10_code) DO NOTHING;
 -- ==========================================
 -- SNOMED-CT CLINICAL CORE CATALOG & CROSS MAPS
 -- ==========================================
-INSERT INTO emr.snomed_concepts (concept_id, fsn, term_id, semantic_tag, is_active) VALUES
+INSERT INTO medical_record.snomed_concepts (concept_id, fsn, term_id, semantic_tag, is_active) VALUES
 -- Penyakit & Gangguan Klinis (Disorders & Findings)
 ('4834000', 'Typhoid fever (disorder)', 'Demam Tifoid', 'disorder', true),
 ('38362002', 'Dengue fever (disorder)', 'Demam Berdarah Dengue (DBD)', 'disorder', true),
@@ -662,7 +678,7 @@ INSERT INTO emr.snomed_concepts (concept_id, fsn, term_id, semantic_tag, is_acti
 ON CONFLICT (concept_id) DO NOTHING;
 
 -- SNOMED-CT to ICD-10 Mappings
-INSERT INTO emr.snomed_icd10_mapping (snomed_concept_id, icd10_code, map_group, map_priority, map_rule, map_advice, is_primary) VALUES
+INSERT INTO medical_record.snomed_icd10_mapping (snomed_concept_id, icd10_code, map_group, map_priority, map_rule, map_advice, is_primary) VALUES
 ('4834000', 'A01.0', 1, 1, 'TRUE', 'ALWAYS A01.0', true),
 ('38362002', 'A91', 1, 1, 'TRUE', 'ALWAYS A91', true),
 ('38341003', 'I10', 1, 1, 'TRUE', 'ALWAYS I10', true),
@@ -702,7 +718,7 @@ INSERT INTO emr.snomed_icd10_mapping (snomed_concept_id, icd10_code, map_group, 
 ON CONFLICT (snomed_concept_id, icd10_code) DO NOTHING;
 
 -- SNOMED-CT to ICD-9-CM Mappings
-INSERT INTO emr.snomed_icd9_mapping (snomed_concept_id, icd9_code, is_primary) VALUES
+INSERT INTO medical_record.snomed_icd9_mapping (snomed_concept_id, icd9_code, is_primary) VALUES
 ('274151003', '23.09', true),
 ('265747005', '88.78', true),
 ('104091002', '90.59', true),
@@ -780,6 +796,44 @@ INSERT INTO pharmacy.inventory_polyclinic_mappings (item_code, polyclinic_code) 
 ('OBT-012', '03'),
 ('OBT-012', '05')
 ON CONFLICT DO NOTHING;
+
+
+-- ============================================================================
+-- SYNC MASTER DATA & MAPPINGS TO RAWAT_JALAN & LEGACY EMR SCHEMAS
+-- ============================================================================
+
+-- 1. Sync Clinical Master Catalogs from medical_record (SSOT) to rawat_jalan & emr
+INSERT INTO rawat_jalan.icd10_catalog SELECT * FROM medical_record.icd10_catalog ON CONFLICT (icd10_code) DO NOTHING;
+INSERT INTO rawat_jalan.icd9cm_catalog SELECT * FROM medical_record.icd9cm_catalog ON CONFLICT (icd9_code) DO NOTHING;
+INSERT INTO rawat_jalan.master_tindakan SELECT * FROM medical_record.master_tindakan ON CONFLICT (kode_tindakan) DO NOTHING;
+INSERT INTO rawat_jalan.kbm_catalog SELECT * FROM medical_record.kbm_catalog ON CONFLICT (kbm_code) DO UPDATE SET kbm_name = EXCLUDED.kbm_name, description = EXCLUDED.description, body_system = EXCLUDED.body_system, is_active = EXCLUDED.is_active;
+INSERT INTO rawat_jalan.snomed_concepts SELECT * FROM medical_record.snomed_concepts ON CONFLICT (concept_id) DO NOTHING;
+
+INSERT INTO emr.icd10_catalog SELECT * FROM medical_record.icd10_catalog ON CONFLICT (icd10_code) DO NOTHING;
+INSERT INTO emr.icd9cm_catalog SELECT * FROM medical_record.icd9cm_catalog ON CONFLICT (icd9_code) DO NOTHING;
+INSERT INTO emr.master_tindakan SELECT * FROM medical_record.master_tindakan ON CONFLICT (kode_tindakan) DO NOTHING;
+INSERT INTO emr.kbm_catalog SELECT * FROM medical_record.kbm_catalog ON CONFLICT (kbm_code) DO UPDATE SET kbm_name = EXCLUDED.kbm_name, description = EXCLUDED.description, body_system = EXCLUDED.body_system, is_active = EXCLUDED.is_active;
+INSERT INTO emr.snomed_concepts SELECT * FROM medical_record.snomed_concepts ON CONFLICT (concept_id) DO NOTHING;
+
+-- 3. Sync Polyclinic Scoping Mappings to rawat_jalan & emr
+INSERT INTO rawat_jalan.icd10_polyclinic_mappings SELECT * FROM medical_record.icd10_polyclinic_mappings ON CONFLICT DO NOTHING;
+INSERT INTO rawat_jalan.kbm_polyclinic_mappings SELECT * FROM medical_record.kbm_polyclinic_mappings ON CONFLICT DO NOTHING;
+INSERT INTO rawat_jalan.tindakan_polyclinic_mappings SELECT * FROM medical_record.tindakan_polyclinic_mappings ON CONFLICT DO NOTHING;
+
+INSERT INTO emr.icd10_polyclinic_mappings SELECT * FROM medical_record.icd10_polyclinic_mappings ON CONFLICT DO NOTHING;
+INSERT INTO emr.kbm_polyclinic_mappings SELECT * FROM medical_record.kbm_polyclinic_mappings ON CONFLICT DO NOTHING;
+INSERT INTO emr.tindakan_polyclinic_mappings SELECT * FROM medical_record.tindakan_polyclinic_mappings ON CONFLICT DO NOTHING;
+
+-- 4. Sync Cross-Terminology Mappings to rawat_jalan & emr
+INSERT INTO rawat_jalan.tindakan_icd9_mapping SELECT * FROM medical_record.tindakan_icd9_mapping ON CONFLICT DO NOTHING;
+INSERT INTO rawat_jalan.kbm_icd10_mappings SELECT * FROM medical_record.kbm_icd10_mappings ON CONFLICT DO NOTHING;
+INSERT INTO rawat_jalan.snomed_icd10_mapping SELECT * FROM medical_record.snomed_icd10_mapping ON CONFLICT DO NOTHING;
+INSERT INTO rawat_jalan.snomed_icd9_mapping SELECT * FROM medical_record.snomed_icd9_mapping ON CONFLICT DO NOTHING;
+
+INSERT INTO emr.tindakan_icd9_mapping SELECT * FROM medical_record.tindakan_icd9_mapping ON CONFLICT DO NOTHING;
+INSERT INTO emr.kbm_icd10_mappings SELECT * FROM medical_record.kbm_icd10_mappings ON CONFLICT DO NOTHING;
+INSERT INTO emr.snomed_icd10_mapping SELECT * FROM medical_record.snomed_icd10_mapping ON CONFLICT DO NOTHING;
+INSERT INTO emr.snomed_icd9_mapping SELECT * FROM medical_record.snomed_icd9_mapping ON CONFLICT DO NOTHING;
 
 -- ==========================================
 -- ADDITIONS: KBM, DOCTORS, NURSES

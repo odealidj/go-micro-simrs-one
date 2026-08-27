@@ -33,9 +33,9 @@ func (q *Queries) CountActiveEncountersByDept(ctx context.Context, arg CountActi
 }
 
 const createEncounter = `-- name: CreateEncounter :one
-INSERT INTO encounters (encounter_no, mrn, department, doctor_id, guarantor, status)
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING encounter_no, mrn, department, doctor_id, guarantor, payment_status, status, created_at
+INSERT INTO encounters (encounter_no, mrn, department, doctor_id, perawat_id, guarantor, status)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING encounter_no, mrn, department, doctor_id, perawat_id, guarantor, payment_status, status, created_at
 `
 
 type CreateEncounterParams struct {
@@ -43,6 +43,7 @@ type CreateEncounterParams struct {
 	Mrn         string
 	Department  string
 	DoctorID    string
+	PerawatID   sql.NullString
 	Guarantor   sql.NullString
 	Status      string
 }
@@ -52,6 +53,7 @@ type CreateEncounterRow struct {
 	Mrn           string
 	Department    string
 	DoctorID      string
+	PerawatID     sql.NullString
 	Guarantor     sql.NullString
 	PaymentStatus sql.NullString
 	Status        string
@@ -64,6 +66,7 @@ func (q *Queries) CreateEncounter(ctx context.Context, arg CreateEncounterParams
 		arg.Mrn,
 		arg.Department,
 		arg.DoctorID,
+		arg.PerawatID,
 		arg.Guarantor,
 		arg.Status,
 	)
@@ -73,6 +76,7 @@ func (q *Queries) CreateEncounter(ctx context.Context, arg CreateEncounterParams
 		&i.Mrn,
 		&i.Department,
 		&i.DoctorID,
+		&i.PerawatID,
 		&i.Guarantor,
 		&i.PaymentStatus,
 		&i.Status,
@@ -243,7 +247,7 @@ func (q *Queries) GetPendingOutboxEvents(ctx context.Context) ([]OutboxEvent, er
 }
 
 const getTodayEncounters = `-- name: GetTodayEncounters :many
-SELECT encounter_no, mrn, department, doctor_id, guarantor, payment_status, status, created_at
+SELECT encounter_no, mrn, department, doctor_id, perawat_id, guarantor, payment_status, status, created_at
 FROM encounters
 WHERE created_at >= $1 AND created_at < $2
   AND deleted_dt IS NULL
@@ -260,6 +264,7 @@ type GetTodayEncountersRow struct {
 	Mrn           string
 	Department    string
 	DoctorID      string
+	PerawatID     sql.NullString
 	Guarantor     sql.NullString
 	PaymentStatus sql.NullString
 	Status        string
@@ -280,6 +285,7 @@ func (q *Queries) GetTodayEncounters(ctx context.Context, arg GetTodayEncounters
 			&i.Mrn,
 			&i.Department,
 			&i.DoctorID,
+			&i.PerawatID,
 			&i.Guarantor,
 			&i.PaymentStatus,
 			&i.Status,
