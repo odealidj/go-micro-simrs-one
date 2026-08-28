@@ -25,23 +25,29 @@ type JadwalPraktek struct {
 }
 
 type MappingDokterPoli struct {
-	DokterID  uuid.UUID
-	PoliCode  string
-	DeletedDt sql.NullTime
-	DeletedBy uuid.NullUUID
-	ID        uuid.UUID
-	StartDate time.Time
-	EndDate   time.Time
+	DokterID   uuid.UUID
+	PoliCode   string
+	DeletedDt  sql.NullTime
+	DeletedBy  uuid.NullUUID
+	ID         uuid.UUID
+	StartDate  time.Time
+	EndDate    time.Time
+	DaysOfWeek []int32
+	ShiftStart time.Time
+	ShiftEnd   time.Time
 }
 
 type MappingPerawatPoli struct {
-	PerawatID uuid.UUID
-	PoliCode  string
-	DeletedDt sql.NullTime
-	DeletedBy uuid.NullUUID
-	ID        uuid.UUID
-	StartDate time.Time
-	EndDate   time.Time
+	PerawatID  uuid.UUID
+	PoliCode   string
+	DeletedDt  sql.NullTime
+	DeletedBy  uuid.NullUUID
+	ID         uuid.UUID
+	StartDate  time.Time
+	EndDate    time.Time
+	DaysOfWeek []int32
+	ShiftStart time.Time
+	ShiftEnd   time.Time
 }
 
 type MasterLabelProfesi struct {

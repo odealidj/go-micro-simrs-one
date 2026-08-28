@@ -85,7 +85,10 @@ WHERE deleted_dt IS NULL
   AND ($1::text = '' OR id ILIKE '%' || $1 || '%' OR deskripsi ILIKE '%' || $1 || '%');
 
 -- name: GetDoctors :many
-SELECT d.id, u.username, s.nip, s.email, d.spesialisasi, d.sip, u.status, m.poli_code, m.start_date, m.end_date
+SELECT d.id, u.username, s.nip, s.email, d.spesialisasi, d.sip, u.status, m.poli_code, m.start_date, m.end_date,
+       COALESCE(m.days_of_week, '{}'::int[])::int[] as days_of_week,
+       COALESCE(m.shift_start::text, '08:00:00')::text as shift_start,
+       COALESCE(m.shift_end::text, '16:00:00')::text as shift_end
 FROM profil_dokter d
 JOIN users u ON d.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
@@ -104,7 +107,10 @@ WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL
   AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%');
 
 -- name: GetNurses :many
-SELECT p.id, u.username, s.nip, s.email, p.str_perawat, u.status, m.poli_code, m.start_date, m.end_date
+SELECT p.id, u.username, s.nip, s.email, p.str_perawat, u.status, m.poli_code, m.start_date, m.end_date,
+       COALESCE(m.days_of_week, '{}'::int[])::int[] as days_of_week,
+       COALESCE(m.shift_start::text, '08:00:00')::text as shift_start,
+       COALESCE(m.shift_end::text, '16:00:00')::text as shift_end
 FROM profil_perawat p
 JOIN users u ON p.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
@@ -123,7 +129,8 @@ WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL
   AND ($1::text = '' OR u.username ILIKE '%' || $1 || '%' OR s.nip ILIKE '%' || $1 || '%');
 
 -- name: GetDoctorsByPoli :many
-SELECT d.id, u.username, s.nip, d.spesialisasi, m.poli_code, m.start_date, m.end_date
+SELECT d.id, u.username, s.nip, d.spesialisasi, m.poli_code, m.start_date, m.end_date,
+       m.days_of_week, m.shift_start::text as shift_start, m.shift_end::text as shift_end
 FROM mapping_dokter_poli m
 JOIN profil_dokter d ON m.dokter_id = d.id
 JOIN users u ON d.user_id = u.id
@@ -131,8 +138,9 @@ LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+  AND ($3::int = 0 OR $3::int = ANY(m.days_of_week))
 ORDER BY u.username
-LIMIT $3 OFFSET $4;
+LIMIT $4 OFFSET $5;
 
 -- name: CountDoctorsByPoli :one
 SELECT COUNT(m.dokter_id)
@@ -142,10 +150,12 @@ JOIN users u ON d.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
-  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%');
+  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+  AND ($3::int = 0 OR $3::int = ANY(m.days_of_week));
 
 -- name: GetNursesByPoli :many
-SELECT p.id, u.username, s.nip, p.str_perawat, m.poli_code, m.start_date, m.end_date
+SELECT p.id, u.username, s.nip, p.str_perawat, m.poli_code, m.start_date, m.end_date,
+       m.days_of_week, m.shift_start::text as shift_start, m.shift_end::text as shift_end
 FROM mapping_perawat_poli m
 JOIN profil_perawat p ON m.perawat_id = p.id
 JOIN users u ON p.user_id = u.id
@@ -153,8 +163,9 @@ LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+  AND ($3::int = 0 OR $3::int = ANY(m.days_of_week))
 ORDER BY u.username
-LIMIT $3 OFFSET $4;
+LIMIT $4 OFFSET $5;
 
 -- name: CountNursesByPoli :one
 SELECT COUNT(m.perawat_id)
@@ -164,21 +175,51 @@ JOIN users u ON p.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
-  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%');
+  AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+  AND ($3::int = 0 OR $3::int = ANY(m.days_of_week));
 
 -- name: CheckDoctorAssignmentOverlap :one
 SELECT EXISTS (
     SELECT 1 FROM mapping_dokter_poli
     WHERE dokter_id = $1
+      AND poli_code != $2
       AND deleted_dt IS NULL
-      AND start_date <= $3
-      AND end_date >= $2
+      AND start_date <= $4
+      AND end_date >= $3
+      AND days_of_week && $5::int[]
 );
 
+-- name: CheckPoliScheduleOverlap :many
+SELECT u.username, m.days_of_week
+FROM mapping_dokter_poli m
+JOIN profil_dokter d ON m.dokter_id = d.id
+JOIN users u ON d.user_id = u.id
+WHERE m.poli_code = $1
+  AND m.dokter_id != $2
+  AND m.deleted_dt IS NULL
+  AND m.start_date <= $4
+  AND m.end_date >= $3
+  AND m.days_of_week && $5::int[];
+
+-- name: DeactivateDoctorCurrentPoliAssignment :exec
+UPDATE mapping_dokter_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE dokter_id = $1 AND poli_code = $2 AND deleted_dt IS NULL;
+
+-- name: UnassignDoctorFromPoli :exec
+UPDATE mapping_dokter_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE dokter_id = $1 AND ($2::varchar = '' OR poli_code = $2) AND deleted_dt IS NULL;
+
+-- name: DeactivateAllActiveDoctorsInPoli :exec
+UPDATE mapping_dokter_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE poli_code = $1 AND deleted_dt IS NULL;
+
 -- name: AssignDoctorToPoli :one
-INSERT INTO mapping_dokter_poli (dokter_id, poli_code, start_date, end_date)
-VALUES ($1, $2, $3, $4)
-RETURNING id, dokter_id, poli_code, start_date, end_date;
+INSERT INTO mapping_dokter_poli (dokter_id, poli_code, start_date, end_date, days_of_week, shift_start, shift_end)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, dokter_id, poli_code, start_date, end_date, days_of_week, shift_start, shift_end;
 
 -- name: GetAssignedPoli :one
 SELECT poli_code
@@ -200,15 +241,44 @@ LIMIT 1;
 SELECT EXISTS (
     SELECT 1 FROM mapping_perawat_poli
     WHERE perawat_id = $1
+      AND poli_code != $2
       AND deleted_dt IS NULL
-      AND start_date <= $3
-      AND end_date >= $2
+      AND start_date <= $4
+      AND end_date >= $3
+      AND days_of_week && $5::int[]
 );
 
+-- name: CheckPoliNurseScheduleOverlap :many
+SELECT u.username, m.days_of_week
+FROM mapping_perawat_poli m
+JOIN profil_perawat p ON m.perawat_id = p.id
+JOIN users u ON p.user_id = u.id
+WHERE m.poli_code = $1
+  AND m.perawat_id != $2
+  AND m.deleted_dt IS NULL
+  AND m.start_date <= $4
+  AND m.end_date >= $3
+  AND m.days_of_week && $5::int[];
+
+-- name: DeactivateNurseCurrentPoliAssignment :exec
+UPDATE mapping_perawat_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE perawat_id = $1 AND poli_code = $2 AND deleted_dt IS NULL;
+
+-- name: UnassignNurseFromPoli :exec
+UPDATE mapping_perawat_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE perawat_id = $1 AND ($2::varchar = '' OR poli_code = $2) AND deleted_dt IS NULL;
+
+-- name: DeactivateAllActiveNursesInPoli :exec
+UPDATE mapping_perawat_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE poli_code = $1 AND deleted_dt IS NULL;
+
 -- name: AssignNurseToPoli :one
-INSERT INTO mapping_perawat_poli (perawat_id, poli_code, start_date, end_date)
-VALUES ($1, $2, $3, $4)
-RETURNING id, perawat_id, poli_code, start_date, end_date;
+INSERT INTO mapping_perawat_poli (perawat_id, poli_code, start_date, end_date, days_of_week, shift_start, shift_end)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, perawat_id, poli_code, start_date, end_date, days_of_week, shift_start, shift_end;
 
 -- name: CountActivePolis :one
 SELECT COUNT(DISTINCT p1.poli_code)

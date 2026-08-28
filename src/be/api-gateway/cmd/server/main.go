@@ -843,6 +843,12 @@ func main() {
 				r.Get("/master/doctors", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if page < 1 {
+						page = 1
+					}
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					search := req.URL.Query().Get("search")
 
 					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsResponse, error) {
@@ -856,22 +862,23 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
 				r.Get("/master/nurses", func(w http.ResponseWriter, req *http.Request) {
 					page, _ := strconv.Atoi(req.URL.Query().Get("page"))
 					pageSize, _ := strconv.Atoi(req.URL.Query().Get("page_size"))
+					if page < 1 {
+						page = 1
+					}
+					if pageSize < 1 {
+						pageSize = 10
+					}
 					search := req.URL.Query().Get("search")
 
 					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesResponse, error) {
@@ -885,25 +892,23 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
-					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: (int(res.TotalCount) + pageSize - 1) / pageSize}
-					if meta.Page < 1 {
-						meta.Page = 1
+					totalPages := (int(res.TotalCount) + pageSize - 1) / pageSize
+					if totalPages < 1 {
+						totalPages = 1
 					}
-					if meta.PageSize < 1 {
-						meta.PageSize = 10
-					}
-					if meta.TotalPages == 0 {
-						meta.TotalPages = 1
-					}
+					meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: totalPages}
 					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 				})
 
 				r.Post("/master/doctors/assign", func(w http.ResponseWriter, req *http.Request) {
 					var payload struct {
-						DokterID  string `json:"dokter_id"`
-						PoliCode  string `json:"poli_code"`
-						StartDate string `json:"start_date"`
-						EndDate   string `json:"end_date"`
+						DokterID   string  `json:"dokter_id"`
+						PoliCode   string  `json:"poli_code"`
+						StartDate  string  `json:"start_date"`
+						EndDate    string  `json:"end_date"`
+						DaysOfWeek []int32 `json:"days_of_week"`
+						ShiftStart string  `json:"shift_start"`
+						ShiftEnd   string  `json:"shift_end"`
 					}
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "invalid request body"})
@@ -917,10 +922,13 @@ func main() {
 
 					_, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.AssignDoctorPoliResponse, error) {
 						return authClient.AssignDoctorPoli(req.Context(), &authpb.AssignDoctorPoliRequest{
-							DokterId:  payload.DokterID,
-							PoliCode:  payload.PoliCode,
-							StartDate: payload.StartDate,
-							EndDate:   payload.EndDate,
+							DokterId:   payload.DokterID,
+							PoliCode:   payload.PoliCode,
+							StartDate:  payload.StartDate,
+							EndDate:    payload.EndDate,
+							DaysOfWeek: payload.DaysOfWeek,
+							ShiftStart: payload.ShiftStart,
+							ShiftEnd:   payload.ShiftEnd,
 						})
 					})
 					if err != nil {
@@ -932,10 +940,13 @@ func main() {
 
 				r.Post("/master/nurses/assign", func(w http.ResponseWriter, req *http.Request) {
 					var payload struct {
-						PerawatID string `json:"perawat_id"`
-						PoliCode  string `json:"poli_code"`
-						StartDate string `json:"start_date"`
-						EndDate   string `json:"end_date"`
+						PerawatID  string  `json:"perawat_id"`
+						PoliCode   string  `json:"poli_code"`
+						StartDate  string  `json:"start_date"`
+						EndDate    string  `json:"end_date"`
+						DaysOfWeek []int32 `json:"days_of_week"`
+						ShiftStart string  `json:"shift_start"`
+						ShiftEnd   string  `json:"shift_end"`
 					}
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
 						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "invalid request body"})
@@ -949,10 +960,13 @@ func main() {
 
 					_, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.AssignNursePoliResponse, error) {
 						return authClient.AssignNursePoli(req.Context(), &authpb.AssignNursePoliRequest{
-							PerawatId: payload.PerawatID,
-							PoliCode:  payload.PoliCode,
-							StartDate: payload.StartDate,
-							EndDate:   payload.EndDate,
+							PerawatId:  payload.PerawatID,
+							PoliCode:   payload.PoliCode,
+							StartDate:  payload.StartDate,
+							EndDate:    payload.EndDate,
+							DaysOfWeek: payload.DaysOfWeek,
+							ShiftStart: payload.ShiftStart,
+							ShiftEnd:   payload.ShiftEnd,
 						})
 					})
 					if err != nil {
@@ -960,6 +974,131 @@ func main() {
 						return
 					}
 					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Nurse assigned successfully"})
+				})
+
+				r.Post("/master/doctors/unassign", func(w http.ResponseWriter, req *http.Request) {
+					var payload struct {
+						DokterID string `json:"dokter_id"`
+						PoliCode string `json:"poli_code"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "invalid request body"})
+						return
+					}
+					if payload.DokterID == "" {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "dokter_id is required"})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.UnassignDoctorPoliResponse, error) {
+						return authClient.UnassignDoctorPoli(req.Context(), &authpb.UnassignDoctorPoliRequest{
+							DokterId: payload.DokterID,
+							PoliCode: payload.PoliCode,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: res.Message})
+				})
+
+				r.Post("/master/nurses/unassign", func(w http.ResponseWriter, req *http.Request) {
+					var payload struct {
+						PerawatID string `json:"perawat_id"`
+						PoliCode  string `json:"poli_code"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "invalid request body"})
+						return
+					}
+					if payload.PerawatID == "" {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "perawat_id is required"})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.UnassignNursePoliResponse, error) {
+						return authClient.UnassignNursePoli(req.Context(), &authpb.UnassignNursePoliRequest{
+							PerawatId: payload.PerawatID,
+							PoliCode:  payload.PoliCode,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: res.Message})
+				})
+
+				r.Get("/master/polyclinics/{poli_code}/schedule", func(w http.ResponseWriter, req *http.Request) {
+					poliCode := chi.URLParam(req, "poli_code")
+					docRes, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
+						return authClient.GetDoctorsByPoli(req.Context(), &authpb.GetDoctorsByPoliRequest{
+							PoliCode: poliCode,
+							Page:     1,
+							PageSize: 100,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					nurseRes, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
+						return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
+							PoliCode: poliCode,
+							Page:     1,
+							PageSize: 100,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data: map[string]interface{}{
+							"poli_code": poliCode,
+							"doctors":   docRes.Data,
+							"nurses":    nurseRes.Data,
+						},
+					})
+				})
+
+				r.Put("/master/polyclinics/{poli_code}/schedule", func(w http.ResponseWriter, req *http.Request) {
+					poliCode := chi.URLParam(req, "poli_code")
+					var payload struct {
+						Slots []struct {
+							DayOfWeek int32  `json:"day_of_week"`
+							DokterID  string `json:"dokter_id"`
+							PerawatID string `json:"perawat_id"`
+						} `json:"slots"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "invalid request body"})
+						return
+					}
+
+					var protoSlots []*authpb.DayScheduleSlot
+					for _, s := range payload.Slots {
+						protoSlots = append(protoSlots, &authpb.DayScheduleSlot{
+							DayOfWeek: s.DayOfWeek,
+							DokterId:  s.DokterID,
+							PerawatId: s.PerawatID,
+						})
+					}
+
+					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.UpdatePoliScheduleResponse, error) {
+						return authClient.UpdatePoliSchedule(req.Context(), &authpb.UpdatePoliScheduleRequest{
+							PoliCode: poliCode,
+							Slots:    protoSlots,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: res.Message})
 				})
 
 				r.Get("/master/doctors/poli/{poli_code}", func(w http.ResponseWriter, req *http.Request) {
@@ -973,13 +1112,15 @@ func main() {
 						pageSize = 10
 					}
 					search := req.URL.Query().Get("search")
+					dayOfWeek, _ := strconv.Atoi(req.URL.Query().Get("day_of_week"))
 
 					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
 						return authClient.GetDoctorsByPoli(req.Context(), &authpb.GetDoctorsByPoliRequest{
-							PoliCode: poliCode,
-							Page:     int32(page),
-							PageSize: int32(pageSize),
-							Search:   search,
+							PoliCode:  poliCode,
+							Page:      int32(page),
+							PageSize:  int32(pageSize),
+							Search:    search,
+							DayOfWeek: int32(dayOfWeek),
 						})
 					})
 					if err != nil {
@@ -1005,13 +1146,15 @@ func main() {
 						pageSize = 10
 					}
 					search := req.URL.Query().Get("search")
+					dayOfWeek, _ := strconv.Atoi(req.URL.Query().Get("day_of_week"))
 
 					res, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
 						return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
-							PoliCode: poliCode,
-							Page:     int32(page),
-							PageSize: int32(pageSize),
-							Search:   search,
+							PoliCode:  poliCode,
+							Page:      int32(page),
+							PageSize:  int32(pageSize),
+							Search:    search,
+							DayOfWeek: int32(dayOfWeek),
 						})
 					})
 					if err != nil {
@@ -1747,31 +1890,65 @@ func main() {
 						return
 					}
 
-					// Auto-assign doctor if empty
+					// Auto-assign doctor if empty (utamakan dokter yang terjadwal dinas hari ini: 1=Senin s.d. 5=Jumat)
 					if payload.DoctorId == "" {
+						todayWeekday := int32(time.Now().Weekday()) // 0=Minggu, 1=Senin .. 6=Sabtu
+						if todayWeekday == 0 {
+							todayWeekday = 7
+						}
 						docRes, errDoc := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
 							return authClient.GetDoctorsByPoli(req.Context(), &authpb.GetDoctorsByPoliRequest{
-								PoliCode: payload.DepartmentCode,
-								Page:     1,
-								PageSize: 1,
+								PoliCode:  payload.DepartmentCode,
+								Page:      1,
+								PageSize:  1,
+								DayOfWeek: todayWeekday,
 							})
 						})
 						if errDoc == nil && len(docRes.Data) > 0 {
 							payload.DoctorId = docRes.Data[0].Id
+						} else {
+							// Fallback tanpa filter hari jika belum ada yang terjadwal khusus hari ini
+							fallbackRes, _ := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
+								return authClient.GetDoctorsByPoli(req.Context(), &authpb.GetDoctorsByPoliRequest{
+									PoliCode: payload.DepartmentCode,
+									Page:     1,
+									PageSize: 1,
+								})
+							})
+							if fallbackRes != nil && len(fallbackRes.Data) > 0 {
+								payload.DoctorId = fallbackRes.Data[0].Id
+							}
 						}
 					}
 
-					// Auto-assign perawat if empty
+					// Auto-assign perawat if empty (prioritize nurse on duty today)
 					if payload.PerawatId == "" {
+						todayWeekday := int32(time.Now().Weekday())
+						if todayWeekday == 0 {
+							todayWeekday = 7
+						}
 						nurseRes, errNurse := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
 							return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
-								PoliCode: payload.DepartmentCode,
-								Page:     1,
-								PageSize: 1,
+								PoliCode:  payload.DepartmentCode,
+								Page:      1,
+								PageSize:  1,
+								DayOfWeek: todayWeekday,
 							})
 						})
 						if errNurse == nil && len(nurseRes.Data) > 0 {
 							payload.PerawatId = nurseRes.Data[0].Id
+						} else {
+							// Fallback if no nurse scheduled today
+							fallbackRes, _ := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
+								return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
+									PoliCode: payload.DepartmentCode,
+									Page:     1,
+									PageSize: 1,
+								})
+							})
+							if fallbackRes != nil && len(fallbackRes.Data) > 0 {
+								payload.PerawatId = fallbackRes.Data[0].Id
+							}
 						}
 					}
 
@@ -1906,17 +2083,34 @@ func main() {
 						}
 					}
 
-					// Auto-assign perawat if empty
+					// Auto-assign perawat if empty (prioritize nurse on duty today)
 					if payload.PerawatId == "" {
+						todayWeekday := int32(time.Now().Weekday())
+						if todayWeekday == 0 {
+							todayWeekday = 7
+						}
 						nurseRes, errNurse := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
 							return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
-								PoliCode: payload.DepartmentCode,
-								Page:     1,
-								PageSize: 1,
+								PoliCode:  payload.DepartmentCode,
+								Page:      1,
+								PageSize:  1,
+								DayOfWeek: todayWeekday,
 							})
 						})
 						if errNurse == nil && len(nurseRes.Data) > 0 {
 							payload.PerawatId = nurseRes.Data[0].Id
+						} else {
+							// Fallback if no nurse scheduled today
+							fallbackRes, _ := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
+								return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
+									PoliCode: payload.DepartmentCode,
+									Page:     1,
+									PageSize: 1,
+								})
+							})
+							if fallbackRes != nil && len(fallbackRes.Data) > 0 {
+								payload.PerawatId = fallbackRes.Data[0].Id
+							}
 						}
 					}
 

@@ -1453,6 +1453,9 @@ type Doctor struct {
 	PoliCode      string                 `protobuf:"bytes,8,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
 	StartDate     string                 `protobuf:"bytes,9,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
 	EndDate       string                 `protobuf:"bytes,10,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	DaysOfWeek    []int32                `protobuf:"varint,11,rep,packed,name=days_of_week,json=daysOfWeek,proto3" json:"days_of_week,omitempty"`
+	ShiftStart    string                 `protobuf:"bytes,12,opt,name=shift_start,json=shiftStart,proto3" json:"shift_start,omitempty"`
+	ShiftEnd      string                 `protobuf:"bytes,13,opt,name=shift_end,json=shiftEnd,proto3" json:"shift_end,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1553,6 +1556,27 @@ func (x *Doctor) GetStartDate() string {
 func (x *Doctor) GetEndDate() string {
 	if x != nil {
 		return x.EndDate
+	}
+	return ""
+}
+
+func (x *Doctor) GetDaysOfWeek() []int32 {
+	if x != nil {
+		return x.DaysOfWeek
+	}
+	return nil
+}
+
+func (x *Doctor) GetShiftStart() string {
+	if x != nil {
+		return x.ShiftStart
+	}
+	return ""
+}
+
+func (x *Doctor) GetShiftEnd() string {
+	if x != nil {
+		return x.ShiftEnd
 	}
 	return ""
 }
@@ -1680,6 +1704,9 @@ type Nurse struct {
 	PoliCode      string                 `protobuf:"bytes,7,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
 	StartDate     string                 `protobuf:"bytes,8,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
 	EndDate       string                 `protobuf:"bytes,9,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	DaysOfWeek    []int32                `protobuf:"varint,10,rep,packed,name=days_of_week,json=daysOfWeek,proto3" json:"days_of_week,omitempty"`
+	ShiftStart    string                 `protobuf:"bytes,11,opt,name=shift_start,json=shiftStart,proto3" json:"shift_start,omitempty"`
+	ShiftEnd      string                 `protobuf:"bytes,12,opt,name=shift_end,json=shiftEnd,proto3" json:"shift_end,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1777,6 +1804,27 @@ func (x *Nurse) GetEndDate() string {
 	return ""
 }
 
+func (x *Nurse) GetDaysOfWeek() []int32 {
+	if x != nil {
+		return x.DaysOfWeek
+	}
+	return nil
+}
+
+func (x *Nurse) GetShiftStart() string {
+	if x != nil {
+		return x.ShiftStart
+	}
+	return ""
+}
+
+func (x *Nurse) GetShiftEnd() string {
+	if x != nil {
+		return x.ShiftEnd
+	}
+	return ""
+}
+
 type GetNursesResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          []*Nurse               `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
@@ -1835,6 +1883,7 @@ type GetDoctorsByPoliRequest struct {
 	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	PoliCode      string                 `protobuf:"bytes,3,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
 	Search        string                 `protobuf:"bytes,4,opt,name=search,proto3" json:"search,omitempty"`
+	DayOfWeek     int32                  `protobuf:"varint,5,opt,name=day_of_week,json=dayOfWeek,proto3" json:"day_of_week,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1897,6 +1946,13 @@ func (x *GetDoctorsByPoliRequest) GetSearch() string {
 	return ""
 }
 
+func (x *GetDoctorsByPoliRequest) GetDayOfWeek() int32 {
+	if x != nil {
+		return x.DayOfWeek
+	}
+	return 0
+}
+
 type DoctorPoliMapping struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1906,6 +1962,9 @@ type DoctorPoliMapping struct {
 	PoliCode      string                 `protobuf:"bytes,5,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
 	StartDate     string                 `protobuf:"bytes,6,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
 	EndDate       string                 `protobuf:"bytes,7,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	DaysOfWeek    []int32                `protobuf:"varint,8,rep,packed,name=days_of_week,json=daysOfWeek,proto3" json:"days_of_week,omitempty"`
+	ShiftStart    string                 `protobuf:"bytes,9,opt,name=shift_start,json=shiftStart,proto3" json:"shift_start,omitempty"`
+	ShiftEnd      string                 `protobuf:"bytes,10,opt,name=shift_end,json=shiftEnd,proto3" json:"shift_end,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1989,6 +2048,27 @@ func (x *DoctorPoliMapping) GetEndDate() string {
 	return ""
 }
 
+func (x *DoctorPoliMapping) GetDaysOfWeek() []int32 {
+	if x != nil {
+		return x.DaysOfWeek
+	}
+	return nil
+}
+
+func (x *DoctorPoliMapping) GetShiftStart() string {
+	if x != nil {
+		return x.ShiftStart
+	}
+	return ""
+}
+
+func (x *DoctorPoliMapping) GetShiftEnd() string {
+	if x != nil {
+		return x.ShiftEnd
+	}
+	return ""
+}
+
 type GetDoctorsByPoliResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          []*DoctorPoliMapping   `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
@@ -2047,6 +2127,7 @@ type GetNursesByPoliRequest struct {
 	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	PoliCode      string                 `protobuf:"bytes,3,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
 	Search        string                 `protobuf:"bytes,4,opt,name=search,proto3" json:"search,omitempty"`
+	DayOfWeek     int32                  `protobuf:"varint,5,opt,name=day_of_week,json=dayOfWeek,proto3" json:"day_of_week,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2109,6 +2190,13 @@ func (x *GetNursesByPoliRequest) GetSearch() string {
 	return ""
 }
 
+func (x *GetNursesByPoliRequest) GetDayOfWeek() int32 {
+	if x != nil {
+		return x.DayOfWeek
+	}
+	return 0
+}
+
 type NursePoliMapping struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -2118,6 +2206,9 @@ type NursePoliMapping struct {
 	PoliCode      string                 `protobuf:"bytes,5,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
 	StartDate     string                 `protobuf:"bytes,6,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
 	EndDate       string                 `protobuf:"bytes,7,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	DaysOfWeek    []int32                `protobuf:"varint,8,rep,packed,name=days_of_week,json=daysOfWeek,proto3" json:"days_of_week,omitempty"`
+	ShiftStart    string                 `protobuf:"bytes,9,opt,name=shift_start,json=shiftStart,proto3" json:"shift_start,omitempty"`
+	ShiftEnd      string                 `protobuf:"bytes,10,opt,name=shift_end,json=shiftEnd,proto3" json:"shift_end,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2201,6 +2292,27 @@ func (x *NursePoliMapping) GetEndDate() string {
 	return ""
 }
 
+func (x *NursePoliMapping) GetDaysOfWeek() []int32 {
+	if x != nil {
+		return x.DaysOfWeek
+	}
+	return nil
+}
+
+func (x *NursePoliMapping) GetShiftStart() string {
+	if x != nil {
+		return x.ShiftStart
+	}
+	return ""
+}
+
+func (x *NursePoliMapping) GetShiftEnd() string {
+	if x != nil {
+		return x.ShiftEnd
+	}
+	return ""
+}
+
 type GetNursesByPoliResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          []*NursePoliMapping    `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
@@ -2259,6 +2371,9 @@ type AssignDoctorPoliRequest struct {
 	PoliCode      string                 `protobuf:"bytes,2,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
 	StartDate     string                 `protobuf:"bytes,3,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
 	EndDate       string                 `protobuf:"bytes,4,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	DaysOfWeek    []int32                `protobuf:"varint,5,rep,packed,name=days_of_week,json=daysOfWeek,proto3" json:"days_of_week,omitempty"`
+	ShiftStart    string                 `protobuf:"bytes,6,opt,name=shift_start,json=shiftStart,proto3" json:"shift_start,omitempty"`
+	ShiftEnd      string                 `protobuf:"bytes,7,opt,name=shift_end,json=shiftEnd,proto3" json:"shift_end,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2321,6 +2436,27 @@ func (x *AssignDoctorPoliRequest) GetEndDate() string {
 	return ""
 }
 
+func (x *AssignDoctorPoliRequest) GetDaysOfWeek() []int32 {
+	if x != nil {
+		return x.DaysOfWeek
+	}
+	return nil
+}
+
+func (x *AssignDoctorPoliRequest) GetShiftStart() string {
+	if x != nil {
+		return x.ShiftStart
+	}
+	return ""
+}
+
+func (x *AssignDoctorPoliRequest) GetShiftEnd() string {
+	if x != nil {
+		return x.ShiftEnd
+	}
+	return ""
+}
+
 type AssignDoctorPoliResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -2379,6 +2515,9 @@ type AssignNursePoliRequest struct {
 	PoliCode      string                 `protobuf:"bytes,2,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
 	StartDate     string                 `protobuf:"bytes,3,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"`
 	EndDate       string                 `protobuf:"bytes,4,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`
+	DaysOfWeek    []int32                `protobuf:"varint,5,rep,packed,name=days_of_week,json=daysOfWeek,proto3" json:"days_of_week,omitempty"`
+	ShiftStart    string                 `protobuf:"bytes,6,opt,name=shift_start,json=shiftStart,proto3" json:"shift_start,omitempty"`
+	ShiftEnd      string                 `protobuf:"bytes,7,opt,name=shift_end,json=shiftEnd,proto3" json:"shift_end,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2437,6 +2576,27 @@ func (x *AssignNursePoliRequest) GetStartDate() string {
 func (x *AssignNursePoliRequest) GetEndDate() string {
 	if x != nil {
 		return x.EndDate
+	}
+	return ""
+}
+
+func (x *AssignNursePoliRequest) GetDaysOfWeek() []int32 {
+	if x != nil {
+		return x.DaysOfWeek
+	}
+	return nil
+}
+
+func (x *AssignNursePoliRequest) GetShiftStart() string {
+	if x != nil {
+		return x.ShiftStart
+	}
+	return ""
+}
+
+func (x *AssignNursePoliRequest) GetShiftEnd() string {
+	if x != nil {
+		return x.ShiftEnd
 	}
 	return ""
 }
@@ -2849,6 +3009,378 @@ func (x *ListLabelProfesiResponse) GetTotalCount() int32 {
 	return 0
 }
 
+type UnassignDoctorPoliRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DokterId      string                 `protobuf:"bytes,1,opt,name=dokter_id,json=dokterId,proto3" json:"dokter_id,omitempty"`
+	PoliCode      string                 `protobuf:"bytes,2,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnassignDoctorPoliRequest) Reset() {
+	*x = UnassignDoctorPoliRequest{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnassignDoctorPoliRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnassignDoctorPoliRequest) ProtoMessage() {}
+
+func (x *UnassignDoctorPoliRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnassignDoctorPoliRequest.ProtoReflect.Descriptor instead.
+func (*UnassignDoctorPoliRequest) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *UnassignDoctorPoliRequest) GetDokterId() string {
+	if x != nil {
+		return x.DokterId
+	}
+	return ""
+}
+
+func (x *UnassignDoctorPoliRequest) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
+type UnassignDoctorPoliResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnassignDoctorPoliResponse) Reset() {
+	*x = UnassignDoctorPoliResponse{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnassignDoctorPoliResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnassignDoctorPoliResponse) ProtoMessage() {}
+
+func (x *UnassignDoctorPoliResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnassignDoctorPoliResponse.ProtoReflect.Descriptor instead.
+func (*UnassignDoctorPoliResponse) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *UnassignDoctorPoliResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UnassignDoctorPoliResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type UnassignNursePoliRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PerawatId     string                 `protobuf:"bytes,1,opt,name=perawat_id,json=perawatId,proto3" json:"perawat_id,omitempty"`
+	PoliCode      string                 `protobuf:"bytes,2,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnassignNursePoliRequest) Reset() {
+	*x = UnassignNursePoliRequest{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnassignNursePoliRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnassignNursePoliRequest) ProtoMessage() {}
+
+func (x *UnassignNursePoliRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnassignNursePoliRequest.ProtoReflect.Descriptor instead.
+func (*UnassignNursePoliRequest) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *UnassignNursePoliRequest) GetPerawatId() string {
+	if x != nil {
+		return x.PerawatId
+	}
+	return ""
+}
+
+func (x *UnassignNursePoliRequest) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
+type UnassignNursePoliResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnassignNursePoliResponse) Reset() {
+	*x = UnassignNursePoliResponse{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnassignNursePoliResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnassignNursePoliResponse) ProtoMessage() {}
+
+func (x *UnassignNursePoliResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnassignNursePoliResponse.ProtoReflect.Descriptor instead.
+func (*UnassignNursePoliResponse) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *UnassignNursePoliResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UnassignNursePoliResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+type DayScheduleSlot struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DayOfWeek     int32                  `protobuf:"varint,1,opt,name=day_of_week,json=dayOfWeek,proto3" json:"day_of_week,omitempty"`
+	DokterId      string                 `protobuf:"bytes,2,opt,name=dokter_id,json=dokterId,proto3" json:"dokter_id,omitempty"`
+	PerawatId     string                 `protobuf:"bytes,3,opt,name=perawat_id,json=perawatId,proto3" json:"perawat_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DayScheduleSlot) Reset() {
+	*x = DayScheduleSlot{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DayScheduleSlot) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DayScheduleSlot) ProtoMessage() {}
+
+func (x *DayScheduleSlot) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DayScheduleSlot.ProtoReflect.Descriptor instead.
+func (*DayScheduleSlot) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *DayScheduleSlot) GetDayOfWeek() int32 {
+	if x != nil {
+		return x.DayOfWeek
+	}
+	return 0
+}
+
+func (x *DayScheduleSlot) GetDokterId() string {
+	if x != nil {
+		return x.DokterId
+	}
+	return ""
+}
+
+func (x *DayScheduleSlot) GetPerawatId() string {
+	if x != nil {
+		return x.PerawatId
+	}
+	return ""
+}
+
+type UpdatePoliScheduleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PoliCode      string                 `protobuf:"bytes,1,opt,name=poli_code,json=poliCode,proto3" json:"poli_code,omitempty"`
+	Slots         []*DayScheduleSlot     `protobuf:"bytes,2,rep,name=slots,proto3" json:"slots,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePoliScheduleRequest) Reset() {
+	*x = UpdatePoliScheduleRequest{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePoliScheduleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePoliScheduleRequest) ProtoMessage() {}
+
+func (x *UpdatePoliScheduleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePoliScheduleRequest.ProtoReflect.Descriptor instead.
+func (*UpdatePoliScheduleRequest) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{50}
+}
+
+func (x *UpdatePoliScheduleRequest) GetPoliCode() string {
+	if x != nil {
+		return x.PoliCode
+	}
+	return ""
+}
+
+func (x *UpdatePoliScheduleRequest) GetSlots() []*DayScheduleSlot {
+	if x != nil {
+		return x.Slots
+	}
+	return nil
+}
+
+type UpdatePoliScheduleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpdatePoliScheduleResponse) Reset() {
+	*x = UpdatePoliScheduleResponse{}
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePoliScheduleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePoliScheduleResponse) ProtoMessage() {}
+
+func (x *UpdatePoliScheduleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_auth_v1_auth_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpdatePoliScheduleResponse.ProtoReflect.Descriptor instead.
+func (*UpdatePoliScheduleResponse) Descriptor() ([]byte, []int) {
+	return file_proto_auth_v1_auth_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *UpdatePoliScheduleResponse) GetSuccess() bool {
+	if x != nil {
+		return x.Success
+	}
+	return false
+}
+
+func (x *UpdatePoliScheduleResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 var File_proto_auth_v1_auth_proto protoreflect.FileDescriptor
 
 const file_proto_auth_v1_auth_proto_rawDesc = "" +
@@ -2956,7 +3488,7 @@ const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\x11GetDoctorsRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
-	"\x06search\x18\x03 \x01(\tR\x06search\"\x81\x02\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\"\xe1\x02\n" +
 	"\x06Doctor\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x10\n" +
@@ -2969,7 +3501,12 @@ const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\n" +
 	"start_date\x18\t \x01(\tR\tstartDate\x12\x19\n" +
 	"\bend_date\x18\n" +
-	" \x01(\tR\aendDate\"Z\n" +
+	" \x01(\tR\aendDate\x12 \n" +
+	"\fdays_of_week\x18\v \x03(\x05R\n" +
+	"daysOfWeek\x12\x1f\n" +
+	"\vshift_start\x18\f \x01(\tR\n" +
+	"shiftStart\x12\x1b\n" +
+	"\tshift_end\x18\r \x01(\tR\bshiftEnd\"Z\n" +
 	"\x12GetDoctorsResponse\x12#\n" +
 	"\x04data\x18\x01 \x03(\v2\x0f.auth.v1.DoctorR\x04data\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x05R\n" +
@@ -2977,7 +3514,7 @@ const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\x10GetNursesRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
-	"\x06search\x18\x03 \x01(\tR\x06search\"\xeb\x01\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\"\xcb\x02\n" +
 	"\x05Nurse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x10\n" +
@@ -2989,16 +3526,23 @@ const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\tpoli_code\x18\a \x01(\tR\bpoliCode\x12\x1d\n" +
 	"\n" +
 	"start_date\x18\b \x01(\tR\tstartDate\x12\x19\n" +
-	"\bend_date\x18\t \x01(\tR\aendDate\"X\n" +
+	"\bend_date\x18\t \x01(\tR\aendDate\x12 \n" +
+	"\fdays_of_week\x18\n" +
+	" \x03(\x05R\n" +
+	"daysOfWeek\x12\x1f\n" +
+	"\vshift_start\x18\v \x01(\tR\n" +
+	"shiftStart\x12\x1b\n" +
+	"\tshift_end\x18\f \x01(\tR\bshiftEnd\"X\n" +
 	"\x11GetNursesResponse\x12\"\n" +
 	"\x04data\x18\x01 \x03(\v2\x0e.auth.v1.NurseR\x04data\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x05R\n" +
-	"totalCount\"\x7f\n" +
+	"totalCount\"\x9f\x01\n" +
 	"\x17GetDoctorsByPoliRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1b\n" +
 	"\tpoli_code\x18\x03 \x01(\tR\bpoliCode\x12\x16\n" +
-	"\x06search\x18\x04 \x01(\tR\x06search\"\xcc\x01\n" +
+	"\x06search\x18\x04 \x01(\tR\x06search\x12\x1e\n" +
+	"\vday_of_week\x18\x05 \x01(\x05R\tdayOfWeek\"\xac\x02\n" +
 	"\x11DoctorPoliMapping\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x10\n" +
@@ -3007,16 +3551,23 @@ const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\tpoli_code\x18\x05 \x01(\tR\bpoliCode\x12\x1d\n" +
 	"\n" +
 	"start_date\x18\x06 \x01(\tR\tstartDate\x12\x19\n" +
-	"\bend_date\x18\a \x01(\tR\aendDate\"k\n" +
+	"\bend_date\x18\a \x01(\tR\aendDate\x12 \n" +
+	"\fdays_of_week\x18\b \x03(\x05R\n" +
+	"daysOfWeek\x12\x1f\n" +
+	"\vshift_start\x18\t \x01(\tR\n" +
+	"shiftStart\x12\x1b\n" +
+	"\tshift_end\x18\n" +
+	" \x01(\tR\bshiftEnd\"k\n" +
 	"\x18GetDoctorsByPoliResponse\x12.\n" +
 	"\x04data\x18\x01 \x03(\v2\x1a.auth.v1.DoctorPoliMappingR\x04data\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x05R\n" +
-	"totalCount\"~\n" +
+	"totalCount\"\x9e\x01\n" +
 	"\x16GetNursesByPoliRequest\x12\x12\n" +
 	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
 	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x1b\n" +
 	"\tpoli_code\x18\x03 \x01(\tR\bpoliCode\x12\x16\n" +
-	"\x06search\x18\x04 \x01(\tR\x06search\"\xc8\x01\n" +
+	"\x06search\x18\x04 \x01(\tR\x06search\x12\x1e\n" +
+	"\vday_of_week\x18\x05 \x01(\x05R\tdayOfWeek\"\xa8\x02\n" +
 	"\x10NursePoliMapping\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12\x10\n" +
@@ -3026,27 +3577,43 @@ const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\tpoli_code\x18\x05 \x01(\tR\bpoliCode\x12\x1d\n" +
 	"\n" +
 	"start_date\x18\x06 \x01(\tR\tstartDate\x12\x19\n" +
-	"\bend_date\x18\a \x01(\tR\aendDate\"i\n" +
+	"\bend_date\x18\a \x01(\tR\aendDate\x12 \n" +
+	"\fdays_of_week\x18\b \x03(\x05R\n" +
+	"daysOfWeek\x12\x1f\n" +
+	"\vshift_start\x18\t \x01(\tR\n" +
+	"shiftStart\x12\x1b\n" +
+	"\tshift_end\x18\n" +
+	" \x01(\tR\bshiftEnd\"i\n" +
 	"\x17GetNursesByPoliResponse\x12-\n" +
 	"\x04data\x18\x01 \x03(\v2\x19.auth.v1.NursePoliMappingR\x04data\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x05R\n" +
-	"totalCount\"\x8d\x01\n" +
+	"totalCount\"\xed\x01\n" +
 	"\x17AssignDoctorPoliRequest\x12\x1b\n" +
 	"\tdokter_id\x18\x01 \x01(\tR\bdokterId\x12\x1b\n" +
 	"\tpoli_code\x18\x02 \x01(\tR\bpoliCode\x12\x1d\n" +
 	"\n" +
 	"start_date\x18\x03 \x01(\tR\tstartDate\x12\x19\n" +
-	"\bend_date\x18\x04 \x01(\tR\aendDate\"N\n" +
+	"\bend_date\x18\x04 \x01(\tR\aendDate\x12 \n" +
+	"\fdays_of_week\x18\x05 \x03(\x05R\n" +
+	"daysOfWeek\x12\x1f\n" +
+	"\vshift_start\x18\x06 \x01(\tR\n" +
+	"shiftStart\x12\x1b\n" +
+	"\tshift_end\x18\a \x01(\tR\bshiftEnd\"N\n" +
 	"\x18AssignDoctorPoliResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\x8e\x01\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xee\x01\n" +
 	"\x16AssignNursePoliRequest\x12\x1d\n" +
 	"\n" +
 	"perawat_id\x18\x01 \x01(\tR\tperawatId\x12\x1b\n" +
 	"\tpoli_code\x18\x02 \x01(\tR\bpoliCode\x12\x1d\n" +
 	"\n" +
 	"start_date\x18\x03 \x01(\tR\tstartDate\x12\x19\n" +
-	"\bend_date\x18\x04 \x01(\tR\aendDate\"M\n" +
+	"\bend_date\x18\x04 \x01(\tR\aendDate\x12 \n" +
+	"\fdays_of_week\x18\x05 \x03(\x05R\n" +
+	"daysOfWeek\x12\x1f\n" +
+	"\vshift_start\x18\x06 \x01(\tR\n" +
+	"shiftStart\x12\x1b\n" +
+	"\tshift_end\x18\a \x01(\tR\bshiftEnd\"M\n" +
 	"\x17AssignNursePoliResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"1\n" +
@@ -3071,7 +3638,31 @@ const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\x18ListLabelProfesiResponse\x12)\n" +
 	"\x04data\x18\x01 \x03(\v2\x15.auth.v1.LabelProfesiR\x04data\x12\x1f\n" +
 	"\vtotal_count\x18\x02 \x01(\x05R\n" +
-	"totalCount2\x95\f\n" +
+	"totalCount\"U\n" +
+	"\x19UnassignDoctorPoliRequest\x12\x1b\n" +
+	"\tdokter_id\x18\x01 \x01(\tR\bdokterId\x12\x1b\n" +
+	"\tpoli_code\x18\x02 \x01(\tR\bpoliCode\"P\n" +
+	"\x1aUnassignDoctorPoliResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"V\n" +
+	"\x18UnassignNursePoliRequest\x12\x1d\n" +
+	"\n" +
+	"perawat_id\x18\x01 \x01(\tR\tperawatId\x12\x1b\n" +
+	"\tpoli_code\x18\x02 \x01(\tR\bpoliCode\"O\n" +
+	"\x19UnassignNursePoliResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"m\n" +
+	"\x0fDayScheduleSlot\x12\x1e\n" +
+	"\vday_of_week\x18\x01 \x01(\x05R\tdayOfWeek\x12\x1b\n" +
+	"\tdokter_id\x18\x02 \x01(\tR\bdokterId\x12\x1d\n" +
+	"\n" +
+	"perawat_id\x18\x03 \x01(\tR\tperawatId\"h\n" +
+	"\x19UpdatePoliScheduleRequest\x12\x1b\n" +
+	"\tpoli_code\x18\x01 \x01(\tR\bpoliCode\x12.\n" +
+	"\x05slots\x18\x02 \x03(\v2\x18.auth.v1.DayScheduleSlotR\x05slots\"P\n" +
+	"\x1aUpdatePoliScheduleResponse\x12\x18\n" +
+	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage2\xaf\x0e\n" +
 	"\vAuthService\x126\n" +
 	"\x05Login\x12\x15.auth.v1.LoginRequest\x1a\x16.auth.v1.LoginResponse\x129\n" +
 	"\x06Signup\x12\x16.auth.v1.SignupRequest\x1a\x17.auth.v1.SignupResponse\x12`\n" +
@@ -3090,7 +3681,10 @@ const file_proto_auth_v1_auth_proto_rawDesc = "" +
 	"\x10GetDoctorsByPoli\x12 .auth.v1.GetDoctorsByPoliRequest\x1a!.auth.v1.GetDoctorsByPoliResponse\x12T\n" +
 	"\x0fGetNursesByPoli\x12\x1f.auth.v1.GetNursesByPoliRequest\x1a .auth.v1.GetNursesByPoliResponse\x12W\n" +
 	"\x10AssignDoctorPoli\x12 .auth.v1.AssignDoctorPoliRequest\x1a!.auth.v1.AssignDoctorPoliResponse\x12T\n" +
-	"\x0fAssignNursePoli\x12\x1f.auth.v1.AssignNursePoliRequest\x1a .auth.v1.AssignNursePoliResponse\x12T\n" +
+	"\x0fAssignNursePoli\x12\x1f.auth.v1.AssignNursePoliRequest\x1a .auth.v1.AssignNursePoliResponse\x12]\n" +
+	"\x12UnassignDoctorPoli\x12\".auth.v1.UnassignDoctorPoliRequest\x1a#.auth.v1.UnassignDoctorPoliResponse\x12Z\n" +
+	"\x11UnassignNursePoli\x12!.auth.v1.UnassignNursePoliRequest\x1a\".auth.v1.UnassignNursePoliResponse\x12]\n" +
+	"\x12UpdatePoliSchedule\x12\".auth.v1.UpdatePoliScheduleRequest\x1a#.auth.v1.UpdatePoliScheduleResponse\x12T\n" +
 	"\x0fGetAssignedPoli\x12\x1f.auth.v1.GetAssignedPoliRequest\x1a .auth.v1.GetAssignedPoliResponse\x12W\n" +
 	"\x10ListLabelProfesi\x12 .auth.v1.ListLabelProfesiRequest\x1a!.auth.v1.ListLabelProfesiResponse\x12r\n" +
 	"\x19GetActivePersonnelMetrics\x12).auth.v1.GetActivePersonnelMetricsRequest\x1a*.auth.v1.GetActivePersonnelMetricsResponseBBZ@github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1;authv1b\x06proto3"
@@ -3107,7 +3701,7 @@ func file_proto_auth_v1_auth_proto_rawDescGZIP() []byte {
 	return file_proto_auth_v1_auth_proto_rawDescData
 }
 
-var file_proto_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 45)
+var file_proto_auth_v1_auth_proto_msgTypes = make([]protoimpl.MessageInfo, 52)
 var file_proto_auth_v1_auth_proto_goTypes = []any{
 	(*LoginRequest)(nil),                      // 0: auth.v1.LoginRequest
 	(*LoginResponse)(nil),                     // 1: auth.v1.LoginResponse
@@ -3154,6 +3748,13 @@ var file_proto_auth_v1_auth_proto_goTypes = []any{
 	(*ListLabelProfesiRequest)(nil),           // 42: auth.v1.ListLabelProfesiRequest
 	(*LabelProfesi)(nil),                      // 43: auth.v1.LabelProfesi
 	(*ListLabelProfesiResponse)(nil),          // 44: auth.v1.ListLabelProfesiResponse
+	(*UnassignDoctorPoliRequest)(nil),         // 45: auth.v1.UnassignDoctorPoliRequest
+	(*UnassignDoctorPoliResponse)(nil),        // 46: auth.v1.UnassignDoctorPoliResponse
+	(*UnassignNursePoliRequest)(nil),          // 47: auth.v1.UnassignNursePoliRequest
+	(*UnassignNursePoliResponse)(nil),         // 48: auth.v1.UnassignNursePoliResponse
+	(*DayScheduleSlot)(nil),                   // 49: auth.v1.DayScheduleSlot
+	(*UpdatePoliScheduleRequest)(nil),         // 50: auth.v1.UpdatePoliScheduleRequest
+	(*UpdatePoliScheduleResponse)(nil),        // 51: auth.v1.UpdatePoliScheduleResponse
 }
 var file_proto_auth_v1_auth_proto_depIdxs = []int32{
 	12, // 0: auth.v1.ListUsersResponse.users:type_name -> auth.v1.UserData
@@ -3163,49 +3764,56 @@ var file_proto_auth_v1_auth_proto_depIdxs = []int32{
 	29, // 4: auth.v1.GetDoctorsByPoliResponse.data:type_name -> auth.v1.DoctorPoliMapping
 	32, // 5: auth.v1.GetNursesByPoliResponse.data:type_name -> auth.v1.NursePoliMapping
 	43, // 6: auth.v1.ListLabelProfesiResponse.data:type_name -> auth.v1.LabelProfesi
-	0,  // 7: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
-	2,  // 8: auth.v1.AuthService.Signup:input_type -> auth.v1.SignupRequest
-	4,  // 9: auth.v1.AuthService.RegisterPatientUser:input_type -> auth.v1.RegisterPatientUserRequest
-	6,  // 10: auth.v1.AuthService.ValidateToken:input_type -> auth.v1.ValidateTokenRequest
-	8,  // 11: auth.v1.AuthService.RefreshToken:input_type -> auth.v1.RefreshTokenRequest
-	10, // 12: auth.v1.AuthService.ExtractKTPData:input_type -> auth.v1.ExtractKTPDataRequest
-	13, // 13: auth.v1.AuthService.ListUsers:input_type -> auth.v1.ListUsersRequest
-	15, // 14: auth.v1.AuthService.UpdateUserStatus:input_type -> auth.v1.UpdateUserStatusRequest
-	17, // 15: auth.v1.AuthService.DeleteUser:input_type -> auth.v1.DeleteUserRequest
-	19, // 16: auth.v1.AuthService.GetMasterRoles:input_type -> auth.v1.GetMasterRolesRequest
-	22, // 17: auth.v1.AuthService.GetDoctors:input_type -> auth.v1.GetDoctorsRequest
-	25, // 18: auth.v1.AuthService.GetNurses:input_type -> auth.v1.GetNursesRequest
-	28, // 19: auth.v1.AuthService.GetDoctorsByPoli:input_type -> auth.v1.GetDoctorsByPoliRequest
-	31, // 20: auth.v1.AuthService.GetNursesByPoli:input_type -> auth.v1.GetNursesByPoliRequest
-	34, // 21: auth.v1.AuthService.AssignDoctorPoli:input_type -> auth.v1.AssignDoctorPoliRequest
-	36, // 22: auth.v1.AuthService.AssignNursePoli:input_type -> auth.v1.AssignNursePoliRequest
-	38, // 23: auth.v1.AuthService.GetAssignedPoli:input_type -> auth.v1.GetAssignedPoliRequest
-	42, // 24: auth.v1.AuthService.ListLabelProfesi:input_type -> auth.v1.ListLabelProfesiRequest
-	40, // 25: auth.v1.AuthService.GetActivePersonnelMetrics:input_type -> auth.v1.GetActivePersonnelMetricsRequest
-	1,  // 26: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
-	3,  // 27: auth.v1.AuthService.Signup:output_type -> auth.v1.SignupResponse
-	5,  // 28: auth.v1.AuthService.RegisterPatientUser:output_type -> auth.v1.RegisterPatientUserResponse
-	7,  // 29: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
-	9,  // 30: auth.v1.AuthService.RefreshToken:output_type -> auth.v1.RefreshTokenResponse
-	11, // 31: auth.v1.AuthService.ExtractKTPData:output_type -> auth.v1.ExtractKTPDataResponse
-	14, // 32: auth.v1.AuthService.ListUsers:output_type -> auth.v1.ListUsersResponse
-	16, // 33: auth.v1.AuthService.UpdateUserStatus:output_type -> auth.v1.UpdateUserStatusResponse
-	18, // 34: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
-	21, // 35: auth.v1.AuthService.GetMasterRoles:output_type -> auth.v1.GetMasterRolesResponse
-	24, // 36: auth.v1.AuthService.GetDoctors:output_type -> auth.v1.GetDoctorsResponse
-	27, // 37: auth.v1.AuthService.GetNurses:output_type -> auth.v1.GetNursesResponse
-	30, // 38: auth.v1.AuthService.GetDoctorsByPoli:output_type -> auth.v1.GetDoctorsByPoliResponse
-	33, // 39: auth.v1.AuthService.GetNursesByPoli:output_type -> auth.v1.GetNursesByPoliResponse
-	35, // 40: auth.v1.AuthService.AssignDoctorPoli:output_type -> auth.v1.AssignDoctorPoliResponse
-	37, // 41: auth.v1.AuthService.AssignNursePoli:output_type -> auth.v1.AssignNursePoliResponse
-	39, // 42: auth.v1.AuthService.GetAssignedPoli:output_type -> auth.v1.GetAssignedPoliResponse
-	44, // 43: auth.v1.AuthService.ListLabelProfesi:output_type -> auth.v1.ListLabelProfesiResponse
-	41, // 44: auth.v1.AuthService.GetActivePersonnelMetrics:output_type -> auth.v1.GetActivePersonnelMetricsResponse
-	26, // [26:45] is the sub-list for method output_type
-	7,  // [7:26] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	49, // 7: auth.v1.UpdatePoliScheduleRequest.slots:type_name -> auth.v1.DayScheduleSlot
+	0,  // 8: auth.v1.AuthService.Login:input_type -> auth.v1.LoginRequest
+	2,  // 9: auth.v1.AuthService.Signup:input_type -> auth.v1.SignupRequest
+	4,  // 10: auth.v1.AuthService.RegisterPatientUser:input_type -> auth.v1.RegisterPatientUserRequest
+	6,  // 11: auth.v1.AuthService.ValidateToken:input_type -> auth.v1.ValidateTokenRequest
+	8,  // 12: auth.v1.AuthService.RefreshToken:input_type -> auth.v1.RefreshTokenRequest
+	10, // 13: auth.v1.AuthService.ExtractKTPData:input_type -> auth.v1.ExtractKTPDataRequest
+	13, // 14: auth.v1.AuthService.ListUsers:input_type -> auth.v1.ListUsersRequest
+	15, // 15: auth.v1.AuthService.UpdateUserStatus:input_type -> auth.v1.UpdateUserStatusRequest
+	17, // 16: auth.v1.AuthService.DeleteUser:input_type -> auth.v1.DeleteUserRequest
+	19, // 17: auth.v1.AuthService.GetMasterRoles:input_type -> auth.v1.GetMasterRolesRequest
+	22, // 18: auth.v1.AuthService.GetDoctors:input_type -> auth.v1.GetDoctorsRequest
+	25, // 19: auth.v1.AuthService.GetNurses:input_type -> auth.v1.GetNursesRequest
+	28, // 20: auth.v1.AuthService.GetDoctorsByPoli:input_type -> auth.v1.GetDoctorsByPoliRequest
+	31, // 21: auth.v1.AuthService.GetNursesByPoli:input_type -> auth.v1.GetNursesByPoliRequest
+	34, // 22: auth.v1.AuthService.AssignDoctorPoli:input_type -> auth.v1.AssignDoctorPoliRequest
+	36, // 23: auth.v1.AuthService.AssignNursePoli:input_type -> auth.v1.AssignNursePoliRequest
+	45, // 24: auth.v1.AuthService.UnassignDoctorPoli:input_type -> auth.v1.UnassignDoctorPoliRequest
+	47, // 25: auth.v1.AuthService.UnassignNursePoli:input_type -> auth.v1.UnassignNursePoliRequest
+	50, // 26: auth.v1.AuthService.UpdatePoliSchedule:input_type -> auth.v1.UpdatePoliScheduleRequest
+	38, // 27: auth.v1.AuthService.GetAssignedPoli:input_type -> auth.v1.GetAssignedPoliRequest
+	42, // 28: auth.v1.AuthService.ListLabelProfesi:input_type -> auth.v1.ListLabelProfesiRequest
+	40, // 29: auth.v1.AuthService.GetActivePersonnelMetrics:input_type -> auth.v1.GetActivePersonnelMetricsRequest
+	1,  // 30: auth.v1.AuthService.Login:output_type -> auth.v1.LoginResponse
+	3,  // 31: auth.v1.AuthService.Signup:output_type -> auth.v1.SignupResponse
+	5,  // 32: auth.v1.AuthService.RegisterPatientUser:output_type -> auth.v1.RegisterPatientUserResponse
+	7,  // 33: auth.v1.AuthService.ValidateToken:output_type -> auth.v1.ValidateTokenResponse
+	9,  // 34: auth.v1.AuthService.RefreshToken:output_type -> auth.v1.RefreshTokenResponse
+	11, // 35: auth.v1.AuthService.ExtractKTPData:output_type -> auth.v1.ExtractKTPDataResponse
+	14, // 36: auth.v1.AuthService.ListUsers:output_type -> auth.v1.ListUsersResponse
+	16, // 37: auth.v1.AuthService.UpdateUserStatus:output_type -> auth.v1.UpdateUserStatusResponse
+	18, // 38: auth.v1.AuthService.DeleteUser:output_type -> auth.v1.DeleteUserResponse
+	21, // 39: auth.v1.AuthService.GetMasterRoles:output_type -> auth.v1.GetMasterRolesResponse
+	24, // 40: auth.v1.AuthService.GetDoctors:output_type -> auth.v1.GetDoctorsResponse
+	27, // 41: auth.v1.AuthService.GetNurses:output_type -> auth.v1.GetNursesResponse
+	30, // 42: auth.v1.AuthService.GetDoctorsByPoli:output_type -> auth.v1.GetDoctorsByPoliResponse
+	33, // 43: auth.v1.AuthService.GetNursesByPoli:output_type -> auth.v1.GetNursesByPoliResponse
+	35, // 44: auth.v1.AuthService.AssignDoctorPoli:output_type -> auth.v1.AssignDoctorPoliResponse
+	37, // 45: auth.v1.AuthService.AssignNursePoli:output_type -> auth.v1.AssignNursePoliResponse
+	46, // 46: auth.v1.AuthService.UnassignDoctorPoli:output_type -> auth.v1.UnassignDoctorPoliResponse
+	48, // 47: auth.v1.AuthService.UnassignNursePoli:output_type -> auth.v1.UnassignNursePoliResponse
+	51, // 48: auth.v1.AuthService.UpdatePoliSchedule:output_type -> auth.v1.UpdatePoliScheduleResponse
+	39, // 49: auth.v1.AuthService.GetAssignedPoli:output_type -> auth.v1.GetAssignedPoliResponse
+	44, // 50: auth.v1.AuthService.ListLabelProfesi:output_type -> auth.v1.ListLabelProfesiResponse
+	41, // 51: auth.v1.AuthService.GetActivePersonnelMetrics:output_type -> auth.v1.GetActivePersonnelMetricsResponse
+	30, // [30:52] is the sub-list for method output_type
+	8,  // [8:30] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_proto_auth_v1_auth_proto_init() }
@@ -3219,7 +3827,7 @@ func file_proto_auth_v1_auth_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_auth_v1_auth_proto_rawDesc), len(file_proto_auth_v1_auth_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   45,
+			NumMessages:   52,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
