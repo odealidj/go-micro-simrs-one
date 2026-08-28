@@ -32,7 +32,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableFooter,
 } from "@/components/ui/table";
 import {
   Dialog,
@@ -1308,19 +1307,6 @@ export function RevenueReportPage() {
                   </TableRow>
                 )}
               </TableBody>
-              <TableFooter className="bg-slate-100/90 border-t-2 border-slate-300 font-bold">
-                <TableRow>
-                  <TableCell colSpan={6} className="py-3 px-4 text-right text-xs font-black text-slate-800 uppercase tracking-wider">
-                    Total Penerimaan:
-                  </TableCell>
-                  <TableCell className="py-3 px-4 font-mono font-black text-xs text-amber-800">
-                    {formatRupiah(metrics.totalRevenue)}
-                  </TableCell>
-                  <TableCell colSpan={2} className="py-3 px-4 text-center text-xs font-bold text-emerald-700">
-                    {filteredData.length} Pasien / Transaksi
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
             </Table>
           ) : (
             /* TABULAR LAPORAN RINCIAN: No. Registrasi, No. RM, Nama Pasien, Poli/Pelayanan, Tindakan/Pelayanan, Qty, Metode Bayar, Total Bayar, Status */
@@ -1505,19 +1491,6 @@ export function RevenueReportPage() {
                   </TableRow>
                 )}
               </TableBody>
-              <TableFooter className="bg-slate-100/90 border-t-2 border-slate-300 font-bold">
-                <TableRow>
-                  <TableCell colSpan={8} className="py-3 px-4 text-right text-xs font-black text-slate-800 uppercase tracking-wider">
-                    Total Nilai Tindakan & Layanan:
-                  </TableCell>
-                  <TableCell className="py-3 px-4 font-mono font-black text-xs text-amber-800">
-                    {formatRupiah(metrics.totalRevenue)}
-                  </TableCell>
-                  <TableCell colSpan={2} className="py-3 px-4 text-center text-xs font-bold text-emerald-700">
-                    {filteredActionItems.length} Item Tindakan
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
             </Table>
           )}
         </div>

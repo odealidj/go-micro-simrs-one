@@ -2051,9 +2051,14 @@ func main() {
 					dateStr := req.URL.Query().Get("date")
 					queueOnly := req.URL.Query().Get("queue_only") == "true"
 
+					reqDate := dateStr
+					if reqDate == "TODAY" || reqDate == time.Now().Format("2006-01-02") {
+						reqDate = ""
+					}
+
 					// 1. Get encounters from Registration Service
 					resReg, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetTodayEncountersResponse, error) {
-						return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 100, Date: dateStr})
+						return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 100, Date: reqDate})
 					})
 					if err != nil {
 						response.HandleGRPCError(w, err)
@@ -2959,7 +2964,7 @@ func main() {
 					filterMethod := req.URL.Query().Get("payment_method")
 
 					reqDate := dateStr
-					if reqDate == "TODAY" || reqDate == "" {
+					if reqDate == "TODAY" || reqDate == "" || reqDate == time.Now().Format("2006-01-02") {
 						reqDate = ""
 						dateStr = time.Now().Format("2006-01-02")
 					}

@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import {
+  getRevenueReport,
   getBillingQueue,
   getInvoice,
-  type BillingPatientQueueItem,
   type Invoice,
+  type SettlementTransactionItem,
 } from "../api/billingApi";
 import {
   Receipt,
@@ -17,6 +18,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Banknote,
+  QrCode,
+  CreditCard,
+  Layers,
+  X,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -47,6 +52,15 @@ function getTodayString() {
   return `${year}-${month}-${day}`;
 }
 
+function getYesterdayString() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function getDepartmentName(code?: string) {
   if (!code || code === "-") return "Poliklinik";
   if (code === "01" || code === "UMU" || code.toLowerCase().includes("umum")) return "Poli Umum";
@@ -63,7 +77,7 @@ function getDepartmentName(code?: string) {
 
 export function InvoicePage() {
   const [selectedDate, setSelectedDate] = useState<string>(getTodayString());
-  const [invoices, setInvoices] = useState<BillingPatientQueueItem[]>([]);
+  const [invoices, setInvoices] = useState<SettlementTransactionItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -73,7 +87,7 @@ export function InvoicePage() {
 
   // Modal Detail & Print State
   const [activeInvoice, setActiveInvoice] = useState<Invoice | null>(null);
-  const [activePatient, setActivePatient] = useState<BillingPatientQueueItem | null>(null);
+  const [activePatient, setActivePatient] = useState<SettlementTransactionItem | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const receiptPrintRef = useRef<HTMLDivElement>(null);
@@ -81,14 +95,43 @@ export function InvoicePage() {
   const fetchInvoiceList = async (date: string) => {
     setLoading(true);
     try {
-      const data = await getBillingQueue(date);
-      // Filter to only paid transactions (status not WAITING_FOR_PAYMENT and not CANCELLED)
-      const paidOnly = data.filter(
-        (item) => item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED"
-      );
+      // 1. Fetch real settlements/transactions from revenue report
+      const report = await getRevenueReport({ date });
+      if (report && Array.isArray(report.transactions) && report.transactions.length > 0) {
+        setInvoices(report.transactions);
+        return;
+      }
+
+      // 2. Fallback to registration queue if no report transactions
+      const queueData = await getBillingQueue(date);
+      const paidOnly: SettlementTransactionItem[] = queueData
+        .filter(
+          (item) => item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED"
+        )
+        .map((item) => ({
+          encounter_no: item.encounter_no,
+          mrn: item.mrn,
+          patient_name: item.patient_name,
+          department_code: item.department_code,
+          department_name: getDepartmentName(item.department_code),
+          payment_method: (item.status_pasien?.toLowerCase().includes("bpjs") ? "BPJS" : "CASH") as any,
+          total_amount: 50000,
+          paid_at: item.registered_time || new Date().toISOString(),
+          cashier_name: "Staf Kasir 1",
+          status: "PAID",
+          items: [
+            {
+              item_type: "ACTION",
+              description: `Pemeriksaan & Konsultasi ${getDepartmentName(item.department_code)}`,
+              qty: 1,
+              amount: 50000,
+            },
+          ],
+        }));
       setInvoices(paidOnly);
     } catch (err) {
       console.error("Failed to load invoices", err);
+      setInvoices([]);
     } finally {
       setLoading(false);
     }
@@ -102,7 +145,7 @@ export function InvoicePage() {
     return invoices.filter((item) => {
       const q = searchQuery.toLowerCase();
       const kwitansiNo = `KW-${item.encounter_no}`.toLowerCase();
-      const deptName = getDepartmentName(item.department_code).toLowerCase();
+      const deptName = (item.department_name || getDepartmentName(item.department_code)).toLowerCase();
       return (
         !searchQuery ||
         item.patient_name.toLowerCase().includes(q) ||
@@ -115,7 +158,7 @@ export function InvoicePage() {
   }, [invoices, searchQuery]);
 
   const totalRevenue = useMemo(() => {
-    return filteredInvoices.reduce((acc, curr) => acc + (curr.estimated_amount || 50000), 0);
+    return filteredInvoices.reduce((acc, curr) => acc + (curr.total_amount || 0), 0);
   }, [filteredInvoices]);
 
   // Pagination calculation
@@ -126,7 +169,7 @@ export function InvoicePage() {
     return filteredInvoices.slice(start, start + pageSize);
   }, [filteredInvoices, currentPage, pageSize]);
 
-  const handleOpenReceipt = async (item: BillingPatientQueueItem) => {
+  const handleOpenReceipt = async (item: SettlementTransactionItem) => {
     setActivePatient(item);
     setIsModalOpen(true);
     setLoadingDetail(true);
@@ -135,6 +178,7 @@ export function InvoicePage() {
       setActiveInvoice(inv);
     } catch (err) {
       console.error("Failed to load invoice for receipt", err);
+      setActiveInvoice(null);
     } finally {
       setLoadingDetail(false);
     }
@@ -142,6 +186,39 @@ export function InvoicePage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const renderPaymentBadge = (method: string) => {
+    switch (method) {
+      case "QRIS":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
+            <QrCode className="h-3 w-3 text-amber-600" />
+            QRIS / Digital
+          </span>
+        );
+      case "DEBIT":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
+            <CreditCard className="h-3 w-3 text-blue-600" />
+            Kartu Debit
+          </span>
+        );
+      case "BPJS":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-md">
+            <Layers className="h-3 w-3 text-purple-600" />
+            BPJS Klaim
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+            <Banknote className="h-3 w-3 text-emerald-600" />
+            Tunai (Cash)
+          </span>
+        );
+    }
   };
 
   return (
@@ -193,8 +270,45 @@ export function InvoicePage() {
               />
             </div>
 
-            {/* Date Picker Filter */}
-            <div className="flex items-center gap-2">
+            {/* Date Picker Filter with Quick Buttons */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 bg-white border border-slate-200/80 rounded-xl p-1 shadow-2xs">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={selectedDate === getTodayString() ? "default" : "ghost"}
+                  onClick={() => {
+                    setSelectedDate(getTodayString());
+                    setCurrentPage(1);
+                  }}
+                  className={cn(
+                    "h-8 px-2.5 text-xs font-semibold rounded-lg",
+                    selectedDate === getTodayString()
+                      ? "bg-amber-600 text-white hover:bg-amber-700 shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  )}
+                >
+                  Hari Ini
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={selectedDate === getYesterdayString() ? "default" : "ghost"}
+                  onClick={() => {
+                    setSelectedDate(getYesterdayString());
+                    setCurrentPage(1);
+                  }}
+                  className={cn(
+                    "h-8 px-2.5 text-xs font-semibold rounded-lg",
+                    selectedDate === getYesterdayString()
+                      ? "bg-amber-600 text-white hover:bg-amber-700 shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  )}
+                >
+                  Kemarin
+                </Button>
+              </div>
+
               <div className="flex items-center gap-2 bg-white border border-slate-200/80 rounded-xl px-3.5 h-11 shadow-2xs">
                 <Calendar className="h-4 w-4 text-amber-600 shrink-0" />
                 <span className="text-xs text-slate-500 font-medium">Tanggal:</span>
@@ -229,7 +343,7 @@ export function InvoicePage() {
                 <TableHead className="w-[170px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">
                   Pelayanan
                 </TableHead>
-                <TableHead className="w-[130px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">
+                <TableHead className="w-[140px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">
                   Metode Bayar
                 </TableHead>
                 <TableHead className="w-[140px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">
@@ -256,7 +370,7 @@ export function InvoicePage() {
               ) : paginatedData.length > 0 ? (
                 paginatedData.map((item, idx) => {
                   const kwitansiNo = `KW-${item.encounter_no}`;
-                  const dept = getDepartmentName(item.department_code);
+                  const dept = item.department_name || getDepartmentName(item.department_code);
 
                   return (
                     <TableRow key={idx} className="hover:bg-amber-50/30 transition-colors border-b border-slate-100/80">
@@ -299,15 +413,12 @@ export function InvoicePage() {
 
                       {/* Metode Bayar */}
                       <TableCell className="py-3 px-4">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
-                          <Banknote className="h-3 w-3 text-emerald-600" />
-                          Tunai (Cash)
-                        </span>
+                        {renderPaymentBadge(item.payment_method)}
                       </TableCell>
 
                       {/* Total Bayar */}
                       <TableCell className="py-3 px-4 font-bold text-xs text-slate-900">
-                        {formatRupiah(50000)}
+                        {formatRupiah(item.total_amount)}
                       </TableCell>
 
                       {/* Status */}
@@ -343,7 +454,7 @@ export function InvoicePage() {
                       <FileText className="h-8 w-8 text-slate-300" />
                       <p className="font-semibold text-slate-600">Tidak ada riwayat pembayaran</p>
                       <p className="text-slate-400 text-[11px]">
-                        {searchQuery ? "Tidak ada transaksi yang cocok" : "Belum ada transaksi lunas pada tanggal terpilih"}
+                        Belum ada transaksi pembayaran lunas yang tercatat pada tanggal {selectedDate}.
                       </p>
                     </div>
                   </TableCell>
@@ -353,8 +464,8 @@ export function InvoicePage() {
           </Table>
         </div>
 
-        {/* SIMRS Pagination Footer */}
-        <div className="mt-auto flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-100 bg-slate-50/40 rounded-b-2xl shrink-0">
+        {/* Footer with Pagination */}
+        <div className="bg-slate-50 border-t border-slate-200/80 px-5 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
           <div className="text-xs text-slate-500 font-medium">
             {totalData > 0 ? (
               <>
@@ -443,7 +554,7 @@ export function InvoicePage() {
 
       {/* Kwitansi Resmi SIMRS Print Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-0 shadow-2xl rounded-2xl">
+        <DialogContent showCloseButton={false} className="sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-0 shadow-2xl rounded-2xl">
           <DialogHeader className="p-5 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white flex flex-row items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-xl bg-white/20 text-white">
@@ -466,6 +577,14 @@ export function InvoicePage() {
                 <Printer className="h-4 w-4" />
                 <span>Cetak Nota</span>
               </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsModalOpen(false)}
+                className="h-9 w-9 text-white/80 hover:text-white hover:bg-white/20 rounded-xl transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </Button>
             </div>
           </DialogHeader>
 
@@ -473,8 +592,8 @@ export function InvoicePage() {
           <div ref={receiptPrintRef} className="p-6 sm:p-8 bg-white text-slate-800 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar font-sans">
             {/* Header RS */}
             <div className="text-center pb-4 border-b-2 border-dashed border-slate-300">
-              <h2 className="text-lg font-black tracking-tight text-slate-900 uppercase">CODINA SIMRS ONE</h2>
-              <p className="text-xs text-slate-500 font-medium">Rumah Sakit Umum Daerah - Layanan Rawat Jalan Terpadu</p>
+              <h2 className="text-lg font-black tracking-tight text-slate-900 uppercase">CODINA SIMRS ONE - RSUD KOTA</h2>
+              <p className="text-xs text-slate-500 font-medium">Layanan Rawat Jalan & Kasir Terpadu</p>
               <p className="text-[11px] text-slate-400">Jl. Kesehatan No. 1 • Telp: (021) 555-1234 • Loket Kasir Utama</p>
             </div>
 
@@ -487,8 +606,8 @@ export function InvoicePage() {
               </div>
               <div className="space-y-1 text-right sm:text-left">
                 <p><span className="text-slate-400">Tanggal:</span> <strong className="text-slate-900">{selectedDate}</strong></p>
-                <p><span className="text-slate-400">Poliklinik:</span> <strong className="text-slate-900">{getDepartmentName(activePatient?.department_code)}</strong></p>
-                <p><span className="text-slate-400">Penjamin:</span> <strong className="text-slate-900">{activePatient?.status_pasien || "Umum (Pribadi)"}</strong></p>
+                <p><span className="text-slate-400">Poliklinik:</span> <strong className="text-slate-900">{activePatient?.department_name || getDepartmentName(activePatient?.department_code)}</strong></p>
+                <p><span className="text-slate-400">Metode Bayar:</span> <strong className="text-slate-900">{activePatient?.payment_method || "CASH"}</strong></p>
               </div>
             </div>
 
@@ -497,7 +616,7 @@ export function InvoicePage() {
               <table className="w-full text-xs">
                 <thead>
                   <tr className="text-slate-400 font-bold border-b border-slate-100">
-                    <th className="text-left pb-2">Uraian Pelayanan</th>
+                    <th className="text-left pb-2">Uraian Pelayanan / Tindakan</th>
                     <th className="text-center pb-2">Qty</th>
                     <th className="text-right pb-2">Tarif</th>
                   </tr>
@@ -505,7 +624,7 @@ export function InvoicePage() {
                 <tbody className="divide-y divide-slate-100">
                   {loadingDetail ? (
                     <tr>
-                      <td colSpan={3} className="py-4 text-center text-slate-400">Memuat rincian...</td>
+                      <td colSpan={3} className="py-4 text-center text-slate-400">Memuat rincian tindakan...</td>
                     </tr>
                   ) : activeInvoice?.items && activeInvoice.items.length > 0 ? (
                     activeInvoice.items.map((it, i) => (
@@ -515,11 +634,19 @@ export function InvoicePage() {
                         <td className="py-2.5 text-right font-bold text-slate-900">{formatRupiah(it.amount)}</td>
                       </tr>
                     ))
+                  ) : activePatient?.items && activePatient.items.length > 0 ? (
+                    activePatient.items.map((it, i) => (
+                      <tr key={i}>
+                        <td className="py-2.5 font-medium text-slate-800">{it.description}</td>
+                        <td className="py-2.5 text-center text-slate-600">{it.qty || 1}</td>
+                        <td className="py-2.5 text-right font-bold text-slate-900">{formatRupiah(it.amount)}</td>
+                      </tr>
+                    ))
                   ) : (
                     <tr>
                       <td className="py-2.5 font-medium text-slate-800">Biaya Pemeriksaan Dokter & Pelayanan Poli</td>
                       <td className="py-2.5 text-center text-slate-600">1</td>
-                      <td className="py-2.5 text-right font-bold text-slate-900">{formatRupiah(50000)}</td>
+                      <td className="py-2.5 text-right font-bold text-slate-900">{formatRupiah(activePatient?.total_amount || 50000)}</td>
                     </tr>
                   )}
                 </tbody>
@@ -530,11 +657,11 @@ export function InvoicePage() {
             <div className="space-y-1 text-xs">
               <div className="flex justify-between font-bold text-base text-slate-900 pt-1">
                 <span>TOTAL PEMBAYARAN:</span>
-                <span className="text-amber-700">{formatRupiah(activeInvoice?.total_amount || 50000)}</span>
+                <span className="text-amber-700">{formatRupiah(activePatient?.total_amount || activeInvoice?.total_amount || 50000)}</span>
               </div>
               <div className="flex justify-between text-slate-600 pt-1">
                 <span>Metode Pembayaran:</span>
-                <span className="font-semibold text-slate-800">Tunai (Cash)</span>
+                <span className="font-semibold text-slate-800">{activePatient?.payment_method || "CASH"}</span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Status Transaksi:</span>
@@ -552,18 +679,18 @@ export function InvoicePage() {
               <div>
                 <p className="text-slate-400 text-[11px]">Petugas Kasir,</p>
                 <div className="h-14" />
-                <p className="font-bold text-slate-800 underline">Staf Kasir SIMRS</p>
+                <p className="font-bold text-slate-800 underline">{activePatient?.cashier_name || "Staf Kasir SIMRS"}</p>
               </div>
             </div>
 
             <div className="text-center pt-2 text-[10px] text-slate-400">
-              <p>Simpan bukti pembayaran ini sebagai tanda bukti yang sah.</p>
-              <p>Terima kasih atas kepercayaan Anda.</p>
+              <p>Simpan bukti pembayaran ini sebagai tanda bukti pembayaran yang sah.</p>
+              <p>Terima kasih atas kepercayaan Anda kepada CODINA SIMRS ONE.</p>
             </div>
           </div>
 
           <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-            <Button variant="ghost" size="sm" onClick={() => setIsModalOpen(false)} className="text-xs">
+            <Button variant="ghost" size="sm" onClick={() => setIsModalOpen(false)} className="text-xs font-semibold text-slate-600">
               Tutup
             </Button>
             <Button

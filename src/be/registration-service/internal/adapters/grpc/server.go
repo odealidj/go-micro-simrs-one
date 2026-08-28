@@ -38,7 +38,8 @@ func (s *RegistrationGrpcServer) RegisterEncounter(ctx context.Context, req *pb.
 func (s *RegistrationGrpcServer) GetTodayEncounters(ctx context.Context, req *pb.GetTodayEncountersRequest) (*pb.GetTodayEncountersResponse, error) {
 	targetDate := time.Now()
 	if req.Date != "" {
-		parsedDate, err := time.Parse("2006-01-02", req.Date)
+		loc := time.Now().Location()
+		parsedDate, err := time.ParseInLocation("2006-01-02", req.Date, loc)
 		if err == nil {
 			targetDate = parsedDate
 		}
