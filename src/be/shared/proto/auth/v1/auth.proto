@@ -40,6 +40,9 @@ service AuthService {
   rpc GetNursesByPoli (GetNursesByPoliRequest) returns (GetNursesByPoliResponse);
   rpc AssignDoctorPoli (AssignDoctorPoliRequest) returns (AssignDoctorPoliResponse);
   rpc AssignNursePoli (AssignNursePoliRequest) returns (AssignNursePoliResponse);
+  rpc UnassignDoctorPoli (UnassignDoctorPoliRequest) returns (UnassignDoctorPoliResponse);
+  rpc UnassignNursePoli (UnassignNursePoliRequest) returns (UnassignNursePoliResponse);
+  rpc UpdatePoliSchedule (UpdatePoliScheduleRequest) returns (UpdatePoliScheduleResponse);
   rpc GetAssignedPoli (GetAssignedPoliRequest) returns (GetAssignedPoliResponse);
   
   // Label Profesi Read
@@ -205,6 +208,9 @@ message Doctor {
   string poli_code = 8;
   string start_date = 9;
   string end_date = 10;
+  repeated int32 days_of_week = 11;
+  string shift_start = 12;
+  string shift_end = 13;
 }
 
 message GetDoctorsResponse {
@@ -228,6 +234,9 @@ message Nurse {
   string poli_code = 7;
   string start_date = 8;
   string end_date = 9;
+  repeated int32 days_of_week = 10;
+  string shift_start = 11;
+  string shift_end = 12;
 }
 
 message GetNursesResponse {
@@ -240,6 +249,7 @@ message GetDoctorsByPoliRequest {
   int32 page_size = 2;
   string poli_code = 3;
   string search = 4;
+  int32 day_of_week = 5;
 }
 
 message DoctorPoliMapping {
@@ -250,6 +260,9 @@ message DoctorPoliMapping {
   string poli_code = 5;
   string start_date = 6;
   string end_date = 7;
+  repeated int32 days_of_week = 8;
+  string shift_start = 9;
+  string shift_end = 10;
 }
 
 message GetDoctorsByPoliResponse {
@@ -262,6 +275,7 @@ message GetNursesByPoliRequest {
   int32 page_size = 2;
   string poli_code = 3;
   string search = 4;
+  int32 day_of_week = 5;
 }
 
 message NursePoliMapping {
@@ -272,6 +286,9 @@ message NursePoliMapping {
   string poli_code = 5;
   string start_date = 6;
   string end_date = 7;
+  repeated int32 days_of_week = 8;
+  string shift_start = 9;
+  string shift_end = 10;
 }
 
 message GetNursesByPoliResponse {
@@ -284,6 +301,9 @@ message AssignDoctorPoliRequest {
   string poli_code = 2;
   string start_date = 3;
   string end_date = 4;
+  repeated int32 days_of_week = 5;
+  string shift_start = 6;
+  string shift_end = 7;
 }
 
 message AssignDoctorPoliResponse {
@@ -296,6 +316,9 @@ message AssignNursePoliRequest {
   string poli_code = 2;
   string start_date = 3;
   string end_date = 4;
+  repeated int32 days_of_week = 5;
+  string shift_start = 6;
+  string shift_end = 7;
 }
 
 message AssignNursePoliResponse {
@@ -334,4 +357,40 @@ message LabelProfesi {
 message ListLabelProfesiResponse {
   repeated LabelProfesi data = 1;
   int32 total_count = 2;
+}
+
+message UnassignDoctorPoliRequest {
+  string dokter_id = 1;
+  string poli_code = 2;
+}
+
+message UnassignDoctorPoliResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message UnassignNursePoliRequest {
+  string perawat_id = 1;
+  string poli_code = 2;
+}
+
+message UnassignNursePoliResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message DayScheduleSlot {
+  int32 day_of_week = 1;
+  string dokter_id = 2;
+  string perawat_id = 3;
+}
+
+message UpdatePoliScheduleRequest {
+  string poli_code = 1;
+  repeated DayScheduleSlot slots = 2;
+}
+
+message UpdatePoliScheduleResponse {
+  bool success = 1;
+  string message = 2;
 }

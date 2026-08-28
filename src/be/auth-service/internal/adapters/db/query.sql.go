@@ -11,27 +11,34 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const assignDoctorToPoli = `-- name: AssignDoctorToPoli :one
-INSERT INTO mapping_dokter_poli (dokter_id, poli_code, start_date, end_date)
-VALUES ($1, $2, $3, $4)
-RETURNING id, dokter_id, poli_code, start_date, end_date
+INSERT INTO mapping_dokter_poli (dokter_id, poli_code, start_date, end_date, days_of_week, shift_start, shift_end)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, dokter_id, poli_code, start_date, end_date, days_of_week, shift_start, shift_end
 `
 
 type AssignDoctorToPoliParams struct {
-	DokterID  uuid.UUID
-	PoliCode  string
-	StartDate time.Time
-	EndDate   time.Time
+	DokterID   uuid.UUID
+	PoliCode   string
+	StartDate  time.Time
+	EndDate    time.Time
+	DaysOfWeek []int32
+	ShiftStart time.Time
+	ShiftEnd   time.Time
 }
 
 type AssignDoctorToPoliRow struct {
-	ID        uuid.UUID
-	DokterID  uuid.UUID
-	PoliCode  string
-	StartDate time.Time
-	EndDate   time.Time
+	ID         uuid.UUID
+	DokterID   uuid.UUID
+	PoliCode   string
+	StartDate  time.Time
+	EndDate    time.Time
+	DaysOfWeek []int32
+	ShiftStart time.Time
+	ShiftEnd   time.Time
 }
 
 func (q *Queries) AssignDoctorToPoli(ctx context.Context, arg AssignDoctorToPoliParams) (AssignDoctorToPoliRow, error) {
@@ -40,6 +47,9 @@ func (q *Queries) AssignDoctorToPoli(ctx context.Context, arg AssignDoctorToPoli
 		arg.PoliCode,
 		arg.StartDate,
 		arg.EndDate,
+		pq.Array(arg.DaysOfWeek),
+		arg.ShiftStart,
+		arg.ShiftEnd,
 	)
 	var i AssignDoctorToPoliRow
 	err := row.Scan(
@@ -48,29 +58,38 @@ func (q *Queries) AssignDoctorToPoli(ctx context.Context, arg AssignDoctorToPoli
 		&i.PoliCode,
 		&i.StartDate,
 		&i.EndDate,
+		pq.Array(&i.DaysOfWeek),
+		&i.ShiftStart,
+		&i.ShiftEnd,
 	)
 	return i, err
 }
 
 const assignNurseToPoli = `-- name: AssignNurseToPoli :one
-INSERT INTO mapping_perawat_poli (perawat_id, poli_code, start_date, end_date)
-VALUES ($1, $2, $3, $4)
-RETURNING id, perawat_id, poli_code, start_date, end_date
+INSERT INTO mapping_perawat_poli (perawat_id, poli_code, start_date, end_date, days_of_week, shift_start, shift_end)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, perawat_id, poli_code, start_date, end_date, days_of_week, shift_start, shift_end
 `
 
 type AssignNurseToPoliParams struct {
-	PerawatID uuid.UUID
-	PoliCode  string
-	StartDate time.Time
-	EndDate   time.Time
+	PerawatID  uuid.UUID
+	PoliCode   string
+	StartDate  time.Time
+	EndDate    time.Time
+	DaysOfWeek []int32
+	ShiftStart time.Time
+	ShiftEnd   time.Time
 }
 
 type AssignNurseToPoliRow struct {
-	ID        uuid.UUID
-	PerawatID uuid.UUID
-	PoliCode  string
-	StartDate time.Time
-	EndDate   time.Time
+	ID         uuid.UUID
+	PerawatID  uuid.UUID
+	PoliCode   string
+	StartDate  time.Time
+	EndDate    time.Time
+	DaysOfWeek []int32
+	ShiftStart time.Time
+	ShiftEnd   time.Time
 }
 
 func (q *Queries) AssignNurseToPoli(ctx context.Context, arg AssignNurseToPoliParams) (AssignNurseToPoliRow, error) {
@@ -79,6 +98,9 @@ func (q *Queries) AssignNurseToPoli(ctx context.Context, arg AssignNurseToPoliPa
 		arg.PoliCode,
 		arg.StartDate,
 		arg.EndDate,
+		pq.Array(arg.DaysOfWeek),
+		arg.ShiftStart,
+		arg.ShiftEnd,
 	)
 	var i AssignNurseToPoliRow
 	err := row.Scan(
@@ -87,6 +109,9 @@ func (q *Queries) AssignNurseToPoli(ctx context.Context, arg AssignNurseToPoliPa
 		&i.PoliCode,
 		&i.StartDate,
 		&i.EndDate,
+		pq.Array(&i.DaysOfWeek),
+		&i.ShiftStart,
+		&i.ShiftEnd,
 	)
 	return i, err
 }
@@ -95,20 +120,30 @@ const checkDoctorAssignmentOverlap = `-- name: CheckDoctorAssignmentOverlap :one
 SELECT EXISTS (
     SELECT 1 FROM mapping_dokter_poli
     WHERE dokter_id = $1
+      AND poli_code != $2
       AND deleted_dt IS NULL
-      AND start_date <= $3
-      AND end_date >= $2
+      AND start_date <= $4
+      AND end_date >= $3
+      AND days_of_week && $5::int[]
 )
 `
 
 type CheckDoctorAssignmentOverlapParams struct {
 	DokterID  uuid.UUID
+	PoliCode  string
 	EndDate   time.Time
 	StartDate time.Time
+	Column5   []int32
 }
 
 func (q *Queries) CheckDoctorAssignmentOverlap(ctx context.Context, arg CheckDoctorAssignmentOverlapParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkDoctorAssignmentOverlap, arg.DokterID, arg.EndDate, arg.StartDate)
+	row := q.db.QueryRowContext(ctx, checkDoctorAssignmentOverlap,
+		arg.DokterID,
+		arg.PoliCode,
+		arg.EndDate,
+		arg.StartDate,
+		pq.Array(arg.Column5),
+	)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
@@ -118,23 +153,143 @@ const checkNurseAssignmentOverlap = `-- name: CheckNurseAssignmentOverlap :one
 SELECT EXISTS (
     SELECT 1 FROM mapping_perawat_poli
     WHERE perawat_id = $1
+      AND poli_code != $2
       AND deleted_dt IS NULL
-      AND start_date <= $3
-      AND end_date >= $2
+      AND start_date <= $4
+      AND end_date >= $3
+      AND days_of_week && $5::int[]
 )
 `
 
 type CheckNurseAssignmentOverlapParams struct {
 	PerawatID uuid.UUID
+	PoliCode  string
 	EndDate   time.Time
 	StartDate time.Time
+	Column5   []int32
 }
 
 func (q *Queries) CheckNurseAssignmentOverlap(ctx context.Context, arg CheckNurseAssignmentOverlapParams) (bool, error) {
-	row := q.db.QueryRowContext(ctx, checkNurseAssignmentOverlap, arg.PerawatID, arg.EndDate, arg.StartDate)
+	row := q.db.QueryRowContext(ctx, checkNurseAssignmentOverlap,
+		arg.PerawatID,
+		arg.PoliCode,
+		arg.EndDate,
+		arg.StartDate,
+		pq.Array(arg.Column5),
+	)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const checkPoliNurseScheduleOverlap = `-- name: CheckPoliNurseScheduleOverlap :many
+SELECT u.username, m.days_of_week
+FROM mapping_perawat_poli m
+JOIN profil_perawat p ON m.perawat_id = p.id
+JOIN users u ON p.user_id = u.id
+WHERE m.poli_code = $1
+  AND m.perawat_id != $2
+  AND m.deleted_dt IS NULL
+  AND m.start_date <= $4
+  AND m.end_date >= $3
+  AND m.days_of_week && $5::int[]
+`
+
+type CheckPoliNurseScheduleOverlapParams struct {
+	PoliCode  string
+	PerawatID uuid.UUID
+	EndDate   time.Time
+	StartDate time.Time
+	Column5   []int32
+}
+
+type CheckPoliNurseScheduleOverlapRow struct {
+	Username   string
+	DaysOfWeek []int32
+}
+
+func (q *Queries) CheckPoliNurseScheduleOverlap(ctx context.Context, arg CheckPoliNurseScheduleOverlapParams) ([]CheckPoliNurseScheduleOverlapRow, error) {
+	rows, err := q.db.QueryContext(ctx, checkPoliNurseScheduleOverlap,
+		arg.PoliCode,
+		arg.PerawatID,
+		arg.EndDate,
+		arg.StartDate,
+		pq.Array(arg.Column5),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CheckPoliNurseScheduleOverlapRow
+	for rows.Next() {
+		var i CheckPoliNurseScheduleOverlapRow
+		if err := rows.Scan(&i.Username, pq.Array(&i.DaysOfWeek)); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const checkPoliScheduleOverlap = `-- name: CheckPoliScheduleOverlap :many
+SELECT u.username, m.days_of_week
+FROM mapping_dokter_poli m
+JOIN profil_dokter d ON m.dokter_id = d.id
+JOIN users u ON d.user_id = u.id
+WHERE m.poli_code = $1
+  AND m.dokter_id != $2
+  AND m.deleted_dt IS NULL
+  AND m.start_date <= $4
+  AND m.end_date >= $3
+  AND m.days_of_week && $5::int[]
+`
+
+type CheckPoliScheduleOverlapParams struct {
+	PoliCode  string
+	DokterID  uuid.UUID
+	EndDate   time.Time
+	StartDate time.Time
+	Column5   []int32
+}
+
+type CheckPoliScheduleOverlapRow struct {
+	Username   string
+	DaysOfWeek []int32
+}
+
+func (q *Queries) CheckPoliScheduleOverlap(ctx context.Context, arg CheckPoliScheduleOverlapParams) ([]CheckPoliScheduleOverlapRow, error) {
+	rows, err := q.db.QueryContext(ctx, checkPoliScheduleOverlap,
+		arg.PoliCode,
+		arg.DokterID,
+		arg.EndDate,
+		arg.StartDate,
+		pq.Array(arg.Column5),
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []CheckPoliScheduleOverlapRow
+	for rows.Next() {
+		var i CheckPoliScheduleOverlapRow
+		if err := rows.Scan(&i.Username, pq.Array(&i.DaysOfWeek)); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const countActiveDoctors = `-- name: CountActiveDoctors :one
@@ -213,15 +368,17 @@ LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+  AND ($3::int = 0 OR $3::int = ANY(m.days_of_week))
 `
 
 type CountDoctorsByPoliParams struct {
 	Column1 string
 	Column2 string
+	Column3 int32
 }
 
 func (q *Queries) CountDoctorsByPoli(ctx context.Context, arg CountDoctorsByPoliParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countDoctorsByPoli, arg.Column1, arg.Column2)
+	row := q.db.QueryRowContext(ctx, countDoctorsByPoli, arg.Column1, arg.Column2, arg.Column3)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -281,15 +438,17 @@ LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+  AND ($3::int = 0 OR $3::int = ANY(m.days_of_week))
 `
 
 type CountNursesByPoliParams struct {
 	Column1 string
 	Column2 string
+	Column3 int32
 }
 
 func (q *Queries) CountNursesByPoli(ctx context.Context, arg CountNursesByPoliParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countNursesByPoli, arg.Column1, arg.Column2)
+	row := q.db.QueryRowContext(ctx, countNursesByPoli, arg.Column1, arg.Column2, arg.Column3)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -460,6 +619,60 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 	return i, err
 }
 
+const deactivateAllActiveDoctorsInPoli = `-- name: DeactivateAllActiveDoctorsInPoli :exec
+UPDATE mapping_dokter_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE poli_code = $1 AND deleted_dt IS NULL
+`
+
+func (q *Queries) DeactivateAllActiveDoctorsInPoli(ctx context.Context, poliCode string) error {
+	_, err := q.db.ExecContext(ctx, deactivateAllActiveDoctorsInPoli, poliCode)
+	return err
+}
+
+const deactivateAllActiveNursesInPoli = `-- name: DeactivateAllActiveNursesInPoli :exec
+UPDATE mapping_perawat_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE poli_code = $1 AND deleted_dt IS NULL
+`
+
+func (q *Queries) DeactivateAllActiveNursesInPoli(ctx context.Context, poliCode string) error {
+	_, err := q.db.ExecContext(ctx, deactivateAllActiveNursesInPoli, poliCode)
+	return err
+}
+
+const deactivateDoctorCurrentPoliAssignment = `-- name: DeactivateDoctorCurrentPoliAssignment :exec
+UPDATE mapping_dokter_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE dokter_id = $1 AND poli_code = $2 AND deleted_dt IS NULL
+`
+
+type DeactivateDoctorCurrentPoliAssignmentParams struct {
+	DokterID uuid.UUID
+	PoliCode string
+}
+
+func (q *Queries) DeactivateDoctorCurrentPoliAssignment(ctx context.Context, arg DeactivateDoctorCurrentPoliAssignmentParams) error {
+	_, err := q.db.ExecContext(ctx, deactivateDoctorCurrentPoliAssignment, arg.DokterID, arg.PoliCode)
+	return err
+}
+
+const deactivateNurseCurrentPoliAssignment = `-- name: DeactivateNurseCurrentPoliAssignment :exec
+UPDATE mapping_perawat_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE perawat_id = $1 AND poli_code = $2 AND deleted_dt IS NULL
+`
+
+type DeactivateNurseCurrentPoliAssignmentParams struct {
+	PerawatID uuid.UUID
+	PoliCode  string
+}
+
+func (q *Queries) DeactivateNurseCurrentPoliAssignment(ctx context.Context, arg DeactivateNurseCurrentPoliAssignmentParams) error {
+	_, err := q.db.ExecContext(ctx, deactivateNurseCurrentPoliAssignment, arg.PerawatID, arg.PoliCode)
+	return err
+}
+
 const deleteRefreshToken = `-- name: DeleteRefreshToken :exec
 DELETE FROM refresh_tokens
 WHERE token_hash = $1
@@ -561,7 +774,10 @@ func (q *Queries) GetAssignedPoli(ctx context.Context, userID uuid.UUID) (string
 }
 
 const getDoctors = `-- name: GetDoctors :many
-SELECT d.id, u.username, s.nip, s.email, d.spesialisasi, d.sip, u.status, m.poli_code, m.start_date, m.end_date
+SELECT d.id, u.username, s.nip, s.email, d.spesialisasi, d.sip, u.status, m.poli_code, m.start_date, m.end_date,
+       COALESCE(m.days_of_week, '{}'::int[])::int[] as days_of_week,
+       COALESCE(m.shift_start::text, '08:00:00')::text as shift_start,
+       COALESCE(m.shift_end::text, '16:00:00')::text as shift_end
 FROM profil_dokter d
 JOIN users u ON d.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
@@ -589,6 +805,9 @@ type GetDoctorsRow struct {
 	PoliCode     sql.NullString
 	StartDate    sql.NullTime
 	EndDate      sql.NullTime
+	DaysOfWeek   []int32
+	ShiftStart   string
+	ShiftEnd     string
 }
 
 func (q *Queries) GetDoctors(ctx context.Context, arg GetDoctorsParams) ([]GetDoctorsRow, error) {
@@ -611,6 +830,9 @@ func (q *Queries) GetDoctors(ctx context.Context, arg GetDoctorsParams) ([]GetDo
 			&i.PoliCode,
 			&i.StartDate,
 			&i.EndDate,
+			pq.Array(&i.DaysOfWeek),
+			&i.ShiftStart,
+			&i.ShiftEnd,
 		); err != nil {
 			return nil, err
 		}
@@ -626,7 +848,8 @@ func (q *Queries) GetDoctors(ctx context.Context, arg GetDoctorsParams) ([]GetDo
 }
 
 const getDoctorsByPoli = `-- name: GetDoctorsByPoli :many
-SELECT d.id, u.username, s.nip, d.spesialisasi, m.poli_code, m.start_date, m.end_date
+SELECT d.id, u.username, s.nip, d.spesialisasi, m.poli_code, m.start_date, m.end_date,
+       m.days_of_week, m.shift_start::text as shift_start, m.shift_end::text as shift_end
 FROM mapping_dokter_poli m
 JOIN profil_dokter d ON m.dokter_id = d.id
 JOIN users u ON d.user_id = u.id
@@ -634,13 +857,15 @@ LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL AND d.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+  AND ($3::int = 0 OR $3::int = ANY(m.days_of_week))
 ORDER BY u.username
-LIMIT $3 OFFSET $4
+LIMIT $4 OFFSET $5
 `
 
 type GetDoctorsByPoliParams struct {
 	Column1 string
 	Column2 string
+	Column3 int32
 	Limit   int32
 	Offset  int32
 }
@@ -653,12 +878,16 @@ type GetDoctorsByPoliRow struct {
 	PoliCode     string
 	StartDate    time.Time
 	EndDate      time.Time
+	DaysOfWeek   []int32
+	ShiftStart   string
+	ShiftEnd     string
 }
 
 func (q *Queries) GetDoctorsByPoli(ctx context.Context, arg GetDoctorsByPoliParams) ([]GetDoctorsByPoliRow, error) {
 	rows, err := q.db.QueryContext(ctx, getDoctorsByPoli,
 		arg.Column1,
 		arg.Column2,
+		arg.Column3,
 		arg.Limit,
 		arg.Offset,
 	)
@@ -677,6 +906,9 @@ func (q *Queries) GetDoctorsByPoli(ctx context.Context, arg GetDoctorsByPoliPara
 			&i.PoliCode,
 			&i.StartDate,
 			&i.EndDate,
+			pq.Array(&i.DaysOfWeek),
+			&i.ShiftStart,
+			&i.ShiftEnd,
 		); err != nil {
 			return nil, err
 		}
@@ -780,7 +1012,10 @@ func (q *Queries) GetMasterRoles(ctx context.Context, arg GetMasterRolesParams) 
 }
 
 const getNurses = `-- name: GetNurses :many
-SELECT p.id, u.username, s.nip, s.email, p.str_perawat, u.status, m.poli_code, m.start_date, m.end_date
+SELECT p.id, u.username, s.nip, s.email, p.str_perawat, u.status, m.poli_code, m.start_date, m.end_date,
+       COALESCE(m.days_of_week, '{}'::int[])::int[] as days_of_week,
+       COALESCE(m.shift_start::text, '08:00:00')::text as shift_start,
+       COALESCE(m.shift_end::text, '16:00:00')::text as shift_end
 FROM profil_perawat p
 JOIN users u ON p.user_id = u.id
 LEFT JOIN staff_profiles s ON u.id = s.user_id
@@ -807,6 +1042,9 @@ type GetNursesRow struct {
 	PoliCode   sql.NullString
 	StartDate  sql.NullTime
 	EndDate    sql.NullTime
+	DaysOfWeek []int32
+	ShiftStart string
+	ShiftEnd   string
 }
 
 func (q *Queries) GetNurses(ctx context.Context, arg GetNursesParams) ([]GetNursesRow, error) {
@@ -828,6 +1066,9 @@ func (q *Queries) GetNurses(ctx context.Context, arg GetNursesParams) ([]GetNurs
 			&i.PoliCode,
 			&i.StartDate,
 			&i.EndDate,
+			pq.Array(&i.DaysOfWeek),
+			&i.ShiftStart,
+			&i.ShiftEnd,
 		); err != nil {
 			return nil, err
 		}
@@ -843,7 +1084,8 @@ func (q *Queries) GetNurses(ctx context.Context, arg GetNursesParams) ([]GetNurs
 }
 
 const getNursesByPoli = `-- name: GetNursesByPoli :many
-SELECT p.id, u.username, s.nip, p.str_perawat, m.poli_code, m.start_date, m.end_date
+SELECT p.id, u.username, s.nip, p.str_perawat, m.poli_code, m.start_date, m.end_date,
+       m.days_of_week, m.shift_start::text as shift_start, m.shift_end::text as shift_end
 FROM mapping_perawat_poli m
 JOIN profil_perawat p ON m.perawat_id = p.id
 JOIN users u ON p.user_id = u.id
@@ -851,13 +1093,15 @@ LEFT JOIN staff_profiles s ON u.id = s.user_id
 WHERE u.deleted_dt IS NULL AND p.deleted_dt IS NULL AND m.deleted_dt IS NULL AND CURRENT_DATE BETWEEN m.start_date AND m.end_date
   AND ($1::text = '' OR m.poli_code = $1)
   AND ($2::text = '' OR u.username ILIKE '%' || $2 || '%' OR s.nip ILIKE '%' || $2 || '%')
+  AND ($3::int = 0 OR $3::int = ANY(m.days_of_week))
 ORDER BY u.username
-LIMIT $3 OFFSET $4
+LIMIT $4 OFFSET $5
 `
 
 type GetNursesByPoliParams struct {
 	Column1 string
 	Column2 string
+	Column3 int32
 	Limit   int32
 	Offset  int32
 }
@@ -870,12 +1114,16 @@ type GetNursesByPoliRow struct {
 	PoliCode   string
 	StartDate  time.Time
 	EndDate    time.Time
+	DaysOfWeek []int32
+	ShiftStart string
+	ShiftEnd   string
 }
 
 func (q *Queries) GetNursesByPoli(ctx context.Context, arg GetNursesByPoliParams) ([]GetNursesByPoliRow, error) {
 	rows, err := q.db.QueryContext(ctx, getNursesByPoli,
 		arg.Column1,
 		arg.Column2,
+		arg.Column3,
 		arg.Limit,
 		arg.Offset,
 	)
@@ -894,6 +1142,9 @@ func (q *Queries) GetNursesByPoli(ctx context.Context, arg GetNursesByPoliParams
 			&i.PoliCode,
 			&i.StartDate,
 			&i.EndDate,
+			pq.Array(&i.DaysOfWeek),
+			&i.ShiftStart,
+			&i.ShiftEnd,
 		); err != nil {
 			return nil, err
 		}
@@ -1078,6 +1329,38 @@ type SoftDeleteUserParams struct {
 
 func (q *Queries) SoftDeleteUser(ctx context.Context, arg SoftDeleteUserParams) error {
 	_, err := q.db.ExecContext(ctx, softDeleteUser, arg.ID, arg.DeletedBy)
+	return err
+}
+
+const unassignDoctorFromPoli = `-- name: UnassignDoctorFromPoli :exec
+UPDATE mapping_dokter_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE dokter_id = $1 AND ($2::varchar = '' OR poli_code = $2) AND deleted_dt IS NULL
+`
+
+type UnassignDoctorFromPoliParams struct {
+	DokterID uuid.UUID
+	Column2  string
+}
+
+func (q *Queries) UnassignDoctorFromPoli(ctx context.Context, arg UnassignDoctorFromPoliParams) error {
+	_, err := q.db.ExecContext(ctx, unassignDoctorFromPoli, arg.DokterID, arg.Column2)
+	return err
+}
+
+const unassignNurseFromPoli = `-- name: UnassignNurseFromPoli :exec
+UPDATE mapping_perawat_poli
+SET end_date = CURRENT_DATE, deleted_dt = CURRENT_TIMESTAMP
+WHERE perawat_id = $1 AND ($2::varchar = '' OR poli_code = $2) AND deleted_dt IS NULL
+`
+
+type UnassignNurseFromPoliParams struct {
+	PerawatID uuid.UUID
+	Column2   string
+}
+
+func (q *Queries) UnassignNurseFromPoli(ctx context.Context, arg UnassignNurseFromPoliParams) error {
+	_, err := q.db.ExecContext(ctx, unassignNurseFromPoli, arg.PerawatID, arg.Column2)
 	return err
 }
 

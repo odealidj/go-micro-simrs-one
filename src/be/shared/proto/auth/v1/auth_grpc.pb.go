@@ -35,6 +35,9 @@ const (
 	AuthService_GetNursesByPoli_FullMethodName           = "/auth.v1.AuthService/GetNursesByPoli"
 	AuthService_AssignDoctorPoli_FullMethodName          = "/auth.v1.AuthService/AssignDoctorPoli"
 	AuthService_AssignNursePoli_FullMethodName           = "/auth.v1.AuthService/AssignNursePoli"
+	AuthService_UnassignDoctorPoli_FullMethodName        = "/auth.v1.AuthService/UnassignDoctorPoli"
+	AuthService_UnassignNursePoli_FullMethodName         = "/auth.v1.AuthService/UnassignNursePoli"
+	AuthService_UpdatePoliSchedule_FullMethodName        = "/auth.v1.AuthService/UpdatePoliSchedule"
 	AuthService_GetAssignedPoli_FullMethodName           = "/auth.v1.AuthService/GetAssignedPoli"
 	AuthService_ListLabelProfesi_FullMethodName          = "/auth.v1.AuthService/ListLabelProfesi"
 	AuthService_GetActivePersonnelMetrics_FullMethodName = "/auth.v1.AuthService/GetActivePersonnelMetrics"
@@ -70,6 +73,9 @@ type AuthServiceClient interface {
 	GetNursesByPoli(ctx context.Context, in *GetNursesByPoliRequest, opts ...grpc.CallOption) (*GetNursesByPoliResponse, error)
 	AssignDoctorPoli(ctx context.Context, in *AssignDoctorPoliRequest, opts ...grpc.CallOption) (*AssignDoctorPoliResponse, error)
 	AssignNursePoli(ctx context.Context, in *AssignNursePoliRequest, opts ...grpc.CallOption) (*AssignNursePoliResponse, error)
+	UnassignDoctorPoli(ctx context.Context, in *UnassignDoctorPoliRequest, opts ...grpc.CallOption) (*UnassignDoctorPoliResponse, error)
+	UnassignNursePoli(ctx context.Context, in *UnassignNursePoliRequest, opts ...grpc.CallOption) (*UnassignNursePoliResponse, error)
+	UpdatePoliSchedule(ctx context.Context, in *UpdatePoliScheduleRequest, opts ...grpc.CallOption) (*UpdatePoliScheduleResponse, error)
 	GetAssignedPoli(ctx context.Context, in *GetAssignedPoliRequest, opts ...grpc.CallOption) (*GetAssignedPoliResponse, error)
 	// Label Profesi Read
 	ListLabelProfesi(ctx context.Context, in *ListLabelProfesiRequest, opts ...grpc.CallOption) (*ListLabelProfesiResponse, error)
@@ -245,6 +251,36 @@ func (c *authServiceClient) AssignNursePoli(ctx context.Context, in *AssignNurse
 	return out, nil
 }
 
+func (c *authServiceClient) UnassignDoctorPoli(ctx context.Context, in *UnassignDoctorPoliRequest, opts ...grpc.CallOption) (*UnassignDoctorPoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnassignDoctorPoliResponse)
+	err := c.cc.Invoke(ctx, AuthService_UnassignDoctorPoli_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) UnassignNursePoli(ctx context.Context, in *UnassignNursePoliRequest, opts ...grpc.CallOption) (*UnassignNursePoliResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnassignNursePoliResponse)
+	err := c.cc.Invoke(ctx, AuthService_UnassignNursePoli_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) UpdatePoliSchedule(ctx context.Context, in *UpdatePoliScheduleRequest, opts ...grpc.CallOption) (*UpdatePoliScheduleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdatePoliScheduleResponse)
+	err := c.cc.Invoke(ctx, AuthService_UpdatePoliSchedule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *authServiceClient) GetAssignedPoli(ctx context.Context, in *GetAssignedPoliRequest, opts ...grpc.CallOption) (*GetAssignedPoliResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAssignedPoliResponse)
@@ -305,6 +341,9 @@ type AuthServiceServer interface {
 	GetNursesByPoli(context.Context, *GetNursesByPoliRequest) (*GetNursesByPoliResponse, error)
 	AssignDoctorPoli(context.Context, *AssignDoctorPoliRequest) (*AssignDoctorPoliResponse, error)
 	AssignNursePoli(context.Context, *AssignNursePoliRequest) (*AssignNursePoliResponse, error)
+	UnassignDoctorPoli(context.Context, *UnassignDoctorPoliRequest) (*UnassignDoctorPoliResponse, error)
+	UnassignNursePoli(context.Context, *UnassignNursePoliRequest) (*UnassignNursePoliResponse, error)
+	UpdatePoliSchedule(context.Context, *UpdatePoliScheduleRequest) (*UpdatePoliScheduleResponse, error)
 	GetAssignedPoli(context.Context, *GetAssignedPoliRequest) (*GetAssignedPoliResponse, error)
 	// Label Profesi Read
 	ListLabelProfesi(context.Context, *ListLabelProfesiRequest) (*ListLabelProfesiResponse, error)
@@ -367,6 +406,15 @@ func (UnimplementedAuthServiceServer) AssignDoctorPoli(context.Context, *AssignD
 }
 func (UnimplementedAuthServiceServer) AssignNursePoli(context.Context, *AssignNursePoliRequest) (*AssignNursePoliResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AssignNursePoli not implemented")
+}
+func (UnimplementedAuthServiceServer) UnassignDoctorPoli(context.Context, *UnassignDoctorPoliRequest) (*UnassignDoctorPoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnassignDoctorPoli not implemented")
+}
+func (UnimplementedAuthServiceServer) UnassignNursePoli(context.Context, *UnassignNursePoliRequest) (*UnassignNursePoliResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnassignNursePoli not implemented")
+}
+func (UnimplementedAuthServiceServer) UpdatePoliSchedule(context.Context, *UpdatePoliScheduleRequest) (*UpdatePoliScheduleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePoliSchedule not implemented")
 }
 func (UnimplementedAuthServiceServer) GetAssignedPoli(context.Context, *GetAssignedPoliRequest) (*GetAssignedPoliResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetAssignedPoli not implemented")
@@ -686,6 +734,60 @@ func _AuthService_AssignNursePoli_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_UnassignDoctorPoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnassignDoctorPoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).UnassignDoctorPoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_UnassignDoctorPoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).UnassignDoctorPoli(ctx, req.(*UnassignDoctorPoliRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_UnassignNursePoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnassignNursePoliRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).UnassignNursePoli(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_UnassignNursePoli_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).UnassignNursePoli(ctx, req.(*UnassignNursePoliRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_UpdatePoliSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePoliScheduleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).UpdatePoliSchedule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_UpdatePoliSchedule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).UpdatePoliSchedule(ctx, req.(*UpdatePoliScheduleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AuthService_GetAssignedPoli_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAssignedPoliRequest)
 	if err := dec(in); err != nil {
@@ -810,6 +912,18 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AssignNursePoli",
 			Handler:    _AuthService_AssignNursePoli_Handler,
+		},
+		{
+			MethodName: "UnassignDoctorPoli",
+			Handler:    _AuthService_UnassignDoctorPoli_Handler,
+		},
+		{
+			MethodName: "UnassignNursePoli",
+			Handler:    _AuthService_UnassignNursePoli_Handler,
+		},
+		{
+			MethodName: "UpdatePoliSchedule",
+			Handler:    _AuthService_UpdatePoliSchedule_Handler,
 		},
 		{
 			MethodName: "GetAssignedPoli",

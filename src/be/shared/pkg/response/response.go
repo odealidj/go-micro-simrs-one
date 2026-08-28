@@ -111,6 +111,8 @@ func HandleGRPCError(w http.ResponseWriter, err error) {
 		httpStatus = http.StatusNotFound
 	case codes.AlreadyExists:
 		httpStatus = http.StatusConflict
+	case codes.FailedPrecondition:
+		httpStatus = http.StatusBadRequest
 	case codes.Unimplemented:
 		httpStatus = http.StatusNotImplemented
 	case codes.Unavailable:
@@ -123,6 +125,11 @@ func HandleGRPCError(w http.ResponseWriter, err error) {
 	userMsg, exists := ErrorMessages[st.Code()]
 	if !exists {
 		userMsg = ErrorMessages[codes.Internal]
+	}
+
+	// For FailedPrecondition, use the specific business validation message
+	if st.Code() == codes.FailedPrecondition {
+		userMsg = st.Message()
 	}
 
 	// Override specific gRPC error messages for better UX

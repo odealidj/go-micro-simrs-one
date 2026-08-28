@@ -6,7 +6,7 @@ import {
   Stethoscope, UserRound, Building2, Map,
   BookOpen, Pill, Activity, ClipboardList, GitFork,
   ChevronLeft, ChevronRight, ChevronDown, Bell, Bot,
-  Settings, FolderTree
+  Settings, FolderTree, CalendarDays
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -55,6 +55,7 @@ export function AdminLayout() {
         { name: "Data Poliklinik", path: "/admin/master/poliklinik", icon: Building2 },
         { name: "Assign Dokter", path: "/admin/master/assign-dokter", icon: Stethoscope },
         { name: "Assign Perawat", path: "/admin/master/assign-perawat", icon: UserRound },
+        { name: "Jadwal Poliklinik", path: "/admin/master/jadwal-poliklinik", icon: CalendarDays },
       ],
     },
     {

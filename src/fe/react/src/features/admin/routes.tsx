@@ -9,6 +9,7 @@ import { PerawatPage } from "./pages/master/PerawatPage";
 import { PoliklinikPage } from "./pages/master/PoliklinikPage";
 import { AssignDokterPoliPage } from "./pages/master/AssignDokterPoliPage";
 import { AssignPerawatPoliPage } from "./pages/master/AssignPerawatPoliPage";
+import { JadwalPoliklinikPage } from "./pages/master/JadwalPoliklinikPage";
 import { KBMPage } from "./pages/master/KBMPage";
 import { AssignKBMPoliPage } from "./pages/master/AssignKBMPoliPage";
 import { TindakanPage } from "./pages/master/TindakanPage";
@@ -45,6 +46,7 @@ export const adminRoutes: RouteObject[] = [
           { path: "master/poliklinik", element: <PoliklinikPage /> },
           { path: "master/assign-dokter", element: <AssignDokterPoliPage /> },
           { path: "master/assign-perawat", element: <AssignPerawatPoliPage /> },
+          { path: "master/jadwal-poliklinik", element: <JadwalPoliklinikPage /> },
           { path: "master/kbm", element: <KBMPage /> },
           { path: "master/assign-kbm", element: <AssignKBMPoliPage /> },
           { path: "master/tindakan", element: <TindakanPage /> },

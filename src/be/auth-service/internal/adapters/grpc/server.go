@@ -2,6 +2,9 @@ package grpc
 
 import (
 	"context"
+	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -287,6 +290,9 @@ func (s *AuthGrpcServer) GetDoctors(ctx context.Context, req *pb.GetDoctorsReque
 			PoliCode:     d.PoliCode.String,
 			StartDate:    startDate,
 			EndDate:      endDate,
+			DaysOfWeek:   d.DaysOfWeek,
+			ShiftStart:   d.ShiftStart,
+			ShiftEnd:     d.ShiftEnd,
 		})
 	}
 
@@ -341,6 +347,9 @@ func (s *AuthGrpcServer) GetNurses(ctx context.Context, req *pb.GetNursesRequest
 			PoliCode:   n.PoliCode.String,
 			StartDate:  startDate,
 			EndDate:    endDate,
+			DaysOfWeek: n.DaysOfWeek,
+			ShiftStart: n.ShiftStart,
+			ShiftEnd:   n.ShiftEnd,
 		})
 	}
 
@@ -364,6 +373,7 @@ func (s *AuthGrpcServer) GetDoctorsByPoli(ctx context.Context, req *pb.GetDoctor
 	doctors, err := s.queries.GetDoctorsByPoli(ctx, db.GetDoctorsByPoliParams{
 		Column1: req.PoliCode,
 		Column2: req.Search,
+		Column3: req.DayOfWeek,
 		Limit:   pageSize,
 		Offset:  offset,
 	})
@@ -374,6 +384,7 @@ func (s *AuthGrpcServer) GetDoctorsByPoli(ctx context.Context, req *pb.GetDoctor
 	count, err := s.queries.CountDoctorsByPoli(ctx, db.CountDoctorsByPoliParams{
 		Column1: req.PoliCode,
 		Column2: req.Search,
+		Column3: req.DayOfWeek,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to count doctors by poli: %v", err)
@@ -389,6 +400,9 @@ func (s *AuthGrpcServer) GetDoctorsByPoli(ctx context.Context, req *pb.GetDoctor
 			PoliCode:     d.PoliCode,
 			StartDate:    d.StartDate.Format("2006-01-02"),
 			EndDate:      d.EndDate.Format("2006-01-02"),
+			DaysOfWeek:   d.DaysOfWeek,
+			ShiftStart:   d.ShiftStart,
+			ShiftEnd:     d.ShiftEnd,
 		})
 	}
 
@@ -412,6 +426,7 @@ func (s *AuthGrpcServer) GetNursesByPoli(ctx context.Context, req *pb.GetNursesB
 	nurses, err := s.queries.GetNursesByPoli(ctx, db.GetNursesByPoliParams{
 		Column1: req.PoliCode,
 		Column2: req.Search,
+		Column3: req.DayOfWeek,
 		Limit:   pageSize,
 		Offset:  offset,
 	})
@@ -422,6 +437,7 @@ func (s *AuthGrpcServer) GetNursesByPoli(ctx context.Context, req *pb.GetNursesB
 	count, err := s.queries.CountNursesByPoli(ctx, db.CountNursesByPoliParams{
 		Column1: req.PoliCode,
 		Column2: req.Search,
+		Column3: req.DayOfWeek,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to count nurses by poli: %v", err)
@@ -437,6 +453,9 @@ func (s *AuthGrpcServer) GetNursesByPoli(ctx context.Context, req *pb.GetNursesB
 			PoliCode:   n.PoliCode,
 			StartDate:  n.StartDate.Format("2006-01-02"),
 			EndDate:    n.EndDate.Format("2006-01-02"),
+			DaysOfWeek: n.DaysOfWeek,
+			ShiftStart: n.ShiftStart,
+			ShiftEnd:   n.ShiftEnd,
 		})
 	}
 
@@ -444,6 +463,37 @@ func (s *AuthGrpcServer) GetNursesByPoli(ctx context.Context, req *pb.GetNursesB
 		Data:       pbNurses,
 		TotalCount: int32(count),
 	}, nil
+}
+
+func formatIndonesianDays(days []int32) string {
+	dayNames := map[int32]string{
+		1: "Senin",
+		2: "Selasa",
+		3: "Rabu",
+		4: "Kamis",
+		5: "Jumat",
+	}
+	var names []string
+	for _, d := range days {
+		if name, ok := dayNames[d]; ok {
+			names = append(names, name)
+		}
+	}
+	return strings.Join(names, ", ")
+}
+
+func intersectDays(a, b []int32) []int32 {
+	set := make(map[int32]bool)
+	for _, x := range a {
+		set[x] = true
+	}
+	var res []int32
+	for _, y := range b {
+		if set[y] {
+			res = append(res, y)
+		}
+	}
+	return res
 }
 
 func (s *AuthGrpcServer) AssignDoctorPoli(ctx context.Context, req *pb.AssignDoctorPoliRequest) (*pb.AssignDoctorPoliResponse, error) {
@@ -470,23 +520,99 @@ func (s *AuthGrpcServer) AssignDoctorPoli(ctx context.Context, req *pb.AssignDoc
 		return nil, status.Error(codes.InvalidArgument, "end_date cannot be before start_date")
 	}
 
-	isOverlap, err := s.queries.CheckDoctorAssignmentOverlap(ctx, db.CheckDoctorAssignmentOverlapParams{
+	// Filter days to only 1..5 (Senin - Jumat)
+	var daysOfWeek []int32
+	seenDays := make(map[int32]bool)
+	for _, d := range req.DaysOfWeek {
+		if d >= 1 && d <= 5 && !seenDays[d] {
+			daysOfWeek = append(daysOfWeek, d)
+			seenDays[d] = true
+		}
+	}
+	if len(daysOfWeek) == 0 {
+		daysOfWeek = []int32{1, 2, 3, 4, 5}
+	}
+	sort.Slice(daysOfWeek, func(i, j int) bool { return daysOfWeek[i] < daysOfWeek[j] })
+
+	// Parse shift times (default 08:00:00 - 16:00:00)
+	shiftStartStr := req.ShiftStart
+	if shiftStartStr == "" {
+		shiftStartStr = "08:00:00"
+	}
+	if len(shiftStartStr) == 5 {
+		shiftStartStr += ":00"
+	}
+	shiftStart, err := time.Parse("15:04:05", shiftStartStr)
+	if err != nil {
+		shiftStart, _ = time.Parse("15:04:05", "08:00:00")
+	}
+
+	shiftEndStr := req.ShiftEnd
+	if shiftEndStr == "" {
+		shiftEndStr = "16:00:00"
+	}
+	if len(shiftEndStr) == 5 {
+		shiftEndStr += ":00"
+	}
+	shiftEnd, err := time.Parse("15:04:05", shiftEndStr)
+	if err != nil {
+		shiftEnd, _ = time.Parse("15:04:05", "16:00:00")
+	}
+
+	// 1. Check Poli Schedule Overlap (Dalam poli ini, hari tidak boleh diisi dokter lain)
+	poliOverlapRows, err := s.queries.CheckPoliScheduleOverlap(ctx, db.CheckPoliScheduleOverlapParams{
+		PoliCode:  req.PoliCode,
 		DokterID:  dokterUUID,
 		StartDate: startDate,
 		EndDate:   endDate,
+		Column5:   daysOfWeek,
 	})
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to check assignment overlap: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to check poli schedule overlap: %v", err)
 	}
-	if isOverlap {
-		return nil, status.Error(codes.FailedPrecondition, "Doctor is already assigned to a polyclinic during this period")
+	if len(poliOverlapRows) > 0 {
+		var conflictDetails []string
+		for _, row := range poliOverlapRows {
+			common := intersectDays(daysOfWeek, row.DaysOfWeek)
+			if len(common) > 0 {
+				conflictDetails = append(conflictDetails, fmt.Sprintf("dr. %s di hari [%s]", row.Username, formatIndonesianDays(common)))
+			}
+		}
+		if len(conflictDetails) > 0 {
+			return nil, status.Errorf(codes.FailedPrecondition, "Jadwal bentrok: Poliklinik ini sudah diisi oleh %s. Karena poliklinik hanya 1 shift (08:00 - 16:00 WIB), silakan pilih hari lain.", strings.Join(conflictDetails, ", "))
+		}
 	}
 
-	_, err = s.queries.AssignDoctorToPoli(ctx, db.AssignDoctorToPoliParams{
+	// 2. Check Doctor Schedule Overlap (Dokter tidak boleh di poli lain pada hari yang sama)
+	isDocOverlap, err := s.queries.CheckDoctorAssignmentOverlap(ctx, db.CheckDoctorAssignmentOverlapParams{
 		DokterID:  dokterUUID,
 		PoliCode:  req.PoliCode,
 		StartDate: startDate,
 		EndDate:   endDate,
+		Column5:   daysOfWeek,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to check doctor assignment overlap: %v", err)
+	}
+	if isDocOverlap {
+		return nil, status.Error(codes.FailedPrecondition, "Dokter ini sudah memiliki jadwal tugas di poliklinik lain pada hari yang sama. Karena shift 08:00 - 16:00 WIB bersifat penuh, dokter tidak dapat bertugas di dua poli pada hari yang sama.")
+	}
+
+	// 3. Deactivate any existing active assignment of THIS doctor in THIS polyclinic (untuk update jadwal)
+	_ = s.queries.DeactivateDoctorCurrentPoliAssignment(ctx, db.DeactivateDoctorCurrentPoliAssignmentParams{
+		DokterID: dokterUUID,
+		PoliCode: req.PoliCode,
+	})
+
+	// 4. Insert new assignment
+	_, err = s.queries.AssignDoctorToPoli(ctx, db.AssignDoctorToPoliParams{
+		DokterID:   dokterUUID,
+		PoliCode:   req.PoliCode,
+		StartDate:  startDate,
+		EndDate:    endDate,
+		DaysOfWeek: daysOfWeek,
+		ShiftStart: shiftStart,
+		ShiftEnd:   shiftEnd,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to assign doctor to poli: %v", err)
@@ -522,23 +648,98 @@ func (s *AuthGrpcServer) AssignNursePoli(ctx context.Context, req *pb.AssignNurs
 		return nil, status.Error(codes.InvalidArgument, "end_date cannot be before start_date")
 	}
 
-	isOverlap, err := s.queries.CheckNurseAssignmentOverlap(ctx, db.CheckNurseAssignmentOverlapParams{
+	// Filter days to only 1..5 (Senin - Jumat)
+	var daysOfWeek []int32
+	seenDays := make(map[int32]bool)
+	for _, d := range req.DaysOfWeek {
+		if d >= 1 && d <= 5 && !seenDays[d] {
+			daysOfWeek = append(daysOfWeek, d)
+			seenDays[d] = true
+		}
+	}
+	if len(daysOfWeek) == 0 {
+		// Default to all working days: Senin - Jumat (1, 2, 3, 4, 5)
+		daysOfWeek = []int32{1, 2, 3, 4, 5}
+	}
+
+	shiftStartStr := req.ShiftStart
+	if shiftStartStr == "" {
+		shiftStartStr = "08:00:00"
+	}
+	if len(shiftStartStr) == 5 {
+		shiftStartStr += ":00"
+	}
+	shiftStart, err := time.Parse("15:04:05", shiftStartStr)
+	if err != nil {
+		shiftStart, _ = time.Parse("15:04:05", "08:00:00")
+	}
+
+	shiftEndStr := req.ShiftEnd
+	if shiftEndStr == "" {
+		shiftEndStr = "16:00:00"
+	}
+	if len(shiftEndStr) == 5 {
+		shiftEndStr += ":00"
+	}
+	shiftEnd, err := time.Parse("15:04:05", shiftEndStr)
+	if err != nil {
+		shiftEnd, _ = time.Parse("15:04:05", "16:00:00")
+	}
+
+	// 1. Check Poli Schedule Overlap (Dalam 1 poliklinik, 1 hari hanya ada 1 perawat aktif)
+	existingPoliNurses, err := s.queries.CheckPoliNurseScheduleOverlap(ctx, db.CheckPoliNurseScheduleOverlapParams{
+		PoliCode:  req.PoliCode,
 		PerawatID: perawatUUID,
 		StartDate: startDate,
 		EndDate:   endDate,
+		Column5:   daysOfWeek,
 	})
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to check assignment overlap: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to check poli schedule overlap: %v", err)
 	}
-	if isOverlap {
-		return nil, status.Error(codes.FailedPrecondition, "Nurse is already assigned to a polyclinic during this period")
+	if len(existingPoliNurses) > 0 {
+		var conflictDetails []string
+		for _, row := range existingPoliNurses {
+			common := intersectDays(daysOfWeek, row.DaysOfWeek)
+			if len(common) > 0 {
+				conflictDetails = append(conflictDetails, fmt.Sprintf("perawat %s di hari [%s]", row.Username, formatIndonesianDays(common)))
+			}
+		}
+		if len(conflictDetails) > 0 {
+			return nil, status.Errorf(codes.FailedPrecondition, "Jadwal bentrok: Poliklinik ini sudah diisi oleh %s. Karena poliklinik hanya 1 shift (08:00 - 16:00 WIB), silakan pilih hari lain.", strings.Join(conflictDetails, ", "))
+		}
 	}
 
-	_, err = s.queries.AssignNurseToPoli(ctx, db.AssignNurseToPoliParams{
+	// 2. Check Nurse Schedule Overlap (Perawat tidak boleh di poli lain pada hari yang sama)
+	isNurseOverlap, err := s.queries.CheckNurseAssignmentOverlap(ctx, db.CheckNurseAssignmentOverlapParams{
 		PerawatID: perawatUUID,
 		PoliCode:  req.PoliCode,
 		StartDate: startDate,
 		EndDate:   endDate,
+		Column5:   daysOfWeek,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to check nurse assignment overlap: %v", err)
+	}
+	if isNurseOverlap {
+		return nil, status.Error(codes.FailedPrecondition, "Perawat ini sudah memiliki jadwal tugas di poliklinik lain pada hari yang sama. Karena shift 08:00 - 16:00 WIB bersifat penuh, perawat tidak dapat bertugas di dua poli pada hari yang sama.")
+	}
+
+	// 3. Deactivate any existing active assignment of THIS nurse in THIS polyclinic (untuk update jadwal)
+	_ = s.queries.DeactivateNurseCurrentPoliAssignment(ctx, db.DeactivateNurseCurrentPoliAssignmentParams{
+		PerawatID: perawatUUID,
+		PoliCode:  req.PoliCode,
+	})
+
+	// 4. Insert new assignment
+	_, err = s.queries.AssignNurseToPoli(ctx, db.AssignNurseToPoliParams{
+		PerawatID:  perawatUUID,
+		PoliCode:   req.PoliCode,
+		StartDate:  startDate,
+		EndDate:    endDate,
+		DaysOfWeek: daysOfWeek,
+		ShiftStart: shiftStart,
+		ShiftEnd:   shiftEnd,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to assign nurse to poli: %v", err)
@@ -546,7 +747,185 @@ func (s *AuthGrpcServer) AssignNursePoli(ctx context.Context, req *pb.AssignNurs
 
 	return &pb.AssignNursePoliResponse{
 		Success: true,
-		Message: "Nurse successfully assigned to poli",
+		Message: "Nurse assigned successfully",
+	}, nil
+}
+
+func (s *AuthGrpcServer) UnassignDoctorPoli(ctx context.Context, req *pb.UnassignDoctorPoliRequest) (*pb.UnassignDoctorPoliResponse, error) {
+	if req.DokterId == "" {
+		return nil, status.Error(codes.InvalidArgument, "dokter id is required")
+	}
+	dokterUUID, err := uuid.Parse(req.DokterId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid dokter id format")
+	}
+
+	err = s.queries.UnassignDoctorFromPoli(ctx, db.UnassignDoctorFromPoliParams{
+		DokterID: dokterUUID,
+		Column2:  req.PoliCode,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to unassign doctor: %v", err)
+	}
+
+	return &pb.UnassignDoctorPoliResponse{
+		Success: true,
+		Message: "Penugasan dokter berhasil dilepas",
+	}, nil
+}
+
+func (s *AuthGrpcServer) UnassignNursePoli(ctx context.Context, req *pb.UnassignNursePoliRequest) (*pb.UnassignNursePoliResponse, error) {
+	if req.PerawatId == "" {
+		return nil, status.Error(codes.InvalidArgument, "perawat id is required")
+	}
+	perawatUUID, err := uuid.Parse(req.PerawatId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid perawat id format")
+	}
+
+	err = s.queries.UnassignNurseFromPoli(ctx, db.UnassignNurseFromPoliParams{
+		PerawatID: perawatUUID,
+		Column2:   req.PoliCode,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to unassign nurse: %v", err)
+	}
+
+	return &pb.UnassignNursePoliResponse{
+		Success: true,
+		Message: "Penugasan perawat berhasil dilepas",
+	}, nil
+}
+
+func (s *AuthGrpcServer) UpdatePoliSchedule(ctx context.Context, req *pb.UpdatePoliScheduleRequest) (*pb.UpdatePoliScheduleResponse, error) {
+	if req.PoliCode == "" {
+		return nil, status.Error(codes.InvalidArgument, "poli_code is required")
+	}
+
+	now := time.Now()
+	startDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	endDate, _ := time.Parse("2006-01-02", "2099-12-31")
+	shiftStart, _ := time.Parse("15:04:05", "08:00:00")
+	shiftEnd, _ := time.Parse("15:04:05", "16:00:00")
+
+	doctorDaysMap := make(map[string][]int32)
+	nurseDaysMap := make(map[string][]int32)
+	seenDocDay := make(map[int32]string)
+	seenNurseDay := make(map[int32]string)
+
+	for _, slot := range req.Slots {
+		if slot.DayOfWeek < 1 || slot.DayOfWeek > 5 {
+			continue // hanya Senin - Jumat
+		}
+
+		if slot.DokterId != "" {
+			if _, exists := seenDocDay[slot.DayOfWeek]; exists {
+				return nil, status.Errorf(codes.InvalidArgument, "Hari %s diisi lebih dari satu dokter dalam jadwal", formatIndonesianDays([]int32{slot.DayOfWeek}))
+			}
+			seenDocDay[slot.DayOfWeek] = slot.DokterId
+			doctorDaysMap[slot.DokterId] = append(doctorDaysMap[slot.DokterId], slot.DayOfWeek)
+		}
+
+		if slot.PerawatId != "" {
+			if _, exists := seenNurseDay[slot.DayOfWeek]; exists {
+				return nil, status.Errorf(codes.InvalidArgument, "Hari %s diisi lebih dari satu perawat dalam jadwal", formatIndonesianDays([]int32{slot.DayOfWeek}))
+			}
+			seenNurseDay[slot.DayOfWeek] = slot.PerawatId
+			nurseDaysMap[slot.PerawatId] = append(nurseDaysMap[slot.PerawatId], slot.DayOfWeek)
+		}
+	}
+
+	// 1. Validasi overlap ke poliklinik lain untuk setiap dokter
+	for docIDStr, days := range doctorDaysMap {
+		docUUID, err := uuid.Parse(docIDStr)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid dokter_id format: %s", docIDStr)
+		}
+		sort.Slice(days, func(i, j int) bool { return days[i] < days[j] })
+		isDocOverlap, err := s.queries.CheckDoctorAssignmentOverlap(ctx, db.CheckDoctorAssignmentOverlapParams{
+			DokterID:  docUUID,
+			PoliCode:  req.PoliCode,
+			StartDate: startDate,
+			EndDate:   endDate,
+			Column5:   days,
+		})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to check doctor overlap: %v", err)
+		}
+		if isDocOverlap {
+			return nil, status.Errorf(codes.FailedPrecondition, "Dokter dengan ID %s sudah memiliki jadwal di poliklinik lain pada hari [%s].", docIDStr, formatIndonesianDays(days))
+		}
+	}
+
+	// 2. Validasi overlap ke poliklinik lain untuk setiap perawat
+	for nurseIDStr, days := range nurseDaysMap {
+		nurseUUID, err := uuid.Parse(nurseIDStr)
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid perawat_id format: %s", nurseIDStr)
+		}
+		sort.Slice(days, func(i, j int) bool { return days[i] < days[j] })
+		isNurseOverlap, err := s.queries.CheckNurseAssignmentOverlap(ctx, db.CheckNurseAssignmentOverlapParams{
+			PerawatID: nurseUUID,
+			PoliCode:  req.PoliCode,
+			StartDate: startDate,
+			EndDate:   endDate,
+			Column5:   days,
+		})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to check nurse overlap: %v", err)
+		}
+		if isNurseOverlap {
+			return nil, status.Errorf(codes.FailedPrecondition, "Perawat dengan ID %s sudah memiliki jadwal di poliklinik lain pada hari [%s].", nurseIDStr, formatIndonesianDays(days))
+		}
+	}
+
+	// 3. Deaktivasi semua jadwal aktif dokter & perawat di poliklinik ini
+	if err := s.queries.DeactivateAllActiveDoctorsInPoli(ctx, req.PoliCode); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to deactivate current doctors in poli: %v", err)
+	}
+	if err := s.queries.DeactivateAllActiveNursesInPoli(ctx, req.PoliCode); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to deactivate current nurses in poli: %v", err)
+	}
+
+	// 4. Masukkan jadwal baru untuk dokter
+	for docIDStr, days := range doctorDaysMap {
+		docUUID, _ := uuid.Parse(docIDStr)
+		sort.Slice(days, func(i, j int) bool { return days[i] < days[j] })
+		_, err := s.queries.AssignDoctorToPoli(ctx, db.AssignDoctorToPoliParams{
+			DokterID:   docUUID,
+			PoliCode:   req.PoliCode,
+			StartDate:  startDate,
+			EndDate:    endDate,
+			DaysOfWeek: days,
+			ShiftStart: shiftStart,
+			ShiftEnd:   shiftEnd,
+		})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to assign doctor to poli: %v", err)
+		}
+	}
+
+	// 5. Masukkan jadwal baru untuk perawat
+	for nurseIDStr, days := range nurseDaysMap {
+		nurseUUID, _ := uuid.Parse(nurseIDStr)
+		sort.Slice(days, func(i, j int) bool { return days[i] < days[j] })
+		_, err := s.queries.AssignNurseToPoli(ctx, db.AssignNurseToPoliParams{
+			PerawatID:  nurseUUID,
+			PoliCode:   req.PoliCode,
+			StartDate:  startDate,
+			EndDate:    endDate,
+			DaysOfWeek: days,
+			ShiftStart: shiftStart,
+			ShiftEnd:   shiftEnd,
+		})
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to assign nurse to poli: %v", err)
+		}
+	}
+
+	return &pb.UpdatePoliScheduleResponse{
+		Success: true,
+		Message: "Jadwal mingguan poliklinik berhasil diperbarui",
 	}, nil
 }
 
