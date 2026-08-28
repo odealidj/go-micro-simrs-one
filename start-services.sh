@@ -50,7 +50,7 @@ for SVC in "${!SERVICES[@]}"; do
   cd "$DIR" && go build -o tmp-main ./cmd/server
   echo "  Starting $SVC on port $PORT..."
   DATABASE_URL="$DB_URL" REDIS_HOST="$REDIS" JAEGER_ENDPOINT="$JAEGER" PORT="$PORT" \
-    nohup "$DIR/tmp-main" > "$DIR/run.log" 2>&1 &
+    setsid "$DIR/tmp-main" > "$DIR/run.log" 2>&1 < /dev/null &
   echo $! > "$DIR/run.pid"
 done
 
@@ -70,7 +70,7 @@ REDIS_HOST="$REDIS" \
   BILLING_SERVICE_ADDR=localhost:50056 \
   PORT=8080 \
   GOOGLE_API_KEY="$GOOGLE_API_KEY" \
-  nohup "$GW_DIR/tmp-main" > "$GW_DIR/run.log" 2>&1 &
+  setsid "$GW_DIR/tmp-main" > "$GW_DIR/run.log" 2>&1 < /dev/null &
 echo $! > "$GW_DIR/run.pid"
 
 disown -a
