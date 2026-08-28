@@ -124,3 +124,74 @@ export const payInvoice = async (payload: PayInvoiceRequest): Promise<boolean> =
     throw error;
   }
 };
+
+export interface RevenueReportMetrics {
+  total_revenue: number;
+  total_transactions: number;
+  tunai_amount: number;
+  tunai_count: number;
+  qris_amount: number;
+  qris_count: number;
+  debit_amount: number;
+  debit_count: number;
+  bpjs_amount: number;
+  bpjs_count: number;
+  non_tunai_amount: number;
+  non_tunai_count: number;
+}
+
+export interface ServiceBreakdownItem {
+  department_code: string;
+  department_name: string;
+  count: number;
+  total: number;
+}
+
+export interface SettlementItem {
+  item_type?: string;
+  description: string;
+  qty: number;
+  amount: number;
+}
+
+export interface SettlementTransactionItem {
+  encounter_no: string;
+  mrn: string;
+  patient_name: string;
+  department_code: string;
+  department_name: string;
+  payment_method: "CASH" | "QRIS" | "DEBIT" | "BPJS";
+  total_amount: number;
+  paid_at: string;
+  cashier_name: string;
+  status: string;
+  items?: SettlementItem[];
+}
+
+export interface RevenueReportData {
+  period: string;
+  metrics: RevenueReportMetrics;
+  service_breakdown: ServiceBreakdownItem[];
+  transactions: SettlementTransactionItem[];
+}
+
+export const getRevenueReport = async (params?: {
+  date?: string;
+  department_code?: string;
+  payment_method?: string;
+}): Promise<RevenueReportData | null> => {
+  try {
+    const query = new URLSearchParams();
+    if (params?.date && params.date !== "TODAY") query.append("date", params.date);
+    if (params?.department_code && params.department_code !== "ALL") query.append("department_code", params.department_code);
+    if (params?.payment_method && params.payment_method !== "ALL") query.append("payment_method", params.payment_method);
+
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const { data } = await api.get<{ success: boolean; data: RevenueReportData }>(`/billing/reports/rekap${qs}`);
+    return data?.data || null;
+  } catch (error) {
+    console.error("Failed to fetch revenue report from backend", error);
+    return null;
+  }
+};
+

@@ -307,8 +307,8 @@ export function BillingQueuePage() {
                 <TableHead className="w-[160px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">
                   No. Registrasi / Jam
                 </TableHead>
-                <TableHead className="w-[160px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">
-                  Poli / Penjamin
+                <TableHead className="w-[170px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">
+                  Pelayanan
                 </TableHead>
                 <TableHead className="w-[140px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">
                   Estimasi Biaya
@@ -370,22 +370,15 @@ export function BillingQueuePage() {
                         </div>
                       </TableCell>
 
-                      {/* Poli & Penjamin */}
+                      {/* Pelayanan (Poli Code + Nama Poliklinik) */}
                       <TableCell className="py-3 px-4">
-                        <div className="space-y-1">
-                          <span className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-100">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono font-bold text-[11px] px-1.5 py-0.5 rounded bg-sky-100/90 text-sky-800 border border-sky-200 shadow-2xs">
+                            {item.department_code || "01"}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-800">
                             {dept}
                           </span>
-                          <div>
-                            <span className={cn(
-                              "text-[10px] font-bold px-1.5 py-0.5 rounded border",
-                              item.status_pasien === "Baru RS"
-                                ? "bg-purple-50 text-purple-700 border-purple-200"
-                                : "bg-slate-50 text-slate-600 border-slate-200"
-                            )}>
-                              {item.status_pasien || "Umum"}
-                            </span>
-                          </div>
                         </div>
                       </TableCell>
 

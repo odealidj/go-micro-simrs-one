@@ -5,6 +5,7 @@ import { KasirDashboard } from "./pages/KasirDashboard";
 import { BillingQueuePage } from "./pages/BillingQueuePage";
 import { InvoicePage } from "./pages/InvoicePage";
 import { PaymentPage } from "./pages/PaymentPage";
+import { RevenueReportPage } from "./pages/RevenueReportPage";
 
 export const kasirRoutes: RouteObject[] = [
   {
@@ -21,7 +22,7 @@ export const kasirRoutes: RouteObject[] = [
           { path: "bayar/:encounterNo", element: <PaymentPage /> },
           {
             path: "laporan",
-            element: <KasirDashboard />,
+            element: <RevenueReportPage />,
           },
         ],
       },
