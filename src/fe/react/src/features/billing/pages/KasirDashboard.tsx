@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getBillingQueue, type BillingPatientQueueItem } from "../api/billingApi";
+import { getBillingQueue, getInvoice, type BillingPatientQueueItem, type Invoice } from "../api/billingApi";
 import {
   Wallet,
   Receipt,
@@ -9,17 +9,27 @@ import {
   ChevronRight,
   Search,
   TrendingUp,
-  ArrowRight,
   FileText,
-  Sparkles,
   CreditCard,
+  RefreshCw,
+  Eye,
+  UserCheck,
+  BadgeDollarSign,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { KasirPageHeader } from "../components/KasirPageHeader";
 import { kasirTheme, formatRupiah } from "../theme";
+import { toast } from "sonner";
 
 interface StatCardProps {
   label: string;
@@ -28,26 +38,67 @@ interface StatCardProps {
   color: string;
   bgColor: string;
   borderColor: string;
+  badgeText?: string;
+  badgeColor?: string;
   sub?: string;
   highlight?: boolean;
 }
 
-function StatCard({ label, value, icon: Icon, color, bgColor, borderColor, sub, highlight }: StatCardProps) {
+function StatCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+  bgColor,
+  borderColor,
+  badgeText,
+  badgeColor = "bg-slate-100 text-slate-700 border-slate-200",
+  sub,
+  highlight,
+}: StatCardProps) {
   return (
-    <div className={cn(
-      "rounded-2xl border p-5 flex items-center gap-4 transition-all duration-200",
-      highlight ? "bg-gradient-to-br from-amber-500/10 via-white to-white border-amber-200/80 shadow-md shadow-amber-500/5" : "bg-white border-slate-200/80 shadow-xs hover:border-slate-300"
-    )}>
-      <div className={cn("p-3.5 rounded-2xl shrink-0 shadow-2xs border", bgColor, borderColor)}>
-        <Icon className={cn("h-6 w-6", color)} />
+    <div
+      className={cn(
+        "rounded-2xl border p-5 transition-all duration-200 flex flex-col justify-between relative overflow-hidden group hover:shadow-md",
+        highlight
+          ? "bg-gradient-to-br from-amber-500/10 via-white to-white border-amber-200/90 shadow-sm shadow-amber-500/5 hover:border-amber-300"
+          : "bg-white border-slate-200/80 shadow-2xs hover:border-slate-300"
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{label}</p>
+          <p className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">{value}</p>
+        </div>
+        <div className={cn("p-3 rounded-xl shrink-0 shadow-2xs border transition-transform group-hover:scale-105", bgColor, borderColor)}>
+          <Icon className={cn("h-5 w-5", color)} />
+        </div>
       </div>
-      <div className="overflow-hidden">
-        <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">{value}</p>
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-0.5 truncate">{label}</p>
-        {sub && <p className="text-[11px] text-slate-400 mt-0.5 truncate">{sub}</p>}
+
+      <div className="mt-4 pt-3 border-t border-slate-100/90 flex items-center justify-between gap-2 text-xs">
+        {sub && <span className="text-slate-500 text-[11px] truncate font-medium">{sub}</span>}
+        {badgeText && (
+          <span className={cn("inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0", badgeColor)}>
+            {badgeText}
+          </span>
+        )}
       </div>
     </div>
   );
+}
+
+function getDepartmentName(code?: string) {
+  if (!code || code === "-") return "Poli Umum";
+  if (code === "01" || code === "UMU" || code.toLowerCase().includes("umum")) return "Poli Umum";
+  if (code === "02" || code.toLowerCase().includes("gigi")) return "Poli Gigi";
+  if (code === "03" || code.toLowerCase().includes("anak")) return "Poli Anak";
+  if (code === "04" || code.toLowerCase().includes("dalam")) return "Poli Penyakit Dalam";
+  if (code === "05" || code.toLowerCase().includes("bedah")) return "Poli Bedah";
+  if (code === "06" || code.toLowerCase().includes("mata")) return "Poli Mata";
+  if (code === "07" || code.toLowerCase().includes("tht")) return "Poli THT";
+  if (code === "08" || code.toLowerCase().includes("obgyn") || code.toLowerCase().includes("kandungan"))
+    return "Poli Kandungan";
+  return `Poli ${code}`;
 }
 
 export function KasirDashboard() {
@@ -55,16 +106,37 @@ export function KasirDashboard() {
   const [encounterSearch, setEncounterSearch] = useState("");
   const [queue, setQueue] = useState<BillingPatientQueueItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Quick Invoice Detail Modal state
+  const [selectedEncounter, setSelectedEncounter] = useState<BillingPatientQueueItem | null>(null);
+  const [invoiceDetail, setInvoiceDetail] = useState<Invoice | null>(null);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+
+  const fetchDashboardData = async (showToast = false) => {
+    if (showToast) setIsRefreshing(true);
+    else setLoading(true);
+    try {
+      const data = await getBillingQueue();
+      setQueue(data);
+      if (showToast) toast.success("Data antrean kasir berhasil diperbarui.");
+    } catch (err) {
+      console.error("Failed to load queue", err);
+      if (showToast) toast.error("Gagal memperbarui data antrean kasir.");
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    getBillingQueue()
-      .then((data) => setQueue(data))
-      .catch((err) => console.error("Failed to load queue", err))
-      .finally(() => setLoading(false));
+    fetchDashboardData();
   }, []);
 
   const pendingList = useMemo(() => {
-    return queue.filter((item) => item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED");
+    return queue.filter(
+      (item) => item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED" || item.status === "MENUNGGU"
+    );
   }, [queue]);
 
   const paidList = useMemo(() => {
@@ -90,17 +162,31 @@ export function KasirDashboard() {
       navigate("/kasir/antrean");
       return;
     }
-    // Check if search matches any patient MRN or encounter in queue
+    const q = encounterSearch.trim().toLowerCase();
     const match = queue.find(
       (p) =>
-        p.encounter_no.toLowerCase().includes(encounterSearch.trim().toLowerCase()) ||
-        p.mrn.toLowerCase().includes(encounterSearch.trim().toLowerCase()) ||
-        p.patient_name.toLowerCase().includes(encounterSearch.trim().toLowerCase())
+        p.encounter_no.toLowerCase().includes(q) ||
+        p.mrn.toLowerCase().includes(q) ||
+        p.patient_name.toLowerCase().includes(q)
     );
     if (match) {
       navigate(`/kasir/bayar/${match.encounter_no}`);
     } else {
       navigate(`/kasir/antrean?q=${encodeURIComponent(encounterSearch.trim())}`);
+    }
+  };
+
+  const handleOpenInvoiceDetail = async (item: BillingPatientQueueItem) => {
+    setSelectedEncounter(item);
+    setInvoiceLoading(true);
+    try {
+      const inv = await getInvoice(item.encounter_no);
+      setInvoiceDetail(inv);
+    } catch (err) {
+      console.error("Failed to fetch invoice", err);
+      toast.error("Gagal memuat rincian invoice pasien.");
+    } finally {
+      setInvoiceLoading(false);
     }
   };
 
@@ -110,27 +196,39 @@ export function KasirDashboard() {
       <KasirPageHeader
         title="Dashboard Kasir & Pembayaran"
         description={`Pusat kendali transaksi kasir, antrean pembayaran, dan laporan penerimaan harian • ${todayStr}`}
-        badge="Kasir Rawat Jalan"
+        badge="Loket Kasir Aktif"
         icon={Wallet}
         actions={
           <div className="flex items-center gap-2">
             <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchDashboardData(true)}
+              disabled={isRefreshing || loading}
+              className="h-10 px-3.5 rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs gap-2 transition-all cursor-pointer"
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5 text-slate-500", (isRefreshing || loading) && "animate-spin text-amber-600")} />
+              <span>Segarkan</span>
+            </Button>
+            <Button
               onClick={() => navigate("/kasir/antrean")}
-              className="h-10 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-md shadow-amber-600/20 gap-2 transition-all"
+              className="h-10 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-md shadow-amber-600/20 gap-2 transition-all cursor-pointer"
             >
               <Receipt className="h-4 w-4" />
-              Antrean Tagihan ({pendingList.length})
+              <span>Antrean Tagihan ({pendingList.length})</span>
             </Button>
           </div>
         }
       />
 
-      {/* Stats Ringkasan (4 Grid) */}
+      {/* Stats Ringkasan 4 Kartu Minimalis & Pro */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Menunggu Pembayaran"
           value={loading ? "..." : `${pendingList.length} Pasien`}
           sub="Prioritas kasir untuk ditagihkan"
+          badgeText="Prioritas Kasir"
+          badgeColor="bg-amber-50 text-amber-800 border-amber-200 font-bold"
           icon={Clock}
           color="text-amber-600"
           bgColor="bg-amber-50"
@@ -141,6 +239,8 @@ export function KasirDashboard() {
           label="Lunas Hari Ini"
           value={loading ? "..." : `${paidList.length} Pasien`}
           sub="Telah diteruskan ke Poliklinik"
+          badgeText="Selesai Ditagih"
+          badgeColor="bg-emerald-50 text-emerald-800 border-emerald-200 font-bold"
           icon={CheckCircle2}
           color="text-emerald-600"
           bgColor="bg-emerald-50"
@@ -149,7 +249,9 @@ export function KasirDashboard() {
         <StatCard
           label="Total Pasien Terdaftar"
           value={loading ? "..." : `${queue.length} Pasien`}
-          sub="Total registrasi hari ini"
+          sub="Kunjungan rawat jalan hari ini"
+          badgeText="Registrasi Hari Ini"
+          badgeColor="bg-sky-50 text-sky-800 border-sky-200 font-bold"
           icon={TrendingUp}
           color="text-sky-600"
           bgColor="bg-sky-50"
@@ -158,7 +260,9 @@ export function KasirDashboard() {
         <StatCard
           label="Penerimaan Hari Ini"
           value={loading ? "..." : formatRupiah(totalRevenueEst)}
-          sub={`${paidList.length} transaksi selesai`}
+          sub={`${paidList.length} transaksi selesai terverifikasi`}
+          badgeText="Kas Masuk"
+          badgeColor="bg-purple-50 text-purple-800 border-purple-200 font-bold"
           icon={Receipt}
           color="text-purple-600"
           bgColor="bg-purple-50"
@@ -166,222 +270,399 @@ export function KasirDashboard() {
         />
       </div>
 
-      {/* Hero Alur Utama Kasir Banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-6 sm:p-8 text-white shadow-lg shadow-amber-500/20">
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/5 transform skew-x-12 pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 rounded-full text-xs font-bold backdrop-blur-xs text-white">
-              <Sparkles className="h-3.5 w-3.5 text-amber-200" />
-              Alur Kasir Terintegrasi
+      {/* Pencarian Invoice & Command Bar Cepat */}
+      <Card className="card-premium border-slate-200/90 shadow-2xs">
+        <CardContent className="p-5 sm:p-6">
+          <form onSubmit={handleSearchSubmit} className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700">
+                  <Search className="h-4 w-4" />
+                </div>
+                <span className="text-sm font-bold text-slate-900">Pencarian Cepat & Pembayaran Instan</span>
+              </div>
+              <span className="text-[11px] text-slate-400 hidden sm:inline-block">
+                Tekan <kbd className="px-1.5 py-0.5 text-[10px] font-semibold bg-slate-100 border border-slate-200 rounded text-slate-600">Enter</kbd> untuk proses transaksi
+              </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-              Antrean Tagihan & Transaksi Pembayaran Pasien
-            </h2>
-            <p className="text-amber-50/90 text-xs sm:text-sm leading-relaxed">
-              Buka antrean tagihan untuk memproses pembayaran biaya pendaftaran, tindakan medis poliklinik, resep obat farmasi, dan cetak kuitansi resmi SIMRS.
-            </p>
-          </div>
-          <Link
-            to="/kasir/antrean"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-amber-50 text-amber-900 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-md shrink-0 active:scale-95 cursor-pointer"
-          >
-            <span>Buka Antrean Tagihan</span>
-            <ArrowRight className="h-4 w-4 text-amber-600" />
-          </Link>
-        </div>
-      </div>
 
-      {/* Pencarian Invoice & Encounter Cepat */}
-      <Card className="card-premium">
-        <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-base font-bold text-slate-900">Pencarian Tagihan / Pasien Cepat</CardTitle>
-              <CardDescription className="text-xs text-slate-500 mt-0.5">
-                Masukkan No. Rekam Medis (RM), Nomor Encounter/Registrasi, atau Nama Pasien
-              </CardDescription>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Input
+                  placeholder="Cari No. Rekam Medis (10-00-00-01), No. Registrasi, atau Nama Pasien..."
+                  value={encounterSearch}
+                  onChange={(e) => setEncounterSearch(e.target.value)}
+                  className="pl-12 h-12 bg-slate-50/50 hover:bg-white focus:bg-white border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus-visible:ring-amber-500 text-sm transition-all"
+                />
+                {encounterSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setEncounterSearch("")}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <Button
+                type="submit"
+                className="h-12 px-7 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs shadow-md transition-all gap-2 shrink-0 cursor-pointer"
+              >
+                <CreditCard className="h-4 w-4 text-amber-400" />
+                <span>Proses Pembayaran</span>
+                <ChevronRight className="h-4 w-4 text-slate-400" />
+              </Button>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-5">
-          <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <Input
-                placeholder="Contoh: 10-00-00-01, 202608010015, atau Budi Santoso..."
-                value={encounterSearch}
-                onChange={(e) => setEncounterSearch(e.target.value)}
-                className="pl-12 h-12 bg-white border-slate-200/80 rounded-xl text-slate-900 placeholder:text-slate-400 focus-visible:ring-amber-500 text-sm shadow-2xs"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="h-12 px-7 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs shadow-md transition-all gap-2 shrink-0"
-            >
-              <CreditCard className="h-4 w-4 text-amber-400" />
-              <span>Proses Pembayaran</span>
-              <ChevronRight className="h-4 w-4 text-slate-400" />
-            </Button>
           </form>
         </CardContent>
       </Card>
 
-      {/* Equal Height Split Section */}
+      {/* Equal Height Split Section: Antrean Terkini (8 cols) & Command Navigasi (4 cols) */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
         {/* Left Column: Antrean Tagihan Terkini (8 cols) */}
         <div className="xl:col-span-8 flex flex-col">
-          <Card className="card-premium overflow-hidden flex flex-col h-full">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-5 shrink-0">
+          <Card className="card-premium overflow-hidden flex flex-col h-full border-slate-200/90 shadow-2xs">
+            <CardHeader className="bg-slate-50/60 border-b border-slate-100 p-5 shrink-0">
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base font-bold text-slate-900">
-                    Antrean Menunggu Pembayaran
-                  </CardTitle>
-                  <CardDescription className="text-xs text-slate-500 mt-0.5">
-                    Pasien prioritas yang siap dilakukan proses pembayaran kasir
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base font-bold text-slate-900">
+                      Antrean Menunggu Pembayaran
+                    </CardTitle>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                  </div>
+                  <CardDescription className="text-xs text-slate-500">
+                    Pasien prioritas yang siap dilakukan proses pelunasan biaya layanan
                   </CardDescription>
                 </div>
-                <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
+                <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full shrink-0">
                   {pendingList.length} Menunggu
                 </span>
               </div>
             </CardHeader>
-            <div className="flex-1 overflow-x-auto custom-scrollbar flex flex-col min-h-[360px]">
+
+            <div className="flex-1 overflow-x-auto custom-scrollbar flex flex-col min-h-[380px]">
               {loading ? (
-                <div className="flex-1 flex items-center justify-center py-16 text-slate-400">
-                  <span>Memuat data antrean...</span>
+                <div className="flex-1 flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
+                  <RefreshCw className="h-6 w-6 animate-spin text-amber-600" />
+                  <span className="text-xs font-medium">Memuat antrean tagihan pasien...</span>
                 </div>
               ) : pendingList.length > 0 ? (
                 <div className="divide-y divide-slate-100">
-                  {pendingList.slice(0, 5).map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-amber-50/30 transition-colors"
-                    >
-                      <div className="flex items-start sm:items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold text-sm shrink-0">
-                          {idx + 1}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold text-slate-900 text-sm">{item.patient_name}</span>
-                            <span className="font-mono font-bold text-slate-800 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-[11px]">
-                              {item.mrn}
-                            </span>
-                            <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
-                              Poli Umum
-                            </span>
+                  {pendingList.slice(0, 5).map((item, idx) => {
+                    const deptName = getDepartmentName(item.department_code);
+                    const deptCode = item.department_code || "01";
+
+                    return (
+                      <div
+                        key={item.encounter_no || idx}
+                        className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-amber-50/30 transition-colors"
+                      >
+                        <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                          <div className="h-10 w-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-extrabold text-sm shrink-0 shadow-2xs">
+                            {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
                           </div>
-                          <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                            <span>Reg: #{item.encounter_no}</span>
-                            <span>•</span>
-                            <span className="font-semibold text-slate-700">
-                              Estimasi: {formatRupiah(item.estimated_amount || 50000)}
-                            </span>
-                          </p>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-slate-900 text-sm truncate max-w-[200px] sm:max-w-[280px]">
+                                {item.patient_name}
+                              </span>
+                              <span className="font-mono font-bold text-slate-900 bg-slate-100 border border-slate-200/90 px-2 py-0.5 rounded-md text-[11px] tracking-wider shadow-2xs shrink-0">
+                                {item.mrn}
+                              </span>
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200/70 px-2 py-0.5 rounded-md shrink-0">
+                                <span className="font-mono font-bold text-amber-700">[{deptCode}]</span>
+                                <span>{deptName}</span>
+                              </span>
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1 flex items-center gap-2.5 flex-wrap">
+                              <span className="font-mono text-slate-400">#{item.encounter_no}</span>
+                              <span className="text-slate-300">•</span>
+                              <span>
+                                Penjamin:{" "}
+                                <strong className="text-slate-700 font-semibold">{item.status_pasien || "Umum"}</strong>
+                              </span>
+                              <span className="text-slate-300">•</span>
+                              <span className="font-bold text-slate-900">
+                                Estimasi: {formatRupiah(item.estimated_amount || 50000)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenInvoiceDetail(item)}
+                            className="h-9 px-3 border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl gap-1.5 cursor-pointer shadow-2xs"
+                            title="Lihat Rincian Tagihan"
+                          >
+                            <Eye className="h-3.5 w-3.5 text-sky-600" />
+                            <span className="hidden sm:inline">Rincian</span>
+                          </Button>
+                          <Button
+                            onClick={() => navigate(`/kasir/bayar/${item.encounter_no}`)}
+                            size="sm"
+                            className="h-9 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs shadow-amber-600/20 transition-all gap-1.5 cursor-pointer"
+                          >
+                            <CreditCard className="h-3.5 w-3.5" />
+                            <span>Bayar</span>
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
-                        <Button
-                          onClick={() => navigate(`/kasir/bayar/${item.encounter_no}`)}
-                          size="sm"
-                          className="h-9 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs shadow-amber-600/20 transition-all gap-1.5"
-                        >
-                          <CreditCard className="h-3.5 w-3.5" />
-                          Bayar Sekarang
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="flex-1 flex flex-col items-center justify-center py-16 text-slate-400 gap-2">
-                  <CheckCircle2 className="h-10 w-10 text-emerald-500/40" />
-                  <p className="text-sm font-semibold text-slate-700">Semua Tagihan Selesai</p>
-                  <p className="text-xs text-slate-400">Tidak ada antrean pasien yang menunggu pembayaran.</p>
+                <div className="flex-1 flex flex-col items-center justify-center py-16 text-slate-400 gap-2.5">
+                  <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200/60">
+                    <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-800">Semua Tagihan Selesai</p>
+                  <p className="text-xs text-slate-400">Tidak ada antrean pasien yang menunggu pembayaran saat ini.</p>
                 </div>
               )}
             </div>
-            <div className="mt-auto p-4 border-t border-slate-100 bg-slate-50/40 rounded-b-2xl shrink-0 flex justify-between items-center">
+
+            <div className="mt-auto p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl shrink-0 flex justify-between items-center">
               <span className="text-xs text-slate-500 font-medium">
-                Menampilkan maksimal 5 antrean teratas
+                Menampilkan maksimal 5 antrean tagihan teratas
               </span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/kasir/antrean")}
-                className="text-xs font-bold text-amber-700 hover:text-amber-800 hover:bg-amber-50 gap-1 rounded-lg"
+                className="text-xs font-bold text-amber-700 hover:text-amber-800 hover:bg-amber-50 gap-1 rounded-lg cursor-pointer"
               >
-                Buka Semua Antrean ({pendingList.length})
+                <span>Buka Semua Antrean ({pendingList.length})</span>
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
             </div>
           </Card>
         </div>
 
-        {/* Right Column: Shortcut Menu (4 cols) */}
-        <div className="xl:col-span-4 flex flex-col">
-          <Card className="card-premium overflow-hidden flex flex-col h-full">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-5 shrink-0">
-              <CardTitle className="text-base font-bold text-slate-900">Aksi & Navigasi Kasir</CardTitle>
-              <CardDescription className="text-xs text-slate-500 mt-0.5">Pintasan menu operasional kasir</CardDescription>
+        {/* Right Column: Shift & Shortcut Navigasi (4 cols) */}
+        <div className="xl:col-span-4 flex flex-col space-y-6">
+          {/* Card 1: Informasi Shift Kasir & Loket Aktif */}
+          <Card className="card-premium overflow-hidden border-slate-200/90 shadow-2xs">
+            <CardHeader className="bg-slate-50/60 border-b border-slate-100 p-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-amber-50 rounded-lg border border-amber-200 text-amber-700">
+                    <UserCheck className="h-4 w-4" />
+                  </div>
+                  <CardTitle className="text-sm font-bold text-slate-900">Shift Kasir Aktif</CardTitle>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Loket Buka
+                </span>
+              </div>
             </CardHeader>
-            <CardContent className="p-4 flex-1 flex flex-col justify-between space-y-3">
+            <CardContent className="p-5 space-y-3.5 text-xs">
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-500 font-medium">Petugas Kasir</span>
+                <span className="font-bold text-slate-900">Staf Kasir 1</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-500 font-medium">Lokasi Loket</span>
+                <span className="font-semibold text-slate-800">Loket Kasir 01 (Rawat Jalan)</span>
+              </div>
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-500 font-medium">Shift Kerja</span>
+                <span className="font-semibold text-slate-800">Pagi (07:00 - 14:00 WIB)</span>
+              </div>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500 font-medium">Total Transaksi Shift</span>
+                <span className="font-extrabold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md">
+                  {paidList.length} Transaksi Lunas
+                </span>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  onClick={() => navigate("/kasir/laporan")}
+                  variant="outline"
+                  className="w-full h-10 border-amber-200 hover:bg-amber-50 text-amber-800 font-bold text-xs rounded-xl gap-2 cursor-pointer shadow-2xs"
+                >
+                  <FileText className="h-3.5 w-3.5 text-amber-600" />
+                  <span>Rekapitulasi Penerimaan Shift</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card 2: Pintasan Operasional Kasir */}
+          <Card className="card-premium overflow-hidden border-slate-200/90 shadow-2xs flex-1 flex flex-col">
+            <CardHeader className="bg-slate-50/60 border-b border-slate-100 p-5 shrink-0">
+              <CardTitle className="text-sm font-bold text-slate-900">Pintasan Operasional</CardTitle>
+              <CardDescription className="text-xs text-slate-500 mt-0.5">
+                Akses instan modul kasir dan keuangan
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 space-y-2.5 flex-1 flex flex-col justify-between">
               <Link
                 to="/kasir/antrean"
-                className="group p-4 rounded-xl border border-slate-200/80 bg-white hover:border-amber-400 hover:shadow-md transition-all flex items-center gap-3"
+                className="group p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-amber-400 hover:shadow-xs transition-all flex items-center gap-3 cursor-pointer"
               >
-                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-100 transition-colors border border-amber-200/60">
-                  <Receipt className="h-5 w-5" />
+                <div className="p-2.5 bg-amber-50 text-amber-600 rounded-xl group-hover:bg-amber-100 transition-colors border border-amber-200/60 shrink-0">
+                  <Receipt className="h-4 w-4" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="font-bold text-slate-900 text-xs">Antrean Tagihan Pasien</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Lihat seluruh antrean tagihan</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5 truncate">Daftar invoice menunggu bayar</p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-amber-600 transition-colors" />
+                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                  {pendingList.length}
+                </span>
               </Link>
 
               <Link
                 to="/kasir/riwayat-pembayaran"
-                className="group p-4 rounded-xl border border-slate-200/80 bg-white hover:border-sky-400 hover:shadow-md transition-all flex items-center gap-3"
+                className="group p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-sky-400 hover:shadow-xs transition-all flex items-center gap-3 cursor-pointer"
               >
-                <div className="p-3 bg-sky-50 text-sky-600 rounded-xl group-hover:bg-sky-100 transition-colors border border-sky-200/60">
-                  <FileText className="h-5 w-5" />
+                <div className="p-2.5 bg-sky-50 text-sky-600 rounded-xl group-hover:bg-sky-100 transition-colors border border-sky-200/60 shrink-0">
+                  <FileText className="h-4 w-4" />
                 </div>
-                <div className="flex-1">
-                  <p className="font-bold text-slate-900 text-xs">Riwayat & Cetak Kwitansi</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Arsip transaksi & cetak nota</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-slate-900 text-xs">Riwayat Kwitansi</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5 truncate">Arsip kuitansi & cetak nota resmi</p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-sky-600 transition-colors" />
               </Link>
 
               <Link
-                to="/kasir/bayar"
-                className="group p-4 rounded-xl border border-slate-200/80 bg-white hover:border-emerald-400 hover:shadow-md transition-all flex items-center gap-3"
+                to="/kasir/laporan"
+                className="group p-3.5 rounded-xl border border-slate-200/80 bg-white hover:border-emerald-400 hover:shadow-xs transition-all flex items-center gap-3 cursor-pointer"
               >
-                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-100 transition-colors border border-emerald-200/60">
-                  <CreditCard className="h-5 w-5" />
+                <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-100 transition-colors border border-emerald-200/60 shrink-0">
+                  <BadgeDollarSign className="h-4 w-4" />
                 </div>
-                <div className="flex-1">
-                  <p className="font-bold text-slate-900 text-xs">Terminal Transaksi Langsung</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Proses pembayaran invoice mandiri</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-slate-900 text-xs">Rekap Penerimaan & Closing</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5 truncate">Laporan harian & cetak Berita Acara A4</p>
                 </div>
                 <ChevronRight className="h-4 w-4 text-slate-400 group-hover:text-emerald-600 transition-colors" />
               </Link>
             </CardContent>
-            <div className="mt-auto p-4 border-t border-slate-100 bg-slate-50/40 rounded-b-2xl shrink-0">
-              <Button
-                variant="outline"
-                className="w-full font-semibold text-amber-700 border-amber-200 hover:bg-amber-50 rounded-xl text-xs h-10"
-                onClick={() => navigate("/kasir/riwayat-pembayaran")}
-              >
-                Lihat Rekap Harian
-              </Button>
-            </div>
           </Card>
         </div>
       </div>
+
+      {/* Modal Quick Peek Detail Tagihan */}
+      <Dialog open={!!selectedEncounter} onOpenChange={(open) => !open && setSelectedEncounter(null)}>
+        <DialogContent className="max-w-md p-0 overflow-hidden rounded-2xl">
+          <DialogHeader className="bg-slate-900 text-white p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-500 text-slate-900">
+                  <Receipt className="h-4 w-4" />
+                </div>
+                <div>
+                  <DialogTitle className="text-base font-bold text-white">
+                    Rincian Tagihan Pasien
+                  </DialogTitle>
+                  <p className="text-xs text-slate-400 font-mono mt-0.5">
+                    Reg: #{selectedEncounter?.encounter_no}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="p-5 space-y-4 text-xs">
+            {/* Demographic Strip */}
+            <div className="bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl space-y-1.5">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-medium">Nama Pasien</span>
+                <span className="font-bold text-slate-900 text-sm">{selectedEncounter?.patient_name}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-medium">No. Rekam Medis (RM)</span>
+                <span className="font-mono font-bold text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded text-[11px]">
+                  {selectedEncounter?.mrn}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-medium">Pelayanan</span>
+                <span className="font-semibold text-amber-800">
+                  [{selectedEncounter?.department_code || "01"}] {getDepartmentName(selectedEncounter?.department_code)}
+                </span>
+              </div>
+            </div>
+
+            {/* Fee Items */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">Komponen Biaya</span>
+              {invoiceLoading ? (
+                <div className="py-6 text-center text-slate-400 flex flex-col items-center gap-2">
+                  <RefreshCw className="h-4 w-4 animate-spin text-amber-600" />
+                  <span>Memuat komponen invoice...</span>
+                </div>
+              ) : invoiceDetail && invoiceDetail.items.length > 0 ? (
+                <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-xl overflow-hidden bg-white">
+                  {invoiceDetail.items.map((it, idx) => (
+                    <div key={idx} className="p-3 flex justify-between items-center text-xs">
+                      <div>
+                        <p className="font-bold text-slate-800">{it.description}</p>
+                        <p className="text-[10px] text-slate-400 uppercase tracking-wider">{it.item_type || "Tindakan"}</p>
+                      </div>
+                      <span className="font-bold text-slate-900">{formatRupiah(it.amount)}</span>
+                    </div>
+                  ))}
+                  <div className="p-3 bg-amber-50/60 flex justify-between items-center font-bold text-slate-900">
+                    <span>Total Tagihan</span>
+                    <span className="text-amber-700 text-sm">{formatRupiah(invoiceDetail.total_amount)}</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-xl overflow-hidden bg-white">
+                  <div className="p-3 flex justify-between items-center text-xs">
+                    <div>
+                      <p className="font-bold text-slate-800">Biaya Administrasi & Pelayanan Poli</p>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Registrasi & Konsultasi</p>
+                    </div>
+                    <span className="font-bold text-slate-900">{formatRupiah(selectedEncounter?.estimated_amount || 50000)}</span>
+                  </div>
+                  <div className="p-3 bg-amber-50/60 flex justify-between items-center font-bold text-slate-900">
+                    <span>Total Tagihan</span>
+                    <span className="text-amber-700 text-sm">{formatRupiah(selectedEncounter?.estimated_amount || 50000)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedEncounter(null)}
+                className="h-10 px-4 rounded-xl border-slate-200 text-slate-600 font-semibold cursor-pointer"
+              >
+                Tutup
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  const enc = selectedEncounter?.encounter_no;
+                  setSelectedEncounter(null);
+                  if (enc) navigate(`/kasir/bayar/${enc}`);
+                }}
+                className="h-10 px-5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold gap-2 cursor-pointer shadow-md shadow-amber-600/20"
+              >
+                <CreditCard className="h-4 w-4" />
+                <span>Lanjut ke Pembayaran</span>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
