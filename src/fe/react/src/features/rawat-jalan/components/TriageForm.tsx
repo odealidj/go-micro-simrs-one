@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { submitTriage } from "../api/rawatJalanApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,31 +19,77 @@ interface TriageFormProps {
   initialData?: TriageData;
   readOnly?: boolean;
   onSuccess?: () => void;
+  onDataChange?: (data: TriageFormState) => void;
+  autoSaveRef?: React.MutableRefObject<(() => Promise<boolean>) | null>;
 }
 
-export function TriageForm({ encounterNo, initialData, readOnly = false, onSuccess }: TriageFormProps) {
+export interface TriageFormState {
+  blood_pressure_systolic: string;
+  blood_pressure_diastolic: string;
+  temperature: string;
+  heart_rate: string;
+  respiratory_rate: string;
+  oxygen_saturation: string;
+  height: string;
+  weight: string;
+  allergies: string;
+  notes: string;
+}
+
+export function TriageForm({
+  encounterNo,
+  initialData,
+  readOnly = false,
+  onSuccess,
+  onDataChange,
+  autoSaveRef,
+}: TriageFormProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({
-    blood_pressure_systolic: initialData?.blood_pressure_systolic || 120,
-    blood_pressure_diastolic: initialData?.blood_pressure_diastolic || 80,
-    temperature: initialData?.temperature || 36.5,
-    heart_rate: initialData?.heart_rate || 80,
-    respiratory_rate: initialData?.respiratory_rate || 20,
-    oxygen_saturation: initialData?.oxygen_saturation || 98,
-    height: initialData?.height || 165,
-    weight: initialData?.weight || 60,
+  const [formData, setFormData] = useState<TriageFormState>({
+    blood_pressure_systolic: initialData?.blood_pressure_systolic ? String(initialData.blood_pressure_systolic) : "",
+    blood_pressure_diastolic: initialData?.blood_pressure_diastolic ? String(initialData.blood_pressure_diastolic) : "",
+    temperature: initialData?.temperature ? String(initialData.temperature) : "",
+    heart_rate: initialData?.heart_rate ? String(initialData.heart_rate) : "",
+    respiratory_rate: initialData?.respiratory_rate ? String(initialData.respiratory_rate) : "",
+    oxygen_saturation: initialData?.oxygen_saturation ? String(initialData.oxygen_saturation) : "",
+    height: initialData?.height ? String(initialData.height) : "",
+    weight: initialData?.weight ? String(initialData.weight) : "",
     allergies: initialData?.allergies || "",
     notes: initialData?.notes || "",
   });
 
+  // Keep formData in sync if initialData arrives after mount
+  useEffect(() => {
+    if (initialData) {
+      setFormData(prev => {
+        const next = {
+          blood_pressure_systolic: initialData.blood_pressure_systolic ? String(initialData.blood_pressure_systolic) : prev.blood_pressure_systolic,
+          blood_pressure_diastolic: initialData.blood_pressure_diastolic ? String(initialData.blood_pressure_diastolic) : prev.blood_pressure_diastolic,
+          temperature: initialData.temperature ? String(initialData.temperature) : prev.temperature,
+          heart_rate: initialData.heart_rate ? String(initialData.heart_rate) : prev.heart_rate,
+          respiratory_rate: initialData.respiratory_rate ? String(initialData.respiratory_rate) : prev.respiratory_rate,
+          oxygen_saturation: initialData.oxygen_saturation ? String(initialData.oxygen_saturation) : prev.oxygen_saturation,
+          height: initialData.height ? String(initialData.height) : prev.height,
+          weight: initialData.weight ? String(initialData.weight) : prev.weight,
+          allergies: initialData.allergies ?? prev.allergies,
+          notes: initialData.notes ?? prev.notes,
+        };
+        if (onDataChange) onDataChange(next);
+        return next;
+      });
+    }
+  }, [initialData]);
+
   // Calculate BMI: Weight(kg) / (Height(m)^2)
   const bmiCalc = useMemo(() => {
-    if (!formData.height || !formData.weight || formData.height <= 0) return null;
-    const heightInMeters = formData.height / 100;
-    const val = formData.weight / (heightInMeters * heightInMeters);
+    const h = Number(formData.height);
+    const w = Number(formData.weight);
+    if (!h || !w || h <= 0 || w <= 0) return null;
+    const heightInMeters = h / 100;
+    const val = w / (heightInMeters * heightInMeters);
     const score = Number(val.toFixed(1));
     let label = "Normal";
     let color = "text-emerald-700 bg-emerald-50 border-emerald-200";
@@ -64,30 +110,63 @@ export function TriageForm({ encounterNo, initialData, readOnly = false, onSucce
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: ["notes", "allergies"].includes(name) ? value : Number(value)
-    }));
+    setFormData(prev => {
+      const updated = {
+        ...prev,
+        [name]: value,
+      };
+      if (onDataChange) {
+        onDataChange(updated);
+      }
+      return updated;
+    });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveTriage = async (): Promise<boolean> => {
     setLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
       await submitTriage(encounterNo, {
-        ...formData,
+        blood_pressure_systolic: Number(formData.blood_pressure_systolic) || 0,
+        blood_pressure_diastolic: Number(formData.blood_pressure_diastolic) || 0,
+        temperature: Number(formData.temperature) || 0,
+        heart_rate: Number(formData.heart_rate) || 0,
+        respiratory_rate: formData.respiratory_rate ? Number(formData.respiratory_rate) : undefined,
+        oxygen_saturation: formData.oxygen_saturation ? Number(formData.oxygen_saturation) : undefined,
+        height: formData.height ? Number(formData.height) : undefined,
+        weight: formData.weight ? Number(formData.weight) : undefined,
+        allergies: formData.allergies,
+        notes: formData.notes,
         bmi: bmiCalc?.score,
       });
       setSuccess(true);
       if (onSuccess) onSuccess();
+      return true;
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message || "Gagal menyimpan data triage");
+      return false;
     } finally {
       setLoading(false);
     }
+  };
+
+  // Expose save function to parent ref for auto-saving
+  useEffect(() => {
+    if (autoSaveRef) {
+      autoSaveRef.current = handleSaveTriage;
+    }
+    return () => {
+      if (autoSaveRef) {
+        autoSaveRef.current = null;
+      }
+    };
+  }, [formData, bmiCalc]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleSaveTriage();
   };
 
   return (
@@ -138,7 +217,7 @@ export function TriageForm({ encounterNo, initialData, readOnly = false, onSucce
                   onChange={handleChange}
                   disabled={readOnly}
                   className="h-10 text-center font-medium"
-                  placeholder="Sistolik"
+                  placeholder="Contoh: 120"
                   min="0"
                 />
                 <span className="text-slate-400 font-bold">/</span>
@@ -149,7 +228,7 @@ export function TriageForm({ encounterNo, initialData, readOnly = false, onSucce
                   onChange={handleChange}
                   disabled={readOnly}
                   className="h-10 text-center font-medium"
-                  placeholder="Diastolik"
+                  placeholder="Contoh: 80"
                   min="0"
                 />
               </div>
@@ -168,6 +247,7 @@ export function TriageForm({ encounterNo, initialData, readOnly = false, onSucce
                 onChange={handleChange}
                 disabled={readOnly}
                 className="h-10 font-medium"
+                placeholder="Contoh: 36.5"
                 min="30"
                 max="45"
               />
@@ -184,6 +264,7 @@ export function TriageForm({ encounterNo, initialData, readOnly = false, onSucce
                 onChange={handleChange}
                 disabled={readOnly}
                 className="h-10 font-medium"
+                placeholder="Contoh: 80"
                 min="0"
               />
             </div>
@@ -200,7 +281,7 @@ export function TriageForm({ encounterNo, initialData, readOnly = false, onSucce
                   onChange={handleChange}
                   disabled={readOnly}
                   className="h-10 text-center font-medium"
-                  placeholder="RR"
+                  placeholder="Contoh: 20"
                   min="0"
                 />
                 <span className="text-slate-400 font-bold">|</span>
@@ -211,7 +292,7 @@ export function TriageForm({ encounterNo, initialData, readOnly = false, onSucce
                   onChange={handleChange}
                   disabled={readOnly}
                   className="h-10 text-center font-medium"
-                  placeholder="SpO2"
+                  placeholder="Contoh: 98"
                   min="0"
                   max="100"
                 />
@@ -238,6 +319,7 @@ export function TriageForm({ encounterNo, initialData, readOnly = false, onSucce
                 onChange={handleChange}
                 disabled={readOnly}
                 className="h-10 font-medium"
+                placeholder="Contoh: 165"
                 min="20"
                 max="250"
               />
@@ -254,6 +336,7 @@ export function TriageForm({ encounterNo, initialData, readOnly = false, onSucce
                 onChange={handleChange}
                 disabled={readOnly}
                 className="h-10 font-medium"
+                placeholder="Contoh: 60"
                 min="1"
                 max="300"
               />
@@ -298,7 +381,7 @@ export function TriageForm({ encounterNo, initialData, readOnly = false, onSucce
               onChange={handleChange}
               disabled={readOnly}
               className="w-full h-20 bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-sm text-slate-700 focus:bg-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-colors resize-none disabled:opacity-75 disabled:cursor-not-allowed"
-              placeholder="Keluhan utama pasien saat skrining awal..."
+              placeholder="Contoh: Pasien mengeluh pusing dan demam sejak 2 hari yang lalu..."
             />
           </div>
         </div>

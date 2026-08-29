@@ -22,10 +22,10 @@ export function UnauthorizedPage() {
         navigate("/admisi");
         break;
       case "dokter":
-        navigate("/dokter");
+        navigate("/rawat-jalan/dokter");
         break;
       case "perawat":
-        navigate("/perawat");
+        navigate("/rawat-jalan/perawat");
         break;
       case "kasir":
         navigate("/kasir");

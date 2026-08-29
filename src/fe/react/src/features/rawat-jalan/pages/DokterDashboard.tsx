@@ -125,7 +125,7 @@ export function DokterDashboard() {
       {/* Quick Menu Shortcuts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link
-          to="/dokter/antrean"
+          to="/rawat-jalan/dokter/antrean"
           className="group bg-white rounded-2xl border border-slate-200 p-6 flex items-center gap-5 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all"
         >
           <div className="p-4 bg-emerald-50 rounded-2xl group-hover:bg-emerald-100 transition-colors text-emerald-600">
@@ -150,7 +150,7 @@ export function DokterDashboard() {
         </Link>
 
         <Link
-          to="/dokter/riwayat"
+          to="/rawat-jalan/dokter/riwayat"
           className="group bg-white rounded-2xl border border-slate-200 p-6 flex items-center gap-5 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all"
         >
           <div className="p-4 bg-slate-50 rounded-2xl group-hover:bg-slate-100 transition-colors text-slate-600">

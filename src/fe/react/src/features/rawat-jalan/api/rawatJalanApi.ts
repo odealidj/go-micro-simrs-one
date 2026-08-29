@@ -42,6 +42,10 @@ export const startEncounter = async (encounterNo: string): Promise<void> => {
   await api.post("/rawat-jalan/encounter/start", { encounter_no: encounterNo });
 };
 
+export const resetEncounter = async (encounterNo: string): Promise<void> => {
+  await api.post("/rawat-jalan/encounter/reset", { encounter_no: encounterNo });
+};
+
 export const completeEncounter = async (encounterNo: string): Promise<void> => {
   await api.post("/rawat-jalan/encounter/complete", { encounter_no: encounterNo });
 };

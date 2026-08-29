@@ -11,6 +11,8 @@ import {
   Stethoscope,
   Trash2,
   AlertCircle,
+  AlertTriangle,
+  HeartPulse,
   Plus,
   Layers,
   Edit2,
@@ -24,6 +26,8 @@ interface DiagnosisFormProps {
   encounterSeverityLevel?: string;
   readOnly?: boolean;
   onSuccess?: () => void;
+  hasTriage?: boolean;
+  onNavigateTriage?: () => void;
 }
 
 export function DiagnosisForm({
@@ -32,7 +36,9 @@ export function DiagnosisForm({
   diagnoses = [],
   encounterSeverityLevel,
   readOnly = false,
-  onSuccess
+  onSuccess,
+  hasTriage = true,
+  onNavigateTriage,
 }: DiagnosisFormProps) {
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
@@ -267,8 +273,33 @@ export function DiagnosisForm({
         )}
       </div>
 
-      {/* Add / Edit Form */}
-      {!readOnly && (
+      {/* Petunjuk jika Triage belum ada di DB */}
+      {!hasTriage && !readOnly && (
+        <div className="p-6 bg-amber-50/90 border border-amber-200 rounded-2xl flex flex-col items-center justify-center text-center gap-3 my-2 shadow-2xs">
+          <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-700">
+            <AlertTriangle className="h-6 w-6" />
+          </div>
+          <div className="space-y-1 max-w-md">
+            <h4 className="text-sm font-bold text-amber-950">Asesmen Triage Belum Ada di Database</h4>
+            <p className="text-xs text-amber-700 leading-relaxed">
+              Sesuai standar operasional pelayanan medis, data Asesmen Triage awal (tanda-tanda vital) wajib diisi dan disimpan ke database terlebih dahulu sebelum dokter dapat mengentri diagnosa medis (ICD-10).
+            </p>
+          </div>
+          {onNavigateTriage && (
+            <Button
+              type="button"
+              onClick={onNavigateTriage}
+              className="mt-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold gap-2 cursor-pointer shadow-xs"
+            >
+              <HeartPulse className="h-4 w-4" />
+              Isi Asesmen Triage Terlebih Dahulu
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Add / Edit Form (hanya aktif jika Asesmen Triage sudah ada di DB) */}
+      {!readOnly && hasTriage && (
         <form onSubmit={handleSubmit} className="p-5 border border-indigo-100 bg-indigo-50/30 rounded-xl space-y-4">
           <h4 className="text-sm font-semibold text-indigo-900 flex items-center gap-2 mb-2">
             {isEditing ? <Edit2 className="h-4 w-4" /> : <Plus className="h-4 w-4" />} 

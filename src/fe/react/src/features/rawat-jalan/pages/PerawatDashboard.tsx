@@ -123,7 +123,7 @@ export function PerawatDashboard() {
       {/* Quick Menu Shortcuts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link
-          to="/perawat/antrean"
+          to="/rawat-jalan/perawat/antrean"
           className="group bg-white rounded-2xl border border-slate-200 p-6 flex items-center gap-5 shadow-sm hover:shadow-md hover:border-cyan-300 transition-all"
         >
           <div className="p-4 bg-cyan-50 rounded-2xl group-hover:bg-cyan-100 transition-colors text-cyan-600">
@@ -148,7 +148,7 @@ export function PerawatDashboard() {
         </Link>
 
         <Link
-          to="/perawat/triage"
+          to="/rawat-jalan/perawat/triage"
           className="group bg-white rounded-2xl border border-slate-200 p-6 flex items-center gap-5 shadow-sm hover:shadow-md hover:border-cyan-300 transition-all"
         >
           <div className="p-4 bg-amber-50 rounded-2xl group-hover:bg-amber-100 transition-colors text-amber-600">

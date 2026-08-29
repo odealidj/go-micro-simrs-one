@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/AuthContext";
 
 interface ResumeDispositionFormProps {
   encounterNo: string;
@@ -40,6 +41,7 @@ export function ResumeDispositionForm({
   onSuccess,
 }: ResumeDispositionFormProps) {
   const navigate = useNavigate();
+  const { role } = useAuth();
   const [disposition, setDisposition] = useState("PULANG");
   const [controlDate, setControlDate] = useState("");
   const [educationNotes, setEducationNotes] = useState("");
@@ -87,7 +89,7 @@ export function ResumeDispositionForm({
           </div>
           <div className="flex gap-3 pt-2">
             <Button
-              onClick={() => navigate("/dokter/antrean")}
+              onClick={() => navigate(role === "perawat" ? "/rawat-jalan/perawat/antrean" : "/rawat-jalan/dokter/antrean")}
               className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs h-9 px-4"
             >
               Kembali ke Antrean Pasien
