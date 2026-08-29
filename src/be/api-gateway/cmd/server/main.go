@@ -2809,6 +2809,27 @@ func main() {
 					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
 				})
 
+				r.Post("/rawat-jalan/encounter/reset", func(w http.ResponseWriter, req *http.Request) {
+					var payload struct {
+						EncounterNo string `json:"encounter_no"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					if payload.EncounterNo == "" {
+						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: "encounter_no is required"})
+						return
+					}
+					_, _ = circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
+						return regClient.UpdateEncounterStatus(req.Context(), &regpb.UpdateEncounterStatusRequest{
+							EncounterNo: payload.EncounterNo,
+							Status:      "QUEUED_FOR_POLI",
+						})
+					})
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Encounter status reset to queue"})
+				})
+
 				r.Post("/rawat-jalan/encounter/complete", func(w http.ResponseWriter, req *http.Request) {
 					var payload rawatjalanpb.CompleteEncounterRequest
 					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {

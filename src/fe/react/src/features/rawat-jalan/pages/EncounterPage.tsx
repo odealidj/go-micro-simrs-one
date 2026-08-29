@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getMedicalRecord, startEncounter, completeEncounter } from "../api/rawatJalanApi";
+import { getMedicalRecord, startEncounter, completeEncounter, resetEncounter } from "../api/rawatJalanApi";
 import type { GetMedicalRecordResponse } from "../types";
-import { TriageForm } from "../components/TriageForm";
+import { TriageForm, type TriageFormState } from "../components/TriageForm";
 import { DiagnosisForm } from "../components/DiagnosisForm";
 import { ActionForm } from "../components/ActionForm";
 import { PrescriptionForm } from "../components/PrescriptionForm";
 import { ResumeDispositionForm } from "../components/ResumeDispositionForm";
 import { CompletionChecklistModal } from "../components/CompletionChecklistModal";
+import { toast } from "sonner";
 import {
   User,
   ArrowLeft,
@@ -34,9 +35,13 @@ export function EncounterPage() {
   const [record, setRecord] = useState<GetMedicalRecordResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [sessionActive, setSessionActive] = useState(false);
   const [showChecklistModal, setShowChecklistModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"triage" | "diagnosis" | "actions" | "prescription" | "disposition">("triage");
   const { poliCode, poliName, role } = useAuth();
+
+  const [triageData, setTriageData] = useState<TriageFormState | null>(null);
+  const autoSaveTriageRef = useRef<(() => Promise<boolean>) | null>(null);
 
   const fetchRecord = async () => {
     if (!encounterNo) return;
@@ -55,12 +60,105 @@ export function EncounterPage() {
     fetchRecord();
   }, [encounterNo]);
 
+  const rawStatus = record?.status || "WAITING";
+
+  const hasTriage = !!(
+    record?.triage &&
+    record.triage.blood_pressure_systolic &&
+    record.triage.blood_pressure_diastolic &&
+    record.triage.temperature &&
+    record.triage.heart_rate
+  );
+
+  // If Asesmen Triage is still empty in DB and user hasn't clicked "Mulai Sesi" in this session,
+  // status is reset to WAITING (Siap Diperiksa)
+  const isStarted = sessionActive || (rawStatus === "IN_PROGRESS" && hasTriage) || rawStatus === "COMPLETED";
+  const isCompleted = rawStatus === "COMPLETED";
+  const isReadOnly = !isStarted || isCompleted;
+  const status = (!hasTriage && rawStatus === "IN_PROGRESS" && !sessionActive) ? "WAITING" : rawStatus;
+
+  const hasDiagnosis = !!(record?.diagnoses && record.diagnoses.length > 0);
+  const hasActions = !!(record?.actions && record.actions.length > 0);
+  const hasPrescriptions = !!(record?.prescriptions && record.prescriptions.length > 0);
+
+  const isTriageFormFilled = (data: TriageFormState | null) => {
+    if (!data) return false;
+    return !!(
+      data.blood_pressure_systolic?.trim() ||
+      data.blood_pressure_diastolic?.trim() ||
+      data.temperature?.trim() ||
+      data.heart_rate?.trim()
+    );
+  };
+
+  const autoSaveTriageIfNeeded = async (): Promise<boolean> => {
+    if (!hasTriage && isTriageFormFilled(triageData) && autoSaveTriageRef.current) {
+      try {
+        const saved = await autoSaveTriageRef.current();
+        if (saved) {
+          toast.success("Asesmen Triage otomatis tersimpan ke database");
+          await fetchRecord();
+          return true;
+        }
+      } catch (err) {
+        console.error("Auto-save triage error:", err);
+      }
+    }
+    return false;
+  };
+
+  const handleTabChange = async (newTab: "triage" | "diagnosis" | "actions" | "prescription" | "disposition") => {
+    if (activeTab === "triage" && newTab !== "triage") {
+      await autoSaveTriageIfNeeded();
+    }
+    setActiveTab(newTab);
+  };
+
+  const backUrl = role === "perawat" ? "/rawat-jalan/perawat/antrean" : "/rawat-jalan/dokter/antrean";
+
+  const handleBackToQueue = async () => {
+    if (!encounterNo) {
+      navigate(backUrl);
+      return;
+    }
+
+    // 1. If triage is already saved in DB, return normally (encounter remains IN_PROGRESS)
+    if (hasTriage) {
+      navigate(backUrl);
+      return;
+    }
+
+    // 2. If triage not in DB, but user typed into the form, auto-save before leaving
+    if (isTriageFormFilled(triageData)) {
+      const saved = await autoSaveTriageIfNeeded();
+      if (saved) {
+        navigate(backUrl);
+        return;
+      }
+    }
+
+    // 3. Triage still empty in DB and form has no data -> Reset encounter back to queue
+    try {
+      await resetEncounter(encounterNo);
+      toast.info("Status sesi direset kembali ke 'Mulai Pemeriksaan' karena Asesmen Triage masih kosong.");
+    } catch (err) {
+      console.error("Failed to reset encounter", err);
+    }
+    navigate(backUrl);
+  };
+
   const handleStartEncounter = async () => {
     if (!encounterNo) return;
+    if (status === "WAITING_FOR_PAYMENT") {
+      alert("Pasien belum melunasi pembayaran di kasir. Harap selesaikan pembayaran di loket kasir terlebih dahulu.");
+      return;
+    }
     setStarting(true);
     try {
       await startEncounter(encounterNo);
+      setSessionActive(true);
       await fetchRecord();
+      toast.success("Sesi pemeriksaan dimulai. Silakan isi Asesmen Triage.");
     } catch (error) {
       console.error("Gagal memulai sesi", error);
     } finally {
@@ -83,24 +181,6 @@ export function EncounterPage() {
     }
   };
 
-  const backUrl = role === "perawat" ? "/perawat/antrean" : "/dokter/antrean";
-
-  const status = record?.status || "WAITING";
-  const isStarted = status === "IN_PROGRESS" || status === "COMPLETED";
-  const isCompleted = status === "COMPLETED";
-  const isReadOnly = !isStarted || isCompleted;
-
-  const hasTriage = !!(
-    record?.triage &&
-    record.triage.blood_pressure_systolic &&
-    record.triage.blood_pressure_diastolic &&
-    record.triage.temperature &&
-    record.triage.heart_rate
-  );
-  const hasDiagnosis = !!(record?.diagnoses && record.diagnoses.length > 0);
-  const hasActions = !!(record?.actions && record.actions.length > 0);
-  const hasPrescriptions = !!(record?.prescriptions && record.prescriptions.length > 0);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -121,7 +201,7 @@ export function EncounterPage() {
             {/* Integrated Back Arrow Button */}
             <button
               type="button"
-              onClick={() => navigate(backUrl)}
+              onClick={handleBackToQueue}
               className="h-10 w-10 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 border border-slate-200 flex items-center justify-center transition-all shadow-2xs group cursor-pointer shrink-0"
               title="Kembali ke Antrean Pasien"
               aria-label="Kembali ke Antrean Pasien"
@@ -141,12 +221,16 @@ export function EncounterPage() {
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Selesai
                   </span>
-                ) : isStarted ? (
+                ) : isStarted && hasTriage ? (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200 flex items-center gap-1.5">
                     <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" /> Sesi Sedang Berjalan
                   </span>
+                ) : status === "WAITING_FOR_PAYMENT" ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-950 border border-amber-300 flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" /> Belum Bayar
+                  </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-100 text-teal-800 border border-teal-200">
                     Menunggu Sesi
                   </span>
                 )}
@@ -161,18 +245,35 @@ export function EncounterPage() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            {!isStarted && (
+            {/* Tombol Eksplisit Kembali ke Antrean */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleBackToQueue}
+              className="gap-1.5 border-slate-300 text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-bold h-10 px-3.5 shadow-2xs cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Kembali ke Antrean
+            </Button>
+
+            {(!isStarted || (!hasTriage && !isCompleted)) && (
               <Button
                 onClick={handleStartEncounter}
-                disabled={starting}
-                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold h-10 px-4 shadow-sm cursor-pointer"
+                disabled={starting || status === "WAITING_FOR_PAYMENT"}
+                className={cn(
+                  "gap-2 text-white rounded-xl text-xs font-bold h-10 px-4 shadow-sm cursor-pointer",
+                  status === "WAITING_FOR_PAYMENT"
+                    ? "bg-slate-400 opacity-60 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700"
+                )}
+                title={status === "WAITING_FOR_PAYMENT" ? "Pasien belum melunasi pembayaran kasir" : undefined}
               >
                 <Play className="h-3.5 w-3.5 fill-white" />
                 {starting ? "Memulai Sesi..." : "Mulai Sesi Pemeriksaan"}
               </Button>
             )}
 
-            {isStarted && !isCompleted && (
+            {isStarted && hasTriage && !isCompleted && (
               <Button
                 onClick={handleOpenCompleteModal}
                 className="gap-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold h-10 px-4 shadow-sm cursor-pointer"
@@ -221,15 +322,49 @@ export function EncounterPage() {
             </div>
             <div>
               <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status Pelayanan</p>
-              <span className="inline-flex items-center gap-1.5 font-bold text-emerald-800 text-xs mt-0.5">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                {record?.status === "COMPLETED"
-                  ? "Selesai Pelayanan"
-                  : "Dalam Pelayanan"}
+              <span className="inline-flex items-center gap-1.5 font-bold text-xs mt-0.5">
+                <span
+                  className={cn(
+                    "h-2 w-2 rounded-full",
+                    record?.status === "WAITING_FOR_PAYMENT"
+                      ? "bg-amber-500 animate-pulse"
+                      : record?.status === "COMPLETED"
+                      ? "bg-emerald-500"
+                      : "bg-blue-500 animate-pulse"
+                  )}
+                />
+                <span
+                  className={cn(
+                    record?.status === "WAITING_FOR_PAYMENT"
+                      ? "text-amber-950 font-black"
+                      : record?.status === "COMPLETED"
+                      ? "text-emerald-800 font-bold"
+                      : "text-blue-800 font-bold"
+                  )}
+                >
+                  {record?.status === "WAITING_FOR_PAYMENT"
+                    ? "Belum Bayar"
+                    : record?.status === "COMPLETED"
+                    ? "Selesai Pelayanan"
+                    : "Dalam Pelayanan"}
+                </span>
               </span>
             </div>
           </div>
         </div>
+
+        {/* Banner Peringatan Pasien Belum Bayar */}
+        {status === "WAITING_FOR_PAYMENT" && (
+          <div className="mt-4 p-4 bg-amber-50/90 border border-amber-300 text-amber-950 rounded-2xl flex items-start gap-3 shadow-xs">
+            <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="text-xs leading-relaxed">
+              <strong className="text-sm font-bold text-amber-900 block mb-0.5">
+                Perhatian: Status Pasien Belum Bayar
+              </strong>
+              Pasien ini belum melunasi tagihan pendaftaran/pelayanan di loket kasir. Harap arahkan pasien atau keluarga untuk menyelesaikan pembayaran di kasir terlebih dahulu sebelum sesi pemeriksaan dimulai.
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 5 Tab Navigation Bar (SOAP Flow) */}
@@ -238,7 +373,7 @@ export function EncounterPage() {
           {/* Tab 1: Triage */}
           <button
             type="button"
-            onClick={() => setActiveTab("triage")}
+            onClick={() => handleTabChange("triage")}
             className={cn(
               "flex-1 min-w-[175px] py-4 px-3 text-xs flex items-center justify-center gap-1.5 border-b-2 transition-all cursor-pointer",
               activeTab === "triage"
@@ -262,7 +397,7 @@ export function EncounterPage() {
           {/* Tab 2: Diagnosa */}
           <button
             type="button"
-            onClick={() => setActiveTab("diagnosis")}
+            onClick={() => handleTabChange("diagnosis")}
             className={cn(
               "flex-1 min-w-[175px] py-4 px-3 text-xs flex items-center justify-center gap-1.5 border-b-2 transition-all cursor-pointer",
               activeTab === "diagnosis"
@@ -286,7 +421,7 @@ export function EncounterPage() {
           {/* Tab 3: Tindakan */}
           <button
             type="button"
-            onClick={() => setActiveTab("actions")}
+            onClick={() => handleTabChange("actions")}
             className={cn(
               "flex-1 min-w-[175px] py-4 px-3 text-xs flex items-center justify-center gap-1.5 border-b-2 transition-all cursor-pointer",
               activeTab === "actions"
@@ -310,7 +445,7 @@ export function EncounterPage() {
           {/* Tab 4: E-Resep */}
           <button
             type="button"
-            onClick={() => setActiveTab("prescription")}
+            onClick={() => handleTabChange("prescription")}
             className={cn(
               "flex-1 min-w-[175px] py-4 px-3 text-xs flex items-center justify-center gap-1.5 border-b-2 transition-all cursor-pointer",
               activeTab === "prescription"
@@ -334,7 +469,7 @@ export function EncounterPage() {
           {/* Tab 5: Rencana & Resume */}
           <button
             type="button"
-            onClick={() => setActiveTab("disposition")}
+            onClick={() => handleTabChange("disposition")}
             className={cn(
               "flex-1 min-w-[175px] py-4 px-3 text-xs flex items-center justify-center gap-1.5 border-b-2 transition-all cursor-pointer",
               activeTab === "disposition"
@@ -382,6 +517,8 @@ export function EncounterPage() {
               initialData={record?.triage}
               readOnly={isReadOnly}
               onSuccess={fetchRecord}
+              onDataChange={setTriageData}
+              autoSaveRef={autoSaveTriageRef}
             />
           )}
 
@@ -393,6 +530,8 @@ export function EncounterPage() {
               encounterSeverityLevel={record?.encounter_severity_level}
               readOnly={isReadOnly}
               onSuccess={fetchRecord}
+              hasTriage={hasTriage}
+              onNavigateTriage={() => handleTabChange("triage")}
             />
           )}
 
