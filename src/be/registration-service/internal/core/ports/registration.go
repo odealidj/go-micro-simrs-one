@@ -16,7 +16,7 @@ type RegistrationRepository interface {
 	GetPendingOutboxEvents(ctx context.Context) ([]outbox.Event, error)
 	MarkEventAsPublished(ctx context.Context, id string) error
 	MarkEventAsFailed(ctx context.Context, id string) error
-	GetTodayEncounters(ctx context.Context, targetDate time.Time) ([]*domain.Encounter, error)
+	GetTodayEncounters(ctx context.Context, startDate, endDate time.Time) ([]*domain.Encounter, error)
 	UpdateEncounterStatus(ctx context.Context, encounterNo, status string) error
 	GetMaxSequenceForMonth(ctx context.Context, prefix string) (int32, error)
 	GetDashboardMetrics(ctx context.Context, targetDate time.Time) (newPatients int32, oldPatients int32, waitTimes map[string]int32, weeklyVisits map[string]int32, err error)
@@ -32,7 +32,7 @@ type EventPublisher interface {
 
 type RegistrationService interface {
 	RegisterEncounter(ctx context.Context, mrn, departmentCode, doctorID, perawatID, guarantor string) (string, error)
-	GetTodayEncounters(ctx context.Context, targetDate time.Time) ([]*domain.Encounter, error)
+	GetTodayEncounters(ctx context.Context, startDate, endDate time.Time) ([]*domain.Encounter, error)
 	CancelEncounter(ctx context.Context, encounterNo, reason string) error
 	UpdateEncounterStatus(ctx context.Context, encounterNo, status string) error
 	UpdateEncounterGuarantor(ctx context.Context, encounterNo, guarantor string) error

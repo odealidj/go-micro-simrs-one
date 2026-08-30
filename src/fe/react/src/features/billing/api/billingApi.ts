@@ -177,11 +177,15 @@ export interface RevenueReportData {
 
 export const getRevenueReport = async (params?: {
   date?: string;
+  start_date?: string;
+  end_date?: string;
   department_code?: string;
   payment_method?: string;
 }): Promise<RevenueReportData | null> => {
   try {
     const query = new URLSearchParams();
+    if (params?.start_date) query.append("start_date", params.start_date);
+    if (params?.end_date) query.append("end_date", params.end_date);
     if (params?.date && params.date !== "TODAY") query.append("date", params.date);
     if (params?.department_code && params.department_code !== "ALL") query.append("department_code", params.department_code);
     if (params?.payment_method && params.payment_method !== "ALL") query.append("payment_method", params.payment_method);
