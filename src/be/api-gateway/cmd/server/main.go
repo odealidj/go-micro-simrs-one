@@ -3568,6 +3568,29 @@ func main() {
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireRole("kasir", "admin"))
 
+				deptNameHelper := func(code string) string {
+					switch code {
+					case "01", "UMU":
+						return "Poli Umum"
+					case "02":
+						return "Poli Gigi"
+					case "03":
+						return "Poli Anak"
+					case "04":
+						return "Poli Penyakit Dalam"
+					case "05":
+						return "Poli Bedah"
+					case "06":
+						return "Poli Mata"
+					case "07":
+						return "Poli THT"
+					case "08":
+						return "Poli Kandungan"
+					default:
+						return "Poli " + code
+					}
+				}
+
 				r.Get("/billing/reports/rekap", func(w http.ResponseWriter, req *http.Request) {
 					dateStr := req.URL.Query().Get("date")
 					startDate := req.URL.Query().Get("start_date")
@@ -3646,35 +3669,35 @@ func main() {
 					patientCache := make(map[string]string)
 					var metrics RevenueMetrics
 
-					deptNameHelper := func(code string) string {
-						switch code {
-						case "01", "UMU":
-							return "Poli Umum"
-						case "02":
-							return "Poli Gigi"
-						case "03":
-							return "Poli Anak"
-						case "04":
-							return "Poli Penyakit Dalam"
-						case "05":
-							return "Poli Bedah"
-						case "06":
-							return "Poli Mata"
-						case "07":
-							return "Poli THT"
-						case "08":
-							return "Poli Kandungan"
-						default:
-							return "Poli " + code
-						}
-					}
-
 					// If regClient has encounters, iterate and build transactions
 					if err == nil && resReg != nil && len(resReg.Encounters) > 0 {
 						for _, enc := range resReg.Encounters {
+							deptCode := enc.DepartmentCode
+							if deptCode == "" {
+								deptCode = "01"
+							}
+							deptName := deptNameHelper(deptCode)
+
+							parts := strings.Split(enc.RegisteredTime, "|")
+							timeStr := parts[0]
+							if timeStr == "" {
+								timeStr = "08:00"
+							}
+
+							var txItems []SettlementItem
+							resInv, _ := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GenerateInvoiceResponse, error) {
+								return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: enc.EncounterNo})
+							})
+
 							// Strict microservices rule: Only PAID encounters are eligible for revenue reports/payment history.
-							// Status WAITING_FOR_PAYMENT, REGISTERED, CANCELLED, or BATAL are not paid.
-							isPaid := enc.Status == "QUEUED_FOR_POLI" || enc.Status == "IN_EXAMINATION" || enc.Status == "COMPLETED" || enc.Status == "PAID"
+							// Status WAITING_FOR_PAYMENT, REGISTERED, CANCELLED, or BATAL are not paid unless invoice is paid.
+							isPaid := (resInv != nil && (resInv.IsPaid || resInv.Status == "PAID")) || 
+								enc.Status == "QUEUED_FOR_POLI" || 
+								enc.Status == "IN_PROGRESS" || 
+								enc.Status == "IN_EXAMINATION" || 
+								enc.Status == "COMPLETED" || 
+								enc.Status == "PAID"
+
 							if !isPaid {
 								continue
 							}
@@ -3694,22 +3717,6 @@ func main() {
 								patientCache[enc.Mrn] = pName
 							}
 
-							deptCode := enc.DepartmentCode
-							if deptCode == "" {
-								deptCode = "01"
-							}
-							deptName := deptNameHelper(deptCode)
-
-							parts := strings.Split(enc.RegisteredTime, "|")
-							timeStr := parts[0]
-							if timeStr == "" {
-								timeStr = "08:00"
-							}
-
-							var txItems []SettlementItem
-							resInv, _ := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GenerateInvoiceResponse, error) {
-								return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: enc.EncounterNo})
-							})
 							if resInv != nil && len(resInv.Items) > 0 {
 								for _, itm := range resInv.Items {
 									txItems = append(txItems, SettlementItem{
@@ -3819,10 +3826,62 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
+
+					var patientName, mrn, poliName, doctorName string
+					resEnc, errEnc := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetTodayEncountersResponse, error) {
+						return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 5000})
+					})
+					if errEnc == nil && resEnc != nil {
+						for _, enc := range resEnc.Encounters {
+							if enc.EncounterNo == encounterNo {
+								mrn = enc.Mrn
+								poliName = deptNameHelper(enc.DepartmentCode)
+								doctorName = enc.DoctorId
+								break
+							}
+						}
+					}
+					if mrn != "" {
+						resPat, _ := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {
+							return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: mrn})
+						})
+						if resPat != nil && resPat.Patient != nil {
+							patientName = resPat.Patient.Name
+						}
+					}
+
+					type EnrichedInvoiceResponse struct {
+						Success     bool                     `json:"success"`
+						InvoiceId   string                   `json:"invoice_id"`
+						EncounterNo string                   `json:"encounter_no"`
+						PatientName string                   `json:"patient_name"`
+						MRN         string                   `json:"mrn"`
+						PoliName    string                   `json:"poli_name"`
+						DoctorName  string                   `json:"doctor_name"`
+						Items       []*billingpb.InvoiceItem `json:"items"`
+						TotalAmount float64                  `json:"total_amount"`
+						Status      string                   `json:"status"`
+						IsPaid      bool                     `json:"is_paid"`
+						Message     string                   `json:"message"`
+					}
+
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
 						Success: true,
 						Message: "Success",
-						Data:    res,
+						Data: EnrichedInvoiceResponse{
+							Success:     res.Success,
+							InvoiceId:   res.InvoiceId,
+							EncounterNo: encounterNo,
+							PatientName: patientName,
+							MRN:         mrn,
+							PoliName:    poliName,
+							DoctorName:  doctorName,
+							Items:       res.Items,
+							TotalAmount: res.TotalAmount,
+							Status:      res.Status,
+							IsPaid:      res.IsPaid || res.Status == "PAID",
+							Message:     res.Message,
+						},
 					})
 				})
 

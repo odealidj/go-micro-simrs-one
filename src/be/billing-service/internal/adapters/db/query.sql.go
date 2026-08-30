@@ -235,6 +235,49 @@ func (q *Queries) GetPendingOutboxEvents(ctx context.Context) ([]OutboxEvent, er
 	return items, nil
 }
 
+const recalculateInvoiceTotal = `-- name: RecalculateInvoiceTotal :one
+UPDATE invoices
+SET total_amount = (
+    SELECT COALESCE(SUM(amount), 0)
+    FROM invoice_items
+    WHERE invoice_id = $1 AND deleted_dt IS NULL
+)
+WHERE id = $1 AND deleted_dt IS NULL
+RETURNING id, encounter_no, total_amount, status, created_at, paid_at, deleted_dt, deleted_by
+`
+
+func (q *Queries) RecalculateInvoiceTotal(ctx context.Context, invoiceID string) (Invoice, error) {
+	row := q.db.QueryRowContext(ctx, recalculateInvoiceTotal, invoiceID)
+	var i Invoice
+	err := row.Scan(
+		&i.ID,
+		&i.EncounterNo,
+		&i.TotalAmount,
+		&i.Status,
+		&i.CreatedAt,
+		&i.PaidAt,
+		&i.DeletedDt,
+		&i.DeletedBy,
+	)
+	return i, err
+}
+
+const softDeleteInvoiceItemByPattern = `-- name: SoftDeleteInvoiceItemByPattern :exec
+UPDATE invoice_items
+SET deleted_dt = CURRENT_TIMESTAMP
+WHERE invoice_id = $1 AND description LIKE $2 AND deleted_dt IS NULL
+`
+
+type SoftDeleteInvoiceItemByPatternParams struct {
+	InvoiceID   string
+	Description string
+}
+
+func (q *Queries) SoftDeleteInvoiceItemByPattern(ctx context.Context, arg SoftDeleteInvoiceItemByPatternParams) error {
+	_, err := q.db.ExecContext(ctx, softDeleteInvoiceItemByPattern, arg.InvoiceID, arg.Description)
+	return err
+}
+
 const updateInvoiceAmount = `-- name: UpdateInvoiceAmount :one
 UPDATE invoices
 SET total_amount = total_amount + $2

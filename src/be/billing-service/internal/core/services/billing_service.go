@@ -119,6 +119,22 @@ func (s *billingServiceImpl) AddActionItem(ctx context.Context, encounterNo, act
 	return s.repo.UpdateInvoiceAmount(ctx, inv.ID, amount)
 }
 
+func (s *billingServiceImpl) RemoveActionItem(ctx context.Context, encounterNo, actionCode string) error {
+	inv, err := s.repo.GetInvoiceByEncounterNo(ctx, encounterNo)
+	if err != nil {
+		return err
+	}
+
+	// Soft delete item with description matching [%s]
+	pattern := fmt.Sprintf("%%[%s]%%", actionCode)
+	err = s.repo.SoftDeleteInvoiceItemByPattern(ctx, inv.ID, pattern)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.RecalculateInvoiceTotal(ctx, inv.ID)
+}
+
 func (s *billingServiceImpl) AddMedicineItem(ctx context.Context, encounterNo, prescriptionID string, amount float64) error {
 	inv, err := s.getOrCreateInvoice(ctx, encounterNo)
 	if err != nil {

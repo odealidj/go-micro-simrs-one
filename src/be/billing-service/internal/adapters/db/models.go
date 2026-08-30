@@ -33,6 +33,21 @@ type InvoiceItem struct {
 	DeletedBy   uuid.NullUUID
 }
 
+type MasterInvoiceStatus struct {
+	Code        string
+	Name        string
+	Description sql.NullString
+	IsPayable   sql.NullBool
+	CreatedAt   sql.NullTime
+}
+
+type MasterPaymentMethod struct {
+	Code      string
+	Name      string
+	IsActive  sql.NullBool
+	CreatedAt sql.NullTime
+}
+
 type OutboxEvent struct {
 	ID            string
 	AggregateType string

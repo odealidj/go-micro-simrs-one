@@ -27,7 +27,7 @@ func StartBillingConsumers(ctx context.Context, rdb *redis.Client, billingServic
 	// 1. Consumer for Rawat Jalan Stream (MedicalActionAdded from Polyclinics)
 	actionHandler := func(ctx context.Context, msg redis.XMessage) error {
 		eventType, ok := msg.Values["event_type"].(string)
-		if !ok || eventType != "MedicalActionAdded" {
+		if !ok || (eventType != "MedicalActionAdded" && eventType != "MedicalActionRemoved") {
 			return nil // ignore other events
 		}
 
@@ -41,7 +41,13 @@ func StartBillingConsumers(ctx context.Context, rdb *redis.Client, billingServic
 			return err
 		}
 
-		return billingService.AddActionItem(ctx, payload.EncounterNo, payload.ActionCode, payload.ActionName, payload.Price)
+		if eventType == "MedicalActionAdded" {
+			return billingService.AddActionItem(ctx, payload.EncounterNo, payload.ActionCode, payload.ActionName, payload.Price)
+		} else if eventType == "MedicalActionRemoved" {
+			return billingService.RemoveActionItem(ctx, payload.EncounterNo, payload.ActionCode)
+		}
+
+		return nil
 	}
 
 	rawatJalanConsumer := outbox.NewConsumer(rdb, "rawat_jalan_stream", "billing_group", "billing_worker_rawat_jalan", actionHandler)
