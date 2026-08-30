@@ -17,7 +17,6 @@ func (r *emrRepoSqlc) AddEncounterDiagnosis(ctx context.Context, encounterNo, ic
 		n = sql.NullString{String: notes, Valid: true}
 	}
 	
-	// Default to RINGAN if not provided
 	if severity == "" {
 		severity = "RINGAN"
 	}
@@ -27,8 +26,12 @@ func (r *emrRepoSqlc) AddEncounterDiagnosis(ctx context.Context, encounterNo, ic
 		doc = sql.NullString{String: doctorId, Valid: true}
 	}
 
-	// For MVP, we aren't doing the auto-mapping lookup here to keep it simple,
-	// but we could call GetKBMSuggestionsForICD10 and pick the primary one.
+	// If adding a PRIMARY diagnosis, demote any existing primary diagnoses first
+	if diagType == "PRIMARY" {
+		_ = r.q.DemotePrimaryDiagnoses(ctx, encounterNo)
+	}
+
+	// 1. Auto-lookup KBM suggestion
 	suggestions, _ := r.GetKBMSuggestionsForICD10(ctx, icd10Code)
 	var kbmCode, kbmName, kbmConf sql.NullString
 	if len(suggestions) > 0 {
@@ -40,28 +43,35 @@ func (r *emrRepoSqlc) AddEncounterDiagnosis(ctx context.Context, encounterNo, ic
 				break
 			}
 		}
-		// fallback to first if no primary
 		if !kbmCode.Valid {
 			kbmCode = sql.NullString{String: suggestions[0].KBMCode, Valid: true}
 			kbmName = sql.NullString{String: suggestions[0].KBMName, Valid: true}
 			kbmConf = sql.NullString{String: suggestions[0].MappingConfidence, Valid: true}
 		}
 	}
+
+	// 2. Auto-lookup SNOMED concept
+	var snomedConceptId sql.NullString
+	snomedList, _ := r.q.GetSNOMEDForICD10(ctx, icd10Code)
+	if len(snomedList) > 0 {
+		snomedConceptId = sql.NullString{String: snomedList[0].ConceptID, Valid: true}
+	}
 	
 	dbDiag, err := r.q.AddEncounterDiagnosis(ctx, db.AddEncounterDiagnosisParams{
-		ID:              uuid.MustParse(id),
-		EncounterNo:     encounterNo,
-		Icd10Code:       icd10Code,
-		DiagnosisType:   diagType,
-		Sequence:        sequence,
-		ClinicalNotes:   n,
-		SeverityLevel:   severity,
-		SeveritySetBy:   doc,
-		SeveritySetRole: sql.NullString{String: "DOKTER", Valid: true},
-		AutoKbmCode:     kbmCode,
-		AutoKbmName:     kbmName,
+		ID:                   uuid.MustParse(id),
+		EncounterNo:         encounterNo,
+		Icd10Code:           icd10Code,
+		DiagnosisType:       diagType,
+		Sequence:            sequence,
+		ClinicalNotes:       n,
+		SeverityLevel:       severity,
+		SeveritySetBy:       doc,
+		SeveritySetRole:     sql.NullString{String: "DOKTER", Valid: true},
+		AutoKbmCode:         kbmCode,
+		AutoKbmName:         kbmName,
 		KbmMappingConfidence: kbmConf,
-		CreatedBy:       doc,
+		SnomedConceptID:     snomedConceptId,
+		CreatedBy:           doc,
 	})
 	
 	if err != nil {
@@ -69,23 +79,62 @@ func (r *emrRepoSqlc) AddEncounterDiagnosis(ctx context.Context, encounterNo, ic
 	}
 	
 	return &domain.EncounterDiagnosis{
-		ID:            dbDiag.ID.String(),
-		ICD10Code:     dbDiag.Icd10Code,
-		DiagnosisType: dbDiag.DiagnosisType,
-		Sequence:      dbDiag.Sequence,
-		ClinicalNotes: dbDiag.ClinicalNotes.String,
-		SeverityLevel: dbDiag.SeverityLevel,
+		ID:                   dbDiag.ID.String(),
+		ICD10Code:            dbDiag.Icd10Code,
+		DiagnosisType:        dbDiag.DiagnosisType,
+		Sequence:             dbDiag.Sequence,
+		ClinicalNotes:        dbDiag.ClinicalNotes.String,
+		SeverityLevel:        dbDiag.SeverityLevel,
+		AutoKBMCode:          dbDiag.AutoKbmCode.String,
+		AutoKBMName:          dbDiag.AutoKbmName.String,
+		KBMMappingConfidence: dbDiag.KbmMappingConfidence.String,
+		SNOMEDConceptID:      dbDiag.SnomedConceptID.String,
 	}, nil
 }
 
 func (r *emrRepoSqlc) UpdateEncounterDiagnosis(ctx context.Context, id, diagType, notes, severity string, sequence int32) error {
-	// Not implemented in MVP SQLC yet, returning nil
-	return nil
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+
+	var n sql.NullString
+	if notes != "" {
+		n = sql.NullString{String: notes, Valid: true}
+	}
+
+	if severity == "" {
+		severity = "RINGAN"
+	}
+
+	return r.q.UpdateEncounterDiagnosis(ctx, db.UpdateEncounterDiagnosisParams{
+		ID:            uid,
+		DiagnosisType: diagType,
+		Sequence:      sequence,
+		ClinicalNotes: n,
+		SeverityLevel: severity,
+	})
 }
 
 func (r *emrRepoSqlc) RemoveEncounterDiagnosis(ctx context.Context, id string) error {
-	// Not implemented in MVP SQLC yet, returning nil
-	return nil
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return err
+	}
+	return r.q.RemoveEncounterDiagnosis(ctx, uid)
+}
+
+func (r *emrRepoSqlc) PromoteDiagnosisToPrimary(ctx context.Context, encounterNo, diagnosisId string) error {
+	uid, err := uuid.Parse(diagnosisId)
+	if err != nil {
+		return err
+	}
+	// Demote existing primary first
+	if err := r.q.DemotePrimaryDiagnoses(ctx, encounterNo); err != nil {
+		return err
+	}
+	// Promote target diagnosis to primary
+	return r.q.PromoteDiagnosisToPrimary(ctx, uid)
 }
 
 func (r *emrRepoSqlc) GetKBMSuggestionsForICD10(ctx context.Context, icd10Code string) ([]*domain.KBMSuggestion, error) {
@@ -107,7 +156,6 @@ func (r *emrRepoSqlc) GetKBMSuggestionsForICD10(ctx context.Context, icd10Code s
 }
 
 func (r *emrRepoSqlc) ListPendingKBMVerifications(ctx context.Context, limit, offset int32) ([]*domain.PendingVerification, int32, error) {
-	// Not fully implemented for MVP
 	return []*domain.PendingVerification{}, 0, nil
 }
 
@@ -116,7 +164,15 @@ func (r *emrRepoSqlc) VerifyKBMMapping(ctx context.Context, id, kbmCode, userId 
 }
 
 func (r *emrRepoSqlc) FinalizeSeverity(ctx context.Context, encounterNo, severityLevel, userId string) error {
-	return nil
+	var uid sql.NullString
+	if userId != "" {
+		uid = sql.NullString{String: userId, Valid: true}
+	}
+	return r.q.FinalizeSeverity(ctx, db.FinalizeSeverityParams{
+		EncounterNo:            encounterNo,
+		EncounterSeverityLevel: sql.NullString{String: severityLevel, Valid: true},
+		SeverityFinalizedBy:    uid,
+	})
 }
 
 // Validation helpers
@@ -128,12 +184,21 @@ func (r *emrRepoSqlc) GetEncounterDiagnoses(ctx context.Context, encounterNo str
 	var diags []*domain.EncounterDiagnosis
 	for _, d := range dbDiags {
 		diags = append(diags, &domain.EncounterDiagnosis{
-			ID:            d.ID.String(),
-			ICD10Code:     d.Icd10Code,
-			DiagnosisType: d.DiagnosisType,
-			Sequence:      d.Sequence,
-			ClinicalNotes: d.ClinicalNotes.String,
-			SeverityLevel: d.SeverityLevel,
+			ID:                   d.ID.String(),
+			ICD10Code:            d.Icd10Code,
+			ICD10Name:            d.Icd10Name,
+			DiagnosisType:        d.DiagnosisType,
+			Sequence:             d.Sequence,
+			ClinicalNotes:        d.ClinicalNotes.String,
+			SeverityLevel:        d.SeverityLevel,
+			SeveritySetRole:      d.SeveritySetRole.String,
+			AutoKBMCode:          d.AutoKbmCode.String,
+			AutoKBMName:          d.AutoKbmName.String,
+			KBMMappingConfidence: d.KbmMappingConfidence.String,
+			SNOMEDConceptID:      d.SnomedConceptID.String,
+			SNOMEDName:           d.SnomedName.String,
+			IsVerifiedByRM:       d.IsVerifiedByRm,
+			VerifiedBy:           d.VerifiedBy.String,
 		})
 	}
 	return diags, nil

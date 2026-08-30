@@ -36,16 +36,29 @@ export interface EncounterDiagnosis {
   id: string;
   icd10_code: string;
   icd10_name: string;
-  diagnosis_type: "PRIMARY" | "SECONDARY" | "DIFFERENTIAL" | string;
+  diagnosis_type: "PRIMARY" | "SECONDARY" | "COMORBIDITY" | "COMPLICATION" | "DIFFERENTIAL" | string;
   sequence: number;
   clinical_notes: string;
   severity_level: "I" | "II" | "III" | string;
   severity_set_role: string;
-  auto_kbm_code: string;
-  auto_kbm_name: string;
-  kbm_mapping_confidence: string;
-  is_verified_by_rm: boolean;
-  verified_by: string;
+  auto_kbm_code?: string;
+  auto_kbm_name?: string;
+  kbm_mapping_confidence?: string;
+  snomed_concept_id?: string;
+  snomed_name?: string;
+  is_verified_by_rm?: boolean;
+  verified_by?: string;
+}
+
+export interface ICD10Item {
+  icd10_code: string;
+  name_en: string;
+  name_id: string;
+  chapter_code?: string;
+  block_code?: string;
+  polyclinics?: string[];
+  kbm_count?: number;
+  snomed_count?: number;
 }
 
 export interface PrescriptionDraftItem {

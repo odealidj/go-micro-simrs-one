@@ -86,6 +86,13 @@ func (s *emrServiceImpl) RemoveEncounterDiagnosis(ctx context.Context, id string
 	return nil
 }
 
+func (s *emrServiceImpl) PromoteDiagnosisToPrimary(ctx context.Context, encounterNo, diagnosisId string) error {
+	if s.repo != nil {
+		return s.repo.PromoteDiagnosisToPrimary(ctx, encounterNo, diagnosisId)
+	}
+	return nil
+}
+
 func (s *emrServiceImpl) CompleteEncounter(ctx context.Context, encounterNo string) error {
 	slog.Info("Completing Encounter with Clinical Validation", "encounterNo", encounterNo)
 	if s.repo != nil {

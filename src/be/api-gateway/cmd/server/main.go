@@ -3192,6 +3192,28 @@ func main() {
 					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
 				})
 
+				r.Post("/rawat-jalan/diagnosis/{id}/promote", func(w http.ResponseWriter, req *http.Request) {
+					id := chi.URLParam(req, "id")
+					var payload struct {
+						EncounterNo string `json:"encounter_no"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: err.Error()})
+						return
+					}
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.PromoteDiagnosisToPrimaryResponse, error) {
+						return rawatJalanClient.PromoteDiagnosisToPrimary(req.Context(), &rawatjalanpb.PromoteDiagnosisToPrimaryRequest{
+							EncounterNo: payload.EncounterNo,
+							DiagnosisId: id,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
 				r.Post("/rawat-jalan/encounter/{encounter_no}/severity/finalize", func(w http.ResponseWriter, req *http.Request) {
 					encounterNo := chi.URLParam(req, "encounter_no")
 					var payload struct {

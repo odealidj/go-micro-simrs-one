@@ -139,6 +139,8 @@ func (s *RawatJalanGrpcServer) GetMedicalRecord(ctx context.Context, req *pb.Get
 			KbmMappingConfidence: d.KBMMappingConfidence,
 			IsVerifiedByRm:       d.IsVerifiedByRM,
 			VerifiedBy:           d.VerifiedBy,
+			SnomedConceptId:      d.SNOMEDConceptID,
+			SnomedName:           d.SNOMEDName,
 		})
 	}
 
@@ -277,6 +279,8 @@ func (s *RawatJalanGrpcServer) AddEncounterDiagnosis(ctx context.Context, req *p
 			KbmMappingConfidence: diag.KBMMappingConfidence,
 			IsVerifiedByRm:       diag.IsVerifiedByRM,
 			VerifiedBy:           diag.VerifiedBy,
+			SnomedConceptId:      diag.SNOMEDConceptID,
+			SnomedName:           diag.SNOMEDName,
 		},
 	}, nil
 }
@@ -300,6 +304,17 @@ func (s *RawatJalanGrpcServer) RemoveEncounterDiagnosis(ctx context.Context, req
 	return &pb.RemoveEncounterDiagnosisResponse{
 		Success: true,
 		Message: "Diagnosis removed successfully",
+	}, nil
+}
+
+func (s *RawatJalanGrpcServer) PromoteDiagnosisToPrimary(ctx context.Context, req *pb.PromoteDiagnosisToPrimaryRequest) (*pb.PromoteDiagnosisToPrimaryResponse, error) {
+	err := s.emrService.PromoteDiagnosisToPrimary(ctx, req.EncounterNo, req.DiagnosisId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to promote diagnosis to primary: %v", err)
+	}
+	return &pb.PromoteDiagnosisToPrimaryResponse{
+		Success: true,
+		Message: "Diagnosis promoted to primary successfully",
 	}, nil
 }
 

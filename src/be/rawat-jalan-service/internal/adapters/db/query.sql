@@ -7,10 +7,42 @@ RETURNING *;
 INSERT INTO encounter_diagnoses (
     id, encounter_no, icd10_code, diagnosis_type, sequence, clinical_notes,
     severity_level, severity_set_by, severity_set_role,
-    auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, created_by
+    auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, snomed_concept_id, created_by
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 ) RETURNING *;
+
+-- name: UpdateEncounterDiagnosis :exec
+UPDATE encounter_diagnoses
+SET diagnosis_type = $2,
+    sequence = $3,
+    clinical_notes = $4,
+    severity_level = $5,
+    updated_at = CURRENT_TIMESTAMP
+WHERE id = $1 AND deleted_dt IS NULL;
+
+-- name: RemoveEncounterDiagnosis :exec
+UPDATE encounter_diagnoses
+SET deleted_dt = CURRENT_TIMESTAMP
+WHERE id = $1;
+
+-- name: DemotePrimaryDiagnoses :exec
+UPDATE encounter_diagnoses
+SET diagnosis_type = 'SECONDARY', sequence = 2, updated_at = CURRENT_TIMESTAMP
+WHERE encounter_no = $1 AND diagnosis_type = 'PRIMARY' AND deleted_dt IS NULL;
+
+-- name: PromoteDiagnosisToPrimary :exec
+UPDATE encounter_diagnoses
+SET diagnosis_type = 'PRIMARY', sequence = 1, updated_at = CURRENT_TIMESTAMP
+WHERE id = $1 AND deleted_dt IS NULL;
+
+-- name: FinalizeSeverity :exec
+UPDATE medical_records
+SET encounter_severity_level = $2,
+    severity_finalized_by = $3,
+    severity_finalized_at = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP
+WHERE encounter_no = $1;
 
 -- name: CompleteEncounter :exec
 UPDATE medical_records
@@ -55,11 +87,12 @@ WHERE m.icd10_code = $1 AND k.is_active = true AND k.deleted_dt IS NULL
 ORDER BY m.is_primary DESC, m.mapping_confidence ASC;
 
 -- name: GetEncounterDiagnoses :many
-SELECT d.*, i.name_id as icd10_name
+SELECT d.*, i.name_id as icd10_name, s.term_id as snomed_name, s.fsn as snomed_fsn
 FROM encounter_diagnoses d
 JOIN icd10_catalog i ON d.icd10_code = i.icd10_code
+LEFT JOIN snomed_concepts s ON d.snomed_concept_id = s.concept_id
 WHERE d.encounter_no = $1 AND d.deleted_dt IS NULL
-ORDER BY d.sequence ASC, d.created_at ASC;
+ORDER BY CASE WHEN d.diagnosis_type = 'PRIMARY' THEN 0 ELSE 1 END, d.sequence ASC, d.created_at ASC;
 
 -- name: StartEncounter :exec
 UPDATE medical_records

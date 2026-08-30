@@ -20,6 +20,7 @@ type EMRRepository interface {
 	AddEncounterDiagnosis(ctx context.Context, encounterNo, icd10Code, diagType, notes, severity, doctorId, deptCode, gender, ageBracket string, sequence int32) (*domain.EncounterDiagnosis, error)
 	UpdateEncounterDiagnosis(ctx context.Context, id, diagType, notes, severity string, sequence int32) error
 	RemoveEncounterDiagnosis(ctx context.Context, id string) error
+	PromoteDiagnosisToPrimary(ctx context.Context, encounterNo, diagnosisId string) error
 	GetKBMSuggestionsForICD10(ctx context.Context, icd10Code string) ([]*domain.KBMSuggestion, error)
 
 	// Verification by Rekam Medis
@@ -52,6 +53,7 @@ type EMRService interface {
 	AddEncounterDiagnosis(ctx context.Context, encounterNo, icd10Code, diagType, notes, severity, doctorId, deptCode, gender, ageBracket string, sequence int32) (*domain.EncounterDiagnosis, error)
 	UpdateEncounterDiagnosis(ctx context.Context, id, diagType, notes, severity string, sequence int32) error
 	RemoveEncounterDiagnosis(ctx context.Context, id string) error
+	PromoteDiagnosisToPrimary(ctx context.Context, encounterNo, diagnosisId string) error
 	GetKBMSuggestionsForICD10(ctx context.Context, icd10Code string) ([]*domain.KBMSuggestion, error)
 
 	// Verification by Rekam Medis

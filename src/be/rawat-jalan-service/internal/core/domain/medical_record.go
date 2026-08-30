@@ -50,6 +50,8 @@ type EncounterDiagnosis struct {
 	AutoKBMCode          string
 	AutoKBMName          string
 	KBMMappingConfidence string
+	SNOMEDConceptID      string
+	SNOMEDName           string
 	IsVerifiedByRM       bool
 	VerifiedBy           string
 }

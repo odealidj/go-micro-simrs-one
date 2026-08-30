@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: src/be/shared/proto/rawat_jalan/v1/rawat_jalan.proto
+// source: rawat_jalan.proto
 
 package rawatjalanv1
 
@@ -29,6 +29,7 @@ const (
 	RawatJalanService_AddEncounterDiagnosis_FullMethodName     = "/rawat_jalan.v1.RawatJalanService/AddEncounterDiagnosis"
 	RawatJalanService_UpdateEncounterDiagnosis_FullMethodName  = "/rawat_jalan.v1.RawatJalanService/UpdateEncounterDiagnosis"
 	RawatJalanService_RemoveEncounterDiagnosis_FullMethodName  = "/rawat_jalan.v1.RawatJalanService/RemoveEncounterDiagnosis"
+	RawatJalanService_PromoteDiagnosisToPrimary_FullMethodName = "/rawat_jalan.v1.RawatJalanService/PromoteDiagnosisToPrimary"
 	RawatJalanService_FinalizeSeverity_FullMethodName          = "/rawat_jalan.v1.RawatJalanService/FinalizeSeverity"
 	RawatJalanService_GetKBMSuggestionsForICD10_FullMethodName = "/rawat_jalan.v1.RawatJalanService/GetKBMSuggestionsForICD10"
 	RawatJalanService_GetMasterTindakanByPoli_FullMethodName   = "/rawat_jalan.v1.RawatJalanService/GetMasterTindakanByPoli"
@@ -56,6 +57,7 @@ type RawatJalanServiceClient interface {
 	AddEncounterDiagnosis(ctx context.Context, in *AddEncounterDiagnosisRequest, opts ...grpc.CallOption) (*AddEncounterDiagnosisResponse, error)
 	UpdateEncounterDiagnosis(ctx context.Context, in *UpdateEncounterDiagnosisRequest, opts ...grpc.CallOption) (*UpdateEncounterDiagnosisResponse, error)
 	RemoveEncounterDiagnosis(ctx context.Context, in *RemoveEncounterDiagnosisRequest, opts ...grpc.CallOption) (*RemoveEncounterDiagnosisResponse, error)
+	PromoteDiagnosisToPrimary(ctx context.Context, in *PromoteDiagnosisToPrimaryRequest, opts ...grpc.CallOption) (*PromoteDiagnosisToPrimaryResponse, error)
 	FinalizeSeverity(ctx context.Context, in *FinalizeSeverityRequest, opts ...grpc.CallOption) (*FinalizeSeverityResponse, error)
 	GetKBMSuggestionsForICD10(ctx context.Context, in *GetKBMSuggestionsForICD10Request, opts ...grpc.CallOption) (*GetKBMSuggestionsForICD10Response, error)
 	// 5. Master Data Reads (Poli-Scoped Autocomplete)
@@ -174,6 +176,16 @@ func (c *rawatJalanServiceClient) RemoveEncounterDiagnosis(ctx context.Context, 
 	return out, nil
 }
 
+func (c *rawatJalanServiceClient) PromoteDiagnosisToPrimary(ctx context.Context, in *PromoteDiagnosisToPrimaryRequest, opts ...grpc.CallOption) (*PromoteDiagnosisToPrimaryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PromoteDiagnosisToPrimaryResponse)
+	err := c.cc.Invoke(ctx, RawatJalanService_PromoteDiagnosisToPrimary_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *rawatJalanServiceClient) FinalizeSeverity(ctx context.Context, in *FinalizeSeverityRequest, opts ...grpc.CallOption) (*FinalizeSeverityResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(FinalizeSeverityResponse)
@@ -262,6 +274,7 @@ type RawatJalanServiceServer interface {
 	AddEncounterDiagnosis(context.Context, *AddEncounterDiagnosisRequest) (*AddEncounterDiagnosisResponse, error)
 	UpdateEncounterDiagnosis(context.Context, *UpdateEncounterDiagnosisRequest) (*UpdateEncounterDiagnosisResponse, error)
 	RemoveEncounterDiagnosis(context.Context, *RemoveEncounterDiagnosisRequest) (*RemoveEncounterDiagnosisResponse, error)
+	PromoteDiagnosisToPrimary(context.Context, *PromoteDiagnosisToPrimaryRequest) (*PromoteDiagnosisToPrimaryResponse, error)
 	FinalizeSeverity(context.Context, *FinalizeSeverityRequest) (*FinalizeSeverityResponse, error)
 	GetKBMSuggestionsForICD10(context.Context, *GetKBMSuggestionsForICD10Request) (*GetKBMSuggestionsForICD10Response, error)
 	// 5. Master Data Reads (Poli-Scoped Autocomplete)
@@ -309,6 +322,9 @@ func (UnimplementedRawatJalanServiceServer) UpdateEncounterDiagnosis(context.Con
 }
 func (UnimplementedRawatJalanServiceServer) RemoveEncounterDiagnosis(context.Context, *RemoveEncounterDiagnosisRequest) (*RemoveEncounterDiagnosisResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveEncounterDiagnosis not implemented")
+}
+func (UnimplementedRawatJalanServiceServer) PromoteDiagnosisToPrimary(context.Context, *PromoteDiagnosisToPrimaryRequest) (*PromoteDiagnosisToPrimaryResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PromoteDiagnosisToPrimary not implemented")
 }
 func (UnimplementedRawatJalanServiceServer) FinalizeSeverity(context.Context, *FinalizeSeverityRequest) (*FinalizeSeverityResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FinalizeSeverity not implemented")
@@ -532,6 +548,24 @@ func _RawatJalanService_RemoveEncounterDiagnosis_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RawatJalanService_PromoteDiagnosisToPrimary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PromoteDiagnosisToPrimaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RawatJalanServiceServer).PromoteDiagnosisToPrimary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RawatJalanService_PromoteDiagnosisToPrimary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RawatJalanServiceServer).PromoteDiagnosisToPrimary(ctx, req.(*PromoteDiagnosisToPrimaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _RawatJalanService_FinalizeSeverity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(FinalizeSeverityRequest)
 	if err := dec(in); err != nil {
@@ -706,6 +740,10 @@ var RawatJalanService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _RawatJalanService_RemoveEncounterDiagnosis_Handler,
 		},
 		{
+			MethodName: "PromoteDiagnosisToPrimary",
+			Handler:    _RawatJalanService_PromoteDiagnosisToPrimary_Handler,
+		},
+		{
 			MethodName: "FinalizeSeverity",
 			Handler:    _RawatJalanService_FinalizeSeverity_Handler,
 		},
@@ -735,5 +773,5 @@ var RawatJalanService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "src/be/shared/proto/rawat_jalan/v1/rawat_jalan.proto",
+	Metadata: "rawat_jalan.proto",
 }
