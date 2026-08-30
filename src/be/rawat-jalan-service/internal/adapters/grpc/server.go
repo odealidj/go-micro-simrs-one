@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/aliube/go-micro-simrs-one/rawat-jalan-service/internal/adapters/db"
 	"github.com/aliube/go-micro-simrs-one/rawat-jalan-service/internal/core/domain"
 	"github.com/aliube/go-micro-simrs-one/rawat-jalan-service/internal/core/ports"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/grpcutil"
 	pb "github.com/aliube/go-micro-simrs-one/shared/proto/rawat_jalan/v1"
 )
 
@@ -259,7 +261,8 @@ func (s *RawatJalanGrpcServer) AddEncounterDiagnosis(ctx context.Context, req *p
 		req.Sequence,
 	)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add encounter diagnosis: %v", err)
+		dupMsg := fmt.Sprintf("Diagnosa ICD-10 [%s] sudah terdaftar pada kunjungan ini.", req.Icd10Code)
+		return nil, grpcutil.DBErrorToGRPC(err, "Diagnosa", dupMsg)
 	}
 
 	return &pb.AddEncounterDiagnosisResponse{
@@ -288,7 +291,7 @@ func (s *RawatJalanGrpcServer) AddEncounterDiagnosis(ctx context.Context, req *p
 func (s *RawatJalanGrpcServer) UpdateEncounterDiagnosis(ctx context.Context, req *pb.UpdateEncounterDiagnosisRequest) (*pb.UpdateEncounterDiagnosisResponse, error) {
 	err := s.emrService.UpdateEncounterDiagnosis(ctx, req.Id, req.DiagnosisType, req.ClinicalNotes, req.SeverityLevel, req.Sequence)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to update encounter diagnosis: %v", err)
+		return nil, grpcutil.DBErrorToGRPC(err, "Diagnosa")
 	}
 	return &pb.UpdateEncounterDiagnosisResponse{
 		Success: true,
@@ -299,7 +302,7 @@ func (s *RawatJalanGrpcServer) UpdateEncounterDiagnosis(ctx context.Context, req
 func (s *RawatJalanGrpcServer) RemoveEncounterDiagnosis(ctx context.Context, req *pb.RemoveEncounterDiagnosisRequest) (*pb.RemoveEncounterDiagnosisResponse, error) {
 	err := s.emrService.RemoveEncounterDiagnosis(ctx, req.Id)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to remove encounter diagnosis: %v", err)
+		return nil, grpcutil.DBErrorToGRPC(err, "Diagnosa")
 	}
 	return &pb.RemoveEncounterDiagnosisResponse{
 		Success: true,
@@ -310,7 +313,7 @@ func (s *RawatJalanGrpcServer) RemoveEncounterDiagnosis(ctx context.Context, req
 func (s *RawatJalanGrpcServer) PromoteDiagnosisToPrimary(ctx context.Context, req *pb.PromoteDiagnosisToPrimaryRequest) (*pb.PromoteDiagnosisToPrimaryResponse, error) {
 	err := s.emrService.PromoteDiagnosisToPrimary(ctx, req.EncounterNo, req.DiagnosisId)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to promote diagnosis to primary: %v", err)
+		return nil, grpcutil.DBErrorToGRPC(err, "Diagnosa")
 	}
 	return &pb.PromoteDiagnosisToPrimaryResponse{
 		Success: true,

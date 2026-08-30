@@ -287,9 +287,17 @@ export function DiagnosisForm({
       setActiveFormSection(null);
       if (onSuccess) await onSuccess();
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err.message || "Gagal menyimpan diagnosa";
-      setError(msg);
-      toast.error(msg);
+      if (err?.response?.status === 409) {
+        const msg =
+          err?.response?.data?.message ||
+          `Diagnosa [${selectedIcd10.code}] sudah pernah diinput sebelumnya pada kunjungan ini (duplikat).`;
+        setError(msg);
+        toast.warning(msg);
+      } else {
+        const msg = err?.response?.data?.message || err.message || "Gagal menyimpan diagnosa";
+        setError(msg);
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
