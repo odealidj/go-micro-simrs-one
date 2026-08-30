@@ -384,12 +384,12 @@ export function DiagnosisForm({
     return (
       <form
         onSubmit={handleSubmit}
-        className="p-5 sm:p-6 bg-white border-2 border-indigo-200/80 rounded-2xl shadow-sm space-y-5 animate-in fade-in zoom-in-95 duration-200 my-3"
+        className="p-4 sm:p-5 bg-white border-2 border-indigo-200/80 rounded-2xl shadow-xs space-y-3.5 animate-in fade-in zoom-in-95 duration-200 my-2"
       >
         {/* Form Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-indigo-100 text-indigo-700 rounded-xl">
+            <div className="p-1.5 bg-indigo-100 text-indigo-700 rounded-xl">
               {isEditing ? <Edit2 className="h-4 w-4" /> : <Stethoscope className="h-4 w-4" />}
             </div>
             <div>
@@ -427,39 +427,39 @@ export function DiagnosisForm({
         </div>
 
         {/* Autocomplete Input & Selected Preview */}
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
               Pilih Diagnosa (ICD-10) <span className="text-red-500">*</span>
             </label>
 
             {/* Scope Toggle: Poli vs Global */}
             {!selectedIcd10 && !isEditing && (
-              <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+              <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
                 <button
                   type="button"
                   onClick={() => setSearchScope("POLI")}
                   className={cn(
-                    "px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer text-xs",
+                    "px-2.5 py-1 rounded-md font-bold transition-all flex items-center gap-1 cursor-pointer text-[11px]",
                     searchScope === "POLI"
                       ? "bg-indigo-600 text-white shadow-2xs"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                   )}
                 >
-                  <Building2 className="h-3.5 w-3.5" />
+                  <Building2 className="h-3 w-3" />
                   Sesuai Poli ({deptCode || "01"})
                 </button>
                 <button
                   type="button"
                   onClick={() => setSearchScope("GLOBAL")}
                   className={cn(
-                    "px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer text-xs",
+                    "px-2.5 py-1 rounded-md font-bold transition-all flex items-center gap-1 cursor-pointer text-[11px]",
                     searchScope === "GLOBAL"
                       ? "bg-indigo-600 text-white shadow-2xs"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                   )}
                 >
-                  <Globe className="h-3.5 w-3.5" />
+                  <Globe className="h-3 w-3" />
                   Seluruh ICD-10
                 </button>
               </div>
@@ -467,14 +467,14 @@ export function DiagnosisForm({
           </div>
 
           {selectedIcd10 && !isEditing ? (
-            <div className="p-4 border-2 border-indigo-200 bg-white rounded-2xl shadow-xs space-y-3">
+            <div className="p-3.5 border-2 border-indigo-200 bg-white rounded-xl shadow-2xs space-y-2.5">
               <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
-                    <span className="font-black text-indigo-700 text-sm bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
+                    <span className="font-black text-indigo-700 text-xs bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
                       {selectedIcd10.code}
                     </span>
-                    <span className="font-bold text-slate-900 text-base">
+                    <span className="font-bold text-slate-900 text-sm">
                       {selectedIcd10.name}
                     </span>
                   </div>
@@ -489,39 +489,39 @@ export function DiagnosisForm({
                     setMappingDetails(null);
                     setSearchQuery("");
                   }}
-                  className="text-indigo-600 hover:text-indigo-800 text-xs font-bold px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
+                  className="text-indigo-600 hover:text-indigo-800 text-xs font-bold px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors cursor-pointer"
                 >
                   Ganti Pilihan
                 </button>
               </div>
 
               {/* ─── LIVE PREVIEW CARD 3 PILAR ─── */}
-              <div className="p-3.5 bg-gradient-to-r from-slate-50 via-indigo-50/20 to-purple-50/20 border border-slate-200 rounded-xl space-y-2 text-xs">
-                <div className="flex items-center gap-1.5 font-bold text-slate-800">
-                  <Sparkles className="h-4 w-4 text-indigo-600" />
+              <div className="p-2.5 bg-gradient-to-r from-slate-50 via-indigo-50/20 to-purple-50/20 border border-slate-200 rounded-lg space-y-1.5 text-xs">
+                <div className="flex items-center gap-1.5 font-bold text-slate-800 text-[11px]">
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
                   <span>Live Preview Pemetaan Otomatis (3 Pilar):</span>
                 </div>
 
                 {loadingMapping ? (
-                  <div className="p-2 text-slate-500 text-center animate-pulse">
+                  <div className="p-2 text-slate-500 text-center animate-pulse text-xs">
                     Memuat pemetaan SNOMED-CT & KBM...
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-0.5">
                     {/* SNOMED-CT mapping */}
-                    <div className="p-2.5 bg-white border border-purple-200 rounded-lg space-y-1">
-                      <div className="flex items-center justify-between text-purple-900 font-bold">
+                    <div className="p-2 bg-white border border-purple-200 rounded-md space-y-0.5">
+                      <div className="flex items-center justify-between text-purple-900 font-bold text-[11px]">
                         <span className="flex items-center gap-1">
-                          <Globe className="h-3.5 w-3.5 text-purple-600" />
+                          <Globe className="h-3 w-3 text-purple-600" />
                           SNOMED-CT SATUSEHAT
                         </span>
-                        <span className="text-[10px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">
+                        <span className="text-[9.5px] bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded font-bold">
                           {mappingDetails?.snomed_mappings?.length || 0} Konsep
                         </span>
                       </div>
                       {mappingDetails?.snomed_mappings &&
                       mappingDetails.snomed_mappings.length > 0 ? (
-                        <div className="text-[11px] text-slate-700">
+                        <div className="text-[10.5px] text-slate-700">
                           <span className="font-semibold text-purple-800">
                             ID: {mappingDetails.snomed_mappings[0].concept_id}
                           </span>
@@ -530,25 +530,25 @@ export function DiagnosisForm({
                           </p>
                         </div>
                       ) : (
-                        <p className="text-[11px] text-slate-400 italic">
+                        <p className="text-[10.5px] text-slate-400 italic">
                           Belum terpetakan langsung ke SNOMED.
                         </p>
                       )}
                     </div>
 
                     {/* Auto-KBM mapping */}
-                    <div className="p-2.5 bg-white border border-teal-200 rounded-lg space-y-1">
-                      <div className="flex items-center justify-between text-teal-900 font-bold">
+                    <div className="p-2 bg-white border border-teal-200 rounded-md space-y-0.5">
+                      <div className="flex items-center justify-between text-teal-900 font-bold text-[11px]">
                         <span className="flex items-center gap-1">
-                          <ShieldCheck className="h-3.5 w-3.5 text-teal-600" />
+                          <ShieldCheck className="h-3 w-3 text-teal-600" />
                           Prediksi KBM (INA-CBGs)
                         </span>
-                        <span className="text-[10px] bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded">
+                        <span className="text-[9.5px] bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded font-bold">
                           {mappingDetails?.kbm_mappings?.length || 0} Grup
                         </span>
                       </div>
                       {mappingDetails?.kbm_mappings && mappingDetails.kbm_mappings.length > 0 ? (
-                        <div className="text-[11px] text-slate-700">
+                        <div className="text-[10.5px] text-slate-700">
                           <span className="font-semibold text-teal-800">
                             Kode: {mappingDetails.kbm_mappings[0].kbm_code}
                           </span>
@@ -557,7 +557,7 @@ export function DiagnosisForm({
                           </p>
                         </div>
                       ) : (
-                        <p className="text-[11px] text-slate-400 italic">
+                        <p className="text-[10.5px] text-slate-400 italic">
                           Belum terpetakan ke KBM.
                         </p>
                       )}
@@ -567,19 +567,19 @@ export function DiagnosisForm({
               </div>
             </div>
           ) : isEditing ? (
-            <div className="flex items-center justify-between p-3.5 border border-slate-200 bg-slate-100 rounded-xl">
+            <div className="flex items-center justify-between p-3 border border-slate-200 bg-slate-100 rounded-xl">
               <div>
-                <span className="font-bold text-slate-700 mr-2 text-sm">
+                <span className="font-bold text-slate-700 mr-2 text-xs">
                   [{selectedIcd10?.code}]
                 </span>
-                <span className="text-slate-800 text-sm font-medium">{selectedIcd10?.name}</span>
+                <span className="text-slate-800 text-xs font-semibold">{selectedIcd10?.name}</span>
               </div>
-              <span className="text-xs text-slate-500 italic">Kode ICD tidak dapat diubah saat edit</span>
+              <span className="text-[11px] text-slate-500 italic">Kode ICD tidak dapat diubah saat edit</span>
             </div>
           ) : (
-            <div ref={searchContainerRef} className="space-y-2">
+            <div ref={searchContainerRef} className="space-y-1.5">
               <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
                 <Input
                   type="text"
                   placeholder={
@@ -598,7 +598,7 @@ export function DiagnosisForm({
                       setShowDropdown(false);
                     }
                   }}
-                  className="pl-10 pr-10 h-12 rounded-xl bg-white border-slate-300 focus:border-indigo-500 text-sm font-medium"
+                  className="pl-9 pr-9 h-9.5 rounded-xl bg-white border-slate-300 focus:border-indigo-500 text-xs font-medium"
                 />
 
                 {/* Tombol Tutup Dropdown / Reset */}
@@ -606,17 +606,17 @@ export function DiagnosisForm({
                   <button
                     type="button"
                     onClick={() => setShowDropdown(false)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
                     title="Tutup Hasil Pencarian (Esc)"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 )}
 
                 {showDropdown && (
-                  <div className="absolute z-30 w-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-80 overflow-y-auto">
+                  <div className="absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-72 overflow-y-auto">
                     {/* Dropdown Header Info */}
-                    <div className="px-4 py-2 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between text-[11px] text-slate-500 sticky top-0 backdrop-blur-xs z-10">
+                    <div className="px-3.5 py-1.5 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between text-[11px] text-slate-500 sticky top-0 backdrop-blur-xs z-10">
                       <span>
                         {searchQuery.trim()
                           ? `Hasil pencarian "${searchQuery}" (${searchResults.length} diagnosa)`
@@ -631,7 +631,7 @@ export function DiagnosisForm({
                         <button
                           type="button"
                           onClick={() => setShowDropdown(false)}
-                          className="text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 px-1.5 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer"
+                          className="text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 px-1.5 py-0.5 rounded text-[10.5px] font-bold transition-colors cursor-pointer"
                           title="Tutup Dropdown"
                         >
                           ✕ Tutup
@@ -640,12 +640,12 @@ export function DiagnosisForm({
                     </div>
 
                     {searching ? (
-                      <div className="p-5 text-xs text-slate-500 text-center flex items-center justify-center gap-2">
-                        <span className="animate-spin h-4 w-4 border-2 border-indigo-600 border-t-transparent rounded-full" />
+                      <div className="p-4 text-xs text-slate-500 text-center flex items-center justify-center gap-2">
+                        <span className="animate-spin h-3.5 w-3.5 border-2 border-indigo-600 border-t-transparent rounded-full" />
                         Mencari katalog diagnosa {searchScope === "POLI" ? `Poli ${deptCode}` : "seluruh ICD-10"}...
                       </div>
                     ) : searchResults.length > 0 ? (
-                      <ul className="divide-y divide-slate-100 text-sm">
+                      <ul className="divide-y divide-slate-100 text-xs">
                         {searchResults.map((item: ICD10SearchResult) => (
                           <li
                             key={item.code}
@@ -657,16 +657,16 @@ export function DiagnosisForm({
                               });
                               setShowDropdown(false);
                             }}
-                            className="p-3.5 hover:bg-indigo-50/70 cursor-pointer flex flex-col gap-1 transition-colors"
+                            className="p-3 hover:bg-indigo-50/70 cursor-pointer flex flex-col gap-0.5 transition-colors"
                           >
                             <div className="flex justify-between items-center gap-2">
-                              <div className="font-semibold text-slate-900">{item.name}</div>
-                              <span className="text-xs font-black bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-md shrink-0">
+                              <div className="font-semibold text-slate-900 text-xs">{item.name}</div>
+                              <span className="text-[11px] font-black bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-md shrink-0">
                                 {item.code}
                               </span>
                             </div>
                             {item.name_en && item.name_en !== item.name && (
-                              <div className="text-xs text-slate-500 italic">{item.name_en}</div>
+                              <div className="text-[11px] text-slate-500 italic">{item.name_en}</div>
                             )}
                             <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
                               {item.snomed_count && item.snomed_count > 0 ? (
@@ -687,7 +687,7 @@ export function DiagnosisForm({
                         ))}
                       </ul>
                     ) : (
-                      <div className="p-6 text-center space-y-3">
+                      <div className="p-5 text-center space-y-2.5">
                         <p className="text-xs text-slate-500">
                           {searchScope === "POLI"
                             ? `Diagnosa tidak ditemukan pada katalog Poli ${deptCode} untuk kata kunci "${searchQuery}"`
@@ -697,9 +697,9 @@ export function DiagnosisForm({
                           <button
                             type="button"
                             onClick={() => setSearchScope("GLOBAL")}
-                            className="inline-flex items-center gap-2 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-4 py-2 rounded-xl transition-all cursor-pointer shadow-2xs"
+                            className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-xl transition-all cursor-pointer shadow-2xs"
                           >
-                            <Globe className="h-4 w-4 text-indigo-600" />
+                            <Globe className="h-3.5 w-3.5 text-indigo-600" />
                             Cari "{searchQuery}" di Seluruh Katalog ICD-10
                           </button>
                         )}
@@ -711,8 +711,8 @@ export function DiagnosisForm({
 
               {/* Quick Chips Diagnosa Populer */}
               {popularDiagnoses.length > 0 && (
-                <div className="flex items-center flex-wrap gap-1.5 pt-1">
-                  <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1 mr-0.5">
+                <div className="flex items-center flex-wrap gap-1.5 pt-0.5">
+                  <span className="text-[10.5px] font-bold text-slate-400 flex items-center gap-1 mr-0.5">
                     <Zap className="h-3 w-3 text-amber-500 fill-amber-500" />
                     Pilihan Cepat Poli:
                   </span>
@@ -728,11 +728,11 @@ export function DiagnosisForm({
                         });
                         setShowDropdown(false);
                       }}
-                      className="text-[11px] font-medium bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 hover:border-indigo-300 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                      className="text-[10.5px] font-medium bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 hover:border-indigo-300 px-2 py-0.5 rounded-md transition-all flex items-center gap-1 cursor-pointer shadow-2xs h-6.5"
                       title={`${item.code} - ${item.name}`}
                     >
                       <span className="font-bold text-indigo-600">{item.code}</span>
-                      <span className="truncate max-w-[130px]">{item.name}</span>
+                      <span className="truncate max-w-[120px]">{item.name}</span>
                     </button>
                   ))}
                 </div>
@@ -742,56 +742,50 @@ export function DiagnosisForm({
         </div>
 
         {/* Form Fields: Jenis Diagnosa, Severity, Notes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             {targetSection === "PRIMARY" || diagnosisType === "PRIMARY" ? (
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Jenis Diagnosa
                 </label>
-                <div className="h-12 px-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-base">🌟</span>
-                    <span className="text-sm font-bold text-amber-950">Diagnosa Utama (Primary Diagnosis)</span>
+                <div className="h-9.5 px-3 bg-amber-50/80 border border-amber-200 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm">🌟</span>
+                    <span className="text-xs font-bold text-amber-950">Diagnosa Utama (Primary Diagnosis)</span>
                   </div>
-                  <span className="text-[10px] font-bold bg-amber-200/70 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300/80 shrink-0">
+                  <span className="text-[9.5px] font-bold bg-amber-200/70 text-amber-900 px-2 py-0.5 rounded-full border border-amber-300/80 shrink-0">
                     Terkunci Otomatis
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1.5">
-                  Diagnosa ini akan ditetapkan sebagai penentu utama tindakan medis & klaim.
-                </p>
               </div>
             ) : (
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Kategori Diagnosa Sekunder <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={diagnosisType}
                   onChange={(e) => setDiagnosisType(e.target.value)}
-                  className="w-full h-12 px-4 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
+                  className="w-full h-9.5 px-3 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
                 >
                   <option value="SECONDARY">Sekunder (Secondary Diagnosis)</option>
                   <option value="COMORBIDITY">Penyakit Penyerta (Comorbidity)</option>
                   <option value="COMPLICATION">Komplikasi / Penyulit (Complication)</option>
                   <option value="DIFFERENTIAL">Diagnosa Banding (Differential)</option>
                 </select>
-                <p className="text-[11px] text-slate-500 mt-1.5">
-                  Pilih klasifikasi klinis penyakit penyerta atau komplikasi pasien.
-                </p>
               </div>
             )}
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Tingkat Keparahan (Severity) <span className="text-red-500">*</span>
             </label>
             <select
               value={severityLevel}
               onChange={(e) => setSeverityLevel(e.target.value)}
-              className="w-full h-12 px-4 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
+              className="w-full h-9.5 px-3 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
             >
               <option value="I">Level I - Ringan (Mild / Simple)</option>
               <option value="II">Level II - Sedang (Moderate)</option>
@@ -800,26 +794,26 @@ export function DiagnosisForm({
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
               Catatan Klinis (SOAP / Keterangan Dokter)
             </label>
             <textarea
               value={clinicalNotes}
               onChange={(e) => setClinicalNotes(e.target.value)}
-              className="w-full h-20 bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none placeholder:text-slate-400"
+              className="w-full h-16 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none placeholder:text-slate-400"
               placeholder="Tambahkan catatan temuan klinis, onset, atau rasionalisasi diagnosa..."
             />
           </div>
         </div>
 
         {/* Form Footer */}
-        <div className="pt-4 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2">
-          <div className="text-[11px] text-slate-500 hidden sm:flex items-center gap-1.5">
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between flex-wrap gap-2">
+          <div className="text-[10.5px] text-slate-500 hidden sm:flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Auto-Mapping 3 Pilar Aktif</span>
           </div>
 
-          <div className="flex items-center gap-2.5 ml-auto">
+          <div className="flex items-center gap-2 ml-auto">
             <Button
               type="button"
               variant="outline"
@@ -827,14 +821,14 @@ export function DiagnosisForm({
                 resetForm();
                 setActiveFormSection(null);
               }}
-              className="bg-white rounded-xl h-10 px-4 text-xs font-semibold cursor-pointer border-slate-300 hover:bg-slate-50"
+              className="bg-white rounded-xl h-8.5 px-3.5 text-xs font-semibold cursor-pointer border-slate-300 hover:bg-slate-50"
             >
               Batal
             </Button>
             <Button
               type="submit"
               disabled={loading || !selectedIcd10}
-              className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 h-10 rounded-xl shadow-2xs cursor-pointer text-xs transition-all"
+              className="gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 h-8.5 rounded-xl shadow-2xs cursor-pointer text-xs transition-all"
             >
               <Save className="h-3.5 w-3.5" />
               {loading
