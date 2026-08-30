@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aliube/go-micro-simrs-one/patient-service/internal/core/domain"
@@ -94,7 +95,7 @@ func (s *patientServiceImpl) RegisterPatient(ctx context.Context, name, nik, dob
 
 func (s *patientServiceImpl) GetPatientByMRN(ctx context.Context, mrn string) (*domain.Patient, error) {
 	if s.repo != nil {
-		return s.repo.FindByMRN(ctx, mrn)
+		return s.repo.FindByMRN(ctx, strings.TrimSpace(mrn))
 	}
 	return nil, fmt.Errorf("repository not initialized")
 }

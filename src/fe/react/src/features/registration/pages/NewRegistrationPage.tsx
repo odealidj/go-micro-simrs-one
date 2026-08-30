@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { Search, CreditCard, UserCircle, Camera, UploadCloud, X, Loader2, Check, Activity, Clock, Stethoscope, UserCheck, UserPlus, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Search, CreditCard, UserCircle, Camera, UploadCloud, X, Loader2, Check, Activity, Clock, Stethoscope, UserCheck, UserPlus, ChevronLeft, ChevronRight, Plus, AlertCircle, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { getHospitalTodayDate } from "@/lib/dateUtils";
 import { api } from "@/lib/api";
 import { useNavigate } from "react-router-dom";
 import { AdmisiPageHeader } from "../components/AdmisiPageHeader";
@@ -85,17 +86,22 @@ export function NewRegistrationPage() {
     return gender;
   };
 
+  const [todayPiketList, setTodayPiketList] = useState<any[]>([]);
+
   const fetchMasterData = async () => {
     setIsFetchingMaster(true);
     try {
-      const [poliRes, docRes, nurseRes] = await Promise.all([
+      const todayStr = getHospitalTodayDate();
+      const [poliRes, docRes, nurseRes, piketRes] = await Promise.all([
         api.get('/master/polyclinics?page_size=100'),
         api.get('/master/doctors?page_size=500'),
-        api.get('/master/nurses?page_size=500')
+        api.get('/master/nurses?page_size=500'),
+        api.get(`/master/jadwal-piket?date=${todayStr}`)
       ]);
       if (poliRes.data?.success) setMasterPoli(poliRes.data.data || []);
       if (docRes.data?.success) setMasterDoctors(docRes.data.data || []);
       if (nurseRes.data?.success) setMasterNurses(nurseRes.data.data || []);
+      if (piketRes.data?.success) setTodayPiketList(piketRes.data.data || []);
     } catch (err) {
       console.error("Failed to fetch master data:", err);
       toast.error("Gagal mengambil data master Poliklinik/Dokter");
@@ -192,8 +198,15 @@ export function NewRegistrationPage() {
     setSelectedPatient(patient);
     setPoli("");
     setDoctor("");
+    setNurse("");
     setPayment("Umum / Mandiri");
     setIsRegisterModalOpen(true);
+    const todayStr = getHospitalTodayDate();
+    api.get(`/master/jadwal-piket?date=${todayStr}`)
+      .then((res) => {
+        if (res.data?.success) setTodayPiketList(res.data.data || []);
+      })
+      .catch(() => {});
   };
 
   const handleCreatePatient = async (e: React.FormEvent) => {
@@ -266,6 +279,16 @@ export function NewRegistrationPage() {
 
   const handleRegister = async () => {
     try {
+      if (!selectedPoli) {
+        toast.error("Harap pilih poliklinik tujuan terlebih dahulu.");
+        return;
+      }
+
+      if (!assignedDoctor) {
+        toast.error(`Pendaftaran ditolak: Tidak ada dokter yang bertugas di poliklinik ini pada hari ${currentDayName}.`);
+        return;
+      }
+
       setIsSubmitting(true);
       let guarantor = "Umum";
       if (selectedPayment === "BPJS Kesehatan") guarantor = "BPJS";
@@ -319,21 +342,87 @@ export function NewRegistrationPage() {
     }
   };
 
-  const validPolyclinics = masterPoli.filter(poli => {
-    const hasDoctor = masterDoctors.some(d => d.poli_code === poli.code);
-    const hasNurse = masterNurses.some(n => n.poli_code === poli.code);
-    return hasDoctor && hasNurse;
+  // Hari kerja saat ini (1 = Senin, ..., 6 = Sabtu, 7 = Minggu)
+  const currentDayOfWeek = new Date().getDay() === 0 ? 7 : new Date().getDay();
+  const dayNames: Record<number, string> = {
+    1: "Senin",
+    2: "Selasa",
+    3: "Rabu",
+    4: "Kamis",
+    5: "Jumat",
+    6: "Sabtu",
+    7: "Minggu",
+  };
+  const currentDayName = dayNames[currentDayOfWeek] || "Hari Ini";
+
+  // Helper untuk mengecek apakah tenaga medis memiliki jadwal dinas hari ini
+  const isPersonnelScheduledToday = (personnel: any) => {
+    if (!personnel?.days_of_week) return false;
+    if (Array.isArray(personnel.days_of_week)) {
+      return personnel.days_of_week.includes(currentDayOfWeek);
+    }
+    return false;
+  };
+
+  // Poliklinik beserta status operasionalnya hari ini (Prioritas 1: Piket, Prioritas 2: Jadwal Reguler)
+  const polyclinicOptions = masterPoli.map(poli => {
+    const piketForPoli = todayPiketList.find(p => p.poli_code === poli.code);
+    const hasDoctorToday = Boolean(piketForPoli) || masterDoctors.some(
+      d => d.poli_code === poli.code && isPersonnelScheduledToday(d)
+    );
+    const hasNurseToday = Boolean(piketForPoli?.perawat_id) || masterNurses.some(
+      n => n.poli_code === poli.code && isPersonnelScheduledToday(n)
+    );
+    return {
+      ...poli,
+      isOpenToday: hasDoctorToday,
+      hasNurseToday: hasNurseToday,
+      isPiket: Boolean(piketForPoli),
+      piketData: piketForPoli,
+    };
   });
 
-  const assignedDoctor = masterDoctors.find(d => d.poli_code === selectedPoli);
-  const assignedNurse = masterNurses.find(n => n.poli_code === selectedPoli);
+  // Dokter dan Perawat yang AKTIF BERTUGAS HARI INI di poliklinik terpilih
+  const piketSelected = todayPiketList.find(p => p.poli_code === selectedPoli);
+
+  const assignedDoctor = piketSelected ? {
+    id: piketSelected.dokter_id,
+    username: piketSelected.dokter_name,
+    spesialisasi: piketSelected.dokter_spesialisasi || "Dokter Piket",
+    isPiket: true,
+    shift_start: piketSelected.shift_start,
+    shift_end: piketSelected.shift_end,
+    keterangan: piketSelected.keterangan,
+  } : masterDoctors.find(
+    d => d.poli_code === selectedPoli && isPersonnelScheduledToday(d)
+  );
+
+  const assignedNurse = (piketSelected && piketSelected.perawat_id) ? {
+    id: piketSelected.perawat_id,
+    username: piketSelected.perawat_name,
+    isPiket: true,
+    shift_start: piketSelected.shift_start,
+    shift_end: piketSelected.shift_end,
+  } : masterNurses.find(
+    n => n.poli_code === selectedPoli && isPersonnelScheduledToday(n)
+  );
 
   const handlePoliChange = (poliCode: string) => {
     setPoli(poliCode);
-    const doc = masterDoctors.find(d => d.poli_code === poliCode);
-    const nurse = masterNurses.find(n => n.poli_code === poliCode);
-    setDoctor(doc?.id || "");
-    setNurse(nurse?.id || "");
+    const piket = todayPiketList.find(p => p.poli_code === poliCode);
+    if (piket) {
+      setDoctor(piket.dokter_id);
+      setNurse(piket.perawat_id || "");
+    } else {
+      const doc = masterDoctors.find(
+        d => d.poli_code === poliCode && isPersonnelScheduledToday(d)
+      );
+      const nurse = masterNurses.find(
+        n => n.poli_code === poliCode && isPersonnelScheduledToday(n)
+      );
+      setDoctor(doc?.id || "");
+      setNurse(nurse?.id || "");
+    }
   };
 
   return (
@@ -355,11 +444,11 @@ export function NewRegistrationPage() {
         }
       />
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-stretch flex-1 min-h-0">
         {/* Left Column - Patient Directory (8 cols) */}
-        <div className="xl:col-span-8 flex flex-col">
-          <Card className="card-premium overflow-hidden flex flex-col h-full">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100/80 p-5 shrink-0">
+        <div className="xl:col-span-8 flex flex-col flex-1 min-h-0">
+          <Card className="card-premium overflow-hidden flex flex-col flex-1 h-full min-h-0">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100/80 p-4 sm:p-5 shrink-0">
               <form onSubmit={handleSearchPatient} className="relative flex gap-3">
                 <div className="relative flex-1 max-w-2xl">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
@@ -388,7 +477,7 @@ export function NewRegistrationPage() {
             </CardHeader>
             
             {/* Main Patient Table */}
-            <div className="p-0 overflow-x-auto custom-scrollbar flex-1 flex flex-col min-h-[460px]">
+            <div className="p-0 overflow-x-auto overflow-y-auto custom-scrollbar flex-1 flex flex-col min-h-0">
               <Table className="w-full">
                 <TableHeader className="bg-slate-50/70 border-b border-slate-100 shrink-0">
                   <TableRow>
@@ -560,9 +649,9 @@ export function NewRegistrationPage() {
         </div>
 
         {/* Right Column - Summary Sidebar (4 cols) */}
-        <div className="xl:col-span-4 flex flex-col">
-          <Card className="card-premium overflow-hidden flex flex-col h-full">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-5 shrink-0">
+        <div className="xl:col-span-4 flex flex-col flex-1 min-h-0">
+          <Card className="card-premium overflow-hidden flex flex-col flex-1 h-full min-h-0">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-4 sm:p-5 shrink-0">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-base font-bold text-slate-900">Pendaftaran Hari Ini</CardTitle>
@@ -573,7 +662,7 @@ export function NewRegistrationPage() {
                 </span>
               </div>
             </CardHeader>
-            <CardContent className="p-4 flex-1 flex flex-col space-y-4">
+            <CardContent className="p-4 flex-1 flex flex-col space-y-4 min-h-0">
               <div className="relative shrink-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input 
@@ -583,19 +672,21 @@ export function NewRegistrationPage() {
                   className="pl-9 h-10 text-xs bg-slate-50 border-slate-200/80 rounded-xl focus-visible:ring-sky-600"
                 />
               </div>
-              <div className="flex-1 min-h-[360px] max-h-[460px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar min-h-0">
                 {recentRegistrations.length > 0 ? (
                   recentRegistrations
                     .filter(enc => 
-                      enc.patient_name.toLowerCase().includes(summaryFilter.toLowerCase()) || 
-                      enc.mrn.toLowerCase().includes(summaryFilter.toLowerCase()) ||
-                      (enc.department_code === '01' ? 'poli umum' : enc.department_code === '02' ? 'poli gigi' : enc.department_code === '03' ? 'poli anak' : enc.department_code.toLowerCase()).includes(summaryFilter.toLowerCase())
+                      (enc.patient_name || '').toLowerCase().includes(summaryFilter.toLowerCase()) || 
+                      (enc.mrn || '').toLowerCase().includes(summaryFilter.toLowerCase()) ||
+                      (enc.department_code === '01' ? 'poli umum' : enc.department_code === '02' ? 'poli gigi' : enc.department_code === '03' ? 'poli anak' : (enc.department_code || '').toLowerCase()).includes(summaryFilter.toLowerCase())
                     )
                     .map((enc, idx) => (
                     <div key={idx} className="flex flex-col p-3 rounded-xl border border-slate-100 bg-white hover:border-blue-200 hover:shadow-md transition-all group relative overflow-hidden">
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-l-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                       <div className="flex justify-between items-start mb-1">
-                        <span className="font-semibold text-slate-800 text-sm">{enc.patient_name}</span>
+                        <span className="font-semibold text-slate-800 text-sm">
+                          {enc.patient_name && enc.patient_name !== '-' ? enc.patient_name : (enc.mrn ? `Pasien (${enc.mrn})` : 'Pasien')}
+                        </span>
                         <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {new Date(enc.registered_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
@@ -616,7 +707,7 @@ export function NewRegistrationPage() {
                     </div>
                   ))
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-10 text-slate-400">
+                  <div className="flex flex-col items-center justify-center flex-1 py-14 text-slate-400">
                     <Activity className="h-10 w-10 mb-3 opacity-20" />
                     <p className="text-sm font-medium">Belum ada pendaftaran</p>
                   </div>
@@ -673,57 +764,139 @@ export function NewRegistrationPage() {
                   className="w-full h-12 bg-white border border-slate-200 rounded-xl px-4 text-slate-800 font-medium outline-none focus:ring-2 focus:ring-sky-600 shadow-2xs transition-all disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                 >
                   <option value="">-- Pilih Poliklinik Tujuan --</option>
-                  {validPolyclinics.map(p => (
-                    <option key={p.code} value={p.code}>{p.name}</option>
+                  {polyclinicOptions.map(p => (
+                    <option key={p.code} value={p.code}>
+                      {p.name} {p.isPiket ? "✓ (Dokter Piket Aktif)" : p.isOpenToday ? "✓ (Dokter Jaga Aktif)" : `✕ (Tutup / Tidak Ada Jadwal Hari ${currentDayName})`}
+                    </option>
                   ))}
                 </select>
               </div>
 
               {/* Direct Personnel Display */}
               {selectedPoli ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                  {/* Dokter Pemeriksa Card */}
-                  <div className="p-4 rounded-xl border border-sky-100 bg-gradient-to-br from-sky-50/80 to-indigo-50/30 flex items-start gap-3 shadow-2xs">
-                    <div className="p-2.5 rounded-xl bg-sky-600 text-white shadow-sm shadow-sky-600/20 shrink-0">
-                      <Stethoscope className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[11px] font-bold text-sky-700 uppercase tracking-wide">Dokter Pemeriksa</span>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                          Bertugas
-                        </span>
+                <div className="space-y-3 pt-1">
+                  {!assignedDoctor && (
+                    <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/90 flex items-start gap-3 shadow-2xs text-amber-900">
+                      <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-sm">
+                          Tidak Ada Jadwal Dokter Hari Ini ({currentDayName})
+                        </p>
+                        <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
+                          Poliklinik ini tidak memiliki jadwal praktek dokter pada hari {currentDayName}. Pendaftaran kunjungan pasien ke poliklinik ini tidak dapat diproses hari ini.
+                        </p>
                       </div>
-                      <p className="text-base font-bold text-slate-900 truncate mt-0.5">
-                        {assignedDoctor?.username || assignedDoctor?.name || "Dokter Belum Ditugaskan"}
-                      </p>
-                      <p className="text-xs text-slate-500 truncate mt-0.5">
-                        Spesialisasi: <span className="font-medium text-slate-700">{assignedDoctor?.spesialisasi || "Umum"}</span>
-                      </p>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Perawat Pendamping Card */}
-                  <div className="p-4 rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-emerald-50/30 flex items-start gap-3 shadow-2xs">
-                    <div className="p-2.5 rounded-xl bg-teal-600 text-white shadow-sm shadow-teal-600/20 shrink-0">
-                      <UserCheck className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[11px] font-bold text-teal-700 uppercase tracking-wide">Perawat Pendamping</span>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                          Bertugas
-                        </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Dokter Pemeriksa Card */}
+                    {assignedDoctor ? (
+                      <div className="p-4 rounded-xl border border-sky-100 bg-gradient-to-br from-sky-50/80 to-indigo-50/30 flex items-start gap-3 shadow-2xs">
+                        <div className="p-2.5 rounded-xl bg-sky-600 text-white shadow-sm shadow-sky-600/20 shrink-0">
+                          <Stethoscope className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[11px] font-bold text-sky-700 uppercase tracking-wide">Dokter Pemeriksa</span>
+                            {assignedDoctor.isPiket ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full animate-pulse">
+                                <ShieldCheck className="w-3 h-3 text-amber-700" />
+                                Dokter Piket Weekend
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                                Bertugas Hari Ini
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-base font-bold text-slate-900 truncate mt-0.5">
+                            {assignedDoctor.username || assignedDoctor.name}
+                          </p>
+                          <p className="text-xs text-slate-500 truncate mt-0.5">
+                            Spesialisasi: <span className="font-medium text-slate-700">{assignedDoctor.spesialisasi || "Umum"}</span>
+                            {assignedDoctor.shift_start && assignedDoctor.shift_end && (
+                              <span className="ml-1 text-slate-400 font-mono">({assignedDoctor.shift_start.slice(0, 5)} - {assignedDoctor.shift_end.slice(0, 5)})</span>
+                            )}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-base font-bold text-slate-900 truncate mt-0.5">
-                        {assignedNurse?.username || assignedNurse?.name || "Perawat Belum Ditugaskan"}
-                      </p>
-                      <p className="text-xs text-slate-500 truncate mt-0.5">
-                        STR: <span className="font-medium text-slate-700">{assignedNurse?.str_perawat || "Aktif"}</span>
-                      </p>
-                    </div>
+                    ) : (
+                      <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/60 flex items-start gap-3 shadow-2xs">
+                        <div className="p-2.5 rounded-xl bg-rose-500 text-white shadow-sm shrink-0">
+                          <Stethoscope className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[11px] font-bold text-rose-700 uppercase tracking-wide">Dokter Pemeriksa</span>
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full">
+                              Libur / Tutup
+                            </span>
+                          </div>
+                          <p className="text-sm font-bold text-rose-950 mt-0.5">
+                            Tidak Ada Dokter Bertugas
+                          </p>
+                          <p className="text-xs text-rose-700 mt-0.5">
+                            Jadwal praktek kosong pada hari {currentDayName}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Perawat Pendamping Card */}
+                    {assignedNurse ? (
+                      <div className="p-4 rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/80 to-emerald-50/30 flex items-start gap-3 shadow-2xs">
+                        <div className="p-2.5 rounded-xl bg-teal-600 text-white shadow-sm shadow-teal-600/20 shrink-0">
+                          <UserCheck className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[11px] font-bold text-teal-700 uppercase tracking-wide">Perawat Pendamping</span>
+                            {assignedNurse.isPiket ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-full">
+                                <ShieldCheck className="w-3 h-3 text-emerald-700" />
+                                Perawat Piket Weekend
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                                Bertugas Hari Ini
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-base font-bold text-slate-900 truncate mt-0.5">
+                            {assignedNurse.username || assignedNurse.name}
+                          </p>
+                          <p className="text-xs text-slate-500 truncate mt-0.5">
+                            STR: <span className="font-medium text-slate-700">{assignedNurse.str_perawat || "Aktif"}</span>
+                            {assignedNurse.shift_start && assignedNurse.shift_end && (
+                              <span className="ml-1 text-slate-400 font-mono">({assignedNurse.shift_start.slice(0, 5)} - {assignedNurse.shift_end.slice(0, 5)})</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-xl border border-slate-200 bg-slate-100/70 flex items-start gap-3 shadow-2xs opacity-80">
+                        <div className="p-2.5 rounded-xl bg-slate-400 text-white shrink-0">
+                          <UserCheck className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Perawat Pendamping</span>
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-600 bg-slate-200 px-2 py-0.5 rounded-full">
+                              Tidak Ada Jadwal
+                            </span>
+                          </div>
+                          <p className="text-sm font-semibold text-slate-700 mt-0.5">
+                            Tidak Ada Perawat Bertugas
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Hari dinas kosong pada hari {currentDayName}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

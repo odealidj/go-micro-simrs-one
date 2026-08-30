@@ -14,7 +14,9 @@ import {
   UserCheck, 
   Activity, 
   CreditCard, 
-  Loader2 
+  Loader2,
+  AlertTriangle,
+  ShieldAlert
 } from "lucide-react";
 import {
   Dialog,
@@ -30,6 +32,7 @@ import { api } from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 import { getAdmisiStatusBadge } from "../theme";
+import { getHospitalTodayDate } from "@/lib/dateUtils";
 
 interface Encounter {
   encounter_no: string;
@@ -45,20 +48,11 @@ interface Encounter {
   registered_time: string;
 }
 
-// Format current date to YYYY-MM-DD
-const getTodayString = () => {
-  const d = new Date();
-  const month = `${d.getMonth() + 1}`.padStart(2, '0');
-  const day = `${d.getDate()}`.padStart(2, '0');
-  const year = d.getFullYear();
-  return `${year}-${month}-${day}`;
-};
-
 export function PatientRegistrationList() {
   const [encounters, setEncounters] = useState<Encounter[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterDate, setFilterDate] = useState(getTodayString());
+  const [filterDate, setFilterDate] = useState(getHospitalTodayDate());
 
   // Master Data Cache for rich details
   const [masterPoli, setMasterPoli] = useState<any[]>([]);
@@ -79,6 +73,13 @@ export function PatientRegistrationList() {
   const [editGuarantor, setEditGuarantor] = useState("Umum / Mandiri");
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
 
+  // Cancel / Delete Modal State
+  const [selectedCancel, setSelectedCancel] = useState<Encounter | null>(null);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("Permintaan Pasien / Keluarga");
+  const [customReason, setCustomReason] = useState("");
+  const [isCancelling, setIsCancelling] = useState(false);
+
   const fetchMasterData = async () => {
     try {
       const [poliRes, docRes, nurseRes] = await Promise.all([
@@ -97,7 +98,7 @@ export function PatientRegistrationList() {
   const fetchEncounters = async () => {
     setLoading(true);
     try {
-      const dateParam = filterDate === getTodayString() ? "" : filterDate;
+      const dateParam = filterDate === getHospitalTodayDate() ? "" : filterDate;
       const response = await api.get('/registrations/today', {
         params: {
           date: dateParam
@@ -125,25 +126,39 @@ export function PatientRegistrationList() {
     fetchEncounters();
   }, [filterDate]);
 
-  const handleCancelEncounter = async (encounterNo: string) => {
-    if (!window.confirm(`Apakah Anda yakin ingin membatalkan registrasi ${encounterNo}?`)) {
-      return;
-    }
+  const handleOpenCancelModal = (encounter: Encounter) => {
+    setSelectedCancel(encounter);
+    setCancelReason("Permintaan Pasien / Keluarga");
+    setCustomReason("");
+    setIsCancelModalOpen(true);
+  };
 
+  const handleConfirmCancel = async () => {
+    if (!selectedCancel) return;
+
+    const finalReason = cancelReason === "Lainnya"
+      ? (customReason.trim() || "Dibatalkan oleh petugas admisi")
+      : cancelReason;
+
+    setIsCancelling(true);
     try {
       const response = await api.post('/registrations/cancel', {
-        encounter_no: encounterNo,
-        reason: "Dibatalkan oleh petugas admisi"
+        encounter_no: selectedCancel.encounter_no,
+        reason: finalReason
       });
       if (response.data?.success) {
-        toast.success(`Registrasi ${encounterNo} berhasil dibatalkan`);
+        toast.success(`Registrasi ${selectedCancel.encounter_no} berhasil dibatalkan`);
+        setIsCancelModalOpen(false);
+        setSelectedCancel(null);
         fetchEncounters();
       } else {
-        toast.error("Gagal membatalkan registrasi");
+        toast.error(response.data?.message || "Gagal membatalkan registrasi");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error cancelling encounter:", error);
-      toast.error("Terjadi kesalahan sistem saat membatalkan");
+      toast.error(error.response?.data?.message || "Terjadi kesalahan sistem saat membatalkan");
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -217,13 +232,18 @@ export function PatientRegistrationList() {
   };
 
   // Filter encounters by search
-  const filteredEncounters = encounters.filter(e => 
-    e.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    e.mrn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.encounter_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (e.gender && e.gender.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (e.date_of_birth && e.date_of_birth.includes(searchTerm))
-  );
+  const filteredEncounters = encounters.filter(e => {
+    const term = searchTerm.toLowerCase();
+    const statusLabel = getAdmisiStatusBadge(e.status).label.toLowerCase();
+    return (
+      (e.patient_name || '').toLowerCase().includes(term) || 
+      (e.mrn || '').toLowerCase().includes(term) ||
+      (e.encounter_no || '').toLowerCase().includes(term) ||
+      (e.gender && e.gender.toLowerCase().includes(term)) ||
+      (e.date_of_birth && e.date_of_birth.includes(term)) ||
+      statusLabel.includes(term)
+    );
+  });
 
   // Pagination Calculation
   const totalData = filteredEncounters.length;
@@ -233,9 +253,9 @@ export function PatientRegistrationList() {
   const paginatedEncounters = filteredEncounters.slice(startIndex, endIndex);
 
   return (
-    <div className="card-premium overflow-hidden">
+    <div className="card-premium overflow-hidden flex-1 flex flex-col min-h-0 h-full">
       {/* Header Bar with Search & Date Filters */}
-      <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+      <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50 shrink-0">
         <div>
           <h3 className="text-base font-bold text-slate-900 tracking-tight">Data Kunjungan Pasien</h3>
           <p className="text-xs text-slate-500 mt-0.5">Filter berdasarkan tanggal dan pencarian nomor registrasi, MRN, atau nama.</p>
@@ -274,7 +294,7 @@ export function PatientRegistrationList() {
       </div>
 
       {/* Main Table */}
-      <div className="p-0 overflow-x-auto custom-scrollbar">
+      <div className="p-0 overflow-x-auto overflow-y-auto custom-scrollbar flex-1 flex flex-col min-h-0">
         <Table>
           <TableHeader className="bg-slate-50/70 border-b border-slate-100">
             <TableRow>
@@ -286,7 +306,7 @@ export function PatientRegistrationList() {
               <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5">Poli Tujuan</TableHead>
               <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5">Status Pasien</TableHead>
               <TableHead className="text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5">Status Kunjungan</TableHead>
-              <TableHead className="text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 w-[120px]">Aksi</TableHead>
+              <TableHead className="text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 w-[140px] min-w-[140px] pr-6">Aksi</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -322,7 +342,7 @@ export function PatientRegistrationList() {
 
                   {/* Nama Pasien */}
                   <TableCell className="font-bold text-slate-900 text-sm">
-                    {encounter.patient_name}
+                    {encounter.patient_name && encounter.patient_name !== '-' ? encounter.patient_name : (encounter.mrn ? `Pasien (${encounter.mrn})` : '-')}
                   </TableCell>
 
                   {/* Kelamin */}
@@ -349,27 +369,29 @@ export function PatientRegistrationList() {
                   <TableCell>{getStatusBadge(encounter.status)}</TableCell>
 
                   {/* Kolom Aksi: Icon Edit, Delete, Info Detail */}
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
+                  <TableCell className="text-right pr-6 w-[140px] min-w-[140px]">
+                    <div className="flex items-center justify-end gap-1.5 relative z-10">
                       {/* Info Detail */}
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 rounded-lg text-sky-600 hover:text-sky-700 hover:bg-sky-50 transition-colors"
+                        type="button"
+                        className="h-8 w-8 p-0 rounded-lg text-sky-600 hover:text-sky-700 hover:bg-sky-50 transition-colors cursor-pointer"
                         title="Info Detail Kunjungan"
                         onClick={() => {
                           setSelectedDetail(encounter);
                           setIsDetailOpen(true);
                         }}
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-4 w-4 pointer-events-none" />
                       </Button>
 
                       {/* Edit */}
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-8 w-8 p-0 rounded-lg text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+                        type="button"
+                        className="h-8 w-8 p-0 rounded-lg text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-colors cursor-pointer"
                         title="Edit Kunjungan / Penjamin"
                         onClick={() => {
                           setSelectedEdit(encounter);
@@ -377,19 +399,23 @@ export function PatientRegistrationList() {
                           setIsEditOpen(true);
                         }}
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-4 w-4 pointer-events-none" />
                       </Button>
 
                       {/* Delete / Cancel */}
                       <Button
                         size="sm"
                         variant="ghost"
+                        type="button"
                         disabled={encounter.status === 'CANCELLED'}
-                        className="h-8 w-8 p-0 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="h-8 w-8 p-0 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
                         title={encounter.status === 'CANCELLED' ? "Kunjungan telah dibatalkan" : "Batalkan Kunjungan"}
-                        onClick={() => handleCancelEncounter(encounter.encounter_no)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenCancelModal(encounter);
+                        }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 pointer-events-none" />
                       </Button>
                     </div>
                   </TableCell>
@@ -402,7 +428,7 @@ export function PatientRegistrationList() {
 
       {/* Pagination Footer */}
       {totalData > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+        <div className="mt-auto flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-4 border-t border-slate-100 bg-slate-50/50 shrink-0">
           <div className="text-xs text-slate-500">
             Menampilkan <span className="font-semibold text-slate-800">{totalData > 0 ? startIndex + 1 : 0}</span> - <span className="font-semibold text-slate-800">{endIndex}</span> dari{" "}
             <span className="font-semibold text-slate-800">{totalData}</span> data (Halaman{" "}
@@ -666,6 +692,144 @@ export function PatientRegistrationList() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* MODERN CANCEL / DELETE CONFIRMATION MODAL */}
+      <Dialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+        <DialogContent className="sm:max-w-lg rounded-2xl p-0 overflow-hidden border-0 shadow-2xl">
+          {/* Header Banner with Premium Rose Gradient */}
+          <div className="bg-gradient-to-r from-rose-600 via-red-600 to-rose-700 px-6 py-5 text-white relative">
+            <div className="flex items-start gap-3.5">
+              <div className="p-3 rounded-xl bg-white/15 backdrop-blur-md text-white border border-white/20 shadow-xs shrink-0">
+                <AlertTriangle className="h-5 w-5 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-rose-200 bg-rose-950/40 px-2.5 py-0.5 rounded-full border border-rose-400/30 inline-block">
+                  Konfirmasi Pembatalan
+                </span>
+                <DialogTitle className="text-lg font-bold mt-1 text-white">
+                  Batalkan Kunjungan Pasien?
+                </DialogTitle>
+                <DialogDescription className="text-rose-100 text-xs mt-0.5">
+                  Tindakan ini akan membatalkan status registrasi kunjungan di sistem.
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-4 bg-white">
+            {/* Patient Context Card */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+              <div className="flex items-center justify-between text-xs border-b border-slate-200/60 pb-2">
+                <span className="text-slate-500 font-medium">No. Registrasi</span>
+                <span className="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded-md border border-slate-200 shadow-2xs">
+                  {selectedCancel?.encounter_no}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Nama Pasien</span>
+                <span className="font-bold text-slate-900">{selectedCancel?.patient_name || "-"}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">No. Rekam Medis (MRN)</span>
+                <span className="font-mono font-bold text-slate-700">{selectedCancel?.mrn}</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Poliklinik Tujuan</span>
+                <span className="font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100">
+                  {selectedCancel ? getPoliName(selectedCancel.department_code) : "-"}
+                </span>
+              </div>
+            </div>
+
+            {/* Pilihan Alasan Pembatalan */}
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                <span>Alasan Pembatalan</span>
+                <span className="text-[10px] text-slate-400 font-normal">Pilih alasan pembatalan</span>
+              </Label>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {[
+                  "Permintaan Pasien / Keluarga",
+                  "Salah Pilih Poli / Dokter",
+                  "Pasien Tidak Hadir di Poli",
+                  "Kendala Administrasi / Penjamin",
+                  "Lainnya"
+                ].map((reason) => (
+                  <button
+                    key={reason}
+                    type="button"
+                    onClick={() => setCancelReason(reason)}
+                    className={cn(
+                      "p-2.5 rounded-xl border text-xs text-left transition-all flex items-center gap-2 cursor-pointer",
+                      cancelReason === reason
+                        ? "border-rose-500 bg-rose-50 text-rose-800 shadow-2xs font-bold"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300 font-medium"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-2 h-2 rounded-full shrink-0",
+                      cancelReason === reason ? "bg-rose-600 ring-2 ring-rose-300" : "bg-slate-300"
+                    )} />
+                    <span className="truncate">{reason}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Input teks tambahan jika pilih 'Lainnya' */}
+              {cancelReason === "Lainnya" && (
+                <div className="pt-1.5 animate-in fade-in-0 duration-200">
+                  <Input
+                    type="text"
+                    placeholder="Tuliskan rincian alasan pembatalan..."
+                    className="text-xs h-9 bg-slate-50 border-slate-200 rounded-xl focus-visible:ring-rose-500"
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Warning alert */}
+            <div className="p-3 bg-rose-50/70 border border-rose-200/70 rounded-xl flex items-start gap-2.5 text-[11px] text-rose-900">
+              <ShieldAlert className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+              <span>Status kunjungan akan diubah menjadi <strong>Batal</strong> dan sesi pemeriksaan di rawat jalan tidak dapat dimulai.</span>
+            </div>
+          </div>
+
+          <DialogFooter className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsCancelModalOpen(false)}
+              disabled={isCancelling}
+              className="rounded-xl px-4 text-xs font-semibold border-slate-200 text-slate-700 hover:bg-white"
+            >
+              Kembali
+            </Button>
+            <Button
+              type="button"
+              onClick={handleConfirmCancel}
+              disabled={isCancelling || (cancelReason === "Lainnya" && !customReason.trim())}
+              className="rounded-xl px-5 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-600/20 gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Membatalkan...</span>
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Ya, Batalkan Kunjungan</span>
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

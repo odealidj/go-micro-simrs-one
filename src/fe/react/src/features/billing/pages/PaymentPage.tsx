@@ -22,6 +22,7 @@ import {
   ArrowRight,
   ShieldCheck,
   Search,
+  Ban,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -170,13 +171,18 @@ export function PaymentPage() {
     fetchInvoiceData();
   }, [encounterNo]);
 
+  const isCancelled =
+    patientInfo?.status === "CANCELLED" ||
+    patientInfo?.status === "BATAL" ||
+    invoice?.status === "CANCELLED";
+
   const isPaid =
-    Boolean(paidReceipt) ||
-    invoice?.status === "PAID" ||
-    (Boolean(patientInfo) &&
-      patientInfo?.status !== "WAITING_FOR_PAYMENT" &&
-      patientInfo?.status !== "REGISTERED" &&
-      patientInfo?.status !== "CANCELLED");
+    !isCancelled &&
+    (Boolean(paidReceipt) ||
+      invoice?.status === "PAID" ||
+      (Boolean(patientInfo) &&
+        patientInfo?.status !== "WAITING_FOR_PAYMENT" &&
+        patientInfo?.status !== "REGISTERED"));
 
   const totalAmount = invoice?.total_amount || 50000;
   const numAmountPaid = Number(amountPaid) || 0;
@@ -360,12 +366,21 @@ export function PaymentPage() {
         <div className="flex items-center gap-2">
           <span className={cn(
             "px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border shadow-2xs inline-flex items-center gap-1.5",
-            isPaid
+            isCancelled
+              ? "bg-rose-50 text-rose-800 border-rose-200"
+              : isPaid
               ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : "bg-amber-50 text-amber-900 border-amber-200"
           )}>
-            <span className={cn("h-2 w-2 rounded-full", isPaid ? "bg-emerald-500" : "bg-amber-500 animate-pulse")} />
-            {isPaid ? "Status: LUNAS (PAID)" : "Status: MENUNGGU PEMBAYARAN"}
+            <span className={cn(
+              "h-2 w-2 rounded-full",
+              isCancelled ? "bg-rose-500" : isPaid ? "bg-emerald-500" : "bg-amber-500 animate-pulse"
+            )} />
+            {isCancelled
+              ? "Status: DIBATALKAN (CANCELLED)"
+              : isPaid
+              ? "Status: LUNAS (PAID)"
+              : "Status: MENUNGGU PEMBAYARAN"}
           </span>
         </div>
       </div>
@@ -491,21 +506,68 @@ export function PaymentPage() {
             </div>
 
             {/* Total Footer Banner */}
-            <div className="mt-auto p-5 border-t-2 border-slate-200 bg-amber-50/50 rounded-b-2xl shrink-0 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">Total Tagihan Bersih</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">Sudah termasuk biaya layanan poli & dokter</p>
+            {isCancelled ? (
+              <div className="mt-auto p-5 border-t-2 border-rose-200 bg-rose-50/70 rounded-b-2xl shrink-0 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-rose-800 uppercase tracking-wider">Status Tagihan: Dibatalkan</p>
+                  <p className="text-[11px] text-rose-600 mt-0.5">Tagihan dibatalkan (Tidak ada kewajiban pembayaran kasir)</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs line-through text-slate-400 block font-medium font-mono">{formatRupiah(totalAmount)}</span>
+                  <span className="text-2xl font-black text-rose-700 tracking-tight">Rp 0 (Batal)</span>
+                </div>
               </div>
-              <p className="text-2xl font-black text-amber-700 tracking-tight">
-                {formatRupiah(totalAmount)}
-              </p>
-            </div>
+            ) : (
+              <div className="mt-auto p-5 border-t-2 border-slate-200 bg-amber-50/50 rounded-b-2xl shrink-0 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">Total Tagihan Bersih</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Sudah termasuk biaya layanan poli & dokter</p>
+                </div>
+                <p className="text-2xl font-black text-amber-700 tracking-tight">
+                  {formatRupiah(totalAmount)}
+                </p>
+              </div>
+            )}
           </Card>
         </div>
 
-        {/* Right Column: Terminal POS Kasir OR Paid State (5 cols) */}
+        {/* Right Column: Terminal POS Kasir OR Paid State OR Cancelled State (5 cols) */}
         <div className="lg:col-span-5 flex flex-col">
-          {isPaid ? (
+          {isCancelled ? (
+            /* CANCELLED CARD */
+            <Card className="card-premium overflow-hidden flex flex-col h-full border-2 border-rose-300">
+              <CardHeader className="bg-rose-50/80 border-b border-rose-100 p-6 text-center shrink-0">
+                <div className="w-14 h-14 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner mb-2 border border-rose-200">
+                  <Ban className="h-8 w-8" />
+                </div>
+                <CardTitle className="text-lg font-black text-rose-950">
+                  Kunjungan Dibatalkan
+                </CardTitle>
+                <CardDescription className="text-xs text-rose-700 font-mono mt-0.5">
+                  Encounter: #{encounterNo}
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-4 rounded-xl bg-rose-50/60 border border-rose-200 text-rose-800 space-y-2 text-xs">
+                  <p className="font-bold text-rose-900 text-sm">Pembayaran Tidak Tersedia</p>
+                  <p className="text-rose-700 leading-relaxed">
+                    Pendaftaran kunjungan pasien ini telah dibatalkan di loket pendaftaran. Seluruh tagihan pelayanan ini telah dibatalkan secara administratif dan tidak dapat diproses pembayarannya.
+                  </p>
+                </div>
+
+                <div className="space-y-2.5 pt-4">
+                  <Button
+                    onClick={() => navigate("/kasir/antrean")}
+                    className="w-full h-11 bg-slate-900 hover:bg-black text-white font-bold rounded-xl gap-2 shadow-sm text-xs cursor-pointer"
+                  >
+                    <ArrowLeft className="h-4 w-4 text-amber-400" />
+                    <span>Kembali ke Antrean Kasir</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : isPaid ? (
             /* PAID RECEIPT CARD */
             <Card className="card-premium overflow-hidden flex flex-col h-full border-2 border-emerald-400">
               <CardHeader className="bg-emerald-50/80 border-b border-emerald-100 p-6 text-center shrink-0">

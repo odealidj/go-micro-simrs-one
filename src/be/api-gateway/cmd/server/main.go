@@ -23,8 +23,10 @@ import (
 	"google.golang.org/api/iterator"
 	"google.golang.org/genai"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/status"
 
 	"github.com/aliube/go-micro-simrs-one/api-gateway/internal/handlers"
 	"github.com/aliube/go-micro-simrs-one/api-gateway/internal/middleware"
@@ -1028,6 +1030,193 @@ func main() {
 					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: res.Message})
 				})
 
+				// --- JADWAL PIKET / KHUSUS TEMPORER (SABTU, MINGGU & HARI LIBUR) ---
+				r.Get("/master/jadwal-piket", func(w http.ResponseWriter, req *http.Request) {
+					dbConn, err := db.ConnectPostgres("")
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "database connection failed"})
+						return
+					}
+					defer dbConn.Close()
+
+					dateFilter := req.URL.Query().Get("date")
+					monthFilter := req.URL.Query().Get("month")
+					poliFilter := req.URL.Query().Get("poli_code")
+
+					query := `
+						SELECT 
+							j.id::text, j.poli_code, 
+							COALESCE(p.name, j.poli_code) as poli_name,
+							j.dokter_id::text, u_d.username as dokter_name, COALESCE(pd.spesialisasi, 'Dokter') as dokter_spesialisasi,
+							COALESCE(j.perawat_id::text, '') as perawat_id, 
+							COALESCE(u_p.username, '') as perawat_name,
+							TO_CHAR(j.piket_date, 'YYYY-MM-DD') as piket_date,
+							TO_CHAR(j.shift_start, 'HH24:MI') as shift_start,
+							TO_CHAR(j.shift_end, 'HH24:MI') as shift_end,
+							COALESCE(j.keterangan, '') as keterangan,
+							j.created_at
+						FROM auth.jadwal_piket_poli j
+						LEFT JOIN rawat_jalan.polyclinics p ON j.poli_code = p.code
+						JOIN auth.profil_dokter pd ON j.dokter_id = pd.id
+						JOIN auth.users u_d ON pd.user_id = u_d.id
+						LEFT JOIN auth.profil_perawat pp ON j.perawat_id = pp.id
+						LEFT JOIN auth.users u_p ON pp.user_id = u_p.id
+						WHERE 1=1
+					`
+					var args []interface{}
+					argIdx := 1
+
+					if dateFilter != "" {
+						query += fmt.Sprintf(" AND j.piket_date = $%d::DATE", argIdx)
+						args = append(args, dateFilter)
+						argIdx++
+					}
+					if monthFilter != "" {
+						query += fmt.Sprintf(" AND TO_CHAR(j.piket_date, 'YYYY-MM') = $%d", argIdx)
+						args = append(args, monthFilter)
+						argIdx++
+					}
+					if poliFilter != "" {
+						query += fmt.Sprintf(" AND j.poli_code = $%d", argIdx)
+						args = append(args, poliFilter)
+						argIdx++
+					}
+					query += " ORDER BY j.piket_date DESC, j.shift_start ASC"
+
+					rows, err := dbConn.QueryContext(req.Context(), query, args...)
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "failed to query jadwal piket: " + err.Error()})
+						return
+					}
+					defer rows.Close()
+
+					type PiketItem struct {
+						ID                 string    `json:"id"`
+						PoliCode           string    `json:"poli_code"`
+						PoliName           string    `json:"poli_name"`
+						DokterID           string    `json:"dokter_id"`
+						DokterName         string    `json:"dokter_name"`
+						DokterSpesialisasi string    `json:"dokter_spesialisasi"`
+						PerawatID          string    `json:"perawat_id"`
+						PerawatName        string    `json:"perawat_name"`
+						PiketDate          string    `json:"piket_date"`
+						ShiftStart         string    `json:"shift_start"`
+						ShiftEnd           string    `json:"shift_end"`
+						Keterangan         string    `json:"keterangan"`
+						CreatedAt          time.Time `json:"created_at"`
+					}
+
+					var list []PiketItem
+					for rows.Next() {
+						var it PiketItem
+						if err := rows.Scan(
+							&it.ID, &it.PoliCode, &it.PoliName,
+							&it.DokterID, &it.DokterName, &it.DokterSpesialisasi,
+							&it.PerawatID, &it.PerawatName,
+							&it.PiketDate, &it.ShiftStart, &it.ShiftEnd,
+							&it.Keterangan, &it.CreatedAt,
+						); err == nil {
+							list = append(list, it)
+						}
+					}
+					if list == nil {
+						list = []PiketItem{}
+					}
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Jadwal piket fetched", Data: list})
+				})
+
+				r.Post("/master/jadwal-piket", func(w http.ResponseWriter, req *http.Request) {
+					var payload struct {
+						PoliCode   string `json:"poli_code"`
+						DokterID   string `json:"dokter_id"`
+						PerawatID  string `json:"perawat_id"`
+						PiketDate  string `json:"piket_date"`
+						ShiftStart string `json:"shift_start"`
+						ShiftEnd   string `json:"shift_end"`
+						Keterangan string `json:"keterangan"`
+					}
+					if err := json.NewDecoder(req.Body).Decode(&payload); err != nil {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "invalid request body"})
+						return
+					}
+
+					if payload.PoliCode == "" || payload.DokterID == "" || payload.PiketDate == "" {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "poli_code, dokter_id, dan piket_date wajib diisi"})
+						return
+					}
+					if payload.ShiftStart == "" {
+						payload.ShiftStart = "08:00"
+					}
+					if payload.ShiftEnd == "" {
+						payload.ShiftEnd = "14:00"
+					}
+
+					dbConn, err := db.ConnectPostgres("")
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "database connection failed"})
+						return
+					}
+					defer dbConn.Close()
+
+					userID, _ := req.Context().Value("user_id").(string)
+
+					var insertedID string
+					upsertQuery := `
+						INSERT INTO auth.jadwal_piket_poli (
+							poli_code, dokter_id, perawat_id, piket_date, shift_start, shift_end, keterangan, created_by
+						) VALUES (
+							$1, $2::uuid, NULLIF($3, '')::uuid, $4::DATE, $5::TIME, $6::TIME, $7, NULLIF($8, '')::uuid
+						)
+						ON CONFLICT (poli_code, piket_date) DO UPDATE SET
+							dokter_id = EXCLUDED.dokter_id,
+							perawat_id = EXCLUDED.perawat_id,
+							shift_start = EXCLUDED.shift_start,
+							shift_end = EXCLUDED.shift_end,
+							keterangan = EXCLUDED.keterangan,
+							created_at = CURRENT_TIMESTAMP
+						RETURNING id::text
+					`
+					err = dbConn.QueryRowContext(req.Context(), upsertQuery,
+						payload.PoliCode, payload.DokterID, payload.PerawatID, payload.PiketDate,
+						payload.ShiftStart, payload.ShiftEnd, payload.Keterangan, userID,
+					).Scan(&insertedID)
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "failed to save jadwal piket: " + err.Error()})
+						return
+					}
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Jadwal piket berhasil disimpan", Data: map[string]string{"id": insertedID}})
+				})
+
+				r.Delete("/master/jadwal-piket/{id}", func(w http.ResponseWriter, req *http.Request) {
+					piketID := chi.URLParam(req, "id")
+					if piketID == "" {
+						response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "id is required"})
+						return
+					}
+
+					dbConn, err := db.ConnectPostgres("")
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "database connection failed"})
+						return
+					}
+					defer dbConn.Close()
+
+					res, err := dbConn.ExecContext(req.Context(), "DELETE FROM auth.jadwal_piket_poli WHERE id = $1::uuid", piketID)
+					if err != nil {
+						response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "failed to delete jadwal piket: " + err.Error()})
+						return
+					}
+					rowsAff, _ := res.RowsAffected()
+					if rowsAff == 0 {
+						response.JSON(w, http.StatusNotFound, response.ErrorResponse{Success: false, Message: "jadwal piket not found"})
+						return
+					}
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Jadwal piket berhasil dibatalkan"})
+				})
+
 				r.Get("/master/polyclinics/{poli_code}/schedule", func(w http.ResponseWriter, req *http.Request) {
 					poliCode := chi.URLParam(req, "poli_code")
 					docRes, err := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
@@ -1890,66 +2079,90 @@ func main() {
 						return
 					}
 
-					// Auto-assign doctor if empty (utamakan dokter yang terjadwal dinas hari ini: 1=Senin s.d. 5=Jumat)
-					if payload.DoctorId == "" {
-						todayWeekday := int32(time.Now().Weekday()) // 0=Minggu, 1=Senin .. 6=Sabtu
-						if todayWeekday == 0 {
-							todayWeekday = 7
+					// Validasi jadwal dokter hari ini (Prioritas 1: Piket, Prioritas 2: Jadwal Reguler)
+					var piketDoctorID, piketNurseID string
+					dbConnPiket, errPiket := db.ConnectPostgres("")
+					if errPiket == nil {
+						defer dbConnPiket.Close()
+						_ = dbConnPiket.QueryRowContext(req.Context(), `
+							SELECT dokter_id::text, COALESCE(perawat_id::text, '')
+							FROM auth.jadwal_piket_poli
+							WHERE poli_code = $1 AND piket_date = CURRENT_DATE
+							LIMIT 1
+						`, payload.DepartmentCode).Scan(&piketDoctorID, &piketNurseID)
+					}
+
+					todayWeekday := int32(time.Now().Weekday())
+					if todayWeekday == 0 {
+						todayWeekday = 7
+					}
+
+					if piketDoctorID != "" {
+						// Ada dokter piket khusus hari ini!
+						payload.DoctorId = piketDoctorID
+						if payload.PerawatId == "" && piketNurseID != "" {
+							payload.PerawatId = piketNurseID
 						}
+					} else {
+						// Fallback ke jadwal reguler
 						docRes, errDoc := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
 							return authClient.GetDoctorsByPoli(req.Context(), &authpb.GetDoctorsByPoliRequest{
 								PoliCode:  payload.DepartmentCode,
 								Page:      1,
-								PageSize:  1,
+								PageSize:  50,
 								DayOfWeek: todayWeekday,
 							})
 						})
-						if errDoc == nil && len(docRes.Data) > 0 {
+						if errDoc != nil || docRes == nil || len(docRes.Data) == 0 {
+							response.JSON(w, http.StatusBadRequest, response.ErrorResponse{
+								Success: false,
+								Message: "Tidak ada jadwal dokter yang bertugas di poliklinik ini pada hari ini. Pendaftaran kunjungan tidak dapat diproses.",
+							})
+							return
+						}
+
+						if payload.DoctorId == "" {
 							payload.DoctorId = docRes.Data[0].Id
 						} else {
-							// Fallback tanpa filter hari jika belum ada yang terjadwal khusus hari ini
-							fallbackRes, _ := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
-								return authClient.GetDoctorsByPoli(req.Context(), &authpb.GetDoctorsByPoliRequest{
-									PoliCode: payload.DepartmentCode,
-									Page:     1,
-									PageSize: 1,
-								})
-							})
-							if fallbackRes != nil && len(fallbackRes.Data) > 0 {
-								payload.DoctorId = fallbackRes.Data[0].Id
+							doctorFound := false
+							for _, d := range docRes.Data {
+								if d.Id == payload.DoctorId {
+									doctorFound = true
+									break
+								}
+							}
+							if !doctorFound {
+								payload.DoctorId = docRes.Data[0].Id
 							}
 						}
 					}
 
-					// Auto-assign perawat if empty (prioritize nurse on duty today)
-					if payload.PerawatId == "" {
-						todayWeekday := int32(time.Now().Weekday())
-						if todayWeekday == 0 {
-							todayWeekday = 7
-						}
-						nurseRes, errNurse := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
-							return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
-								PoliCode:  payload.DepartmentCode,
-								Page:      1,
-								PageSize:  1,
-								DayOfWeek: todayWeekday,
-							})
+					// Auto-assign perawat dinas hari ini jika ada
+					nurseRes, errNurse := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
+						return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
+							PoliCode:  payload.DepartmentCode,
+							Page:      1,
+							PageSize:  50,
+							DayOfWeek: todayWeekday,
 						})
-						if errNurse == nil && len(nurseRes.Data) > 0 {
+					})
+					if errNurse == nil && nurseRes != nil && len(nurseRes.Data) > 0 {
+						if payload.PerawatId == "" {
 							payload.PerawatId = nurseRes.Data[0].Id
 						} else {
-							// Fallback if no nurse scheduled today
-							fallbackRes, _ := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
-								return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
-									PoliCode: payload.DepartmentCode,
-									Page:     1,
-									PageSize: 1,
-								})
-							})
-							if fallbackRes != nil && len(fallbackRes.Data) > 0 {
-								payload.PerawatId = fallbackRes.Data[0].Id
+							nurseFound := false
+							for _, n := range nurseRes.Data {
+								if n.Id == payload.PerawatId {
+									nurseFound = true
+									break
+								}
+							}
+							if !nurseFound {
+								payload.PerawatId = nurseRes.Data[0].Id
 							}
 						}
+					} else {
+						payload.PerawatId = ""
 					}
 
 					// SAGA: 1. Create User in Auth Service
@@ -2069,49 +2282,90 @@ func main() {
 						return
 					}
 
-					// Auto-assign doctor if empty
-					if payload.DoctorId == "" {
-						docRes, errDoc := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
-							return authClient.GetDoctorsByPoli(req.Context(), &authpb.GetDoctorsByPoliRequest{
-								PoliCode: payload.DepartmentCode,
-								Page:     1,
-								PageSize: 1,
-							})
-						})
-						if errDoc == nil && len(docRes.Data) > 0 {
-							payload.DoctorId = docRes.Data[0].Id
-						}
+					// Validasi jadwal dokter hari ini (Prioritas 1: Piket, Prioritas 2: Jadwal Reguler)
+					var piketDoctorID, piketNurseID string
+					dbConnPiket, errPiket := db.ConnectPostgres("")
+					if errPiket == nil {
+						defer dbConnPiket.Close()
+						_ = dbConnPiket.QueryRowContext(req.Context(), `
+							SELECT dokter_id::text, COALESCE(perawat_id::text, '')
+							FROM auth.jadwal_piket_poli
+							WHERE poli_code = $1 AND piket_date = CURRENT_DATE
+							LIMIT 1
+						`, payload.DepartmentCode).Scan(&piketDoctorID, &piketNurseID)
 					}
 
-					// Auto-assign perawat if empty (prioritize nurse on duty today)
-					if payload.PerawatId == "" {
-						todayWeekday := int32(time.Now().Weekday())
-						if todayWeekday == 0 {
-							todayWeekday = 7
+					todayWeekday := int32(time.Now().Weekday())
+					if todayWeekday == 0 {
+						todayWeekday = 7
+					}
+
+					if piketDoctorID != "" {
+						// Ada dokter piket khusus hari ini!
+						payload.DoctorId = piketDoctorID
+						if payload.PerawatId == "" && piketNurseID != "" {
+							payload.PerawatId = piketNurseID
 						}
-						nurseRes, errNurse := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
-							return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
+					} else {
+						// Fallback ke jadwal reguler
+						docRes, errDoc := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetDoctorsByPoliResponse, error) {
+							return authClient.GetDoctorsByPoli(req.Context(), &authpb.GetDoctorsByPoliRequest{
 								PoliCode:  payload.DepartmentCode,
 								Page:      1,
-								PageSize:  1,
+								PageSize:  50,
 								DayOfWeek: todayWeekday,
 							})
 						})
-						if errNurse == nil && len(nurseRes.Data) > 0 {
-							payload.PerawatId = nurseRes.Data[0].Id
-						} else {
-							// Fallback if no nurse scheduled today
-							fallbackRes, _ := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
-								return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
-									PoliCode: payload.DepartmentCode,
-									Page:     1,
-									PageSize: 1,
-								})
+						if errDoc != nil || docRes == nil || len(docRes.Data) == 0 {
+							response.JSON(w, http.StatusBadRequest, response.ErrorResponse{
+								Success: false,
+								Message: "Tidak ada jadwal dokter yang bertugas di poliklinik ini pada hari ini. Pendaftaran kunjungan tidak dapat diproses.",
 							})
-							if fallbackRes != nil && len(fallbackRes.Data) > 0 {
-								payload.PerawatId = fallbackRes.Data[0].Id
+							return
+						}
+
+						if payload.DoctorId == "" {
+							payload.DoctorId = docRes.Data[0].Id
+						} else {
+							doctorFound := false
+							for _, d := range docRes.Data {
+								if d.Id == payload.DoctorId {
+									doctorFound = true
+									break
+								}
+							}
+							if !doctorFound {
+								payload.DoctorId = docRes.Data[0].Id
 							}
 						}
+					}
+
+					// Auto-assign perawat dinas hari ini jika ada
+					nurseRes, errNurse := circuitbreaker.CallGRPC(cbAuth, func() (*authpb.GetNursesByPoliResponse, error) {
+						return authClient.GetNursesByPoli(req.Context(), &authpb.GetNursesByPoliRequest{
+							PoliCode:  payload.DepartmentCode,
+							Page:      1,
+							PageSize:  50,
+							DayOfWeek: todayWeekday,
+						})
+					})
+					if errNurse == nil && nurseRes != nil && len(nurseRes.Data) > 0 {
+						if payload.PerawatId == "" {
+							payload.PerawatId = nurseRes.Data[0].Id
+						} else {
+							nurseFound := false
+							for _, n := range nurseRes.Data {
+								if n.Id == payload.PerawatId {
+									nurseFound = true
+									break
+								}
+							}
+							if !nurseFound {
+								payload.PerawatId = nurseRes.Data[0].Id
+							}
+						}
+					} else {
+						payload.PerawatId = ""
 					}
 
 					res, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.RegisterEncounterResponse, error) {
@@ -2287,13 +2541,18 @@ func main() {
 						var pGender = "-"
 						var pDob = "-"
 
+						mrnClean := strings.TrimSpace(enc.Mrn)
 						resPat, errPat := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {
-							return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: enc.Mrn})
+							return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: mrnClean})
 						})
 						if errPat == nil && resPat != nil && resPat.Patient != nil {
 							pName = resPat.Patient.Name
 							pGender = resPat.Patient.Gender
 							pDob = resPat.Patient.Dob
+						} else if errPat != nil {
+							if st, ok := status.FromError(errPat); !ok || st.Code() != codes.NotFound {
+								slog.Warn("Failed to fetch patient for encounter", "mrn", mrnClean, "err", errPat)
+							}
 						}
 
 						// Extract RegisteredTime and IsNewPatient from enc.RegisteredTime
@@ -2821,6 +3080,18 @@ func main() {
 						response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: "encounter_no is required"})
 						return
 					}
+
+					// Pengecekan keamanan: Jangan pernah mereset kunjungan yang sudah dibatalkan atau selesai
+					medRec, errMed := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.GetMedicalRecordResponse, error) {
+						return rawatJalanClient.GetMedicalRecord(req.Context(), &rawatjalanpb.GetMedicalRecordRequest{
+							EncounterNo: payload.EncounterNo,
+						})
+					})
+					if errMed == nil && medRec != nil && (medRec.Status == "CANCELLED" || medRec.Status == "BATAL" || medRec.Status == "COMPLETED") {
+						response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Encounter is cancelled or completed; reset skipped"})
+						return
+					}
+
 					_, _ = circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
 						return regClient.UpdateEncounterStatus(req.Context(), &regpb.UpdateEncounterStatusRequest{
 							EncounterNo: payload.EncounterNo,
@@ -2962,6 +3233,28 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
+
+					// Sinkronisasi status resmi encounter dari Registration Service
+					var encDate string
+					if len(encounterNo) >= 8 {
+						encDate = fmt.Sprintf("%s-%s-%s", encounterNo[0:4], encounterNo[4:6], encounterNo[6:8])
+					}
+					resReg, errReg := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetTodayEncountersResponse, error) {
+						return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{
+							Page:     1,
+							PageSize: 200,
+							Date:     encDate,
+						})
+					})
+					if errReg == nil && resReg != nil {
+						for _, enc := range resReg.Encounters {
+							if enc.EncounterNo == encounterNo {
+								res.Status = enc.Status
+								break
+							}
+						}
+					}
+
 					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
 				})
 
@@ -3260,19 +3553,16 @@ func main() {
 
 					// If regClient has encounters, iterate and build transactions
 					if err == nil && resReg != nil && len(resReg.Encounters) > 0 {
-						for idx, enc := range resReg.Encounters {
+						for _, enc := range resReg.Encounters {
+							// Strict microservices rule: Only PAID encounters are eligible for revenue reports/payment history.
+							// Status WAITING_FOR_PAYMENT, REGISTERED, CANCELLED, or BATAL are not paid.
+							isPaid := enc.Status == "QUEUED_FOR_POLI" || enc.Status == "IN_EXAMINATION" || enc.Status == "COMPLETED" || enc.Status == "PAID"
+							if !isPaid {
+								continue
+							}
+
 							method := "CASH"
 							amount := 50000.0
-							if idx%4 == 1 {
-								method = "QRIS"
-								amount = 75000.0
-							} else if idx%4 == 2 {
-								method = "DEBIT"
-								amount = 65000.0
-							} else if idx%4 == 3 {
-								method = "BPJS"
-								amount = 120000.0
-							}
 
 							pName := "Pasien " + enc.Mrn
 							resPat, _ := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {

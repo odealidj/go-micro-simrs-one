@@ -211,12 +211,27 @@ func (r *registrationRepoSqlc) UpdateGuarantor(ctx context.Context, encounterNo,
 }
 
 func (r *registrationRepoSqlc) GetActivePerawatByPoli(ctx context.Context, poliCode string) (string, error) {
+	// 1. Cek prioritas jadwal piket hari ini
 	var perawatID string
 	err := r.db.QueryRowContext(ctx, `
+		SELECT perawat_id
+		FROM auth.jadwal_piket_poli
+		WHERE poli_code = $1
+		  AND piket_date = CURRENT_DATE
+		  AND perawat_id IS NOT NULL
+		LIMIT 1
+	`, poliCode).Scan(&perawatID)
+	if err == nil && perawatID != "" {
+		return perawatID, nil
+	}
+
+	// 2. Fallback ke jadwal reguler
+	err = r.db.QueryRowContext(ctx, `
 		SELECT perawat_id
 		FROM auth.mapping_perawat_poli
 		WHERE poli_code = $1
 		  AND CURRENT_DATE BETWEEN start_date AND end_date
+		  AND (EXTRACT(ISODOW FROM CURRENT_DATE)::int = ANY(days_of_week))
 		  AND deleted_dt IS NULL
 		ORDER BY start_date DESC
 		LIMIT 1
@@ -228,12 +243,26 @@ func (r *registrationRepoSqlc) GetActivePerawatByPoli(ctx context.Context, poliC
 }
 
 func (r *registrationRepoSqlc) GetActiveDoctorByPoli(ctx context.Context, poliCode string) (string, error) {
+	// 1. Cek prioritas jadwal piket hari ini
 	var doctorID string
 	err := r.db.QueryRowContext(ctx, `
+		SELECT dokter_id
+		FROM auth.jadwal_piket_poli
+		WHERE poli_code = $1
+		  AND piket_date = CURRENT_DATE
+		LIMIT 1
+	`, poliCode).Scan(&doctorID)
+	if err == nil && doctorID != "" {
+		return doctorID, nil
+	}
+
+	// 2. Fallback ke jadwal reguler
+	err = r.db.QueryRowContext(ctx, `
 		SELECT dokter_id
 		FROM auth.mapping_dokter_poli
 		WHERE poli_code = $1
 		  AND CURRENT_DATE BETWEEN start_date AND end_date
+		  AND (EXTRACT(ISODOW FROM CURRENT_DATE)::int = ANY(days_of_week))
 		  AND deleted_dt IS NULL
 		ORDER BY start_date DESC
 		LIMIT 1

@@ -176,9 +176,9 @@ export function RegistrationDashboard() {
       </div>
 
       {/* CHARTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card-premium p-6 space-y-4">
-          <div className="flex items-center gap-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-0">
+        <div className="card-premium p-6 space-y-4 flex-1 flex flex-col min-h-0">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="p-2 rounded-lg bg-sky-50 text-sky-600 border border-sky-100">
               <CalendarDays className="h-4 w-4" />
             </div>
@@ -186,7 +186,7 @@ export function RegistrationDashboard() {
               Grafik Kunjungan 5 Hari Terakhir
             </h3>
           </div>
-          <div className="h-[280px] w-full pt-2">
+          <div className="flex-1 w-full pt-2 min-h-[260px]">
             {weeklyVisitsData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={weeklyVisitsData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
@@ -205,8 +205,8 @@ export function RegistrationDashboard() {
           </div>
         </div>
 
-        <div className="card-premium p-6 space-y-4">
-          <div className="flex items-center gap-2">
+        <div className="card-premium p-6 space-y-4 flex-1 flex flex-col min-h-0">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="p-2 rounded-lg bg-amber-50 text-amber-600 border border-amber-100">
               <Clock className="h-4 w-4" />
             </div>
@@ -214,7 +214,7 @@ export function RegistrationDashboard() {
               Rata-rata Waktu Tunggu per Poli (Menit)
             </h3>
           </div>
-          <div className="h-[280px] w-full pt-2">
+          <div className="flex-1 w-full pt-2 min-h-[260px]">
             {waitTimesData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={waitTimesData} layout="vertical" margin={{ top: 5, right: 30, bottom: 5, left: 20 }}>

@@ -72,7 +72,7 @@ export const admisiTheme = {
 
   // Layout & Grid System
   layout: {
-    container: "max-w-7xl mx-auto space-y-6",
+    container: "w-full max-w-[1600px] mx-auto flex-1 flex flex-col space-y-5 min-h-0",
     gridStats: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4",
     gridTwoCol: "grid grid-cols-1 lg:grid-cols-12 gap-6",
     colMain: "lg:col-span-8 space-y-6",
@@ -90,11 +90,17 @@ export function getAdmisiStatusBadge(status: string) {
     case "SERVING":
     case "ACTIVE":
     case "UP":
-    case "SELESAI":
       return {
         className: admisiTheme.colors.status.success,
         dotClass: admisiTheme.colors.status.successDot,
-        label: status === "UP" || status === "SERVING" ? "Online" : status,
+        label: "Online",
+      };
+    case "SELESAI":
+    case "COMPLETED":
+      return {
+        className: admisiTheme.colors.status.success,
+        dotClass: admisiTheme.colors.status.successDot,
+        label: "Selesai",
       };
     case "WAITING_FOR_PAYMENT":
     case "WAITING":
@@ -102,23 +108,37 @@ export function getAdmisiStatusBadge(status: string) {
       return {
         className: admisiTheme.colors.status.warning,
         dotClass: admisiTheme.colors.status.warningDot,
-        label: normalized === "WAITING_FOR_PAYMENT" ? "Menunggu Pembayaran" : status,
+        label: "Belum Bayar",
       };
+    case "REGISTERED":
+    case "QUEUED":
     case "QUEUED_FOR_POLI":
-    case "IN_PROGRESS":
+    case "WAITING_FOR_TRIAGE":
+    case "WAITING_FOR_EXAM":
       return {
         className: admisiTheme.colors.status.info,
         dotClass: admisiTheme.colors.status.infoDot,
-        label: normalized === "QUEUED_FOR_POLI" ? "Antre Poli" : status,
+        label: "Siap Diperiksa",
+      };
+    case "IN_PROGRESS":
+      return {
+        className: "bg-blue-50 text-blue-800 border-blue-200",
+        dotClass: "bg-blue-500 animate-pulse",
+        label: "Sedang Diperiksa",
       };
     case "CANCELLED":
     case "BATAL":
+      return {
+        className: admisiTheme.colors.status.danger,
+        dotClass: admisiTheme.colors.status.dangerDot,
+        label: "Batal",
+      };
     case "DOWN":
     case "OFFLINE":
       return {
         className: admisiTheme.colors.status.danger,
         dotClass: admisiTheme.colors.status.dangerDot,
-        label: status === "DOWN" ? "Offline" : status,
+        label: "Offline",
       };
     default:
       return {

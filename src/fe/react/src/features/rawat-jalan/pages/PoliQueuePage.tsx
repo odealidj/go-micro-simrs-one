@@ -178,6 +178,10 @@ export function PoliQueuePage() {
     return encounters.filter((e) => e.status === "COMPLETED").length;
   }, [encounters]);
 
+  const countBatal = useMemo(() => {
+    return encounters.filter((e) => e.status === "CANCELLED" || e.status === "BATAL").length;
+  }, [encounters]);
+
   const filteredEncounters = useMemo(() => {
     return encounters.filter((enc) => {
       const matchesSearch =
@@ -192,7 +196,8 @@ export function PoliQueuePage() {
           ["REGISTERED", "QUEUED", "QUEUED_FOR_POLI", "WAITING_FOR_TRIAGE", "WAITING_FOR_EXAM"].includes(enc.status)) ||
         (statusFilter === "BELUM_BAYAR" && enc.status === "WAITING_FOR_PAYMENT") ||
         (statusFilter === "IN_PROGRESS" && enc.status === "IN_PROGRESS") ||
-        (statusFilter === "COMPLETED" && enc.status === "COMPLETED");
+        (statusFilter === "COMPLETED" && enc.status === "COMPLETED") ||
+        (statusFilter === "BATAL" && (enc.status === "CANCELLED" || enc.status === "BATAL"));
 
       return matchesSearch && matchesStatus;
     });
@@ -214,7 +219,7 @@ export function PoliQueuePage() {
       );
       return;
     }
-    navigate(getEncounterUrl(enc.encounter_no));
+    navigate(getEncounterUrl(enc.encounter_no), { state: { encounter: enc } });
   };
 
   return (
@@ -320,6 +325,22 @@ export function PoliQueuePage() {
           >
             Selesai ({countCompleted})
           </button>
+
+          {countBatal > 0 && (
+            <button
+              type="button"
+              onClick={() => setStatusFilter("BATAL")}
+              className={cn(
+                "px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap",
+                statusFilter === "BATAL"
+                  ? "bg-white text-rose-800 shadow-2xs font-bold"
+                  : "text-slate-600 hover:text-slate-900"
+              )}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+              Batal ({countBatal})
+            </button>
+          )}
         </div>
 
         {/* Quick Search Input */}
@@ -505,10 +526,12 @@ export function PoliQueuePage() {
                           ? "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200"
                           : enc.status === "IN_PROGRESS"
                           ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200"
+                          : enc.status === "CANCELLED" || enc.status === "BATAL"
+                          ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
                           : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200"
                       )}
                     >
-                      {enc.status === "IN_PROGRESS" ? "Lanjutkan Periksa" : "Buka"} <ChevronRight className="h-3.5 w-3.5" />
+                      Buka <ChevronRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>

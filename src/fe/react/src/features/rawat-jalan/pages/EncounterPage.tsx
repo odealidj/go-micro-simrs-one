@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getMedicalRecord, startEncounter, completeEncounter, resetEncounter } from "../api/rawatJalanApi";
 import type { GetMedicalRecordResponse } from "../types";
 import { TriageForm, type TriageFormState } from "../components/TriageForm";
@@ -24,6 +24,7 @@ import {
   ShieldCheck,
   AlertCircle,
   Lock,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
@@ -32,6 +33,9 @@ import { cn } from "@/lib/utils";
 export function EncounterPage() {
   const { encounterNo } = useParams<{ encounterNo: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const passedEncounter = location.state?.encounter;
+  const passedStatus = passedEncounter?.status;
   const [record, setRecord] = useState<GetMedicalRecordResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -60,7 +64,9 @@ export function EncounterPage() {
     fetchRecord();
   }, [encounterNo]);
 
-  const rawStatus = record?.status || "WAITING";
+  const rawStatus = passedStatus || record?.status || "WAITING";
+  const isCancelled = rawStatus === "CANCELLED" || rawStatus === "BATAL";
+  const isCompleted = rawStatus === "COMPLETED";
 
   const hasTriage = !!(
     record?.triage &&
@@ -72,10 +78,9 @@ export function EncounterPage() {
 
   // If Asesmen Triage is still empty in DB and user hasn't clicked "Mulai Sesi" in this session,
   // status is reset to WAITING (Siap Diperiksa)
-  const isStarted = sessionActive || (rawStatus === "IN_PROGRESS" && hasTriage) || rawStatus === "COMPLETED";
-  const isCompleted = rawStatus === "COMPLETED";
-  const isReadOnly = !isStarted || isCompleted;
-  const status = (!hasTriage && rawStatus === "IN_PROGRESS" && !sessionActive) ? "WAITING" : rawStatus;
+  const isStarted = !isCancelled && (sessionActive || (rawStatus === "IN_PROGRESS" && hasTriage) || isCompleted);
+  const isReadOnly = isCancelled || !isStarted || isCompleted;
+  const status = isCancelled ? "CANCELLED" : (!hasTriage && rawStatus === "IN_PROGRESS" && !sessionActive) ? "WAITING" : rawStatus;
 
   const hasDiagnosis = !!(record?.diagnoses && record.diagnoses.length > 0);
   const hasActions = !!(record?.actions && record.actions.length > 0);
@@ -122,6 +127,12 @@ export function EncounterPage() {
       return;
     }
 
+    // Jangan pernah mereset status jika kunjungan sudah dibatalkan atau selesai
+    if (isCancelled || isCompleted || rawStatus === "CANCELLED" || rawStatus === "COMPLETED") {
+      navigate(backUrl);
+      return;
+    }
+
     // 1. If triage is already saved in DB, return normally (encounter remains IN_PROGRESS)
     if (hasTriage) {
       navigate(backUrl);
@@ -148,7 +159,10 @@ export function EncounterPage() {
   };
 
   const handleStartEncounter = async () => {
-    if (!encounterNo) return;
+    if (!encounterNo || isCancelled) {
+      toast.error("Kunjungan ini telah dibatalkan di pendaftaran. Sesi pemeriksaan tidak dapat dimulai.");
+      return;
+    }
     if (status === "WAITING_FOR_PAYMENT") {
       alert("Pasien belum melunasi pembayaran di kasir. Harap selesaikan pembayaran di loket kasir terlebih dahulu.");
       return;
@@ -217,7 +231,11 @@ export function EncounterPage() {
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
                   {poliName || "Poliklinik"}
                 </span>
-                {isCompleted ? (
+                {isCancelled ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1">
+                    <XCircle className="h-3.5 w-3.5 text-rose-600" /> Batal
+                  </span>
+                ) : isCompleted ? (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
                     <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Selesai
                   </span>
@@ -259,21 +277,29 @@ export function EncounterPage() {
             {(!isStarted || (!hasTriage && !isCompleted)) && (
               <Button
                 onClick={handleStartEncounter}
-                disabled={starting || status === "WAITING_FOR_PAYMENT"}
+                disabled={starting || status === "WAITING_FOR_PAYMENT" || isCancelled}
                 className={cn(
-                  "gap-2 text-white rounded-xl text-xs font-bold h-10 px-4 shadow-sm cursor-pointer",
-                  status === "WAITING_FOR_PAYMENT"
-                    ? "bg-slate-400 opacity-60 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700"
+                  "gap-2 rounded-xl text-xs font-bold h-10 px-4 shadow-sm transition-all",
+                  isCancelled
+                    ? "bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed opacity-60 hover:bg-slate-200"
+                    : status === "WAITING_FOR_PAYMENT"
+                    ? "bg-amber-600 hover:bg-amber-700 text-white opacity-80 cursor-not-allowed"
+                    : "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
                 )}
-                title={status === "WAITING_FOR_PAYMENT" ? "Pasien belum melunasi pembayaran kasir" : undefined}
+                title={
+                  isCancelled
+                    ? "Kunjungan pasien telah dibatalkan di pendaftaran. Pemeriksaan tidak dapat dimulai."
+                    : status === "WAITING_FOR_PAYMENT"
+                    ? "Pasien belum melunasi pembayaran kasir"
+                    : undefined
+                }
               >
-                <Play className="h-3.5 w-3.5 fill-white" />
-                {starting ? "Memulai Sesi..." : "Mulai Sesi Pemeriksaan"}
+                <Play className={cn("h-4 w-4", isCancelled ? "fill-slate-400 text-slate-400" : "fill-white")} />
+                Mulai Pemeriksaan
               </Button>
             )}
 
-            {isStarted && hasTriage && !isCompleted && (
+            {isStarted && hasTriage && !isCompleted && !isCancelled && (
               <Button
                 onClick={handleOpenCompleteModal}
                 className="gap-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold h-10 px-4 shadow-sm cursor-pointer"
@@ -326,7 +352,9 @@ export function EncounterPage() {
                 <span
                   className={cn(
                     "h-2 w-2 rounded-full",
-                    record?.status === "WAITING_FOR_PAYMENT"
+                    isCancelled
+                      ? "bg-rose-500"
+                      : record?.status === "WAITING_FOR_PAYMENT"
                       ? "bg-amber-500 animate-pulse"
                       : record?.status === "COMPLETED"
                       ? "bg-emerald-500"
@@ -335,14 +363,18 @@ export function EncounterPage() {
                 />
                 <span
                   className={cn(
-                    record?.status === "WAITING_FOR_PAYMENT"
+                    isCancelled
+                      ? "text-rose-800 font-bold"
+                      : record?.status === "WAITING_FOR_PAYMENT"
                       ? "text-amber-950 font-black"
                       : record?.status === "COMPLETED"
                       ? "text-emerald-800 font-bold"
                       : "text-blue-800 font-bold"
                   )}
                 >
-                  {record?.status === "WAITING_FOR_PAYMENT"
+                  {isCancelled
+                    ? "Batal"
+                    : record?.status === "WAITING_FOR_PAYMENT"
                     ? "Belum Bayar"
                     : record?.status === "COMPLETED"
                     ? "Selesai Pelayanan"
@@ -353,8 +385,21 @@ export function EncounterPage() {
           </div>
         </div>
 
+        {/* Banner Peringatan Pasien Dibatalkan */}
+        {isCancelled && (
+          <div className="mt-4 p-4 bg-rose-50/90 border border-rose-300 text-rose-950 rounded-2xl flex items-start gap-3 shadow-xs">
+            <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="text-xs leading-relaxed">
+              <strong className="text-sm font-bold text-rose-900 block mb-0.5">
+                Kunjungan Pasien Dibatalkan (Batal)
+              </strong>
+              Pendaftaran kunjungan pasien ini telah dibatalkan di loket pendaftaran. Rekam medis ini hanya dapat ditinjau dalam mode Read-Only dan pemeriksaan medis tidak dapat dimulai atau diubah.
+            </div>
+          </div>
+        )}
+
         {/* Banner Peringatan Pasien Belum Bayar */}
-        {status === "WAITING_FOR_PAYMENT" && (
+        {status === "WAITING_FOR_PAYMENT" && !isCancelled && (
           <div className="mt-4 p-4 bg-amber-50/90 border border-amber-300 text-amber-950 rounded-2xl flex items-start gap-3 shadow-xs">
             <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="text-xs leading-relaxed">
@@ -487,13 +532,25 @@ export function EncounterPage() {
 
         {/* Tab Content Panes */}
         <div className="p-6 space-y-5">
-          {!isStarted && (
+          {!isStarted && !isCancelled && (
             <div className="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 shadow-2xs">
               <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold text-sm">Sesi Pemeriksaan Belum Dimulai</p>
                 <p className="text-xs text-amber-700 mt-0.5 leading-relaxed">
-                  Formulir rekam medis dalam keadaan terkunci. Silakan klik tombol <strong>"Mulai Sesi Pemeriksaan"</strong> di bagian atas untuk mulai mengisi data anamnesa, asesmen triage, diagnosa, tindakan, atau resep.
+                  Formulir rekam medis dalam keadaan terkunci. Silakan klik tombol <strong>"Mulai Pemeriksaan"</strong> di bagian atas untuk mulai mengisi data anamnesa, asesmen triage, diagnosa, tindakan, atau resep.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {isCancelled && (
+            <div className="p-4 bg-rose-50/90 border border-rose-200 rounded-2xl flex items-start gap-3 text-rose-900 shadow-2xs">
+              <XCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-sm">Kunjungan Pasien Dibatalkan (Batal)</p>
+                <p className="text-xs text-rose-700 mt-0.5 leading-relaxed">
+                  Pendaftaran kunjungan pasien ini telah dibatalkan di loket pendaftaran. Seluruh formulir rekam medis dalam keadaan terkunci (<strong>Read-Only</strong>) dan sesi pemeriksaan medis tidak dapat dimulai.
                 </p>
               </div>
             </div>

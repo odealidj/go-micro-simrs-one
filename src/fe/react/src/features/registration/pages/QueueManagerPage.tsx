@@ -137,15 +137,15 @@ export function QueueManagerPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
         
         {/* Left Column: Active Call Controls */}
-        <div className="col-span-1 lg:col-span-7 space-y-6">
-          <Card className="bg-white border-slate-200 shadow-sm overflow-hidden">
-            <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-4">
+        <div className="col-span-1 lg:col-span-7 flex flex-col gap-6 flex-1 min-h-0">
+          <Card className="bg-white border-slate-200 shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+            <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-4 shrink-0">
               <CardTitle className="text-lg text-slate-800 text-center">Sedang Dipanggil</CardTitle>
             </CardHeader>
-            <CardContent className="p-8 flex flex-col items-center justify-center min-h-[300px]">
+            <CardContent className="p-8 flex-1 flex flex-col items-center justify-center min-h-0">
               {activeCall ? (
                 <>
                   <div className="text-[120px] font-bold leading-none tracking-tighter text-blue-600 mb-2">
@@ -168,7 +168,7 @@ export function QueueManagerPage() {
                   </div>
                 </>
               ) : (
-                 <div className="text-center text-slate-500">
+                 <div className="text-center text-slate-500 py-12">
                     <p className="text-xl font-medium">Antrean Kosong</p>
                     <p className="mt-2 text-sm">Tidak ada pasien dalam daftar panggil.</p>
                  </div>
@@ -176,7 +176,7 @@ export function QueueManagerPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-slate-200 shadow-sm">
+          <Card className="bg-white border-slate-200 shadow-sm shrink-0">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -197,9 +197,9 @@ export function QueueManagerPage() {
         </div>
 
         {/* Right Column: Waiting List */}
-        <div className="col-span-1 lg:col-span-5">
-          <Card className="bg-white border-slate-200 shadow-sm h-full flex flex-col">
-            <CardHeader className="border-b border-slate-100 pb-4">
+        <div className="col-span-1 lg:col-span-5 flex flex-col flex-1 min-h-0">
+          <Card className="bg-white border-slate-200 shadow-sm h-full flex flex-col min-h-0">
+            <CardHeader className="border-b border-slate-100 pb-4 shrink-0">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg text-slate-800">Daftar Tunggu</CardTitle>
                 <span className="text-sm text-slate-500">Estimasi</span>

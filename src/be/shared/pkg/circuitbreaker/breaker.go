@@ -43,6 +43,29 @@ func NewGRPCBreaker(serviceName string) *gobreaker.CircuitBreaker {
 				"to", to.String(),
 			)
 		},
+		IsSuccessful: func(err error) bool {
+			if err == nil {
+				return true
+			}
+			st, ok := status.FromError(err)
+			if ok {
+				switch st.Code() {
+				case codes.NotFound,
+					codes.InvalidArgument,
+					codes.AlreadyExists,
+					codes.PermissionDenied,
+					codes.Unauthenticated,
+					codes.FailedPrecondition,
+					codes.OutOfRange,
+					codes.Canceled:
+					// Business or client validation errors, NOT downstream service outages.
+					return true
+				default:
+					return false
+				}
+			}
+			return false
+		},
 	}
 	return gobreaker.NewCircuitBreaker(settings)
 }

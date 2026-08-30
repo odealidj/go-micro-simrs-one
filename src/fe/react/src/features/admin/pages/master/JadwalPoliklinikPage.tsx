@@ -18,6 +18,8 @@ import {
   Building2,
   ArrowLeft,
 } from "lucide-react";
+import { JadwalPiketTab } from "@/features/registration/components/JadwalPiketTab";
+import { cn } from "@/lib/utils";
 
 interface ScheduleSlotState {
   day_of_week: number;
@@ -34,6 +36,7 @@ const WORK_DAYS = [
 ];
 
 export function JadwalPoliklinikPage() {
+  const [activeTab, setActiveTab] = useState<"reguler" | "piket">("reguler");
   const [selectedPoli, setSelectedPoli] = useState<string>("");
   const [slots, setSlots] = useState<Record<number, ScheduleSlotState>>({
     1: { day_of_week: 1, dokter_id: "", perawat_id: "" },
@@ -207,44 +210,84 @@ export function JadwalPoliklinikPage() {
           </div>
           <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2.5">
             <CalendarDays className="w-7 h-7 text-blue-600" />
-            Matriks Jadwal Mingguan Poliklinik
+            Jadwal Poliklinik
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Atur dan tukar penugasan dokter dan perawat jaga per hari kerja (Senin s.d. Jumat, 1 Shift 08:00 – 16:00 WIB) bebas bentrok.
+            Pengaturan penugasan dokter dan perawat poliklinik untuk jadwal rutin mingguan (Senin – Jumat) maupun jadwal piket temporer (Sabtu & Minggu).
           </p>
         </div>
 
-        {/* Global Save & Reset Actions */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => loadPoliSchedule(selectedPoli)}
-            disabled={isLoadingSchedule || isSaving}
-            className="text-xs font-semibold flex items-center gap-1.5"
-          >
-            <RotateCcw className="w-3.5 h-3.5" /> Reset
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleClearAll}
-            disabled={isLoadingSchedule || isSaving}
-            className="text-xs font-semibold text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 flex items-center gap-1.5"
-          >
-            <Trash2 className="w-3.5 h-3.5" /> Kosongkan Semua
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleSaveSchedule}
-            disabled={isLoadingSchedule || isSaving || !selectedPoli}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 flex items-center gap-1.5 shadow-sm"
-          >
-            <Save className="w-4 h-4" />
-            {isSaving ? "Menyimpan..." : "Simpan Perubahan Jadwal"}
-          </Button>
-        </div>
+        {/* Global Save & Reset Actions (Hanya untuk Tab Reguler) */}
+        {activeTab === "reguler" && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => loadPoliSchedule(selectedPoli)}
+              disabled={isLoadingSchedule || isSaving}
+              className="text-xs font-semibold flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Reset
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearAll}
+              disabled={isLoadingSchedule || isSaving}
+              className="text-xs font-semibold text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Kosongkan Semua
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSaveSchedule}
+              disabled={isLoadingSchedule || isSaving || !selectedPoli}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 flex items-center gap-1.5 shadow-sm"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? "Menyimpan..." : "Simpan Perubahan Jadwal"}
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Tab Navigation */}
+      <div className="border-b border-slate-200">
+        <nav className="-mb-px flex space-x-6" aria-label="Tabs">
+          <button
+            onClick={() => setActiveTab("reguler")}
+            className={cn(
+              "whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-sm transition-all cursor-pointer",
+              activeTab === "reguler"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            )}
+          >
+            Jadwal Reguler (Senin – Jumat)
+          </button>
+          <button
+            onClick={() => setActiveTab("piket")}
+            className={cn(
+              "whitespace-nowrap py-3 px-1 border-b-2 font-semibold text-sm transition-all cursor-pointer flex items-center gap-1.5",
+              activeTab === "piket"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            )}
+          >
+            <span>Jadwal Piket (Temporer / Weekend)</span>
+            <span className="text-[10px] uppercase font-extrabold tracking-wide px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+              Sabtu - Minggu
+            </span>
+          </button>
+        </nav>
+      </div>
+
+      {/* Tab Content: Piket (Temporer / Weekend) */}
+      {activeTab === "piket" && <JadwalPiketTab readOnly={false} />}
+
+      {/* Tab Content: Reguler (Senin - Jumat) */}
+      {activeTab === "reguler" && (
+        <div className="space-y-6">
 
       {/* Selector Poliklinik */}
       <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -437,6 +480,8 @@ export function JadwalPoliklinikPage() {
         variant="warning"
         note="Perubahan ini belum tersimpan ke server sebelum Anda menekan tombol 'Simpan Perubahan Jadwal'."
       />
+        </div>
+      )}
     </div>
   );
 }
