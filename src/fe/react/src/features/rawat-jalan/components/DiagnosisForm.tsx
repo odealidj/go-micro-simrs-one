@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   searchICD10,
-  searchKBM,
   addEncounterDiagnosis,
   updateEncounterDiagnosis,
   removeEncounterDiagnosis,
@@ -29,8 +28,6 @@ import {
   ArrowUpCircle,
   Sparkles,
   Globe,
-  Building2,
-  Activity,
   ShieldCheck,
   X,
   Loader2,
@@ -46,8 +43,6 @@ interface DiagnosisFormProps {
   hasTriage?: boolean;
   onNavigateTriage?: () => void;
 }
-
-type SearchFilterMode = "POLI" | "ALL" | "KBM";
 
 export function DiagnosisForm({
   encounterNo,
@@ -95,16 +90,12 @@ export function DiagnosisForm({
   const [severityLevel, setSeverityLevel] = useState<string>("I");
   const [clinicalNotes, setClinicalNotes] = useState("");
 
-  // Search & Filters
-  const [filterMode, setFilterMode] = useState<SearchFilterMode>("POLI");
+  // Search ICD-10
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 350);
   const [searchResults, setSearchResults] = useState<ICD10SearchResult[]>([]);
-  const [kbmResults, setKbmResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-
-
 
   // Collapsible form visibility (opens on-demand via header [+] or [Edit])
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -116,30 +107,17 @@ export function DiagnosisForm({
     }
   }, [primaryDiagnosis, isEditing]);
 
-  // Search ICD-10 or KBM according to filterMode
+  // Search ICD-10 catalog for active polyclinic
   useEffect(() => {
     const fetchResults = async () => {
       if (!debouncedSearch || debouncedSearch.length < 2) {
         setSearchResults([]);
-        setKbmResults([]);
         return;
       }
       setSearching(true);
       try {
-        if (filterMode === "KBM") {
-          const results = await searchKBM(debouncedSearch, deptCode);
-          setKbmResults(results);
-          setSearchResults([]);
-        } else if (filterMode === "POLI") {
-          const results = await searchICD10(debouncedSearch, deptCode);
-          setSearchResults(results);
-          setKbmResults([]);
-        } else {
-          // ALL ICD-10
-          const results = await searchICD10(debouncedSearch, undefined);
-          setSearchResults(results);
-          setKbmResults([]);
-        }
+        const results = await searchICD10(debouncedSearch, deptCode);
+        setSearchResults(results);
       } catch (err) {
         console.error("Search Diagnosa Error", err);
       } finally {
@@ -147,7 +125,7 @@ export function DiagnosisForm({
       }
     };
     fetchResults();
-  }, [debouncedSearch, filterMode, deptCode]);
+  }, [debouncedSearch, deptCode]);
 
   // Fetch ICD-10 mappings (SNOMED-CT & KBM) when an ICD-10 is selected
   useEffect(() => {
@@ -703,69 +681,16 @@ export function DiagnosisForm({
             {/* Modal Body (Scrollable) */}
             <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
-          {/* Search Filter Tabs */}
-          {!isEditing && (
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Mode Pencarian Katalog
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFilterMode("POLI");
-                    setSearchQuery("");
-                  }}
-                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                    filterMode === "POLI"
-                      ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
-                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  <Building2 className="h-4 w-4" />
-                  🏥 Sesuai Poli ({deptCode || "Aktif"})
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFilterMode("ALL");
-                    setSearchQuery("");
-                  }}
-                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                    filterMode === "ALL"
-                      ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
-                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  <Globe className="h-4 w-4" />
-                  🌐 Semua ICD-10 & SNOMED
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFilterMode("KBM");
-                    setSearchQuery("");
-                  }}
-                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                    filterMode === "KBM"
-                      ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
-                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  <Activity className="h-4 w-4" />
-                  📂 Telusuri via Organ / KBM
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Autocomplete Input & Selected Preview */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-              Pilih Diagnosa (ICD-10) <span className="text-red-500">*</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Pilih Diagnosa (ICD-10) <span className="text-red-500">*</span>
+              </label>
+              <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
+                Katalog Poli: {deptCode || "Umum"}
+              </span>
+            </div>
 
             {selectedIcd10 && !isEditing ? (
               <div className="p-4 border-2 border-indigo-200 bg-white rounded-2xl shadow-xs space-y-3">
@@ -882,20 +807,14 @@ export function DiagnosisForm({
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   type="text"
-                  placeholder={
-                    filterMode === "KBM"
-                      ? "Ketik nama organ / keluhan / kode KBM..."
-                      : filterMode === "POLI"
-                      ? `Ketik nama/kode ICD-10 untuk poli ${deptCode}...`
-                      : "Ketik nama/kode ICD-10 atau konsep SNOMED..."
-                  }
+                  placeholder={`Cari nama diagnosa atau kode ICD-10 untuk poli ${deptCode || ""}...`}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
                     setShowDropdown(true);
                   }}
                   onFocus={() => setShowDropdown(true)}
-                  className="pl-10 h-11 rounded-xl bg-white border-slate-300 focus:border-indigo-500"
+                  className="pl-10 h-11 rounded-xl bg-white border-slate-300 focus:border-indigo-500 text-sm"
                 />
 
                 {showDropdown && searchQuery.length >= 2 && (
@@ -905,41 +824,9 @@ export function DiagnosisForm({
                         <span className="animate-spin h-3.5 w-3.5 border-2 border-indigo-600 border-t-transparent rounded-full" />
                         Mencari katalog diagnosa...
                       </div>
-                    ) : filterMode === "KBM" ? (
-                      kbmResults.length > 0 ? (
-                        <ul className="divide-y divide-slate-100 text-sm">
-                          {kbmResults.map((item: any) => (
-                            <li
-                              key={item.kbm_code}
-                              onClick={() => {
-                                setSelectedIcd10({
-                                  code: item.kbm_code,
-                                  name: item.kbm_name,
-                                });
-                                setShowDropdown(false);
-                              }}
-                              className="p-3 hover:bg-teal-50/60 cursor-pointer flex justify-between items-center transition-colors gap-3"
-                            >
-                              <div>
-                                <div className="font-semibold text-slate-900">{item.kbm_name}</div>
-                                <div className="text-xs text-slate-500">
-                                  Organ/Sistem: {item.body_system || "Umum"}
-                                </div>
-                              </div>
-                              <span className="text-xs font-bold bg-teal-100 text-teal-800 px-2.5 py-1 rounded-md">
-                                KBM: {item.kbm_code}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <div className="p-4 text-xs text-slate-500 text-center">
-                          KBM tidak ditemukan untuk kata kunci "{searchQuery}"
-                        </div>
-                      )
                     ) : searchResults.length > 0 ? (
                       <ul className="divide-y divide-slate-100 text-sm">
-                        {searchResults.map((item) => (
+                        {searchResults.map((item: ICD10SearchResult) => (
                           <li
                             key={item.code}
                             onClick={() => {
@@ -981,7 +868,7 @@ export function DiagnosisForm({
                       </ul>
                     ) : (
                       <div className="p-4 text-xs text-slate-500 text-center">
-                        Diagnosa tidak ditemukan untuk kata kunci "{searchQuery}"
+                        Diagnosa tidak ditemukan untuk kata kunci "{searchQuery}" pada poli {deptCode}
                       </div>
                     )}
                   </div>
