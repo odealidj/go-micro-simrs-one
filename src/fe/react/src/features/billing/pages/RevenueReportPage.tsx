@@ -74,110 +74,33 @@ export interface FlattenedActionItem {
   original_record: SettlementRecord;
 }
 
-const DEFAULT_SETTLEMENTS: SettlementRecord[] = [
-  {
-    encounter_no: "202608010010",
-    mrn: "10-00-00-01",
-    patient_name: "Ny. Siti Rahma",
-    department_code: "01",
-    payment_method: "CASH",
-    total_amount: 50000,
-    paid_at: "08:15",
-    cashier_name: "Staf Kasir 1",
-    status: "PAID",
-    items: [
-      { item_type: "ACTION", description: "Pemeriksaan & Konsultasi Dokter Umum", qty: 1, amount: 50000 },
-    ],
-  },
-  {
-    encounter_no: "202608010011",
-    mrn: "10-00-00-02",
-    patient_name: "Tn. Budi Santoso",
-    department_code: "02",
-    payment_method: "QRIS",
-    total_amount: 75000,
-    paid_at: "08:30",
-    cashier_name: "Staf Kasir 1",
-    status: "PAID",
-    items: [
-      { item_type: "ACTION", description: "Pemeriksaan & Konsultasi Gigi", qty: 1, amount: 50000 },
-      { item_type: "ACTION", description: "Pembersihan Karang Gigi (Scaling)", qty: 1, amount: 25000 },
-    ],
-  },
-  {
-    encounter_no: "202608010012",
-    mrn: "10-00-00-03",
-    patient_name: "An. Rizky Pratama",
-    department_code: "03",
-    payment_method: "CASH",
-    total_amount: 60000,
-    paid_at: "08:45",
-    cashier_name: "Staf Kasir 1",
-    status: "PAID",
-    items: [
-      { item_type: "ACTION", description: "Pemeriksaan Spesialis Anak", qty: 1, amount: 60000 },
-    ],
-  },
-  {
-    encounter_no: "202608010013",
-    mrn: "10-00-00-04",
-    patient_name: "Ny. Dewi Sartika",
-    department_code: "04",
-    payment_method: "BPJS",
-    total_amount: 120000,
-    paid_at: "09:10",
-    cashier_name: "Staf Kasir 1",
-    status: "PAID",
-    items: [
-      { item_type: "ACTION", description: "Konsultasi Spesialis Penyakit Dalam", qty: 1, amount: 80000 },
-      { item_type: "ACTION", description: "Pemeriksaan EKG Rekam Jantung", qty: 1, amount: 40000 },
-    ],
-  },
-  {
-    encounter_no: "202608010014",
-    mrn: "10-00-00-05",
-    patient_name: "Tn. Hendra Gunawan",
-    department_code: "05",
-    payment_method: "DEBIT",
-    total_amount: 150000,
-    paid_at: "09:25",
-    cashier_name: "Staf Kasir 1",
-    status: "PAID",
-    items: [
-      { item_type: "ACTION", description: "Konsultasi Spesialis Bedah", qty: 1, amount: 100000 },
-      { item_type: "ACTION", description: "Tindakan Perawatan & Rawat Luka (Wound Care)", qty: 1, amount: 50000 },
-    ],
-  },
-  {
-    encounter_no: "202608010015",
-    mrn: "10-00-00-06",
-    patient_name: "Ny. Ratna Sari",
-    department_code: "08",
-    payment_method: "QRIS",
-    total_amount: 95000,
-    paid_at: "09:40",
-    cashier_name: "Staf Kasir 1",
-    status: "PAID",
-    items: [
-      { item_type: "ACTION", description: "Konsultasi Spesialis Kandungan", qty: 1, amount: 75000 },
-      { item_type: "ACTION", description: "Pemeriksaan USG Kandungan Dasar", qty: 1, amount: 20000 },
-    ],
-  },
-  {
-    encounter_no: "202608010016",
-    mrn: "10-00-00-07",
-    patient_name: "Tn. Ahmad Fauzi",
-    department_code: "01",
-    payment_method: "CASH",
-    total_amount: 50000,
-    paid_at: "10:05",
-    cashier_name: "Staf Kasir 1",
-    status: "PAID",
-    items: [
-      { item_type: "ACTION", description: "Pemeriksaan & Konsultasi Dokter Umum", qty: 1, amount: 50000 },
-    ],
-  },
-];
+
+function getTodayStr() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function getYesterdayStr() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split("T")[0];
+}
+
+function getLast7DaysStr() {
+  const d = new Date();
+  d.setDate(d.getDate() - 6);
+  return d.toISOString().split("T")[0];
+}
+
+function getStartOfMonthStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+function getEndOfMonthStr() {
+  const d = new Date();
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+}
 
 function getDepartmentName(code?: string) {
   if (!code || code === "-") return "Poliklinik";
@@ -196,7 +119,9 @@ function getDepartmentName(code?: string) {
 export function RevenueReportPage() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateFilter, setDateFilter] = useState("TODAY");
+  const [startDate, setStartDate] = useState(getTodayStr());
+  const [endDate, setEndDate] = useState(getTodayStr());
+  const [dateFilterMode, setDateFilterMode] = useState<"TODAY" | "YESTERDAY" | "LAST_7_DAYS" | "THIS_MONTH" | "CUSTOM">("TODAY");
   const [methodFilter, setMethodFilter] = useState("ALL");
   const [serviceFilter, setServiceFilter] = useState("ALL");
   const [activeReportTab, setActiveReportTab] = useState<"rekap" | "rincian">("rekap");
@@ -209,8 +134,8 @@ export function RevenueReportPage() {
   const [loadingReceipt, setLoadingReceipt] = useState(false);
   const receiptPrintRef = useRef<HTMLDivElement>(null);
 
-  // Settlement raw records
-  const [settlements, setSettlements] = useState<SettlementRecord[]>(DEFAULT_SETTLEMENTS);
+  // Settlement raw records (honest empty state, no dummy data)
+  const [settlements, setSettlements] = useState<SettlementRecord[]>([]);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -218,11 +143,32 @@ export function RevenueReportPage() {
 
   const printableRef = useRef<HTMLDivElement>(null);
 
+  const applyPreset = (mode: "TODAY" | "YESTERDAY" | "LAST_7_DAYS" | "THIS_MONTH" | "CUSTOM") => {
+    setDateFilterMode(mode);
+    setCurrentPage(1);
+    const today = getTodayStr();
+    if (mode === "TODAY") {
+      setStartDate(today);
+      setEndDate(today);
+    } else if (mode === "YESTERDAY") {
+      const yest = getYesterdayStr();
+      setStartDate(yest);
+      setEndDate(yest);
+    } else if (mode === "LAST_7_DAYS") {
+      setStartDate(getLast7DaysStr());
+      setEndDate(today);
+    } else if (mode === "THIS_MONTH") {
+      setStartDate(getStartOfMonthStr());
+      setEndDate(getEndOfMonthStr());
+    }
+  };
+
   const fetchReportData = async () => {
     setLoading(true);
     try {
       const res = await getRevenueReport({
-        date: dateFilter,
+        start_date: startDate,
+        end_date: endDate,
         department_code: serviceFilter,
         payment_method: methodFilter,
       });
@@ -253,13 +199,12 @@ export function RevenueReportPage() {
           }))
         );
       } else {
-        // Fallback demo default settlements when no backend transactions on filtered date
-        setSettlements(DEFAULT_SETTLEMENTS);
+        setSettlements([]);
       }
     } catch (err) {
       console.error(err);
       toast.error("Gagal memuat data rekap penerimaan kasir.");
-      setSettlements(DEFAULT_SETTLEMENTS);
+      setSettlements([]);
     } finally {
       setLoading(false);
     }
@@ -267,7 +212,7 @@ export function RevenueReportPage() {
 
   useEffect(() => {
     fetchReportData();
-  }, [dateFilter, serviceFilter, methodFilter]);
+  }, [startDate, endDate, serviceFilter, methodFilter]);
 
   // Filtered dataset
   const filteredData = useMemo(() => {
@@ -548,12 +493,18 @@ export function RevenueReportPage() {
     return dateVal;
   }
 
+  function formatDisplayPeriod() {
+    if (startDate === endDate) {
+      return formatReportDate(startDate);
+    }
+    return `${formatReportDate(startDate)} s/d ${formatReportDate(endDate)}`;
+  }
+
   const handlePrintDocument = (_actionType?: "print" | "pdf") => {
     const content = printableRef.current;
     if (!content) return;
 
-    const dateLabel =
-      dateFilter === "TODAY" ? new Date().toISOString().split("T")[0] : dateFilter;
+    const dateLabel = startDate === endDate ? startDate : `${startDate}_sd_${endDate}`;
     const docTitle =
       activeReportTab === "rekap"
         ? `Laporan_Rekap_Penerimaan_Kasir_${dateLabel}`
@@ -938,13 +889,13 @@ export function RevenueReportPage() {
               <div>
                 <CardTitle className="text-base font-black text-slate-900 tracking-tight">
                   {activeReportTab === "rekap"
-                    ? "Laporan Rekap Penerimaan Kasir (Per-Hari)"
-                    : "Laporan Rincian Tindakan & Pelayanan Kasir (Per-Hari)"}
+                    ? `Laporan Rekap Penerimaan Kasir (${startDate === endDate ? "Harian" : "Rentang Tanggal"})`
+                    : `Laporan Rincian Tindakan & Pelayanan Kasir (${startDate === endDate ? "Harian" : "Rentang Tanggal"})`}
                 </CardTitle>
                 <CardDescription className="text-xs text-slate-500 mt-0.5">
                   {activeReportTab === "rekap"
-                    ? "Ikhtisar transaksi penerimaan harian per pasien dan metode pembayaran"
-                    : "Rincian menyeluruh seluruh item tindakan medis, pemeriksaan, dan kuantitas per transaksi"}
+                    ? `Ikhtisar transaksi penerimaan periode ${formatDisplayPeriod()}`
+                    : `Rincian menyeluruh item tindakan medis dan tarif periode ${formatDisplayPeriod()}`}
                 </CardDescription>
               </div>
             </div>
@@ -1029,59 +980,83 @@ export function RevenueReportPage() {
 
             {/* Filters Row */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Filter Tanggal Harian (Per-Hari) with Quick Presets */}
+              {/* Quick Presets Buttons */}
+              <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => applyPreset("TODAY")}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer",
+                    dateFilterMode === "TODAY"
+                      ? "bg-amber-600 text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  )}
+                >
+                  Hari Ini
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset("YESTERDAY")}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer",
+                    dateFilterMode === "YESTERDAY"
+                      ? "bg-amber-600 text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  )}
+                >
+                  Kemarin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset("LAST_7_DAYS")}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer",
+                    dateFilterMode === "LAST_7_DAYS"
+                      ? "bg-amber-600 text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  )}
+                >
+                  7 Hari
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset("THIS_MONTH")}
+                  className={cn(
+                    "px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer",
+                    dateFilterMode === "THIS_MONTH"
+                      ? "bg-amber-600 text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  )}
+                >
+                  Bulan Ini (1 Bulan)
+                </button>
+              </div>
+
+              {/* Date Range Inputs: Dari & Sampai */}
               <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 h-10 text-xs shadow-2xs">
                 <Calendar className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                <span className="text-[11px] font-bold text-slate-400">Tanggal:</span>
+                <span className="text-[11px] font-bold text-slate-400">Dari:</span>
                 <input
                   type="date"
-                  value={
-                    dateFilter === "TODAY"
-                      ? new Date().toISOString().split("T")[0]
-                      : dateFilter
-                  }
+                  value={startDate}
                   onChange={(e) => {
-                    setDateFilter(e.target.value);
+                    setStartDate(e.target.value);
+                    setDateFilterMode("CUSTOM");
                     setCurrentPage(1);
                   }}
                   className="bg-transparent border-0 text-slate-800 font-bold focus:outline-none cursor-pointer pr-1 text-xs"
                 />
-                <div className="flex items-center gap-1 pl-1.5 border-l border-slate-200">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDateFilter("TODAY");
-                      setCurrentPage(1);
-                    }}
-                    className={cn(
-                      "px-2 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer",
-                      dateFilter === "TODAY"
-                        ? "bg-amber-100 text-amber-800"
-                        : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
-                    )}
-                  >
-                    Hari Ini
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const yest = new Date();
-                      yest.setDate(yest.getDate() - 1);
-                      setDateFilter(yest.toISOString().split("T")[0]);
-                      setCurrentPage(1);
-                    }}
-                    className={cn(
-                      "px-2 py-0.5 rounded text-[10px] font-bold transition-colors cursor-pointer",
-                      dateFilter !== "TODAY" &&
-                        dateFilter ===
-                          new Date(Date.now() - 86400000).toISOString().split("T")[0]
-                        ? "bg-amber-100 text-amber-800"
-                        : "text-slate-500 hover:text-slate-800 hover:bg-slate-100"
-                    )}
-                  >
-                    Kemarin
-                  </button>
-                </div>
+                <span className="text-[11px] font-bold text-slate-400 border-l border-slate-200 pl-1.5">s/d:</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setDateFilterMode("CUSTOM");
+                    setCurrentPage(1);
+                  }}
+                  className="bg-transparent border-0 text-slate-800 font-bold focus:outline-none cursor-pointer pr-1 text-xs"
+                />
               </div>
 
               {/* Pelayanan Filter Dropdown */}
@@ -1634,37 +1609,16 @@ export function RevenueReportPage() {
             </div>
           </DialogHeader>
 
-          {/* Sub-toolbar: Date Picker (Bisa pilih tanggal sebelumnya) & Tab Switcher */}
+          {/* Sub-toolbar: Date Picker & Presets & Tab Switcher */}
           <div className="bg-amber-50/90 border-b border-amber-200/80 px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5 bg-white border border-amber-300/80 rounded-lg px-2.5 py-1 shadow-2xs">
-                <Calendar className="h-3.5 w-3.5 text-amber-700 shrink-0" />
-                <span className="text-[11px] font-bold text-slate-600">Pilih Tanggal Laporan:</span>
-                <input
-                  type="date"
-                  value={
-                    dateFilter === "TODAY"
-                      ? new Date().toISOString().split("T")[0]
-                      : dateFilter
-                  }
-                  onChange={(e) => {
-                    setDateFilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="bg-transparent border-0 text-slate-900 font-bold focus:outline-none cursor-pointer text-xs"
-                />
-              </div>
-
               <div className="flex items-center gap-1 bg-white p-0.5 border border-amber-200 rounded-lg shadow-2xs">
                 <button
                   type="button"
-                  onClick={() => {
-                    setDateFilter("TODAY");
-                    setCurrentPage(1);
-                  }}
+                  onClick={() => applyPreset("TODAY")}
                   className={cn(
-                    "px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer",
-                    dateFilter === "TODAY"
+                    "px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer",
+                    dateFilterMode === "TODAY"
                       ? "bg-amber-600 text-white shadow-2xs"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   )}
@@ -1673,23 +1627,66 @@ export function RevenueReportPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    const yest = new Date();
-                    yest.setDate(yest.getDate() - 1);
-                    setDateFilter(yest.toISOString().split("T")[0]);
-                    setCurrentPage(1);
-                  }}
+                  onClick={() => applyPreset("YESTERDAY")}
                   className={cn(
-                    "px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer",
-                    dateFilter !== "TODAY" &&
-                      dateFilter ===
-                        new Date(Date.now() - 86400000).toISOString().split("T")[0]
+                    "px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer",
+                    dateFilterMode === "YESTERDAY"
                       ? "bg-amber-600 text-white shadow-2xs"
                       : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                   )}
                 >
                   Kemarin
                 </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset("LAST_7_DAYS")}
+                  className={cn(
+                    "px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer",
+                    dateFilterMode === "LAST_7_DAYS"
+                      ? "bg-amber-600 text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  )}
+                >
+                  7 Hari
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset("THIS_MONTH")}
+                  className={cn(
+                    "px-2 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer",
+                    dateFilterMode === "THIS_MONTH"
+                      ? "bg-amber-600 text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  )}
+                >
+                  Bulan Ini
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-white border border-amber-300/80 rounded-lg px-2.5 py-1 shadow-2xs">
+                <Calendar className="h-3.5 w-3.5 text-amber-700 shrink-0" />
+                <span className="text-[11px] font-bold text-slate-600">Dari:</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setDateFilterMode("CUSTOM");
+                    setCurrentPage(1);
+                  }}
+                  className="bg-transparent border-0 text-slate-900 font-bold focus:outline-none cursor-pointer text-xs"
+                />
+                <span className="text-[11px] font-bold text-slate-600 border-l border-slate-200 pl-1.5">s/d:</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setDateFilterMode("CUSTOM");
+                    setCurrentPage(1);
+                  }}
+                  className="bg-transparent border-0 text-slate-900 font-bold focus:outline-none cursor-pointer text-xs"
+                />
               </div>
             </div>
 
@@ -1734,11 +1731,11 @@ export function RevenueReportPage() {
               </p>
               <h3 className="text-sm font-black text-slate-900 tracking-wide uppercase pt-2">
                 {activeReportTab === "rekap"
-                  ? "BERITA ACARA REKAPITULASI PENERIMAAN KASIR (HARIAN)"
-                  : "LAPORAN RINCIAN TINDAKAN & PELAYANAN KASIR (HARIAN)"}
+                  ? "BERITA ACARA REKAPITULASI PENERIMAAN KASIR"
+                  : "LAPORAN RINCIAN TINDAKAN & PELAYANAN KASIR"}
               </h3>
               <p className="text-[11px] text-slate-500 font-mono">
-                Periode: {formatReportDate(dateFilter)} • Dicetak: {new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
+                Periode: {formatDisplayPeriod()} • Dicetak: {new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
               </p>
             </div>
 
@@ -1945,7 +1942,7 @@ export function RevenueReportPage() {
               </div>
               <div className="space-y-1 text-right sm:text-left">
                 <p><span className="text-slate-400">Pelayanan:</span> <strong className="text-slate-900">[{selectedReceiptRecord?.department_code}] {getDepartmentName(selectedReceiptRecord?.department_code)}</strong></p>
-                <p><span className="text-slate-400">Waktu Bayar:</span> <strong className="text-slate-900">{formatReportDate(dateFilter)} • {selectedReceiptRecord?.paid_at}</strong></p>
+                <p><span className="text-slate-400">Waktu Bayar:</span> <strong className="text-slate-900">{formatReportDate(selectedReceiptRecord?.paid_at?.includes("T") ? selectedReceiptRecord.paid_at.split("T")[0] : startDate)} • {selectedReceiptRecord?.paid_at?.includes("T") ? selectedReceiptRecord.paid_at.split("T")[1]?.slice(0, 5) : selectedReceiptRecord?.paid_at}</strong></p>
                 <p><span className="text-slate-400">Petugas Kasir:</span> <strong className="text-slate-900">{selectedReceiptRecord?.cashier_name}</strong></p>
               </div>
             </div>

@@ -3468,17 +3468,32 @@ func main() {
 
 				r.Get("/billing/reports/rekap", func(w http.ResponseWriter, req *http.Request) {
 					dateStr := req.URL.Query().Get("date")
+					startDate := req.URL.Query().Get("start_date")
+					endDate := req.URL.Query().Get("end_date")
 					filterDept := req.URL.Query().Get("department_code")
 					filterMethod := req.URL.Query().Get("payment_method")
 
-					reqDate := dateStr
-					if reqDate == "TODAY" || reqDate == "" || reqDate == time.Now().Format("2006-01-02") {
-						reqDate = ""
-						dateStr = time.Now().Format("2006-01-02")
+					var reqDate string
+					var periodStr string
+
+					if startDate != "" && endDate != "" {
+						reqDate = startDate + ":" + endDate
+						if startDate == endDate {
+							periodStr = startDate
+						} else {
+							periodStr = startDate + " s/d " + endDate
+						}
+					} else if dateStr != "" && dateStr != "TODAY" {
+						reqDate = dateStr
+						periodStr = dateStr
+					} else {
+						today := time.Now().Format("2006-01-02")
+						reqDate = today
+						periodStr = today
 					}
 
 					resReg, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetTodayEncountersResponse, error) {
-						return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 500, Date: reqDate})
+						return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 5000, Date: reqDate})
 					})
 
 					type SettlementItem struct {
@@ -3526,6 +3541,7 @@ func main() {
 
 					var transactions []SettlementTransaction
 					serviceMap := make(map[string]*ServiceBreakdown)
+					patientCache := make(map[string]string)
 					var metrics RevenueMetrics
 
 					deptNameHelper := func(code string) string {
@@ -3564,12 +3580,16 @@ func main() {
 							method := "CASH"
 							amount := 50000.0
 
-							pName := "Pasien " + enc.Mrn
-							resPat, _ := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {
-								return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: enc.Mrn})
-							})
-							if resPat != nil && resPat.Patient != nil && resPat.Patient.Name != "" {
-								pName = resPat.Patient.Name
+							pName, found := patientCache[enc.Mrn]
+							if !found {
+								pName = "Pasien " + enc.Mrn
+								resPat, _ := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {
+									return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: enc.Mrn})
+								})
+								if resPat != nil && resPat.Patient != nil && resPat.Patient.Name != "" {
+									pName = resPat.Patient.Name
+								}
+								patientCache[enc.Mrn] = pName
 							}
 
 							deptCode := enc.DepartmentCode
@@ -3680,7 +3700,7 @@ func main() {
 						Success: true,
 						Message: "Success",
 						Data: map[string]interface{}{
-							"period":            dateStr,
+							"period":            periodStr,
 							"metrics":           metrics,
 							"service_breakdown": serviceBreakdownList,
 							"transactions":      transactions,

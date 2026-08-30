@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -36,16 +37,25 @@ func (s *RegistrationGrpcServer) RegisterEncounter(ctx context.Context, req *pb.
 }
 
 func (s *RegistrationGrpcServer) GetTodayEncounters(ctx context.Context, req *pb.GetTodayEncountersRequest) (*pb.GetTodayEncountersResponse, error) {
-	targetDate := time.Now()
+	startDate := time.Now()
+	endDate := time.Now()
 	if req.Date != "" {
 		loc := time.Now().Location()
-		parsedDate, err := time.ParseInLocation("2006-01-02", req.Date, loc)
-		if err == nil {
-			targetDate = parsedDate
+		if strings.Contains(req.Date, ":") {
+			parts := strings.Split(req.Date, ":")
+			if p1, err := time.ParseInLocation("2006-01-02", parts[0], loc); err == nil {
+				startDate = p1
+			}
+			if p2, err := time.ParseInLocation("2006-01-02", parts[1], loc); err == nil {
+				endDate = p2
+			}
+		} else if parsedDate, err := time.ParseInLocation("2006-01-02", req.Date, loc); err == nil {
+			startDate = parsedDate
+			endDate = parsedDate
 		}
 	}
 
-	encounters, err := s.registrationService.GetTodayEncounters(ctx, targetDate)
+	encounters, err := s.registrationService.GetTodayEncounters(ctx, startDate, endDate)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get today encounters: %v", err)
 	}

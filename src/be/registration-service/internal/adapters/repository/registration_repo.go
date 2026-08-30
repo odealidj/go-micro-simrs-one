@@ -95,10 +95,11 @@ func (r *registrationRepoSqlc) MarkEventAsFailed(ctx context.Context, id string)
 	})
 }
 
-func (r *registrationRepoSqlc) GetTodayEncounters(ctx context.Context, targetDate time.Time) ([]*domain.Encounter, error) {
-	y, m, d := targetDate.Date()
-	startOfDay := time.Date(y, m, d, 0, 0, 0, 0, targetDate.Location())
-	startOfNextDay := startOfDay.AddDate(0, 0, 1)
+func (r *registrationRepoSqlc) GetTodayEncounters(ctx context.Context, startDate, endDate time.Time) ([]*domain.Encounter, error) {
+	y1, m1, d1 := startDate.Date()
+	startOfDay := time.Date(y1, m1, d1, 0, 0, 0, 0, startDate.Location())
+	y2, m2, d2 := endDate.Date()
+	startOfNextDay := time.Date(y2, m2, d2, 0, 0, 0, 0, endDate.Location()).AddDate(0, 0, 1)
 
 	rows, err := r.q.GetTodayEncounters(ctx, db.GetTodayEncountersParams{
 		CreatedAt:   sql.NullTime{Time: startOfDay, Valid: true},
@@ -108,6 +109,8 @@ func (r *registrationRepoSqlc) GetTodayEncounters(ctx context.Context, targetDat
 		return nil, err
 	}
 	var encounters []*domain.Encounter
+	newPatientCache := make(map[string]bool)
+
 	for _, row := range rows {
 		enc := &domain.Encounter{
 			EncounterNo: row.EncounterNo,
@@ -119,18 +122,22 @@ func (r *registrationRepoSqlc) GetTodayEncounters(ctx context.Context, targetDat
 			CreatedAt:   row.CreatedAt.Time,
 		}
 
-		// Determine if the patient is new (<= 1 valid encounter)
-		var count int
-		err := r.db.QueryRowContext(ctx, `
-			SELECT COUNT(*)
-			FROM encounters
-			WHERE mrn = $1
-			  AND deleted_dt IS NULL
-			  AND status != 'CANCELLED'
-			  AND ((guarantor = 'UMUM' AND payment_status = 'PAID') OR guarantor != 'UMUM')
-		`, row.Mrn).Scan(&count)
-		if err == nil && count <= 1 {
-			enc.IsNewPatient = true
+		// Determine if the patient is new (<= 1 valid encounter) with memoization to avoid N+1 queries
+		if isNew, ok := newPatientCache[row.Mrn]; ok {
+			enc.IsNewPatient = isNew
+		} else {
+			var count int
+			err := r.db.QueryRowContext(ctx, `
+				SELECT COUNT(*)
+				FROM encounters
+				WHERE mrn = $1
+				  AND deleted_dt IS NULL
+				  AND status != 'CANCELLED'
+				  AND ((guarantor = 'UMUM' AND payment_status = 'PAID') OR guarantor != 'UMUM')
+			`, row.Mrn).Scan(&count)
+			isNewPatient := err == nil && count <= 1
+			newPatientCache[row.Mrn] = isNewPatient
+			enc.IsNewPatient = isNewPatient
 		}
 
 		encounters = append(encounters, enc)

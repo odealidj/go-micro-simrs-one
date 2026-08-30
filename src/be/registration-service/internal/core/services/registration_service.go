@@ -125,11 +125,11 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 	return encounterNo, nil
 }
 
-func (s *registrationServiceImpl) GetTodayEncounters(ctx context.Context, targetDate time.Time) ([]*domain.Encounter, error) {
+func (s *registrationServiceImpl) GetTodayEncounters(ctx context.Context, startDate, endDate time.Time) ([]*domain.Encounter, error) {
 	if s.repo == nil {
 		return nil, fmt.Errorf("repository is not initialized")
 	}
-	return s.repo.GetTodayEncounters(ctx, targetDate)
+	return s.repo.GetTodayEncounters(ctx, startDate, endDate)
 }
 
 func (s *registrationServiceImpl) CancelEncounter(ctx context.Context, encounterNo, reason string) error {
