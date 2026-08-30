@@ -65,6 +65,9 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 			doctorID = activeDoc
 		}
 	}
+	if doctorID == "" {
+		return "", fmt.Errorf("tidak ada dokter yang bertugas di poliklinik %s pada hari ini", departmentCode)
+	}
 
 	// Auto-assign perawat based on poli mapping if not provided
 	if perawatID == "" && s.repo != nil {

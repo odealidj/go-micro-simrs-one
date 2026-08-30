@@ -97,16 +97,16 @@ export function InvoicePage() {
     try {
       // 1. Fetch real settlements/transactions from revenue report
       const report = await getRevenueReport({ date });
-      if (report && Array.isArray(report.transactions) && report.transactions.length > 0) {
-        setInvoices(report.transactions);
+      if (report) {
+        setInvoices(report.transactions || []);
         return;
       }
 
-      // 2. Fallback to registration queue if no report transactions
+      // 2. Fallback to registration queue if no report response
       const queueData = await getBillingQueue(date);
       const paidOnly: SettlementTransactionItem[] = queueData
         .filter(
-          (item) => item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED"
+          (item) => item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED" && item.status !== "BATAL"
         )
         .map((item) => ({
           encounter_no: item.encounter_no,

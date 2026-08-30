@@ -13,7 +13,7 @@ export function DaftarKunjunganPage() {
         icon={ListChecks}
       />
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="flex-1 flex flex-col min-h-0">
         <PatientRegistrationList />
       </div>
     </div>

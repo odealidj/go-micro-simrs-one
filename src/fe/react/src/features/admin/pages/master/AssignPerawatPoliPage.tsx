@@ -7,6 +7,8 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { ModernConfirmModal } from "@/components/ui/ModernConfirmModal";
 import { Calendar, Clock, AlertCircle, CheckCircle2, Info, CalendarDays, ArrowRight, Trash2 } from "lucide-react";
+import { getHospitalTodayDate, toHospitalDateString } from "@/lib/dateUtils";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 interface AssignPerawatPoliPageProps {
   readOnly?: boolean;
@@ -37,7 +39,7 @@ export function AssignPerawatPoliPage({ readOnly = false }: AssignPerawatPoliPag
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
   const [selectedPoli, setSelectedPoli] = useState<string>("");
-  const [startDate, setStartDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [startDate, setStartDate] = useState<string>(getHospitalTodayDate());
   const [selectedDays, setSelectedDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -97,7 +99,7 @@ export function AssignPerawatPoliPage({ readOnly = false }: AssignPerawatPoliPag
   const handleAssignClick = (nurse: any) => {
     setSelectedNurse(nurse);
     setSelectedPoli(nurse.poli_code || "");
-    setStartDate(nurse.start_date ? nurse.start_date.split("T")[0] : new Date().toISOString().split("T")[0]);
+    setStartDate(toHospitalDateString(nurse.start_date));
     if (nurse.poli_code && nurse.days_of_week && nurse.days_of_week.length > 0) {
       setSelectedDays(nurse.days_of_week);
     } else {
@@ -417,14 +419,16 @@ export function AssignPerawatPoliPage({ readOnly = false }: AssignPerawatPoliPag
                 <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">
                   Tanggal Mulai Penugasan
                 </label>
-                <input
-                  type="date"
+                <DatePicker
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-700 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                  onChange={(dateStr) => setStartDate(dateStr)}
+                  placeholder="Pilih tanggal mulai..."
+                  highlightWeekends={false}
+                  showPresets={true}
+                  presetMode="default"
                   required
                 />
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="text-[11px] text-slate-400 mt-1.5">
                   Masa tugas berlaku sejak tanggal ini hingga penugasan diperbarui kembali.
                 </p>
               </div>

@@ -7,6 +7,7 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: secretpassword
       POSTGRES_DB: simrs_db
+      TZ: Asia/Jakarta
     ports:
       - "5432:5432"
     volumes:

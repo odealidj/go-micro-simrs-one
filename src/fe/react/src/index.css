@@ -225,3 +225,11 @@
   box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.08), 0 8px 10px -6px rgba(2, 132, 199, 0.04);
   transform: translateY(-1px);
 }
+
+/* Ensure notification toast wrapper never intercepts pointer events on underlying buttons */
+[data-sonner-toaster] {
+  pointer-events: none !important;
+}
+[data-sonner-toaster] [data-sonner-toast] {
+  pointer-events: auto !important;
+}

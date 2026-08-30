@@ -2,7 +2,6 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getBillingQueue, getInvoice, type BillingPatientQueueItem, type Invoice } from "../api/billingApi";
 import {
-  Wallet,
   Receipt,
   RefreshCw,
   Clock,
@@ -17,6 +16,8 @@ import {
   Printer,
   X,
   FileText,
+  Ban,
+  AlertTriangle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -134,8 +135,12 @@ export function BillingQueuePage() {
 
   const countPaid = useMemo(() => {
     return queue.filter(
-      (item) => item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED"
+      (item) => item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED" && item.status !== "BATAL"
     ).length;
+  }, [queue]);
+
+  const countCancelled = useMemo(() => {
+    return queue.filter((item) => item.status === "CANCELLED" || item.status === "BATAL").length;
   }, [queue]);
 
   const filteredQueue = useMemo(() => {
@@ -150,10 +155,12 @@ export function BillingQueuePage() {
         deptName.toLowerCase().includes(searchQuery.toLowerCase());
 
       const isUnpaid = item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED";
+      const isCancelled = item.status === "CANCELLED" || item.status === "BATAL";
       const matchesStatus =
         statusFilter === "ALL" ||
         (statusFilter === "UNPAID" && isUnpaid) ||
-        (statusFilter === "PAID" && !isUnpaid && item.status !== "CANCELLED");
+        (statusFilter === "PAID" && !isUnpaid && !isCancelled) ||
+        (statusFilter === "CANCELLED" && isCancelled);
 
       const matchesPoli =
         poliFilter === "ALL" ||
@@ -218,7 +225,7 @@ export function BillingQueuePage() {
         quickStats={[
           { label: "Menunggu Pembayaran", value: `${countUnpaid} Pasien`, icon: Clock },
           { label: "Lunas Hari Ini", value: `${countPaid} Pasien`, icon: CheckCircle2 },
-          { label: "Total Antrean Hari Ini", value: `${queue.length} Pasien`, icon: Wallet },
+          { label: "Dibatalkan", value: `${countCancelled} Pasien`, icon: Ban },
           { label: "Hasil Filter", value: `${filteredQueue.length} Pasien`, icon: ListFilter },
         ]}
       />
@@ -268,6 +275,7 @@ export function BillingQueuePage() {
                   <option value="ALL">Semua ({queue.length})</option>
                   <option value="UNPAID">Menunggu Pembayaran ({countUnpaid})</option>
                   <option value="PAID">Lunas ({countPaid})</option>
+                  <option value="CANCELLED">Dibatalkan ({countCancelled})</option>
                 </select>
               </div>
 
@@ -335,6 +343,7 @@ export function BillingQueuePage() {
                 paginatedData.map((item, idx) => {
                   const statusInfo = getKasirStatusBadge(item.status);
                   const isUnpaid = item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED";
+                  const isCancelled = item.status === "CANCELLED" || item.status === "BATAL";
                   const age = calculateAge(item.date_of_birth);
                   const gender = formatGender(item.gender);
                   const regTime = formatRegistrationTime(item.registered_time);
@@ -384,7 +393,14 @@ export function BillingQueuePage() {
 
                       {/* Total Biaya */}
                       <TableCell className="py-3 px-4 font-bold text-xs text-slate-900">
-                        {formatRupiah(50000)}
+                        {isCancelled ? (
+                          <div className="flex flex-col">
+                            <span className="line-through text-slate-400 font-medium">{formatRupiah(50000)}</span>
+                            <span className="text-[10px] text-rose-500 font-bold tracking-tight">Dibatalkan</span>
+                          </div>
+                        ) : (
+                          formatRupiah(50000)
+                        )}
                       </TableCell>
 
                       {/* Status Pembayaran */}
@@ -402,7 +418,7 @@ export function BillingQueuePage() {
                             onClick={() => handleOpenDetail(item)}
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors"
+                            className="h-8 w-8 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
                             title="Lihat Rincian Tagihan"
                           >
                             <Eye className="h-4 w-4" />
@@ -412,17 +428,28 @@ export function BillingQueuePage() {
                             <Button
                               onClick={() => navigate(`/kasir/bayar/${item.encounter_no}`)}
                               size="sm"
-                              className="h-8 px-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs rounded-lg shadow-sm shadow-amber-500/20 gap-1.5 transition-all"
+                              className="h-8 px-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs rounded-lg shadow-sm shadow-amber-500/20 gap-1.5 transition-all cursor-pointer"
                             >
                               <CreditCard className="h-3.5 w-3.5" />
                               <span>Bayar</span>
+                            </Button>
+                          ) : isCancelled ? (
+                            <Button
+                              disabled
+                              variant="outline"
+                              size="sm"
+                              className="h-8 px-2.5 text-slate-400 border-slate-200 bg-slate-100/90 text-xs font-semibold rounded-lg gap-1.5 cursor-not-allowed opacity-70"
+                              title="Pendaftaran kunjungan telah dibatalkan di admisi. Tidak ada transaksi pembayaran kasir."
+                            >
+                              <Ban className="h-3.5 w-3.5 text-slate-400" />
+                              <span>Batal</span>
                             </Button>
                           ) : (
                             <Button
                               onClick={() => navigate(`/kasir/riwayat-pembayaran`)}
                               variant="outline"
                               size="sm"
-                              className="h-8 px-2.5 text-emerald-700 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100 text-xs font-semibold rounded-lg gap-1.5"
+                              className="h-8 px-2.5 text-emerald-700 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100 text-xs font-semibold rounded-lg gap-1.5 cursor-pointer"
                               title="Transaksi Selesai (Lunas)"
                             >
                               <Printer className="h-3.5 w-3.5" />
@@ -561,6 +588,19 @@ export function BillingQueuePage() {
           </DialogHeader>
 
           <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
+            {/* Alert Banner if Cancelled */}
+            {selectedItem && (selectedItem.status === "CANCELLED" || selectedItem.status === "BATAL") && (
+              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3 shadow-2xs">
+                <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
+                <div className="text-xs space-y-1">
+                  <p className="font-bold text-rose-900 text-sm">Pendaftaran Kunjungan Dibatalkan</p>
+                  <p className="text-rose-700 leading-relaxed">
+                    Kunjungan ini telah dibatalkan di loket pendaftaran. Seluruh tagihan pelayanan ini telah dibatalkan secara administratif dan tidak memiliki kewajiban pembayaran kasir.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Patient Header Summary */}
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
@@ -638,15 +678,32 @@ export function BillingQueuePage() {
               </div>
 
               {/* Total Clean Strip */}
-              <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-amber-900">Total Tagihan Bersih</p>
-                  <p className="text-[11px] text-amber-700 mt-0.5">Biaya yang harus dilunasi pasien di loket kasir</p>
+              {selectedItem && (selectedItem.status === "CANCELLED" || selectedItem.status === "BATAL") ? (
+                <div className="p-4 rounded-xl bg-rose-50/90 border border-rose-200 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-rose-900">Status Tagihan: Dibatalkan</p>
+                    <p className="text-[11px] text-rose-700 mt-0.5">Tagihan dibatalkan (Tidak ada kewajiban pembayaran kasir)</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs line-through text-slate-400 block font-medium">
+                      {formatRupiah(invoiceDetail?.total_amount || 50000)}
+                    </span>
+                    <span className="text-xl font-extrabold text-rose-700 tracking-tight">
+                      Rp 0 (Batal)
+                    </span>
+                  </div>
                 </div>
-                <p className="text-xl font-extrabold text-amber-900 tracking-tight">
-                  {formatRupiah(invoiceDetail?.total_amount || 50000)}
-                </p>
-              </div>
+              ) : (
+                <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-bold text-amber-900">Total Tagihan Bersih</p>
+                    <p className="text-[11px] text-amber-700 mt-0.5">Biaya yang harus dilunasi pasien di loket kasir</p>
+                  </div>
+                  <p className="text-xl font-extrabold text-amber-900 tracking-tight">
+                    {formatRupiah(invoiceDetail?.total_amount || 50000)}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
