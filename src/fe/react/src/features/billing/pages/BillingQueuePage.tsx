@@ -8,7 +8,6 @@ import {
   Search,
   ListFilter,
   CreditCard,
-  Eye,
   Building,
   CheckCircle2,
   ChevronLeft,
@@ -17,6 +16,8 @@ import {
   X,
   FileText,
   AlertTriangle,
+  Stethoscope,
+  Activity,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,33 @@ function getDepartmentName(code?: string) {
   if (code === "08" || code.toLowerCase().includes("obgyn") || code.toLowerCase().includes("kandungan"))
     return "Poli Kandungan";
   return `Poli ${code}`;
+}
+
+function parseItemDescription(desc: string, itemType?: string) {
+  const match = desc.match(/^\[([A-Z0-9-]+)\]\s*(.+)$/);
+  if (match) {
+    return {
+      code: match[1],
+      title: match[2],
+      category: itemType || "Tindakan Medis",
+    };
+  }
+  if (
+    desc.toLowerCase().includes("pemeriksaan") ||
+    desc.toLowerCase().includes("karcis") ||
+    desc.toLowerCase().includes("konsultasi")
+  ) {
+    return {
+      code: "REG-01",
+      title: desc,
+      category: "Karcis & Konsultasi",
+    };
+  }
+  return {
+    code: "-",
+    title: desc,
+    category: itemType || "Pelayanan Poli",
+  };
 }
 
 export function BillingQueuePage() {
@@ -341,7 +369,7 @@ export function BillingQueuePage() {
                 <TableHead className="w-[170px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">
                   Status & Jenis
                 </TableHead>
-                <TableHead className="text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4 w-[150px]">
+                <TableHead className="text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4 w-[190px]">
                   Aksi
                 </TableHead>
               </TableRow>
@@ -442,12 +470,13 @@ export function BillingQueuePage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
                             onClick={() => handleOpenDetail(item)}
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-                            title="Lihat Rincian Tagihan"
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-2.5 text-xs font-bold text-sky-700 border-sky-200 bg-sky-50/80 hover:bg-sky-100 rounded-lg gap-1.5 shadow-2xs transition-all cursor-pointer"
+                            title="Lihat Rincian Tindakan & Tarif Pasien"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Stethoscope className="h-3.5 w-3.5 text-sky-600" />
+                            <span>Tindakan</span>
                           </Button>
 
                           <Button
@@ -589,28 +618,26 @@ export function BillingQueuePage() {
         </div>
       </Card>
 
-      {/* Rincian Tagihan Modal */}
+      {/* Rincian Tindakan & Tarif Modal */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className={cn(kasirTheme.layout.modalContent, "max-w-3xl")}>
-          <DialogHeader className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-amber-500/20 border border-amber-400/30 text-amber-300">
-                  <Receipt className="h-5 w-5" />
-                </div>
-                <div>
-                  <DialogTitle className="text-lg font-bold text-white tracking-tight">
-                    Rincian & Status Tagihan Pasien
-                  </DialogTitle>
-                  <p className="text-xs text-slate-300 mt-0.5 font-mono">
-                    Encounter: #{selectedItem?.encounter_no}
-                  </p>
-                </div>
+        <DialogContent className={cn(kasirTheme.layout.modalContent, "sm:max-w-2xl md:max-w-3xl p-0 overflow-hidden")}>
+          <DialogHeader className="p-5 bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white flex flex-row items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-sky-500/20 border border-sky-400/30 text-sky-300">
+                <Stethoscope className="h-5 w-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-base font-bold text-white tracking-tight">
+                  Rincian Tindakan & Tarif Pelayanan
+                </DialogTitle>
+                <p className="text-xs text-sky-200/80 mt-0.5 font-mono">
+                  Encounter: #{selectedItem?.encounter_no} • No. RM: {selectedItem?.mrn}
+                </p>
               </div>
             </div>
           </DialogHeader>
 
-          <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
+          <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
             {/* Alert Banner if Cancelled */}
             {selectedItem && (selectedItem.status === "CANCELLED" || selectedItem.status === "BATAL" || selectedItem.payment_status === "CANCELLED") && (
               <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3 shadow-2xs">
@@ -625,162 +652,209 @@ export function BillingQueuePage() {
             )}
 
             {/* Patient Header Summary */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/90 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Nama Pasien</p>
-                <p className="font-bold text-slate-900 text-sm mt-0.5">{selectedItem?.patient_name}</p>
+                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Nama Pasien</span>
+                <strong className="text-slate-900 font-bold text-sm block mt-0.5">{selectedItem?.patient_name}</strong>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">No. RM</p>
-                <p className="font-mono font-bold text-slate-800 text-xs mt-0.5">{selectedItem?.mrn}</p>
+                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">No. Rekam Medis</span>
+                <span className="font-mono font-bold text-slate-800 text-xs bg-white border border-slate-200 px-2 py-0.5 rounded inline-block mt-0.5">
+                  {selectedItem?.mrn}
+                </span>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Poliklinik</p>
-                <p className="font-semibold text-slate-700 text-xs mt-0.5">
+                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Poliklinik</span>
+                <strong className="text-slate-800 text-xs block mt-0.5">
                   {getDepartmentName(selectedItem?.department_code)}
-                </p>
+                </strong>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Penjamin</p>
-                <p className="font-semibold text-slate-700 text-xs mt-0.5">
+                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Penjamin</span>
+                <strong className="text-slate-800 text-xs block mt-0.5">
                   {selectedItem?.status_pasien || "Umum"}
-                </p>
+                </strong>
               </div>
             </div>
 
-            {/* Invoice Breakdown List - Supporting Multi-Invoices (e.g. Karcis + Tindakan Poli) */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
-                <span>Daftar Faktur & Rincian Layanan</span>
+            {/* Items Breakdown Table */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Activity className="h-4 w-4 text-sky-600" />
+                  <span>Daftar Tindakan & Jasa Layanan Medis</span>
+                </h4>
                 {invoiceDetail?.invoices && invoiceDetail.invoices.length > 1 && (
                   <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
                     {invoiceDetail.invoices.length} Faktur Tagihan
                   </span>
                 )}
-              </h3>
+              </div>
 
               {loadingDetail ? (
                 <div className="py-12 text-center text-slate-400 border border-slate-200 rounded-xl bg-slate-50/50">
-                  <RefreshCw className="h-6 w-6 animate-spin text-amber-600 mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-slate-600">Memuat seluruh rincian tagihan faktur...</p>
+                  <RefreshCw className="h-6 w-6 animate-spin text-sky-600 mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-slate-600">Memuat rincian tindakan medis...</p>
                 </div>
-              ) : invoiceDetail?.invoices && invoiceDetail.invoices.length > 0 ? (
-                <div className="space-y-3">
-                  {invoiceDetail.invoices.map((inv, invIdx) => {
-                    const isInvPaid = Boolean(inv.is_paid || inv.status === "PAID");
-                    const isRegInv = inv.invoice_id.startsWith("INV-REG") || invIdx === 0;
+              ) : (() => {
+                const multiInvs = invoiceDetail?.invoices && invoiceDetail.invoices.length > 0 ? invoiceDetail.invoices : null;
+                const itemsList: Array<{
+                  description: string;
+                  item_type?: string;
+                  amount: number;
+                  qty?: number;
+                  isPaid: boolean;
+                  invoiceId?: string;
+                }> = [];
 
-                    return (
-                      <div key={invIdx} className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-                        {/* Invoice Header */}
-                        <div className="p-3 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between flex-wrap gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-slate-800 bg-white border border-slate-200 px-2 py-0.5 rounded">
-                              #{inv.invoice_id}
-                            </span>
-                            <span className="text-xs font-semibold text-slate-600">
-                              {isRegInv ? "Karcis Pendaftaran & Konsultasi" : "Tindakan Medis Rawat Jalan"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {isInvPaid ? (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
-                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                                Lunas
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
-                                <Clock className="h-3 w-3 text-amber-600" />
-                                Belum Dibayar
-                              </span>
-                            )}
-                            <span className="text-xs font-extrabold text-slate-900 ml-1">
-                              {formatRupiah(inv.total_amount)}
-                            </span>
-                          </div>
-                        </div>
+                if (multiInvs) {
+                  multiInvs.forEach((inv) => {
+                    const isPaid = Boolean(inv.is_paid || inv.status === "PAID");
+                    if (inv.items && inv.items.length > 0) {
+                      inv.items.forEach((it) => {
+                        itemsList.push({
+                          description: it.description,
+                          item_type: it.item_type,
+                          amount: it.amount,
+                          qty: (it as any).qty || 1,
+                          isPaid,
+                          invoiceId: inv.invoice_id,
+                        });
+                      });
+                    }
+                  });
+                } else if (invoiceDetail?.items && invoiceDetail.items.length > 0) {
+                  invoiceDetail.items.forEach((it) => {
+                    itemsList.push({
+                      description: it.description,
+                      item_type: it.item_type,
+                      amount: it.amount,
+                      qty: (it as any).qty || 1,
+                      isPaid: Boolean(invoiceDetail.is_paid || invoiceDetail.status === "PAID"),
+                      invoiceId: invoiceDetail.invoice_id,
+                    });
+                  });
+                }
 
-                        {/* Items Table */}
-                        <Table>
-                          <TableHeader className="bg-slate-50/50">
-                            <TableRow>
-                              <TableHead className="text-[11px] font-bold py-2">Uraian Layanan</TableHead>
-                              <TableHead className="text-[11px] font-bold py-2 w-[100px] text-center">Kategori</TableHead>
-                              <TableHead className="text-[11px] font-bold py-2 w-[130px] text-right">Tarif (Rp)</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {inv.items && inv.items.length > 0 ? (
-                              inv.items.map((it, i) => (
-                                <TableRow key={i} className="border-b border-slate-100 text-xs">
-                                  <TableCell className="font-medium text-slate-800 py-2.5">{it.description}</TableCell>
-                                  <TableCell className="text-center py-2.5">
-                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                                      {it.item_type || "Tindakan"}
-                                    </span>
-                                  </TableCell>
-                                  <TableCell className="text-right font-bold text-slate-900 py-2.5">
-                                    {formatRupiah(it.amount)}
-                                  </TableCell>
-                                </TableRow>
-                              ))
-                            ) : (
-                              <TableRow>
-                                <TableCell colSpan={3} className="text-center text-slate-400 py-3 text-xs">
-                                  Tidak ada item tercatat
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="border border-slate-200 rounded-xl overflow-hidden">
-                  <Table>
-                    <TableHeader className="bg-slate-50">
-                      <TableRow>
-                        <TableHead className="text-xs font-bold py-2.5">Uraian / Layanan</TableHead>
-                        <TableHead className="text-xs font-bold py-2.5 w-[100px] text-center">Kategori</TableHead>
-                        <TableHead className="text-xs font-bold py-2.5 w-[140px] text-right">Tarif (Rp)</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {invoiceDetail?.items && invoiceDetail.items.length > 0 ? (
-                        invoiceDetail.items.map((it, i) => (
-                          <TableRow key={i} className="border-b border-slate-100 text-xs">
-                            <TableCell className="font-medium text-slate-800 py-3">{it.description}</TableCell>
-                            <TableCell className="text-center py-3">
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                                {it.item_type || "Tindakan"}
+                if (itemsList.length === 0) {
+                  return (
+                    <div className="border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+                      <Table>
+                        <TableHeader className="bg-slate-50 border-b border-slate-200/80">
+                          <TableRow>
+                            <TableHead className="w-[45px] text-center text-[11px] font-bold text-slate-500 py-2.5">#</TableHead>
+                            <TableHead className="text-[11px] font-bold text-slate-500 py-2.5">Kode & Uraian Tindakan / Layanan</TableHead>
+                            <TableHead className="w-[150px] text-[11px] font-bold text-slate-500 py-2.5">Kategori</TableHead>
+                            <TableHead className="w-[60px] text-center text-[11px] font-bold text-slate-500 py-2.5">Qty</TableHead>
+                            <TableHead className="w-[120px] text-right text-[11px] font-bold text-slate-500 py-2.5">Tarif Satuan</TableHead>
+                            <TableHead className="w-[120px] text-right text-[11px] font-bold text-slate-500 py-2.5">Subtotal</TableHead>
+                            <TableHead className="w-[100px] text-center text-[11px] font-bold text-slate-500 py-2.5">Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow className="text-xs">
+                            <TableCell className="text-center font-bold text-slate-400 py-3">1</TableCell>
+                            <TableCell className="font-semibold text-slate-900 py-3">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200">
+                                  REG-01
+                                </span>
+                                <span>Pemeriksaan Dokter & Pelayanan Poli</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-3">
+                              <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                                Karcis & Konsultasi
                               </span>
                             </TableCell>
-                            <TableCell className="text-right font-bold text-slate-900 py-3">
-                              {formatRupiah(it.amount)}
+                            <TableCell className="text-center font-bold text-slate-700 py-3">1</TableCell>
+                            <TableCell className="text-right font-medium text-slate-600 py-3">{formatRupiah(50000)}</TableCell>
+                            <TableCell className="text-right font-bold text-slate-900 py-3">{formatRupiah(50000)}</TableCell>
+                            <TableCell className="text-center py-3">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                                Belum Bayar
+                              </span>
                             </TableCell>
                           </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell className="font-medium text-slate-800 py-3">Pemeriksaan Dokter & Pelayanan Poli</TableCell>
-                          <TableCell className="text-center py-3">
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                              Tindakan
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right font-bold text-slate-900 py-3">
-                            {formatRupiah(50000)}
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  );
+                }
 
-              {/* Total Clean Strip */}
+                return (
+                  <div className="border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+                    <Table>
+                      <TableHeader className="bg-slate-50 border-b border-slate-200/80">
+                        <TableRow>
+                          <TableHead className="w-[45px] text-center text-[11px] font-bold text-slate-500 py-2.5">#</TableHead>
+                          <TableHead className="text-[11px] font-bold text-slate-500 py-2.5">Kode & Uraian Tindakan / Layanan</TableHead>
+                          <TableHead className="w-[150px] text-[11px] font-bold text-slate-500 py-2.5">Kategori</TableHead>
+                          <TableHead className="w-[60px] text-center text-[11px] font-bold text-slate-500 py-2.5">Qty</TableHead>
+                          <TableHead className="w-[120px] text-right text-[11px] font-bold text-slate-500 py-2.5">Tarif Satuan</TableHead>
+                          <TableHead className="w-[120px] text-right text-[11px] font-bold text-slate-500 py-2.5">Subtotal</TableHead>
+                          <TableHead className="w-[100px] text-center text-[11px] font-bold text-slate-500 py-2.5">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody className="divide-y divide-slate-100 text-xs">
+                        {itemsList.map((it, idx) => {
+                          const parsed = parseItemDescription(it.description, it.item_type);
+                          const qty = it.qty || 1;
+                          const subtotal = it.amount;
+                          const unitPrice = qty > 0 ? subtotal / qty : subtotal;
+
+                          return (
+                            <TableRow key={idx} className="hover:bg-slate-50/60 transition-colors">
+                              <TableCell className="text-center font-bold text-slate-400 py-2.5">
+                                {idx + 1}
+                              </TableCell>
+                              <TableCell className="py-2.5">
+                                <div className="flex items-center gap-2">
+                                  {parsed.code !== "-" && (
+                                    <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200">
+                                      {parsed.code}
+                                    </span>
+                                  )}
+                                  <span className="font-semibold text-slate-900">{parsed.title}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-2.5">
+                                <span className="text-[10px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                                  {parsed.category}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-center font-bold text-slate-700 py-2.5">
+                                {qty}
+                              </TableCell>
+                              <TableCell className="text-right font-medium text-slate-600 py-2.5">
+                                {formatRupiah(unitPrice)}
+                              </TableCell>
+                              <TableCell className="text-right font-bold text-slate-900 py-2.5">
+                                {formatRupiah(subtotal)}
+                              </TableCell>
+                              <TableCell className="text-center py-2.5">
+                                {it.isPaid ? (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
+                                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                                    Lunas
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1">
+                                    <Clock className="h-3 w-3 text-amber-600" />
+                                    Belum Bayar
+                                  </span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                );
+              })()}
+
+              {/* Total Summary Strip */}
               {selectedItem && (selectedItem.status === "CANCELLED" || selectedItem.status === "BATAL" || selectedItem.payment_status === "CANCELLED") ? (
                 <div className="p-4 rounded-xl bg-rose-50/90 border border-rose-200 flex items-center justify-between">
                   <div>

@@ -423,7 +423,7 @@ export function InvoicePage() {
                 <TableHead className="w-[110px] text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4">
                   Status
                 </TableHead>
-                <TableHead className="text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4 w-[120px]">
+                <TableHead className="text-right text-[11px] font-bold text-slate-500 uppercase tracking-wider py-3.5 px-4 w-[190px]">
                   Aksi
                 </TableHead>
               </TableRow>
@@ -510,8 +510,8 @@ export function InvoicePage() {
                             className="h-8 px-2.5 text-xs font-bold text-sky-700 border-sky-200 bg-sky-50/80 hover:bg-sky-100 rounded-lg gap-1.5 shadow-2xs transition-all cursor-pointer"
                             title="Lihat Rincian Tindakan & Tarif Pasien"
                           >
-                            <FileText className="h-3.5 w-3.5 text-sky-600" />
-                            <span>Tindakan & Tarif</span>
+                            <Stethoscope className="h-3.5 w-3.5 text-sky-600" />
+                            <span>Tindakan</span>
                           </Button>
                           <Button
                             onClick={() => handleOpenReceipt(item)}
