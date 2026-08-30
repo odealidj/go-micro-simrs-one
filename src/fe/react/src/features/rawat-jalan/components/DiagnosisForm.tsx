@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import type { EncounterDiagnosis } from "../types";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
   Search,
   Save,
@@ -31,6 +32,8 @@ import {
   ShieldCheck,
   X,
   Loader2,
+  Building2,
+  Zap,
 } from "lucide-react";
 
 interface DiagnosisFormProps {
@@ -90,10 +93,12 @@ export function DiagnosisForm({
   const [severityLevel, setSeverityLevel] = useState<string>("I");
   const [clinicalNotes, setClinicalNotes] = useState("");
 
-  // Search ICD-10
+  // Search ICD-10 & Scopes
+  const [searchScope, setSearchScope] = useState<"POLI" | "GLOBAL">("POLI");
   const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearch = useDebounce(searchQuery, 350);
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [searchResults, setSearchResults] = useState<ICD10SearchResult[]>([]);
+  const [popularDiagnoses, setPopularDiagnoses] = useState<ICD10SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -107,16 +112,46 @@ export function DiagnosisForm({
     }
   }, [primaryDiagnosis, isEditing]);
 
-  // Search ICD-10 catalog for active polyclinic
+  // Initial fetch for popular diagnoses & polyclinic default list
   useEffect(() => {
-    const fetchResults = async () => {
-      if (!debouncedSearch || debouncedSearch.length < 2) {
-        setSearchResults([]);
-        return;
+    if (!isFormOpen) return;
+    const fetchInitialPoliCatalog = async () => {
+      try {
+        const results = await searchICD10("", deptCode);
+        if (results && results.length > 0) {
+          setPopularDiagnoses(results.slice(0, 6));
+          if (!searchQuery.trim() && searchScope === "POLI") {
+            setSearchResults(results);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load polyclinic diagnosis catalog", err);
       }
+    };
+    fetchInitialPoliCatalog();
+  }, [isFormOpen, deptCode]);
+
+  // Live Search (Ketik 2+ Karakter atau Auto-Browse saat Kosong di Poli)
+  useEffect(() => {
+    if (!isFormOpen) return;
+    const fetchResults = async () => {
       setSearching(true);
       try {
-        const results = await searchICD10(debouncedSearch, deptCode);
+        const trimmed = debouncedSearch.trim();
+        if (!trimmed) {
+          // If query is empty and in POLI scope -> show all standard diagnoses for this polyclinic
+          if (searchScope === "POLI") {
+            const results = await searchICD10("", deptCode);
+            setSearchResults(results);
+          } else {
+            setSearchResults([]);
+          }
+          return;
+        }
+
+        // Active Live Search: Filter against deptCode or global ICD-10
+        const targetPoli = searchScope === "POLI" ? deptCode : undefined;
+        const results = await searchICD10(trimmed, targetPoli);
         setSearchResults(results);
       } catch (err) {
         console.error("Search Diagnosa Error", err);
@@ -125,7 +160,7 @@ export function DiagnosisForm({
       }
     };
     fetchResults();
-  }, [debouncedSearch, deptCode]);
+  }, [debouncedSearch, searchScope, deptCode, isFormOpen]);
 
   // Fetch ICD-10 mappings (SNOMED-CT & KBM) when an ICD-10 is selected
   useEffect(() => {
@@ -164,6 +199,7 @@ export function DiagnosisForm({
     setSelectedSnomedId("");
     setSelectedKbmCode("");
     setSearchQuery("");
+    setSearchScope("POLI");
     setDiagnosisType(primaryDiagnosis ? "SECONDARY" : "PRIMARY");
     setSeverityLevel("I");
     setClinicalNotes("");
@@ -682,14 +718,47 @@ export function DiagnosisForm({
             <div className="flex-1 overflow-y-auto p-7 space-y-6">
 
           {/* Autocomplete Input & Selected Preview */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                 Pilih Diagnosa (ICD-10) <span className="text-red-500">*</span>
               </label>
-              <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-md">
-                Katalog Poli: {deptCode || "Umum"}
-              </span>
+
+              {/* Scope Toggle: Poli vs Global */}
+              {!selectedIcd10 && !isEditing && (
+                <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchScope("POLI");
+                    }}
+                    className={cn(
+                      "px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer text-xs",
+                      searchScope === "POLI"
+                        ? "bg-indigo-600 text-white shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                    )}
+                  >
+                    <Building2 className="h-3.5 w-3.5" />
+                    Sesuai Poli ({deptCode || "01"})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchScope("GLOBAL");
+                    }}
+                    className={cn(
+                      "px-3 py-1 rounded-lg font-bold transition-all flex items-center gap-1.5 cursor-pointer text-xs",
+                      searchScope === "GLOBAL"
+                        ? "bg-indigo-600 text-white shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                    )}
+                  >
+                    <Globe className="h-3.5 w-3.5" />
+                    Seluruh ICD-10
+                  </button>
+                </div>
+              )}
             </div>
 
             {selectedIcd10 && !isEditing ? (
@@ -803,74 +872,139 @@ export function DiagnosisForm({
                 <span className="text-xs text-slate-500 italic">Kode ICD tidak dapat diubah saat edit</span>
               </div>
             ) : (
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  type="text"
-                  placeholder={`Cari nama diagnosa atau kode ICD-10 untuk poli ${deptCode || ""}...`}
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => setShowDropdown(true)}
-                  className="pl-10 h-11 rounded-xl bg-white border-slate-300 focus:border-indigo-500 text-sm"
-                />
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    type="text"
+                    placeholder={
+                      searchScope === "POLI"
+                        ? `Cari nama/kode ICD-10 katalog poli ${deptCode || ""} (atau klik untuk lihat semua)...`
+                        : "Cari di seluruh katalog ICD-10 nasional (semua spesialisasi)..."
+                    }
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowDropdown(true);
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    className="pl-10 h-12 rounded-xl bg-white border-slate-300 focus:border-indigo-500 text-sm font-medium"
+                  />
 
-                {showDropdown && searchQuery.length >= 2 && (
-                  <div className="absolute z-30 w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-72 overflow-y-auto">
-                    {searching ? (
-                      <div className="p-4 text-xs text-slate-500 text-center flex items-center justify-center gap-2">
-                        <span className="animate-spin h-3.5 w-3.5 border-2 border-indigo-600 border-t-transparent rounded-full" />
-                        Mencari katalog diagnosa...
+                  {showDropdown && (
+                    <div className="absolute z-30 w-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-80 overflow-y-auto">
+                      {/* Dropdown Header Info */}
+                      <div className="px-4 py-2 bg-slate-50/90 border-b border-slate-100 flex items-center justify-between text-[11px] text-slate-500 sticky top-0 backdrop-blur-xs z-10">
+                        <span>
+                          {searchQuery.trim()
+                            ? `Hasil pencarian "${searchQuery}" (${searchResults.length} diagnosa)`
+                            : searchScope === "POLI"
+                            ? `Katalog Diagnosa Standar Poli ${deptCode} (${searchResults.length} diagnosa)`
+                            : "Katalog Seluruh ICD-10 Nasional"}
+                        </span>
+                        <span className="font-semibold text-indigo-600">
+                          {searchScope === "POLI" ? `Poli: ${deptCode || "01"}` : "Mode Global"}
+                        </span>
                       </div>
-                    ) : searchResults.length > 0 ? (
-                      <ul className="divide-y divide-slate-100 text-sm">
-                        {searchResults.map((item: ICD10SearchResult) => (
-                          <li
-                            key={item.code}
-                            onClick={() => {
-                              setSelectedIcd10({
-                                code: item.code,
-                                name: item.name,
-                                name_en: item.name_en,
-                              });
-                              setShowDropdown(false);
-                            }}
-                            className="p-3 hover:bg-indigo-50/70 cursor-pointer flex flex-col gap-1 transition-colors"
-                          >
-                            <div className="flex justify-between items-center gap-2">
-                              <div className="font-semibold text-slate-900">{item.name}</div>
-                              <span className="text-xs font-bold bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-md shrink-0">
-                                {item.code}
-                              </span>
-                            </div>
-                            {item.name_en && item.name_en !== item.name && (
-                              <div className="text-xs text-slate-500 italic">{item.name_en}</div>
-                            )}
-                            <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
-                              {item.snomed_count && item.snomed_count > 0 ? (
-                                <span className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">
-                                  SNOMED: {item.snomed_count}
+
+                      {searching ? (
+                        <div className="p-5 text-xs text-slate-500 text-center flex items-center justify-center gap-2">
+                          <span className="animate-spin h-4 w-4 border-2 border-indigo-600 border-t-transparent rounded-full" />
+                          Mencari katalog diagnosa {searchScope === "POLI" ? `Poli ${deptCode}` : "seluruh ICD-10"}...
+                        </div>
+                      ) : searchResults.length > 0 ? (
+                        <ul className="divide-y divide-slate-100 text-sm">
+                          {searchResults.map((item: ICD10SearchResult) => (
+                            <li
+                              key={item.code}
+                              onClick={() => {
+                                setSelectedIcd10({
+                                  code: item.code,
+                                  name: item.name,
+                                  name_en: item.name_en,
+                                });
+                                setShowDropdown(false);
+                              }}
+                              className="p-3.5 hover:bg-indigo-50/70 cursor-pointer flex flex-col gap-1 transition-colors"
+                            >
+                              <div className="flex justify-between items-center gap-2">
+                                <div className="font-semibold text-slate-900">{item.name}</div>
+                                <span className="text-xs font-black bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-md shrink-0">
+                                  {item.code}
                                 </span>
-                              ) : null}
-                              {item.kbm_count && item.kbm_count > 0 ? (
-                                <span className="text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100">
-                                  Auto-KBM: {item.kbm_count}
-                                </span>
-                              ) : null}
-                              {item.polyclinics && item.polyclinics.length > 0 && (
-                                <span>Poli: {item.polyclinics.join(", ")}</span>
+                              </div>
+                              {item.name_en && item.name_en !== item.name && (
+                                <div className="text-xs text-slate-500 italic">{item.name_en}</div>
                               )}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="p-4 text-xs text-slate-500 text-center">
-                        Diagnosa tidak ditemukan untuk kata kunci "{searchQuery}" pada poli {deptCode}
-                      </div>
-                    )}
+                              <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                                {item.snomed_count && item.snomed_count > 0 ? (
+                                  <span className="text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">
+                                    SNOMED: {item.snomed_count}
+                                  </span>
+                                ) : null}
+                                {item.kbm_count && item.kbm_count > 0 ? (
+                                  <span className="text-teal-700 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100">
+                                    Auto-KBM: {item.kbm_count}
+                                  </span>
+                                ) : null}
+                                {item.polyclinics && item.polyclinics.length > 0 && (
+                                  <span>Poli: {item.polyclinics.join(", ")}</span>
+                                )}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="p-6 text-center space-y-3">
+                          <p className="text-xs text-slate-500">
+                            {searchScope === "POLI"
+                              ? `Diagnosa tidak ditemukan pada katalog Poli ${deptCode} untuk kata kunci "${searchQuery}"`
+                              : `Diagnosa tidak ditemukan di seluruh katalog ICD-10 untuk kata kunci "${searchQuery}"`}
+                          </p>
+                          {searchScope === "POLI" && searchQuery.trim().length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSearchScope("GLOBAL");
+                              }}
+                              className="inline-flex items-center gap-2 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-4 py-2 rounded-xl transition-all cursor-pointer shadow-2xs"
+                            >
+                              <Globe className="h-4 w-4 text-indigo-600" />
+                              Cari "{searchQuery}" di Seluruh Katalog ICD-10
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Chips Diagnosa Populer */}
+                {popularDiagnoses.length > 0 && (
+                  <div className="flex items-center flex-wrap gap-1.5 pt-1">
+                    <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1 mr-0.5">
+                      <Zap className="h-3 w-3 text-amber-500 fill-amber-500" />
+                      Pilihan Cepat Poli:
+                    </span>
+                    {popularDiagnoses.map((item) => (
+                      <button
+                        key={item.code}
+                        type="button"
+                        onClick={() => {
+                          setSelectedIcd10({
+                            code: item.code,
+                            name: item.name,
+                            name_en: item.name_en,
+                          });
+                          setShowDropdown(false);
+                        }}
+                        className="text-[11px] font-medium bg-slate-50 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 hover:border-indigo-300 px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                        title={`${item.code} - ${item.name}`}
+                      >
+                        <span className="font-bold text-indigo-600">{item.code}</span>
+                        <span className="truncate max-w-[130px]">{item.name}</span>
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
