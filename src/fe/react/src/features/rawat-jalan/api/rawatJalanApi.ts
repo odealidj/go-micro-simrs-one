@@ -219,6 +219,15 @@ export const addMedicalAction = async (
   });
 };
 
+export const removeMedicalAction = async (
+  actionId: string,
+  encounterNo?: string
+): Promise<void> => {
+  await api.delete(`/rawat-jalan/actions/${actionId}`, {
+    params: { encounter_no: encounterNo },
+  });
+};
+
 // ─── Resep ────────────────────────────────────────────────────────────────────
 
 export interface SearchObatItem {

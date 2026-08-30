@@ -212,6 +212,46 @@ func (r *emrRepoSqlc) AddMedicalAction(ctx context.Context, encounterNo, recordI
 	return tx.Commit()
 }
 
+func (r *emrRepoSqlc) RemoveMedicalAction(ctx context.Context, id string) error {
+	act, err := r.q.GetMedicalActionByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errors.New("tindakan medis tidak ditemukan")
+		}
+		return err
+	}
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	qtx := r.q.WithTx(tx)
+
+	err = qtx.RemoveMedicalAction(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// Create Outbox Event
+	price, _ := strconv.ParseFloat(act.Price, 64)
+	payload := fmt.Sprintf(`{"encounter_no":"%s","action_id":"%s","action_code":"%s","action_name":"%s","price":%f}`, act.EncounterNo, act.ID, act.ActionCode, act.ActionName, price)
+
+	_, err = qtx.CreateOutboxEvent(ctx, db.CreateOutboxEventParams{
+		ID:            uuid.New().String(),
+		AggregateType: "MedicalRecord",
+		EventType:     "MedicalActionRemoved",
+		Payload:       []byte(payload),
+		Status:        "PENDING",
+	})
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) (*domain.MedicalRecord, error) {
 	mr, err := r.q.GetMRByEncounterNo(ctx, encounterNo)
 	if err != nil {

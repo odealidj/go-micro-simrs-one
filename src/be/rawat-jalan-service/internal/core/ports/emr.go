@@ -10,6 +10,7 @@ type EMRRepository interface {
 	StartEncounter(ctx context.Context, encounterNo string) error
 	UpsertTriage(ctx context.Context, encounterNo, mrn string, triage domain.TriageData) error
 	AddMedicalAction(ctx context.Context, encounterNo, recordID, actionCode, actionName string, price float64, notes string) error
+	RemoveMedicalAction(ctx context.Context, id string) error
 	GetMedicalRecord(ctx context.Context, encounterNo string) (*domain.MedicalRecord, error)
 	EstimateWaitTime(ctx context.Context, doctorID, deptCode, gender, ageBracket string) (int64, error)
 
@@ -42,6 +43,7 @@ type EMRService interface {
 	StartEncounter(ctx context.Context, encounterNo string) error
 	SubmitTriage(ctx context.Context, encounterNo, mrn string, triage domain.TriageData) error
 	AddMedicalAction(ctx context.Context, encounterNo, actionCode, actionName string, price float64, notes string) error
+	RemoveMedicalAction(ctx context.Context, id string) error
 	GetMedicalRecord(ctx context.Context, encounterNo string) (*domain.MedicalRecord, error)
 	EstimateWaitTime(ctx context.Context, doctorID, deptCode, gender, ageBracket string) (int64, error)
 

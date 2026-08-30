@@ -1447,6 +1447,44 @@ func (q *Queries) GetMRByEncounterNo(ctx context.Context, encounterNo string) (M
 	return i, err
 }
 
+const getMedicalActionByID = `-- name: GetMedicalActionByID :one
+SELECT ma.id, ma.medical_record_id, ma.action_code, ma.action_name, ma.price, ma.notes, ma.created_at, ma.deleted_dt, ma.deleted_by, mr.encounter_no
+FROM medical_actions ma
+JOIN medical_records mr ON ma.medical_record_id = mr.id
+WHERE ma.id = $1 AND ma.deleted_dt IS NULL
+`
+
+type GetMedicalActionByIDRow struct {
+	ID              string
+	MedicalRecordID string
+	ActionCode      string
+	ActionName      string
+	Price           string
+	Notes           sql.NullString
+	CreatedAt       sql.NullTime
+	DeletedDt       sql.NullTime
+	DeletedBy       uuid.NullUUID
+	EncounterNo     string
+}
+
+func (q *Queries) GetMedicalActionByID(ctx context.Context, id string) (GetMedicalActionByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getMedicalActionByID, id)
+	var i GetMedicalActionByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.MedicalRecordID,
+		&i.ActionCode,
+		&i.ActionName,
+		&i.Price,
+		&i.Notes,
+		&i.CreatedAt,
+		&i.DeletedDt,
+		&i.DeletedBy,
+		&i.EncounterNo,
+	)
+	return i, err
+}
+
 const getMedicalActionsByRecordID = `-- name: GetMedicalActionsByRecordID :many
 SELECT id, medical_record_id, action_code, action_name, price, notes, created_at, deleted_dt, deleted_by
 FROM medical_actions
@@ -2208,6 +2246,17 @@ WHERE id = $1
 
 func (q *Queries) RemoveEncounterDiagnosis(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, removeEncounterDiagnosis, id)
+	return err
+}
+
+const removeMedicalAction = `-- name: RemoveMedicalAction :exec
+UPDATE medical_actions
+SET deleted_dt = CURRENT_TIMESTAMP
+WHERE id = $1 AND deleted_dt IS NULL
+`
+
+func (q *Queries) RemoveMedicalAction(ctx context.Context, id string) error {
+	_, err := q.db.ExecContext(ctx, removeMedicalAction, id)
 	return err
 }
 

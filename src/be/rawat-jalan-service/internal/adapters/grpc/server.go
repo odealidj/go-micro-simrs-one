@@ -107,9 +107,11 @@ func (s *RawatJalanGrpcServer) GetMedicalRecord(ctx context.Context, req *pb.Get
 	var actions []*pb.MedicalAction
 	for _, act := range mr.Actions {
 		actions = append(actions, &pb.MedicalAction{
+			Id:         act.ID,
 			ActionCode: act.ActionCode,
 			ActionName: act.ActionName,
 			Price:      act.Price,
+			Notes:      act.Notes,
 		})
 	}
 
@@ -241,6 +243,22 @@ func (s *RawatJalanGrpcServer) AddMedicalAction(ctx context.Context, req *pb.Add
 	return &pb.AddMedicalActionResponse{
 		Success: true,
 		Message: "Medical action added successfully",
+	}, nil
+}
+
+func (s *RawatJalanGrpcServer) RemoveMedicalAction(ctx context.Context, req *pb.RemoveMedicalActionRequest) (*pb.RemoveMedicalActionResponse, error) {
+	if req.Id == "" {
+		return nil, status.Error(codes.InvalidArgument, "action id is required")
+	}
+
+	err := s.emrService.RemoveMedicalAction(ctx, req.Id)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to remove medical action: %v", err)
+	}
+
+	return &pb.RemoveMedicalActionResponse{
+		Success: true,
+		Message: "Medical action removed successfully",
 	}, nil
 }
 

@@ -610,6 +610,7 @@ export function EncounterPage() {
               deptCode={poliCode || ""}
               existingActions={record?.actions}
               readOnly={isReadOnly}
+              isPaid={record?.status === "COMPLETED" || isCompleted}
               onSuccess={fetchRecord}
             />
           )}

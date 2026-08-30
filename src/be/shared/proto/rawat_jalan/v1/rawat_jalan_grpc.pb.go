@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: rawat_jalan.proto
+// source: rawat_jalan/v1/rawat_jalan.proto
 
 package rawatjalanv1
 
@@ -26,6 +26,7 @@ const (
 	RawatJalanService_FinalizeMedicalRecord_FullMethodName     = "/rawat_jalan.v1.RawatJalanService/FinalizeMedicalRecord"
 	RawatJalanService_SubmitTriage_FullMethodName              = "/rawat_jalan.v1.RawatJalanService/SubmitTriage"
 	RawatJalanService_AddMedicalAction_FullMethodName          = "/rawat_jalan.v1.RawatJalanService/AddMedicalAction"
+	RawatJalanService_RemoveMedicalAction_FullMethodName       = "/rawat_jalan.v1.RawatJalanService/RemoveMedicalAction"
 	RawatJalanService_AddEncounterDiagnosis_FullMethodName     = "/rawat_jalan.v1.RawatJalanService/AddEncounterDiagnosis"
 	RawatJalanService_UpdateEncounterDiagnosis_FullMethodName  = "/rawat_jalan.v1.RawatJalanService/UpdateEncounterDiagnosis"
 	RawatJalanService_RemoveEncounterDiagnosis_FullMethodName  = "/rawat_jalan.v1.RawatJalanService/RemoveEncounterDiagnosis"
@@ -53,6 +54,7 @@ type RawatJalanServiceClient interface {
 	SubmitTriage(ctx context.Context, in *SubmitTriageRequest, opts ...grpc.CallOption) (*SubmitTriageResponse, error)
 	// 3. Tindakan Medis (Dokter/Perawat)
 	AddMedicalAction(ctx context.Context, in *AddMedicalActionRequest, opts ...grpc.CallOption) (*AddMedicalActionResponse, error)
+	RemoveMedicalAction(ctx context.Context, in *RemoveMedicalActionRequest, opts ...grpc.CallOption) (*RemoveMedicalActionResponse, error)
 	// 4. Diagnosis (Dokter - ICD-10 First)
 	AddEncounterDiagnosis(ctx context.Context, in *AddEncounterDiagnosisRequest, opts ...grpc.CallOption) (*AddEncounterDiagnosisResponse, error)
 	UpdateEncounterDiagnosis(ctx context.Context, in *UpdateEncounterDiagnosisRequest, opts ...grpc.CallOption) (*UpdateEncounterDiagnosisResponse, error)
@@ -140,6 +142,16 @@ func (c *rawatJalanServiceClient) AddMedicalAction(ctx context.Context, in *AddM
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddMedicalActionResponse)
 	err := c.cc.Invoke(ctx, RawatJalanService_AddMedicalAction_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rawatJalanServiceClient) RemoveMedicalAction(ctx context.Context, in *RemoveMedicalActionRequest, opts ...grpc.CallOption) (*RemoveMedicalActionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveMedicalActionResponse)
+	err := c.cc.Invoke(ctx, RawatJalanService_RemoveMedicalAction_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -270,6 +282,7 @@ type RawatJalanServiceServer interface {
 	SubmitTriage(context.Context, *SubmitTriageRequest) (*SubmitTriageResponse, error)
 	// 3. Tindakan Medis (Dokter/Perawat)
 	AddMedicalAction(context.Context, *AddMedicalActionRequest) (*AddMedicalActionResponse, error)
+	RemoveMedicalAction(context.Context, *RemoveMedicalActionRequest) (*RemoveMedicalActionResponse, error)
 	// 4. Diagnosis (Dokter - ICD-10 First)
 	AddEncounterDiagnosis(context.Context, *AddEncounterDiagnosisRequest) (*AddEncounterDiagnosisResponse, error)
 	UpdateEncounterDiagnosis(context.Context, *UpdateEncounterDiagnosisRequest) (*UpdateEncounterDiagnosisResponse, error)
@@ -313,6 +326,9 @@ func (UnimplementedRawatJalanServiceServer) SubmitTriage(context.Context, *Submi
 }
 func (UnimplementedRawatJalanServiceServer) AddMedicalAction(context.Context, *AddMedicalActionRequest) (*AddMedicalActionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddMedicalAction not implemented")
+}
+func (UnimplementedRawatJalanServiceServer) RemoveMedicalAction(context.Context, *RemoveMedicalActionRequest) (*RemoveMedicalActionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method RemoveMedicalAction not implemented")
 }
 func (UnimplementedRawatJalanServiceServer) AddEncounterDiagnosis(context.Context, *AddEncounterDiagnosisRequest) (*AddEncounterDiagnosisResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddEncounterDiagnosis not implemented")
@@ -490,6 +506,24 @@ func _RawatJalanService_AddMedicalAction_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RawatJalanServiceServer).AddMedicalAction(ctx, req.(*AddMedicalActionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RawatJalanService_RemoveMedicalAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveMedicalActionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RawatJalanServiceServer).RemoveMedicalAction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RawatJalanService_RemoveMedicalAction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RawatJalanServiceServer).RemoveMedicalAction(ctx, req.(*RemoveMedicalActionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -728,6 +762,10 @@ var RawatJalanService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _RawatJalanService_AddMedicalAction_Handler,
 		},
 		{
+			MethodName: "RemoveMedicalAction",
+			Handler:    _RawatJalanService_RemoveMedicalAction_Handler,
+		},
+		{
 			MethodName: "AddEncounterDiagnosis",
 			Handler:    _RawatJalanService_AddEncounterDiagnosis_Handler,
 		},
@@ -773,5 +811,5 @@ var RawatJalanService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "rawat_jalan.proto",
+	Metadata: "rawat_jalan/v1/rawat_jalan.proto",
 }
