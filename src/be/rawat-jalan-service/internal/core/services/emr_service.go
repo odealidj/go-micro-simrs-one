@@ -211,6 +211,13 @@ func (s *emrServiceImpl) AddMedicalAction(ctx context.Context, encounterNo, acti
 	return nil
 }
 
+func (s *emrServiceImpl) RemoveMedicalAction(ctx context.Context, id string) error {
+	if s.repo != nil {
+		return s.repo.RemoveMedicalAction(ctx, id)
+	}
+	return nil
+}
+
 func (s *emrServiceImpl) GetMedicalRecord(ctx context.Context, encounterNo string) (*domain.MedicalRecord, error) {
 	if s.repo != nil {
 		return s.repo.GetMedicalRecord(ctx, encounterNo)

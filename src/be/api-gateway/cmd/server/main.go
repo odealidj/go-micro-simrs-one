@@ -2927,6 +2927,42 @@ func main() {
 					})
 				})
 
+				r.Delete("/emr/actions/{id}", func(w http.ResponseWriter, req *http.Request) {
+					id := chi.URLParam(req, "id")
+					encounterNo := req.URL.Query().Get("encounter_no")
+
+					if encounterNo != "" {
+						invRes, errInv := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GenerateInvoiceResponse, error) {
+							return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: encounterNo})
+						})
+						if errInv == nil && invRes != nil {
+							if invRes.IsPaid || invRes.Status == "PAID" {
+								response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{
+									Success: false,
+									Message: "Tindakan tidak dapat dihapus karena tagihan tindakan sudah dibayar di kasir.",
+								})
+								return
+							}
+						}
+					}
+
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.RemoveMedicalActionResponse, error) {
+						return rawatJalanClient.RemoveMedicalAction(req.Context(), &rawatjalanpb.RemoveMedicalActionRequest{
+							Id:          id,
+							EncounterNo: encounterNo,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Tindakan medis berhasil dihapus",
+						Data:    res,
+					})
+				})
+
 				r.Get("/emr/record/{encounter_no}", func(w http.ResponseWriter, req *http.Request) {
 					encounterNo := chi.URLParam(req, "encounter_no")
 					res, err := circuitbreaker.CallGRPC(cbMedicalRecord, func() (*emrpb.GetMedicalRecordResponse, error) {
@@ -3252,6 +3288,42 @@ func main() {
 						return
 					}
 					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
+				})
+
+				r.Delete("/rawat-jalan/actions/{id}", func(w http.ResponseWriter, req *http.Request) {
+					id := chi.URLParam(req, "id")
+					encounterNo := req.URL.Query().Get("encounter_no")
+
+					if encounterNo != "" {
+						invRes, errInv := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GenerateInvoiceResponse, error) {
+							return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: encounterNo})
+						})
+						if errInv == nil && invRes != nil {
+							if invRes.IsPaid || invRes.Status == "PAID" {
+								response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{
+									Success: false,
+									Message: "Tindakan tidak dapat dihapus karena tagihan tindakan sudah dibayar di kasir.",
+								})
+								return
+							}
+						}
+					}
+
+					res, err := circuitbreaker.CallGRPC(cbRawatJalan, func() (*rawatjalanpb.RemoveMedicalActionResponse, error) {
+						return rawatJalanClient.RemoveMedicalAction(req.Context(), &rawatjalanpb.RemoveMedicalActionRequest{
+							Id:          id,
+							EncounterNo: encounterNo,
+						})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Tindakan medis berhasil dihapus",
+						Data:    res,
+					})
 				})
 
 				r.Get("/rawat-jalan/record/{encounter_no}", func(w http.ResponseWriter, req *http.Request) {

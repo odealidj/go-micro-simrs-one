@@ -43,6 +43,8 @@ func (s *BillingGrpcServer) GenerateInvoice(ctx context.Context, req *pb.Generat
 		TotalAmount: invoice.TotalAmount,
 		Items:       items,
 		Message:     "Invoice generated successfully",
+		Status:      invoice.Status,
+		IsPaid:      invoice.Status == "PAID",
 	}, nil
 }
 

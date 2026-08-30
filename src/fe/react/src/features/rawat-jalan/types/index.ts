@@ -22,6 +22,7 @@ export interface MedicalAction {
   quantity?: number;
   performer?: string; // "DOKTER" | "PERAWAT" | "BERSAMA"
   notes?: string;
+  is_paid?: boolean;
 }
 
 export interface KBMItem {

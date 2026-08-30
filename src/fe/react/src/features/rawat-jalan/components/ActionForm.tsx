@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { addMedicalAction, searchMasterTindakan } from "../api/rawatJalanApi";
+import { addMedicalAction, removeMedicalAction, searchMasterTindakan } from "../api/rawatJalanApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
+import { toast } from "sonner";
 import {
   Search,
   Syringe,
@@ -10,6 +11,9 @@ import {
   Plus,
   AlertCircle,
   Receipt,
+  Trash2,
+  Lock,
+  Loader2,
 } from "lucide-react";
 import type { MedicalAction } from "../types";
 
@@ -18,6 +22,7 @@ interface ActionFormProps {
   deptCode?: string;
   existingActions?: MedicalAction[];
   readOnly?: boolean;
+  isPaid?: boolean;
   onSuccess?: () => void;
 }
 
@@ -26,11 +31,16 @@ export function ActionForm({
   deptCode,
   existingActions = [],
   readOnly = false,
+  isPaid = false,
   onSuccess 
 }: ActionFormProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Delete modal state
+  const [deleteTarget, setDeleteTarget] = useState<MedicalAction | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [notes, setNotes] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -91,11 +101,40 @@ export function ActionForm({
       setNotes("");
       setSearchQuery("");
       setQuantity(1);
+      toast.success(`Tindakan [${selectedAction.name}] berhasil ditambahkan.`);
       if (onSuccess) onSuccess();
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message || "Gagal menambahkan tindakan");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRequestDelete = (act: MedicalAction) => {
+    if (readOnly || isPaid || act.is_paid) {
+      toast.error("Tindakan tidak dapat dihapus karena tagihan tindakan sudah dibayar di kasir atau sesi telah selesai.");
+      return;
+    }
+    if (!act.id) {
+      toast.error("ID tindakan tidak ditemukan.");
+      return;
+    }
+    setDeleteTarget(act);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget || !deleteTarget.id) return;
+    setIsDeleting(true);
+    try {
+      await removeMedicalAction(deleteTarget.id, encounterNo);
+      toast.success(`Tindakan [${deleteTarget.action_name}] berhasil dihapus.`);
+      setDeleteTarget(null);
+      if (onSuccess) onSuccess();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err.message || "Gagal menghapus tindakan";
+      toast.error(msg);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -118,155 +157,142 @@ export function ActionForm({
             <CheckCircle className="h-5 w-5 text-emerald-500 mt-0.5" />
             <div>
               <h4 className="font-medium">Tindakan Berhasil Ditambahkan</h4>
-              <p className="text-sm mt-0.5">Tindakan medis telah dicatat dan terintegrasi ke rincian tagihan kasir.</p>
+              <p className="text-xs text-emerald-600 mt-0.5">Tindakan telah tersimpan dan biaya tindakan diperbarui.</p>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-2 text-sm">
-            <AlertCircle className="h-5 w-5 shrink-0" />
-            {error}
+          <div className="p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
+            <div>
+              <h4 className="font-medium">Gagal Menyimpan Tindakan</h4>
+              <p className="text-xs text-red-600 mt-0.5">{error}</p>
+            </div>
           </div>
         )}
 
         {!readOnly && (
-          <form onSubmit={handleSubmit} className="space-y-5 bg-slate-50/50 p-5 rounded-xl border border-slate-100">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-              {/* Search Tindakan */}
-              <div className="md:col-span-6 relative">
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Nama Tindakan / Prosedur <span className="text-red-500">*</span>
-                </label>
-                
-                {selectedAction ? (
-                  <div className="flex items-center justify-between p-3 border border-emerald-200 bg-emerald-50 rounded-xl">
-                    <div>
-                      <span className="font-bold text-emerald-700 mr-2 text-xs">[{selectedAction.code}]</span>
-                      <span className="text-slate-800 font-medium text-sm">{selectedAction.name}</span>
-                      <div className="text-xs text-slate-500 mt-0.5 font-semibold">
-                        Tarif Dasar: Rp {selectedAction.price.toLocaleString('id-ID')}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedAction(null);
-                        setSearchQuery("");
-                      }}
-                      className="text-emerald-700 hover:text-emerald-900 text-xs font-semibold px-2 py-1 bg-white rounded border border-emerald-200 cursor-pointer"
-                    >
-                      Ganti
-                    </button>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                      type="text"
-                      placeholder="Ketik nama tindakan / prosedur..."
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setShowDropdown(true);
-                      }}
-                      onFocus={() => setShowDropdown(true)}
-                      className="pl-9 h-11 bg-white rounded-xl text-sm"
-                    />
-                    
-                    {showDropdown && searchQuery.length >= 2 && (
-                      <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
-                        {searching ? (
-                          <div className="p-3 text-xs text-slate-500 text-center">Mencari master tindakan...</div>
-                        ) : tindakanResults.length > 0 ? (
-                          <ul className="divide-y divide-slate-100 text-sm">
-                            {tindakanResults.map((tindakan) => (
-                              <li 
-                                key={tindakan.code}
-                                onClick={() => {
-                                  setSelectedAction(tindakan);
-                                  setShowDropdown(false);
-                                }}
-                                className="p-3 hover:bg-emerald-50/60 cursor-pointer flex justify-between items-center transition-colors"
-                              >
-                                <div>
-                                  <div className="font-medium text-slate-800">{tindakan.name}</div>
-                                  <div className="text-xs text-emerald-700 font-semibold mt-0.5">
-                                    Rp {tindakan.price.toLocaleString('id-ID')}
-                                  </div>
-                                </div>
-                                <span className="text-xs font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                                  {tindakan.code}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <div className="p-3 text-xs text-slate-500 text-center">Tindakan tidak ditemukan</div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Qty & Pelaksana */}
-              <div className="md:col-span-3 grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Jumlah (Qty)
-                  </label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={quantity}
-                    onChange={(e) => setQuantity(Number(e.target.value) || 1)}
-                    className="h-11 bg-white rounded-xl text-center text-sm font-semibold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Pelaksana
-                  </label>
-                  <select
-                    value={performer}
-                    onChange={(e) => setPerformer(e.target.value)}
-                    className="w-full h-11 px-3 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  >
-                    <option value="DOKTER">Dokter</option>
-                    <option value="PERAWAT">Perawat</option>
-                    <option value="BERSAMA">Bersama</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Keterangan */}
-              <div className="md:col-span-3">
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Keterangan Lokasi / Catatan
-                </label>
+          <form onSubmit={handleSubmit} className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4">
+            <div className="relative">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Cari Nama Tindakan / Prosedur Medis <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
                 <Input
                   type="text"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Contoh: Regio abdomen kanan..."
-                  className="h-11 bg-white rounded-xl text-sm"
+                  placeholder="Ketik minimal 2 huruf (cth: Konsultasi, Jahit Luka, EKG)..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onFocus={() => setShowDropdown(true)}
+                  className="pl-9 bg-white border-slate-200"
                 />
+                <Search className="h-4 w-4 text-slate-400 absolute left-3 top-3" />
+              </div>
+
+              {showDropdown && searchQuery.length >= 2 && (
+                <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-slate-100">
+                  {searching ? (
+                    <div className="p-4 text-center text-xs text-slate-500">Mencari katalog tindakan...</div>
+                  ) : tindakanResults.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-slate-500 italic">Tidak ditemukan tindakan yang cocok</div>
+                  ) : (
+                    tindakanResults.map((item) => (
+                      <div
+                        key={item.code}
+                        onClick={() => {
+                          setSelectedAction(item);
+                          setSearchQuery(`${item.code} - ${item.name}`);
+                          setShowDropdown(false);
+                        }}
+                        className="p-3 hover:bg-emerald-50/60 cursor-pointer transition-colors flex items-center justify-between"
+                      >
+                        <div>
+                          <div className="font-semibold text-sm text-slate-900">{item.name}</div>
+                          <div className="text-xs text-slate-500">Kode: {item.code}</div>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-bold text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                            Rp {item.price.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            {selectedAction && (
+              <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">Tindakan Dipilih:</span>
+                  <div className="font-bold text-slate-900 text-sm">{selectedAction.name} ({selectedAction.code})</div>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-slate-500 block">Tarif Satuan:</span>
+                  <span className="font-extrabold text-emerald-700 text-base">
+                    Rp {selectedAction.price.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Pelaksana Tindakan</label>
+                <select
+                  value={performer}
+                  onChange={(e) => setPerformer(e.target.value)}
+                  className="w-full h-10 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="DOKTER">Dokter Pemeriksa</option>
+                  <option value="PERAWAT">Perawat Poli</option>
+                  <option value="BERSAMA">Dokter & Perawat (Tim)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Jumlah (Qty)</label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="bg-white border-slate-200"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Total Biaya Pos</label>
+                <div className="h-10 px-3 rounded-lg border border-slate-200 bg-slate-100/80 flex items-center font-bold text-slate-800 text-sm">
+                  Rp {((selectedAction?.price || 0) * quantity).toLocaleString('id-ID')}
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <div className="text-xs text-slate-500">
-                {selectedAction && (
-                  <span>Subtotal Tindakan: <strong className="text-emerald-700 font-bold">Rp {(selectedAction.price * quantity).toLocaleString('id-ID')}</strong></span>
-                )}
-              </div>
-              <Button 
-                type="submit" 
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Catatan / Keterangan Prosedur (Opsional)
+              </label>
+              <Input
+                type="text"
+                placeholder="Contoh: Regio antebrachii dextra, 3 simpul jahitan..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="bg-white border-slate-200"
+              />
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button
+                type="submit"
                 disabled={loading || !selectedAction}
-                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 cursor-pointer shadow-sm"
               >
                 <Plus className="h-4 w-4" />
                 {loading ? "Menyimpan..." : "Tambahkan ke Tindakan"}
@@ -276,7 +302,6 @@ export function ActionForm({
         )}
       </div>
 
-      {/* Tabel Daftar Tindakan Terdaftar */}
       <div className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
         <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
           <h4 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
@@ -301,6 +326,7 @@ export function ActionForm({
                   <th className="px-5 py-3">Nama Tindakan</th>
                   <th className="px-5 py-3">Catatan / Pelaksana</th>
                   <th className="px-5 py-3 text-right">Tarif</th>
+                  <th className="px-4 py-3 text-center w-20">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -310,8 +336,10 @@ export function ActionForm({
                     act.action_code === "TND-002" || 
                     (act.notes && (act.notes.includes("Pendaftaran") || act.notes.includes("Karcis")));
 
+                  const isActionLocked = readOnly || isPaid || act.is_paid;
+
                   return (
-                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={act.id || i} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-5 py-3 font-semibold text-slate-900 text-xs">
                         <div className="flex items-center gap-1.5">
                           <span>{act.action_code}</span>
@@ -327,6 +355,26 @@ export function ActionForm({
                       <td className="px-5 py-3 text-right font-semibold text-emerald-700">
                         Rp {Number(act.price || 0).toLocaleString('id-ID')}
                       </td>
+                      <td className="px-4 py-3 text-center">
+                        {isActionLocked ? (
+                          <span
+                            className="inline-flex items-center justify-center p-1.5 text-slate-300 rounded-lg cursor-not-allowed"
+                            title="Tindakan sudah dibayar di kasir / sesi selesai (terkunci)"
+                          >
+                            <Lock className="h-4 w-4" />
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleRequestDelete(act)}
+                            className="inline-flex items-center justify-center p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            title="Hapus Tindakan"
+                            aria-label={`Hapus ${act.action_name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -335,6 +383,61 @@ export function ActionForm({
           </div>
         )}
       </div>
+
+      {/* ─── MODAL CONFIRMATION: DELETE ACTION ─── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div className="flex items-center gap-3 text-red-600">
+              <div className="p-3 bg-red-50 rounded-xl">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-base">Hapus Tindakan Medis?</h4>
+                <p className="text-xs text-slate-500">Tindakan ini akan dihapus dari rekam medis dan penagihan kasir.</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
+                  {deleteTarget.action_code}
+                </span>
+                <span className="font-bold text-slate-800 text-sm">
+                  {deleteTarget.action_name}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-slate-500 pt-1">
+                <span>{deleteTarget.notes || "Tanpa catatan"}</span>
+                <span className="font-bold text-emerald-700 text-sm">
+                  Rp {Number(deleteTarget.price || 0).toLocaleString('id-ID')}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2.5 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isDeleting}
+                onClick={() => setDeleteTarget(null)}
+                className="cursor-pointer"
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                disabled={isDeleting}
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold gap-2 cursor-pointer shadow-xs"
+              >
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                {isDeleting ? "Menghapus..." : "Ya, Hapus Tindakan"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

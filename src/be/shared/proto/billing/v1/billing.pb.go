@@ -252,6 +252,8 @@ type GenerateInvoiceResponse struct {
 	Items         []*InvoiceItem         `protobuf:"bytes,3,rep,name=items,proto3" json:"items,omitempty"`
 	TotalAmount   float64                `protobuf:"fixed64,4,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
 	Message       string                 `protobuf:"bytes,5,opt,name=message,proto3" json:"message,omitempty"`
+	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	IsPaid        bool                   `protobuf:"varint,7,opt,name=is_paid,json=isPaid,proto3" json:"is_paid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -319,6 +321,20 @@ func (x *GenerateInvoiceResponse) GetMessage() string {
 		return x.Message
 	}
 	return ""
+}
+
+func (x *GenerateInvoiceResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *GenerateInvoiceResponse) GetIsPaid() bool {
+	if x != nil {
+		return x.IsPaid
+	}
+	return false
 }
 
 type PayInvoiceRequest struct {
@@ -549,14 +565,16 @@ const file_billing_v1_billing_proto_rawDesc = "" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x16\n" +
 	"\x06amount\x18\x03 \x01(\x01R\x06amount\";\n" +
 	"\x16GenerateInvoiceRequest\x12!\n" +
-	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\"\xbe\x01\n" +
+	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\"\xef\x01\n" +
 	"\x17GenerateInvoiceResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x1d\n" +
 	"\n" +
 	"invoice_id\x18\x02 \x01(\tR\tinvoiceId\x12-\n" +
 	"\x05items\x18\x03 \x03(\v2\x17.billing.v1.InvoiceItemR\x05items\x12!\n" +
 	"\ftotal_amount\x18\x04 \x01(\x01R\vtotalAmount\x12\x18\n" +
-	"\amessage\x18\x05 \x01(\tR\amessage\"S\n" +
+	"\amessage\x18\x05 \x01(\tR\amessage\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\tR\x06status\x12\x17\n" +
+	"\ais_paid\x18\a \x01(\bR\x06isPaid\"S\n" +
 	"\x11PayInvoiceRequest\x12\x1d\n" +
 	"\n" +
 	"invoice_id\x18\x01 \x01(\tR\tinvoiceId\x12\x1f\n" +

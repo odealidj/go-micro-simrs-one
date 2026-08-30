@@ -39,6 +39,8 @@ message GenerateInvoiceResponse {
   repeated InvoiceItem items = 3;
   double total_amount = 4;
   string message = 5;
+  string status = 6;
+  bool is_paid = 7;
 }
 
 message PayInvoiceRequest {

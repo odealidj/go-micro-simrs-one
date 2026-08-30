@@ -164,6 +164,17 @@ FROM medical_actions
 WHERE medical_record_id = $1 AND deleted_dt IS NULL
 ORDER BY created_at ASC;
 
+-- name: RemoveMedicalAction :exec
+UPDATE medical_actions
+SET deleted_dt = CURRENT_TIMESTAMP
+WHERE id = $1 AND deleted_dt IS NULL;
+
+-- name: GetMedicalActionByID :one
+SELECT ma.*, mr.encounter_no
+FROM medical_actions ma
+JOIN medical_records mr ON ma.medical_record_id = mr.id
+WHERE ma.id = $1 AND ma.deleted_dt IS NULL;
+
 -- name: CreateOutboxEvent :one
 INSERT INTO outbox_events (id, aggregate_type, event_type, payload, status)
 VALUES ($1, $2, $3, $4, $5)
