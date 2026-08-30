@@ -89,7 +89,7 @@ export function PaymentPage() {
 
   // Load full queue for quick picker
   useEffect(() => {
-    getBillingQueue().then(setAllQueue).catch(console.error);
+    getBillingQueue(undefined, true).then(setAllQueue).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -98,7 +98,7 @@ export function PaymentPage() {
       setLoading(true);
       setError(null);
       try {
-        const queueList = await getBillingQueue();
+        const queueList = await getBillingQueue(undefined, true);
         const found = queueList.find((p) => p.encounter_no === encounterNo);
         if (found) {
           setPatientInfo(found);
