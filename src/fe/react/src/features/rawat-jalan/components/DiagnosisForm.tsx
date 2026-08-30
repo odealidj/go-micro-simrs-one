@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   searchICD10,
   addEncounterDiagnosis,
@@ -101,9 +101,31 @@ export function DiagnosisForm({
   const [popularDiagnoses, setPopularDiagnoses] = useState<ICD10SearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // Collapsible form visibility (opens on-demand via header [+] or [Edit])
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // Handle click outside to dismiss autocomplete dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [showDropdown]);
 
   // Auto-switch default diagnosis type when primary is added or removed
   useEffect(() => {
@@ -872,9 +894,9 @@ export function DiagnosisForm({
                 <span className="text-xs text-slate-500 italic">Kode ICD tidak dapat diubah saat edit</span>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div ref={searchContainerRef} className="space-y-2">
                 <div className="relative">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                   <Input
                     type="text"
                     placeholder={
@@ -888,8 +910,25 @@ export function DiagnosisForm({
                       setShowDropdown(true);
                     }}
                     onFocus={() => setShowDropdown(true)}
-                    className="pl-10 h-12 rounded-xl bg-white border-slate-300 focus:border-indigo-500 text-sm font-medium"
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") {
+                        setShowDropdown(false);
+                      }
+                    }}
+                    className="pl-10 pr-10 h-12 rounded-xl bg-white border-slate-300 focus:border-indigo-500 text-sm font-medium"
                   />
+
+                  {/* Tombol Tutup Dropdown / Reset */}
+                  {showDropdown && (
+                    <button
+                      type="button"
+                      onClick={() => setShowDropdown(false)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+                      title="Tutup Hasil Pencarian (Esc)"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
 
                   {showDropdown && (
                     <div className="absolute z-30 w-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-80 overflow-y-auto">
@@ -902,9 +941,19 @@ export function DiagnosisForm({
                             ? `Katalog Diagnosa Standar Poli ${deptCode} (${searchResults.length} diagnosa)`
                             : "Katalog Seluruh ICD-10 Nasional"}
                         </span>
-                        <span className="font-semibold text-indigo-600">
-                          {searchScope === "POLI" ? `Poli: ${deptCode || "01"}` : "Mode Global"}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-indigo-600">
+                            {searchScope === "POLI" ? `Poli: ${deptCode || "01"}` : "Mode Global"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowDropdown(false)}
+                            className="text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 px-1.5 py-0.5 rounded text-[11px] font-bold transition-colors cursor-pointer"
+                            title="Tutup Dropdown"
+                          >
+                            ✕ Tutup
+                          </button>
+                        </div>
                       </div>
 
                       {searching ? (
