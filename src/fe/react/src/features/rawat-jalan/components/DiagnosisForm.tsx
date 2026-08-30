@@ -106,22 +106,8 @@ export function DiagnosisForm({
 
 
 
-  // Collapsible form visibility (auto-open if 0 diagnoses, auto-close if diagnoses exist)
-  const [isFormOpen, setIsFormOpen] = useState(diagnoses.length === 0);
-
-  // Auto-open when editing
-  useEffect(() => {
-    if (isEditing) {
-      setIsFormOpen(true);
-    }
-  }, [isEditing]);
-
-  // If all diagnoses deleted, auto-open form
-  useEffect(() => {
-    if (diagnoses.length === 0) {
-      setIsFormOpen(true);
-    }
-  }, [diagnoses.length]);
+  // Collapsible form visibility (opens on-demand via header [+] or [Edit])
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Auto-switch default diagnosis type when primary is added or removed
   useEffect(() => {
@@ -410,6 +396,19 @@ export function DiagnosisForm({
               Wajib 1 Diagnosa
             </span>
           </h4>
+
+          {/* Tombol [+] hanya muncul jika Diagnosa Utama masih KOSONG (dibatasi 1) */}
+          {!primaryDiagnosis && !readOnly && hasTriage && !isFormOpen && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => handleOpenAdd("PRIMARY")}
+              className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-1.5 cursor-pointer font-semibold shadow-2xs transition-all"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Tambah Diagnosa
+            </Button>
+          )}
         </div>
 
         {primaryDiagnosis ? (
@@ -495,24 +494,11 @@ export function DiagnosisForm({
             </div>
           </div>
         ) : (
-          <div className="p-4 bg-amber-50/70 border border-dashed border-amber-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900">
-            <div className="flex items-center gap-2.5 text-xs">
-              <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-              <span>
-                <strong>Belum ada Diagnosa Utama.</strong> Tambahkan 1 diagnosa utama untuk memenuhi kelengkapan rekam medis encounter.
-              </span>
-            </div>
-            {!readOnly && hasTriage && !isFormOpen && (
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => handleOpenAdd("PRIMARY")}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold gap-1.5 shrink-0 shadow-2xs cursor-pointer"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Tambah Diagnosa Utama
-              </Button>
-            )}
+          <div className="p-4 bg-amber-50/70 border border-dashed border-amber-300 rounded-2xl flex items-center gap-2.5 text-xs text-amber-900">
+            <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+            <span>
+              <strong>Belum ada Diagnosa Utama.</strong> Klik tombol <strong>[+ Tambah Diagnosa]</strong> di sudut kanan atas untuk menetapkan diagnosa utama pertemuan.
+            </span>
           </div>
         )}
       </div>
@@ -528,7 +514,8 @@ export function DiagnosisForm({
             </span>
           </h4>
 
-          {!readOnly && hasTriage && primaryDiagnosis && !isFormOpen && (
+          {/* Tombol [+] selalu ada untuk Diagnosa Sekunder (bisa multiple) */}
+          {!readOnly && hasTriage && !isFormOpen && (
             <Button
               type="button"
               size="sm"
@@ -633,21 +620,9 @@ export function DiagnosisForm({
         ) : (
           <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl text-center">
             <p className="text-xs text-slate-400">
-              Belum ada diagnosa sekunder/komorbiditas yang ditambahkan.
+              Belum ada diagnosa sekunder/komorbiditas. Klik tombol <strong>[+ Tambah Diagnosa]</strong> di atas jika pasien memiliki penyakit penyerta.
             </p>
           </div>
-        )}
-
-        {/* Dashed Add Action Button when Form is Closed */}
-        {!readOnly && hasTriage && !isFormOpen && (
-          <button
-            type="button"
-            onClick={() => handleOpenAdd(primaryDiagnosis ? "SECONDARY" : "PRIMARY")}
-            className="w-full py-3 border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/30 hover:bg-indigo-50/70 rounded-xl text-xs font-bold text-indigo-700 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs group mt-2"
-          >
-            <Plus className="h-4 w-4 text-indigo-600 group-hover:scale-110 transition-transform" />
-            + Tambah {primaryDiagnosis ? "Diagnosa Sekunder / Komorbiditas" : "Diagnosa Utama"}
-          </button>
         )}
       </div>
 
