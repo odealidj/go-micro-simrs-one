@@ -880,25 +880,44 @@ export function DiagnosisForm({
           {/* Form Fields: Jenis Diagnosa, Severity, Notes */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Jenis Diagnosa <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={diagnosisType}
-                onChange={(e) => setDiagnosisType(e.target.value)}
-                className="w-full h-12 px-4 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
-              >
-                <option value="PRIMARY">🌟 Utama (Primary Diagnosis)</option>
-                <option value="SECONDARY">Sekunder / Komorbiditas (Secondary)</option>
-                <option value="COMORBIDITY">Penyakit Penyerta (Comorbidity)</option>
-                <option value="COMPLICATION">Komplikasi / Penyulit (Complication)</option>
-                <option value="DIFFERENTIAL">Diagnosa Banding (Differential)</option>
-              </select>
-              <p className="text-[11px] text-slate-500 mt-1.5">
-                {diagnosisType === "PRIMARY"
-                  ? "Akan menggantikan diagnosa utama sebelumnya secara otomatis."
-                  : "Dapat ditambahkan sebanyak yang diperlukan untuk riwayat klinis."}
-              </p>
+              {diagnosisType === "PRIMARY" ? (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                    Jenis Diagnosa
+                  </label>
+                  <div className="h-12 px-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🌟</span>
+                      <span className="text-sm font-bold text-amber-950">Diagnosa Utama (Primary Diagnosis)</span>
+                    </div>
+                    <span className="text-[10px] font-bold bg-amber-200/70 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300/80 shrink-0">
+                      Terkunci Otomatis
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1.5">
+                    Diagnosa ini akan ditetapkan sebagai diagnosa penentu tindakan medis & klaim.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                    Kategori Diagnosa Sekunder <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={diagnosisType}
+                    onChange={(e) => setDiagnosisType(e.target.value)}
+                    className="w-full h-12 px-4 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
+                  >
+                    <option value="SECONDARY">Sekunder (Secondary Diagnosis)</option>
+                    <option value="COMORBIDITY">Penyakit Penyerta (Comorbidity)</option>
+                    <option value="COMPLICATION">Komplikasi / Penyulit (Complication)</option>
+                    <option value="DIFFERENTIAL">Diagnosa Banding (Differential)</option>
+                  </select>
+                  <p className="text-[11px] text-slate-500 mt-1.5">
+                    Pilih klasifikasi klinis penyakit penyerta atau komplikasi pasien.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
