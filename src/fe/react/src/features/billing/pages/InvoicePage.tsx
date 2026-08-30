@@ -144,7 +144,7 @@ export function InvoicePage() {
   const filteredInvoices = useMemo(() => {
     return invoices.filter((item) => {
       const q = searchQuery.toLowerCase();
-      const kwitansiNo = `KW-${item.encounter_no}`.toLowerCase();
+      const kwitansiNo = (item.receipt_no || (item.invoice_id ? `KW-${item.invoice_id.replace(/^INV-/, "")}` : `KW-${item.encounter_no}`)).toLowerCase();
       const deptName = (item.department_name || getDepartmentName(item.department_code)).toLowerCase();
       return (
         !searchQuery ||
@@ -369,11 +369,11 @@ export function InvoicePage() {
                 </TableRow>
               ) : paginatedData.length > 0 ? (
                 paginatedData.map((item, idx) => {
-                  const kwitansiNo = `KW-${item.encounter_no}`;
+                  const kwitansiNo = item.receipt_no || (item.invoice_id ? `KW-${item.invoice_id.replace(/^INV-/, "")}` : `KW-${item.encounter_no}`);
                   const dept = item.department_name || getDepartmentName(item.department_code);
 
                   return (
-                    <TableRow key={idx} className="hover:bg-amber-50/30 transition-colors border-b border-slate-100/80">
+                    <TableRow key={item.invoice_id || `${item.encounter_no}-${idx}`} className="hover:bg-amber-50/30 transition-colors border-b border-slate-100/80">
                       {/* No. Kwitansi */}
                       <TableCell className="py-3 px-4 font-mono font-bold text-xs text-amber-700">
                         <div className="flex items-center gap-1.5">
@@ -565,7 +565,7 @@ export function InvoicePage() {
                   Kwitansi Pembayaran Rawat Jalan
                 </DialogTitle>
                 <p className="text-xs text-amber-100 mt-0.5 font-mono">
-                  No. Kwitansi: #KW-{activePatient?.encounter_no}
+                  No. Kwitansi: #{activePatient?.receipt_no || (activePatient?.invoice_id ? `KW-${activePatient.invoice_id.replace(/^INV-/, "")}` : `KW-${activePatient?.encounter_no}`)}
                 </p>
               </div>
             </div>
@@ -600,7 +600,7 @@ export function InvoicePage() {
             {/* Kwitansi Meta */}
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div className="space-y-1">
-                <p><span className="text-slate-400">No. Kwitansi:</span> <strong className="font-mono text-slate-900">#KW-{activePatient?.encounter_no}</strong></p>
+                <p><span className="text-slate-400">No. Kwitansi:</span> <strong className="font-mono text-slate-900">#{activePatient?.receipt_no || (activePatient?.invoice_id ? `KW-${activePatient.invoice_id.replace(/^INV-/, "")}` : `KW-${activePatient?.encounter_no}`)}</strong></p>
                 <p><span className="text-slate-400">No. Rekam Medis:</span> <strong className="font-mono text-slate-900">{activePatient?.mrn}</strong></p>
                 <p><span className="text-slate-400">Nama Pasien:</span> <strong className="text-slate-900">{activePatient?.patient_name}</strong></p>
               </div>
@@ -626,19 +626,19 @@ export function InvoicePage() {
                     <tr>
                       <td colSpan={3} className="py-4 text-center text-slate-400">Memuat rincian tindakan...</td>
                     </tr>
-                  ) : activeInvoice?.items && activeInvoice.items.length > 0 ? (
-                    activeInvoice.items.map((it, i) => (
-                      <tr key={i}>
-                        <td className="py-2.5 font-medium text-slate-800">{it.description}</td>
-                        <td className="py-2.5 text-center text-slate-600">1</td>
-                        <td className="py-2.5 text-right font-bold text-slate-900">{formatRupiah(it.amount)}</td>
-                      </tr>
-                    ))
                   ) : activePatient?.items && activePatient.items.length > 0 ? (
                     activePatient.items.map((it, i) => (
                       <tr key={i}>
                         <td className="py-2.5 font-medium text-slate-800">{it.description}</td>
                         <td className="py-2.5 text-center text-slate-600">{it.qty || 1}</td>
+                        <td className="py-2.5 text-right font-bold text-slate-900">{formatRupiah(it.amount)}</td>
+                      </tr>
+                    ))
+                  ) : activeInvoice?.items && activeInvoice.items.length > 0 ? (
+                    activeInvoice.items.map((it, i) => (
+                      <tr key={i}>
+                        <td className="py-2.5 font-medium text-slate-800">{it.description}</td>
+                        <td className="py-2.5 text-center text-slate-600">1</td>
                         <td className="py-2.5 text-right font-bold text-slate-900">{formatRupiah(it.amount)}</td>
                       </tr>
                     ))

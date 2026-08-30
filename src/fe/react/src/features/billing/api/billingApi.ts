@@ -231,6 +231,8 @@ export interface SettlementItem {
 }
 
 export interface SettlementTransactionItem {
+  invoice_id?: string;
+  receipt_no?: string;
   encounter_no: string;
   mrn: string;
   patient_name: string;
