@@ -3633,6 +3633,8 @@ func main() {
 					}
 
 					type SettlementTransaction struct {
+						InvoiceID      string           `json:"invoice_id"`
+						ReceiptNo      string           `json:"receipt_no"`
 						EncounterNo    string           `json:"encounter_no"`
 						MRN            string           `json:"mrn"`
 						PatientName    string           `json:"patient_name"`
@@ -3731,7 +3733,14 @@ func main() {
 										})
 									}
 
+									receiptNo := "KW-" + strings.TrimPrefix(inv.InvoiceId, "INV-")
+									if receiptNo == "KW-" || receiptNo == "" {
+										receiptNo = "KW-" + enc.EncounterNo
+									}
+
 									tx := SettlementTransaction{
+										InvoiceID:      inv.InvoiceId,
+										ReceiptNo:      receiptNo,
 										EncounterNo:    enc.EncounterNo,
 										MRN:            enc.Mrn,
 										PatientName:    pName,
@@ -3805,6 +3814,8 @@ func main() {
 								}
 
 								tx := SettlementTransaction{
+									InvoiceID:      "INV-REG-" + enc.EncounterNo,
+									ReceiptNo:      "KW-REG-" + enc.EncounterNo,
 									EncounterNo:    enc.EncounterNo,
 									MRN:            enc.Mrn,
 									PatientName:    pName,

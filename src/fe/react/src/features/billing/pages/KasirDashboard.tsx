@@ -642,7 +642,7 @@ export function KasirDashboard() {
                 <div className="divide-y divide-slate-100">
                   {revenueData.transactions.slice(0, 4).map((tx, idx) => (
                     <div
-                      key={tx.encounter_no || idx}
+                      key={tx.receipt_no || tx.invoice_id || `${tx.encounter_no}-${idx}`}
                       className="p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:bg-amber-50/20 transition-colors"
                     >
                       <div className="min-w-0 flex-1">
@@ -870,7 +870,7 @@ export function KasirDashboard() {
                   Kwitansi Pembayaran Rawat Jalan
                 </DialogTitle>
                 <p className="text-xs text-amber-100 mt-0.5 font-mono">
-                  No. Kwitansi: #KW-{selectedReceiptTx?.encounter_no}
+                  No. Kwitansi: #{selectedReceiptTx?.receipt_no || (selectedReceiptTx?.invoice_id ? `KW-${selectedReceiptTx.invoice_id.replace(/^INV-/, "")}` : `KW-${selectedReceiptTx?.encounter_no}`)}
                 </p>
               </div>
             </div>
@@ -905,7 +905,7 @@ export function KasirDashboard() {
             {/* Kwitansi Meta */}
             <div className="grid grid-cols-2 gap-4 text-xs">
               <div className="space-y-1">
-                <p><span className="text-slate-400">No. Kwitansi:</span> <strong className="font-mono text-slate-900">#KW-{selectedReceiptTx?.encounter_no}</strong></p>
+                <p><span className="text-slate-400">No. Kwitansi:</span> <strong className="font-mono text-slate-900">#{selectedReceiptTx?.receipt_no || (selectedReceiptTx?.invoice_id ? `KW-${selectedReceiptTx.invoice_id.replace(/^INV-/, "")}` : `KW-${selectedReceiptTx?.encounter_no}`)}</strong></p>
                 <p><span className="text-slate-400">No. Rekam Medis:</span> <strong className="font-mono text-slate-900">{selectedReceiptTx?.mrn}</strong></p>
                 <p><span className="text-slate-400">Nama Pasien:</span> <strong className="text-slate-900">{selectedReceiptTx?.patient_name}</strong></p>
               </div>
@@ -931,6 +931,14 @@ export function KasirDashboard() {
                     <tr>
                       <td colSpan={3} className="py-4 text-center text-slate-400">Memuat rincian tindakan...</td>
                     </tr>
+                  ) : selectedReceiptTx?.items && selectedReceiptTx.items.length > 0 ? (
+                    selectedReceiptTx.items.map((it, i) => (
+                      <tr key={i}>
+                        <td className="py-2.5 font-medium text-slate-800">{it.description}</td>
+                        <td className="py-2.5 text-center text-slate-600">{it.qty || 1}</td>
+                        <td className="py-2.5 text-right font-bold text-slate-900">{formatRupiah(it.amount)}</td>
+                      </tr>
+                    ))
                   ) : receiptInvoice?.items && receiptInvoice.items.length > 0 ? (
                     receiptInvoice.items.map((it, i) => (
                       <tr key={i}>

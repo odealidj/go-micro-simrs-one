@@ -46,6 +46,8 @@ import { toast } from "sonner";
 import type { SettlementItem } from "../api/billingApi";
 
 export interface SettlementRecord {
+  invoice_id?: string;
+  receipt_no?: string;
   encounter_no: string;
   mrn: string;
   patient_name: string;
@@ -1936,7 +1938,8 @@ export function RevenueReportPage() {
             {/* Kwitansi Metadata */}
             <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50/70 p-3.5 rounded-xl border border-slate-200">
               <div className="space-y-1">
-                <p><span className="text-slate-400">No. Registrasi:</span> <strong className="font-mono text-amber-700">{selectedReceiptRecord?.encounter_no}</strong></p>
+                <p><span className="text-slate-400">No. Kwitansi:</span> <strong className="font-mono text-amber-700">#{selectedReceiptRecord?.receipt_no || (selectedReceiptRecord?.invoice_id ? `KW-${selectedReceiptRecord.invoice_id.replace(/^INV-/, "")}` : `KW-${selectedReceiptRecord?.encounter_no}`)}</strong></p>
+                <p><span className="text-slate-400">No. Registrasi:</span> <strong className="font-mono text-slate-900">{selectedReceiptRecord?.encounter_no}</strong></p>
                 <p><span className="text-slate-400">No. Rekam Medis:</span> <strong className="font-mono text-slate-900">{selectedReceiptRecord?.mrn}</strong></p>
                 <p><span className="text-slate-400">Nama Pasien:</span> <strong className="text-slate-900">{selectedReceiptRecord?.patient_name}</strong></p>
               </div>
@@ -1954,7 +1957,7 @@ export function RevenueReportPage() {
                   Rincian Tindakan & Tarif Layanan
                 </h4>
                 <span className="text-[11px] text-slate-400">
-                  {receiptInvoice?.items && receiptInvoice.items.length > 0 ? `${receiptInvoice.items.length} Komponen Biaya` : "Paket Layanan Standar"}
+                  {selectedReceiptRecord?.items && selectedReceiptRecord.items.length > 0 ? `${selectedReceiptRecord.items.length} Komponen Biaya` : receiptInvoice?.items && receiptInvoice.items.length > 0 ? `${receiptInvoice.items.length} Komponen Biaya` : "Paket Layanan Standar"}
                 </span>
               </div>
 
@@ -1979,6 +1982,16 @@ export function RevenueReportPage() {
                           </div>
                         </td>
                       </tr>
+                    ) : selectedReceiptRecord?.items && selectedReceiptRecord.items.length > 0 ? (
+                      selectedReceiptRecord.items.map((it, i) => (
+                        <tr key={i} className="hover:bg-slate-50/50">
+                          <td className="py-2.5 px-3 text-center text-slate-400 font-mono">{i + 1}</td>
+                          <td className="py-2.5 px-3 font-medium text-slate-800">{it.description}</td>
+                          <td className="py-2.5 px-3 text-center text-slate-600 font-mono">{it.qty || 1}</td>
+                          <td className="py-2.5 px-3 text-right font-mono text-slate-700">{formatRupiah(it.amount)}</td>
+                          <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-900">{formatRupiah((it.qty || 1) * it.amount)}</td>
+                        </tr>
+                      ))
                     ) : receiptInvoice?.items && receiptInvoice.items.length > 0 ? (
                       receiptInvoice.items.map((it, i) => (
                         <tr key={i} className="hover:bg-slate-50/50">
