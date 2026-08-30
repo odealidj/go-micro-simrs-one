@@ -633,20 +633,20 @@ export function DiagnosisForm({
 
       {/* ─── MODAL DIALOG: ENTRI / EDIT DIAGNOSIS ─── */}
       {!readOnly && hasTriage && isFormOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 z-50 animate-in fade-in duration-150">
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200"
+            className="bg-white rounded-3xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200"
           >
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-indigo-50/50 via-white to-slate-50">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-100 text-indigo-700 rounded-2xl shadow-2xs">
+            <div className="px-7 py-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-indigo-50/60 via-white to-slate-50">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 bg-indigo-100 text-indigo-700 rounded-2xl shadow-2xs">
                   {isEditing ? <Edit2 className="h-5 w-5" /> : <Stethoscope className="h-5 w-5" />}
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-slate-900 text-base">
+                  <div className="flex items-center gap-2.5">
+                    <h3 className="font-bold text-slate-900 text-lg">
                       {isEditing
                         ? `Edit Diagnosa [${selectedIcd10?.code || ""}]`
                         : diagnosisType === "PRIMARY"
@@ -654,13 +654,13 @@ export function DiagnosisForm({
                         : "Entri Diagnosa Sekunder / Komorbiditas"}
                     </h3>
                     {isEditing && (
-                      <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full font-bold">
+                      <span className="text-xs bg-amber-100 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded-full font-bold">
                         Mode Edit
                       </span>
                     )}
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Pencarian multi-mode: ICD-10, SNOMED-CT SATUSEHAT & KBM INA-CBGs
+                    Katalog Diagnosa ICD-10 Poliklinik dengan Standarisasi SATUSEHAT & INA-CBGs
                   </p>
                 </div>
               </div>
@@ -671,7 +671,7 @@ export function DiagnosisForm({
                   resetForm();
                   setIsFormOpen(false);
                 }}
-                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+                className="p-2.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
                 title="Tutup Modal"
               >
                 <X className="h-5 w-5" />
@@ -679,7 +679,7 @@ export function DiagnosisForm({
             </div>
 
             {/* Modal Body (Scrollable) */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-5">
+            <div className="flex-1 overflow-y-auto p-7 space-y-6">
 
           {/* Autocomplete Input & Selected Preview */}
           <div className="space-y-2">
@@ -878,15 +878,15 @@ export function DiagnosisForm({
           </div>
 
           {/* Form Fields: Jenis Diagnosa, Severity, Notes */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Jenis Diagnosa <span className="text-red-500">*</span>
               </label>
               <select
                 value={diagnosisType}
                 onChange={(e) => setDiagnosisType(e.target.value)}
-                className="w-full h-11 px-3.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="w-full h-12 px-4 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
               >
                 <option value="PRIMARY">🌟 Utama (Primary Diagnosis)</option>
                 <option value="SECONDARY">Sekunder / Komorbiditas (Secondary)</option>
@@ -894,7 +894,7 @@ export function DiagnosisForm({
                 <option value="COMPLICATION">Komplikasi / Penyulit (Complication)</option>
                 <option value="DIFFERENTIAL">Diagnosa Banding (Differential)</option>
               </select>
-              <p className="text-[11px] text-slate-500 mt-1">
+              <p className="text-[11px] text-slate-500 mt-1.5">
                 {diagnosisType === "PRIMARY"
                   ? "Akan menggantikan diagnosa utama sebelumnya secara otomatis."
                   : "Dapat ditambahkan sebanyak yang diperlukan untuk riwayat klinis."}
@@ -902,13 +902,13 @@ export function DiagnosisForm({
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Tingkat Keparahan (Severity) <span className="text-red-500">*</span>
               </label>
               <select
                 value={severityLevel}
                 onChange={(e) => setSeverityLevel(e.target.value)}
-                className="w-full h-11 px-3.5 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                className="w-full h-12 px-4 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
               >
                 <option value="I">Level I - Ringan (Mild / Simple)</option>
                 <option value="II">Level II - Sedang (Moderate)</option>
@@ -917,13 +917,13 @@ export function DiagnosisForm({
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
                 Catatan Klinis (SOAP / Keterangan Dokter)
               </label>
               <textarea
                 value={clinicalNotes}
                 onChange={(e) => setClinicalNotes(e.target.value)}
-                className="w-full h-20 bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none placeholder:text-slate-400"
+                className="w-full h-24 bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none placeholder:text-slate-400"
                 placeholder="Tambahkan catatan temuan klinis, onset, atau rasionalisasi diagnosa..."
               />
             </div>
@@ -932,13 +932,13 @@ export function DiagnosisForm({
             </div>
 
             {/* Modal Footer (Sticky Bottom) */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+            <div className="px-7 py-4.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
               <div className="text-xs text-slate-500 hidden sm:flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Auto-Mapping SATUSEHAT & INA-CBGs Aktif</span>
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-medium">Auto-Mapping SATUSEHAT & INA-CBGs Aktif</span>
               </div>
 
-              <div className="flex items-center gap-2.5 ml-auto sm:ml-0">
+              <div className="flex items-center gap-3 ml-auto sm:ml-0">
                 <Button
                   type="button"
                   variant="outline"
@@ -946,14 +946,14 @@ export function DiagnosisForm({
                     resetForm();
                     setIsFormOpen(false);
                   }}
-                  className="bg-white rounded-xl h-10 px-4 text-xs font-semibold cursor-pointer"
+                  className="bg-white rounded-xl h-11 px-5 text-sm font-semibold cursor-pointer border-slate-300 hover:bg-slate-50"
                 >
                   Batal
                 </Button>
                 <Button
                   type="submit"
                   disabled={loading || !selectedIcd10}
-                  className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 h-10 rounded-xl shadow-xs cursor-pointer text-xs"
+                  className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 h-11 rounded-xl shadow-xs cursor-pointer text-sm transition-all"
                 >
                   <Save className="h-4 w-4" />
                   {loading
