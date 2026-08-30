@@ -9,6 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+
+	"github.com/google/uuid"
 )
 
 const createInvoice = `-- name: CreateInvoice :one
@@ -115,6 +117,29 @@ func (q *Queries) CreateOutboxEvent(ctx context.Context, arg CreateOutboxEventPa
 	return i, err
 }
 
+const getActiveUnpaidInvoiceByEncounterNo = `-- name: GetActiveUnpaidInvoiceByEncounterNo :one
+SELECT id, encounter_no, total_amount, status, created_at, paid_at, deleted_dt, deleted_by
+FROM invoices
+WHERE encounter_no = $1 AND status = 'UNPAID' AND deleted_dt IS NULL
+ORDER BY created_at DESC LIMIT 1
+`
+
+func (q *Queries) GetActiveUnpaidInvoiceByEncounterNo(ctx context.Context, encounterNo string) (Invoice, error) {
+	row := q.db.QueryRowContext(ctx, getActiveUnpaidInvoiceByEncounterNo, encounterNo)
+	var i Invoice
+	err := row.Scan(
+		&i.ID,
+		&i.EncounterNo,
+		&i.TotalAmount,
+		&i.Status,
+		&i.CreatedAt,
+		&i.PaidAt,
+		&i.DeletedDt,
+		&i.DeletedBy,
+	)
+	return i, err
+}
+
 const getInvoice = `-- name: GetInvoice :one
 SELECT id, encounter_no, total_amount, status, created_at, paid_at, deleted_dt, deleted_by
 FROM invoices
@@ -140,7 +165,8 @@ func (q *Queries) GetInvoice(ctx context.Context, id string) (Invoice, error) {
 const getInvoiceByEncounterNo = `-- name: GetInvoiceByEncounterNo :one
 SELECT id, encounter_no, total_amount, status, created_at, paid_at, deleted_dt, deleted_by
 FROM invoices
-WHERE encounter_no = $1 AND deleted_dt IS NULL LIMIT 1
+WHERE encounter_no = $1 AND deleted_dt IS NULL 
+ORDER BY created_at DESC LIMIT 1
 `
 
 func (q *Queries) GetInvoiceByEncounterNo(ctx context.Context, encounterNo string) (Invoice, error) {
@@ -155,6 +181,48 @@ func (q *Queries) GetInvoiceByEncounterNo(ctx context.Context, encounterNo strin
 		&i.PaidAt,
 		&i.DeletedDt,
 		&i.DeletedBy,
+	)
+	return i, err
+}
+
+const getInvoiceItemByPattern = `-- name: GetInvoiceItemByPattern :one
+SELECT it.id, it.invoice_id, it.item_type, it.description, it.amount, it.created_at, it.deleted_dt, it.deleted_by, i.status as invoice_status
+FROM invoice_items it
+JOIN invoices i ON i.id = it.invoice_id
+WHERE i.encounter_no = $1 AND it.description LIKE $2 AND it.deleted_dt IS NULL AND i.deleted_dt IS NULL
+LIMIT 1
+`
+
+type GetInvoiceItemByPatternParams struct {
+	EncounterNo string
+	Description string
+}
+
+type GetInvoiceItemByPatternRow struct {
+	ID            string
+	InvoiceID     string
+	ItemType      string
+	Description   string
+	Amount        string
+	CreatedAt     sql.NullTime
+	DeletedDt     sql.NullTime
+	DeletedBy     uuid.NullUUID
+	InvoiceStatus string
+}
+
+func (q *Queries) GetInvoiceItemByPattern(ctx context.Context, arg GetInvoiceItemByPatternParams) (GetInvoiceItemByPatternRow, error) {
+	row := q.db.QueryRowContext(ctx, getInvoiceItemByPattern, arg.EncounterNo, arg.Description)
+	var i GetInvoiceItemByPatternRow
+	err := row.Scan(
+		&i.ID,
+		&i.InvoiceID,
+		&i.ItemType,
+		&i.Description,
+		&i.Amount,
+		&i.CreatedAt,
+		&i.DeletedDt,
+		&i.DeletedBy,
+		&i.InvoiceStatus,
 	)
 	return i, err
 }
@@ -182,6 +250,45 @@ func (q *Queries) GetInvoiceItems(ctx context.Context, invoiceID string) ([]Invo
 			&i.Description,
 			&i.Amount,
 			&i.CreatedAt,
+			&i.DeletedDt,
+			&i.DeletedBy,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getInvoicesByEncounterNo = `-- name: GetInvoicesByEncounterNo :many
+SELECT id, encounter_no, total_amount, status, created_at, paid_at, deleted_dt, deleted_by
+FROM invoices
+WHERE encounter_no = $1 AND deleted_dt IS NULL
+ORDER BY created_at ASC
+`
+
+func (q *Queries) GetInvoicesByEncounterNo(ctx context.Context, encounterNo string) ([]Invoice, error) {
+	rows, err := q.db.QueryContext(ctx, getInvoicesByEncounterNo, encounterNo)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Invoice
+	for rows.Next() {
+		var i Invoice
+		if err := rows.Scan(
+			&i.ID,
+			&i.EncounterNo,
+			&i.TotalAmount,
+			&i.Status,
+			&i.CreatedAt,
+			&i.PaidAt,
 			&i.DeletedDt,
 			&i.DeletedBy,
 		); err != nil {

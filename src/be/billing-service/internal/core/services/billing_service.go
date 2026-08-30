@@ -19,28 +19,57 @@ func NewBillingService(repo ports.BillingRepository) ports.BillingService {
 	return &billingServiceImpl{repo: repo}
 }
 
-func (s *billingServiceImpl) getOrCreateInvoice(ctx context.Context, encounterNo string) (*domain.Invoice, error) {
+func (s *billingServiceImpl) getOrCreateRegistrationInvoice(ctx context.Context, encounterNo string) (*domain.Invoice, error) {
 	inv, err := s.repo.GetInvoiceByEncounterNo(ctx, encounterNo)
 	if err == nil {
-		return inv, nil // exists
+		return inv, nil
 	}
 
-	// Create new
+	// Create registration invoice
 	inv = &domain.Invoice{
-		ID:          fmt.Sprintf("INV-%d", time.Now().UnixNano()),
+		ID:          fmt.Sprintf("INV-REG-%s", encounterNo),
 		EncounterNo: encounterNo,
 		TotalAmount: 0,
 		Status:      "UNPAID",
 	}
 	err = s.repo.CreateInvoice(ctx, inv)
 	if err != nil {
-		return nil, err
+		// Fallback random ID if constraint conflicts
+		inv.ID = fmt.Sprintf("INV-%d", time.Now().UnixNano())
+		err = s.repo.CreateInvoice(ctx, inv)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return inv, nil
 }
 
+func (s *billingServiceImpl) getOrCreateUnpaidActionInvoice(ctx context.Context, encounterNo string) (*domain.Invoice, error) {
+	inv, err := s.repo.GetActiveUnpaidInvoiceByEncounterNo(ctx, encounterNo)
+	if err == nil && inv != nil {
+		return inv, nil
+	}
+
+	// Create separate Action Invoice for Poli
+	newInv := &domain.Invoice{
+		ID:          fmt.Sprintf("INV-ACT-%s-%d", encounterNo, time.Now().Unix()%100000),
+		EncounterNo: encounterNo,
+		TotalAmount: 0,
+		Status:      "UNPAID",
+	}
+	err = s.repo.CreateInvoice(ctx, newInv)
+	if err != nil {
+		newInv.ID = fmt.Sprintf("INV-%d", time.Now().UnixNano())
+		err = s.repo.CreateInvoice(ctx, newInv)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return newInv, nil
+}
+
 func (s *billingServiceImpl) AddRegistrationFee(ctx context.Context, encounterNo, departmentCode string, amount float64) (string, error) {
-	inv, err := s.getOrCreateInvoice(ctx, encounterNo)
+	inv, err := s.getOrCreateRegistrationInvoice(ctx, encounterNo)
 	if err != nil {
 		return "", err
 	}
@@ -98,7 +127,7 @@ func (s *billingServiceImpl) AddRegistrationFee(ctx context.Context, encounterNo
 }
 
 func (s *billingServiceImpl) AddActionItem(ctx context.Context, encounterNo, actionCode, description string, amount float64) error {
-	inv, err := s.getOrCreateInvoice(ctx, encounterNo)
+	inv, err := s.getOrCreateUnpaidActionInvoice(ctx, encounterNo)
 	if err != nil {
 		return err
 	}
@@ -121,37 +150,44 @@ func (s *billingServiceImpl) AddActionItem(ctx context.Context, encounterNo, act
 		return err
 	}
 
-	// If invoice was previously PAID, adding a new action incurs additional charges,
-	// so the invoice status must revert to UNPAID for cashier settlement.
-	if inv.Status == "PAID" {
-		errStatus := s.repo.UpdateInvoiceStatus(ctx, inv.ID, "UNPAID")
-		if errStatus == nil {
-			payload := fmt.Sprintf(`{"invoice_id":"%s","encounter_no":"%s"}`, inv.ID, inv.EncounterNo)
-			_ = s.repo.CreateOutboxEvent(ctx, uuid.New().String(), "Invoice", "InvoiceUnpaid", payload)
-		}
-	}
+	// Publish InvoiceCreated / InvoiceUpdated event to Outbox
+	payload := fmt.Sprintf(`{"invoice_id":"%s","encounter_no":"%s","amount":%f}`, inv.ID, inv.EncounterNo, amount)
+	_ = s.repo.CreateOutboxEvent(ctx, uuid.New().String(), "Invoice", "InvoiceCreated", payload)
 
 	return nil
 }
 
-func (s *billingServiceImpl) RemoveActionItem(ctx context.Context, encounterNo, actionCode string) error {
-	inv, err := s.repo.GetInvoiceByEncounterNo(ctx, encounterNo)
-	if err != nil {
-		return err
-	}
-
-	// Soft delete item with description matching [%s]
+func (s *billingServiceImpl) GetActionPaymentStatus(ctx context.Context, encounterNo, actionCode string) (string, string, bool, error) {
 	pattern := fmt.Sprintf("%%[%s]%%", actionCode)
-	err = s.repo.SoftDeleteInvoiceItemByPattern(ctx, inv.ID, pattern)
+	invoiceID, invoiceStatus, err := s.repo.GetInvoiceItemByPattern(ctx, encounterNo, pattern)
+	if err != nil {
+		return "", "", false, err
+	}
+	isPaid := invoiceStatus == "PAID"
+	return invoiceID, invoiceStatus, isPaid, nil
+}
+
+func (s *billingServiceImpl) RemoveActionItem(ctx context.Context, encounterNo, actionCode string) error {
+	pattern := fmt.Sprintf("%%[%s]%%", actionCode)
+	invoiceID, invoiceStatus, err := s.repo.GetInvoiceItemByPattern(ctx, encounterNo, pattern)
 	if err != nil {
 		return err
 	}
 
-	return s.repo.RecalculateInvoiceTotal(ctx, inv.ID)
+	if invoiceStatus == "PAID" {
+		return fmt.Errorf("cannot remove medical action: invoice is already paid")
+	}
+
+	err = s.repo.SoftDeleteInvoiceItemByPattern(ctx, invoiceID, pattern)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.RecalculateInvoiceTotal(ctx, invoiceID)
 }
 
 func (s *billingServiceImpl) AddMedicineItem(ctx context.Context, encounterNo, prescriptionID string, amount float64) error {
-	inv, err := s.getOrCreateInvoice(ctx, encounterNo)
+	inv, err := s.getOrCreateUnpaidActionInvoice(ctx, encounterNo)
 	if err != nil {
 		return err
 	}
@@ -174,23 +210,22 @@ func (s *billingServiceImpl) AddMedicineItem(ctx context.Context, encounterNo, p
 		return err
 	}
 
-	// If invoice was previously PAID, adding new medicine incurs additional charges,
-	// so the invoice status must revert to UNPAID for cashier settlement.
-	if inv.Status == "PAID" {
-		errStatus := s.repo.UpdateInvoiceStatus(ctx, inv.ID, "UNPAID")
-		if errStatus == nil {
-			payload := fmt.Sprintf(`{"invoice_id":"%s","encounter_no":"%s"}`, inv.ID, inv.EncounterNo)
-			_ = s.repo.CreateOutboxEvent(ctx, uuid.New().String(), "Invoice", "InvoiceUnpaid", payload)
-		}
-	}
+	payload := fmt.Sprintf(`{"invoice_id":"%s","encounter_no":"%s","amount":%f}`, inv.ID, inv.EncounterNo, amount)
+	_ = s.repo.CreateOutboxEvent(ctx, uuid.New().String(), "Invoice", "InvoiceCreated", payload)
 
 	return nil
 }
 
 func (s *billingServiceImpl) GenerateInvoice(ctx context.Context, encounterNo string) (*domain.Invoice, error) {
+	// First check if there is an active unpaid invoice
+	unpaidInv, errUnpaid := s.repo.GetActiveUnpaidInvoiceByEncounterNo(ctx, encounterNo)
+	if errUnpaid == nil && unpaidInv != nil {
+		return unpaidInv, nil
+	}
+
+	// Otherwise check latest invoice
 	inv, err := s.repo.GetInvoiceByEncounterNo(ctx, encounterNo)
 	if err != nil {
-		// Auto create invoice with registration/examination fee based on encounter
 		var deptCode = "01"
 		if len(encounterNo) >= 8 {
 			deptCode = encounterNo[6:8]
@@ -206,6 +241,10 @@ func (s *billingServiceImpl) GenerateInvoice(ctx context.Context, encounterNo st
 		return s.repo.GetInvoiceByEncounterNo(ctx, encounterNo)
 	}
 	return inv, nil
+}
+
+func (s *billingServiceImpl) GetInvoicesByEncounter(ctx context.Context, encounterNo string) ([]*domain.Invoice, error) {
+	return s.repo.GetInvoicesByEncounterNo(ctx, encounterNo)
 }
 
 func (s *billingServiceImpl) PayInvoice(ctx context.Context, invoiceID string, amountPaid float64) (string, error) {

@@ -10,6 +10,16 @@ export interface InvoiceItem {
   category?: string;
 }
 
+export interface InvoiceDetail {
+  invoice_id: string;
+  encounter_no: string;
+  total_amount: number;
+  status: string;
+  is_paid: boolean;
+  items: InvoiceItem[];
+  created_at: string;
+}
+
 export interface Invoice {
   invoice_id: string;
   encounter_no: string;
@@ -24,8 +34,19 @@ export interface Invoice {
   total_amount: number;
   status: string;
   is_paid?: boolean;
+  invoices?: InvoiceDetail[];
   created_at?: string;
 }
+
+export const getInvoicesByEncounter = async (encounterNo: string): Promise<InvoiceDetail[]> => {
+  try {
+    const { data } = await api.get<any>(`/billing/invoices/${encounterNo}`);
+    return data?.data || [];
+  } catch (error) {
+    console.error("Failed to fetch invoices by encounter", error);
+    return [];
+  }
+};
 
 export interface BillingPatientQueueItem {
   encounter_no: string;

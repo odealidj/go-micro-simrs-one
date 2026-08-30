@@ -6,6 +6,8 @@ option go_package = "github.com/aliube/go-micro-simrs-one/shared/proto/billing/v
 
 service BillingService {
   rpc GenerateInvoice (GenerateInvoiceRequest) returns (GenerateInvoiceResponse);
+  rpc GetInvoicesByEncounter (GetInvoicesByEncounterRequest) returns (GetInvoicesByEncounterResponse);
+  rpc GetActionPaymentStatus (GetActionPaymentStatusRequest) returns (GetActionPaymentStatusResponse);
   rpc PayInvoice (PayInvoiceRequest) returns (PayInvoiceResponse);
   rpc AddRegistrationFee (AddRegistrationFeeRequest) returns (AddRegistrationFeeResponse);
   rpc CancelInvoice (CancelInvoiceRequest) returns (CancelInvoiceResponse);
@@ -27,6 +29,37 @@ message InvoiceItem {
   string item_type = 1; // "ACTION" or "MEDICINE"
   string description = 2;
   double amount = 3;
+}
+
+message InvoiceDetail {
+  string invoice_id = 1;
+  string encounter_no = 2;
+  double total_amount = 3;
+  string status = 4;
+  bool is_paid = 5;
+  repeated InvoiceItem items = 6;
+  string created_at = 7;
+}
+
+message GetInvoicesByEncounterRequest {
+  string encounter_no = 1;
+}
+
+message GetInvoicesByEncounterResponse {
+  bool success = 1;
+  repeated InvoiceDetail invoices = 2;
+}
+
+message GetActionPaymentStatusRequest {
+  string encounter_no = 1;
+  string action_code = 2;
+}
+
+message GetActionPaymentStatusResponse {
+  bool is_found = 1;
+  string invoice_id = 2;
+  string invoice_status = 3;
+  bool is_paid = 4;
 }
 
 message GenerateInvoiceRequest {

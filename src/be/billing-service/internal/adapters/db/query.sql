@@ -17,7 +17,27 @@ WHERE id = $1 AND deleted_dt IS NULL LIMIT 1;
 -- name: GetInvoiceByEncounterNo :one
 SELECT *
 FROM invoices
-WHERE encounter_no = $1 AND deleted_dt IS NULL LIMIT 1;
+WHERE encounter_no = $1 AND deleted_dt IS NULL 
+ORDER BY created_at DESC LIMIT 1;
+
+-- name: GetInvoicesByEncounterNo :many
+SELECT *
+FROM invoices
+WHERE encounter_no = $1 AND deleted_dt IS NULL
+ORDER BY created_at ASC;
+
+-- name: GetActiveUnpaidInvoiceByEncounterNo :one
+SELECT *
+FROM invoices
+WHERE encounter_no = $1 AND status = 'UNPAID' AND deleted_dt IS NULL
+ORDER BY created_at DESC LIMIT 1;
+
+-- name: GetInvoiceItemByPattern :one
+SELECT it.id, it.invoice_id, it.item_type, it.description, it.amount, it.created_at, it.deleted_dt, it.deleted_by, i.status as invoice_status
+FROM invoice_items it
+JOIN invoices i ON i.id = it.invoice_id
+WHERE i.encounter_no = $1 AND it.description LIKE $2 AND it.deleted_dt IS NULL AND i.deleted_dt IS NULL
+LIMIT 1;
 
 -- name: UpdateInvoiceAmount :one
 UPDATE invoices

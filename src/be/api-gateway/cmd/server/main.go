@@ -2930,19 +2930,21 @@ func main() {
 				r.Delete("/emr/actions/{id}", func(w http.ResponseWriter, req *http.Request) {
 					id := chi.URLParam(req, "id")
 					encounterNo := req.URL.Query().Get("encounter_no")
+					actionCode := req.URL.Query().Get("action_code")
 
-					if encounterNo != "" {
-						invRes, errInv := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GenerateInvoiceResponse, error) {
-							return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: encounterNo})
+					if encounterNo != "" && actionCode != "" {
+						invRes, errInv := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GetActionPaymentStatusResponse, error) {
+							return billingClient.GetActionPaymentStatus(req.Context(), &billingpb.GetActionPaymentStatusRequest{
+								EncounterNo: encounterNo,
+								ActionCode:  actionCode,
+							})
 						})
-						if errInv == nil && invRes != nil {
-							if invRes.IsPaid || invRes.Status == "PAID" {
-								response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{
-									Success: false,
-									Message: "Tindakan tidak dapat dihapus karena tagihan tindakan sudah dibayar di kasir.",
-								})
-								return
-							}
+						if errInv == nil && invRes != nil && invRes.IsFound && invRes.IsPaid {
+							response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{
+								Success: false,
+								Message: "Tindakan tidak dapat dihapus karena tagihan tindakan sudah dibayar di kasir.",
+							})
+							return
 						}
 					}
 
@@ -3293,19 +3295,21 @@ func main() {
 				r.Delete("/rawat-jalan/actions/{id}", func(w http.ResponseWriter, req *http.Request) {
 					id := chi.URLParam(req, "id")
 					encounterNo := req.URL.Query().Get("encounter_no")
+					actionCode := req.URL.Query().Get("action_code")
 
-					if encounterNo != "" {
-						invRes, errInv := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GenerateInvoiceResponse, error) {
-							return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: encounterNo})
+					if encounterNo != "" && actionCode != "" {
+						invRes, errInv := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GetActionPaymentStatusResponse, error) {
+							return billingClient.GetActionPaymentStatus(req.Context(), &billingpb.GetActionPaymentStatusRequest{
+								EncounterNo: encounterNo,
+								ActionCode:  actionCode,
+							})
 						})
-						if errInv == nil && invRes != nil {
-							if invRes.IsPaid || invRes.Status == "PAID" {
-								response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{
-									Success: false,
-									Message: "Tindakan tidak dapat dihapus karena tagihan tindakan sudah dibayar di kasir.",
-								})
-								return
-							}
+						if errInv == nil && invRes != nil && invRes.IsFound && invRes.IsPaid {
+							response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{
+								Success: false,
+								Message: "Tindakan tidak dapat dihapus karena tagihan tindakan sudah dibayar di kasir.",
+							})
+							return
 						}
 					}
 
@@ -3684,26 +3688,9 @@ func main() {
 								timeStr = "08:00"
 							}
 
-							var txItems []SettlementItem
-							resInv, _ := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GenerateInvoiceResponse, error) {
-								return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: enc.EncounterNo})
+							resInvs, _ := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GetInvoicesByEncounterResponse, error) {
+								return billingClient.GetInvoicesByEncounter(req.Context(), &billingpb.GetInvoicesByEncounterRequest{EncounterNo: enc.EncounterNo})
 							})
-
-							// Strict microservices rule: Only PAID encounters are eligible for revenue reports/payment history.
-							// Status WAITING_FOR_PAYMENT, REGISTERED, CANCELLED, or BATAL are not paid unless invoice is paid.
-							isPaid := (resInv != nil && (resInv.IsPaid || resInv.Status == "PAID")) || 
-								enc.Status == "QUEUED_FOR_POLI" || 
-								enc.Status == "IN_PROGRESS" || 
-								enc.Status == "IN_EXAMINATION" || 
-								enc.Status == "COMPLETED" || 
-								enc.Status == "PAID"
-
-							if !isPaid {
-								continue
-							}
-
-							method := "CASH"
-							amount := 50000.0
 
 							pName, found := patientCache[enc.Mrn]
 							if !found {
@@ -3717,80 +3704,145 @@ func main() {
 								patientCache[enc.Mrn] = pName
 							}
 
-							if resInv != nil && len(resInv.Items) > 0 {
-								for _, itm := range resInv.Items {
-									txItems = append(txItems, SettlementItem{
-										ItemType:    itm.ItemType,
-										Description: itm.Description,
+							method := "CASH"
+
+							if resInvs != nil && len(resInvs.Invoices) > 0 {
+								for _, inv := range resInvs.Invoices {
+									if !inv.IsPaid && inv.Status != "PAID" {
+										continue
+									}
+
+									var txItems []SettlementItem
+									for _, itm := range inv.Items {
+										txItems = append(txItems, SettlementItem{
+											ItemType:    itm.ItemType,
+											Description: itm.Description,
+											Qty:         1,
+											Amount:      itm.Amount,
+										})
+									}
+									amount := inv.TotalAmount
+									if len(txItems) == 0 {
+										txItems = append(txItems, SettlementItem{
+											ItemType:    "ACTION",
+											Description: "Pemeriksaan & Konsultasi " + deptName,
+											Qty:         1,
+											Amount:      amount,
+										})
+									}
+
+									tx := SettlementTransaction{
+										EncounterNo:    enc.EncounterNo,
+										MRN:            enc.Mrn,
+										PatientName:    pName,
+										DepartmentCode: deptCode,
+										DepartmentName: deptName,
+										PaymentMethod:  method,
+										TotalAmount:    amount,
+										PaidAt:         timeStr,
+										CashierName:    "Staf Kasir 1",
+										Status:         "PAID",
+										Items:          txItems,
+									}
+
+									if filterDept != "" && filterDept != "ALL" && filterDept != deptCode {
+										continue
+									}
+									if filterMethod != "" && filterMethod != "ALL" && filterMethod != method {
+										continue
+									}
+
+									transactions = append(transactions, tx)
+
+									metrics.TotalRevenue += amount
+									metrics.TotalTransactions++
+									switch method {
+									case "CASH":
+										metrics.TunaiAmount += amount
+										metrics.TunaiCount++
+									case "QRIS":
+										metrics.QRISAmount += amount
+										metrics.QRISCount++
+									case "DEBIT":
+										metrics.DebitAmount += amount
+										metrics.DebitCount++
+									case "BPJS":
+										metrics.BPJSAmount += amount
+										metrics.BPJSCount++
+									}
+
+									if _, exists := serviceMap[deptCode]; !exists {
+										serviceMap[deptCode] = &ServiceBreakdown{
+											DepartmentCode: deptCode,
+											DepartmentName: deptName,
+											Count:          0,
+											Total:          0,
+										}
+									}
+									serviceMap[deptCode].Count++
+									serviceMap[deptCode].Total += amount
+								}
+							} else {
+								// Fallback check if encounter was already processed in poli
+								isPaid := enc.Status == "QUEUED_FOR_POLI" || 
+									enc.Status == "IN_PROGRESS" || 
+									enc.Status == "IN_EXAMINATION" || 
+									enc.Status == "COMPLETED" || 
+									enc.Status == "PAID"
+
+								if !isPaid {
+									continue
+								}
+
+								amount := 50000.0
+								txItems := []SettlementItem{
+									{
+										ItemType:    "ACTION",
+										Description: "Pemeriksaan & Konsultasi " + deptName,
 										Qty:         1,
-										Amount:      itm.Amount,
-									})
+										Amount:      amount,
+									},
 								}
-								if resInv.TotalAmount > 0 {
-									amount = resInv.TotalAmount
-								}
-							}
-							if len(txItems) == 0 {
-								txItems = append(txItems, SettlementItem{
-									ItemType:    "ACTION",
-									Description: "Pemeriksaan & Konsultasi " + deptName,
-									Qty:         1,
-									Amount:      amount,
-								})
-							}
 
-							tx := SettlementTransaction{
-								EncounterNo:    enc.EncounterNo,
-								MRN:            enc.Mrn,
-								PatientName:    pName,
-								DepartmentCode: deptCode,
-								DepartmentName: deptName,
-								PaymentMethod:  method,
-								TotalAmount:    amount,
-								PaidAt:         timeStr,
-								CashierName:    "Staf Kasir 1",
-								Status:         "PAID",
-								Items:          txItems,
-							}
-
-							// Apply filters
-							if filterDept != "" && filterDept != "ALL" && filterDept != deptCode {
-								continue
-							}
-							if filterMethod != "" && filterMethod != "ALL" && filterMethod != method {
-								continue
-							}
-
-							transactions = append(transactions, tx)
-
-							// Accumulate metrics
-							metrics.TotalRevenue += amount
-							metrics.TotalTransactions++
-							switch method {
-							case "CASH":
-								metrics.TunaiAmount += amount
-								metrics.TunaiCount++
-							case "QRIS":
-								metrics.QRISAmount += amount
-								metrics.QRISCount++
-							case "DEBIT":
-								metrics.DebitAmount += amount
-								metrics.DebitCount++
-							case "BPJS":
-								metrics.BPJSAmount += amount
-								metrics.BPJSCount++
-							}
-
-							if _, exists := serviceMap[deptCode]; !exists {
-								serviceMap[deptCode] = &ServiceBreakdown{
+								tx := SettlementTransaction{
+									EncounterNo:    enc.EncounterNo,
+									MRN:            enc.Mrn,
+									PatientName:    pName,
 									DepartmentCode: deptCode,
 									DepartmentName: deptName,
-									Count:          0,
-									Total:          0,
+									PaymentMethod:  method,
+									TotalAmount:    amount,
+									PaidAt:         timeStr,
+									CashierName:    "Staf Kasir 1",
+									Status:         "PAID",
+									Items:          txItems,
 								}
+
+								if filterDept != "" && filterDept != "ALL" && filterDept != deptCode {
+									continue
+								}
+								if filterMethod != "" && filterMethod != "ALL" && filterMethod != method {
+									continue
+								}
+
+								transactions = append(transactions, tx)
+
+								metrics.TotalRevenue += amount
+								metrics.TotalTransactions++
+								metrics.TunaiAmount += amount
+								metrics.TunaiCount++
+
+								if _, exists := serviceMap[deptCode]; !exists {
+									serviceMap[deptCode] = &ServiceBreakdown{
+										DepartmentCode: deptCode,
+										DepartmentName: deptName,
+										Count:          0,
+										Total:          0,
+									}
+								}
+								serviceMap[deptCode].Count++
+								serviceMap[deptCode].Total += amount
 							}
-							serviceMap[deptCode].Count++
-							serviceMap[deptCode].Total += amount
 						}
 					}
 
@@ -3814,6 +3866,23 @@ func main() {
 							"service_breakdown": serviceBreakdownList,
 							"transactions":      transactions,
 						},
+					})
+				})
+
+				r.Get("/billing/invoices/{encounter_no}", func(w http.ResponseWriter, req *http.Request) {
+					encounterNo := chi.URLParam(req, "encounter_no")
+					res, err := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GetInvoicesByEncounterResponse, error) {
+						return billingClient.GetInvoicesByEncounter(req.Context(), &billingpb.GetInvoicesByEncounterRequest{EncounterNo: encounterNo})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    res.Invoices,
 					})
 				})
 
@@ -3850,19 +3919,29 @@ func main() {
 						}
 					}
 
+					// Also fetch all invoices for this encounter
+					resAll, _ := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GetInvoicesByEncounterResponse, error) {
+						return billingClient.GetInvoicesByEncounter(req.Context(), &billingpb.GetInvoicesByEncounterRequest{EncounterNo: encounterNo})
+					})
+					var allInvoices []*billingpb.InvoiceDetail
+					if resAll != nil {
+						allInvoices = resAll.Invoices
+					}
+
 					type EnrichedInvoiceResponse struct {
-						Success     bool                     `json:"success"`
-						InvoiceId   string                   `json:"invoice_id"`
-						EncounterNo string                   `json:"encounter_no"`
-						PatientName string                   `json:"patient_name"`
-						MRN         string                   `json:"mrn"`
-						PoliName    string                   `json:"poli_name"`
-						DoctorName  string                   `json:"doctor_name"`
-						Items       []*billingpb.InvoiceItem `json:"items"`
-						TotalAmount float64                  `json:"total_amount"`
-						Status      string                   `json:"status"`
-						IsPaid      bool                     `json:"is_paid"`
-						Message     string                   `json:"message"`
+						Success     bool                       `json:"success"`
+						InvoiceId   string                     `json:"invoice_id"`
+						EncounterNo string                     `json:"encounter_no"`
+						PatientName string                     `json:"patient_name"`
+						MRN         string                     `json:"mrn"`
+						PoliName    string                     `json:"poli_name"`
+						DoctorName  string                     `json:"doctor_name"`
+						Items       []*billingpb.InvoiceItem   `json:"items"`
+						TotalAmount float64                    `json:"total_amount"`
+						Status      string                     `json:"status"`
+						IsPaid      bool                       `json:"is_paid"`
+						Invoices    []*billingpb.InvoiceDetail `json:"invoices"`
+						Message     string                     `json:"message"`
 					}
 
 					response.JSON(w, http.StatusOK, response.SuccessResponse{
@@ -3880,6 +3959,7 @@ func main() {
 							TotalAmount: res.TotalAmount,
 							Status:      res.Status,
 							IsPaid:      res.IsPaid || res.Status == "PAID",
+							Invoices:    allInvoices,
 							Message:     res.Message,
 						},
 					})
@@ -3905,16 +3985,33 @@ func main() {
 						return
 					}
 
-					// 2. Notify Registration Service to update Encounter Status to QUEUED_FOR_POLI
+					// Notify Registration Service to update Encounter Status to QUEUED_FOR_POLI
+					// ONLY if encounter is currently WAITING_FOR_PAYMENT or REGISTERED (do not regress if already in poli)
 					if res.EncounterNo != "" {
-						_, errReg := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
-							return regClient.UpdateEncounterStatus(req.Context(), &regpb.UpdateEncounterStatusRequest{
-								EncounterNo: res.EncounterNo,
-								Status:      "QUEUED_FOR_POLI",
-							})
+						resEnc, _ := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetTodayEncountersResponse, error) {
+							return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 5000})
 						})
-						if errReg != nil {
-							slog.Warn("Failed to update encounter status after payment", "encounter_no", res.EncounterNo, "error", errReg)
+						shouldQueue := true
+						if resEnc != nil {
+							for _, enc := range resEnc.Encounters {
+								if enc.EncounterNo == res.EncounterNo {
+									if enc.Status == "IN_PROGRESS" || enc.Status == "IN_EXAMINATION" || enc.Status == "COMPLETED" || enc.Status == "QUEUED_FOR_POLI" {
+										shouldQueue = false
+									}
+									break
+								}
+							}
+						}
+						if shouldQueue {
+							_, errReg := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
+								return regClient.UpdateEncounterStatus(req.Context(), &regpb.UpdateEncounterStatusRequest{
+									EncounterNo: res.EncounterNo,
+									Status:      "QUEUED_FOR_POLI",
+								})
+							})
+							if errReg != nil {
+								slog.Warn("Failed to update encounter status after payment", "encounter_no", res.EncounterNo, "error", errReg)
+							}
 						}
 					}
 
