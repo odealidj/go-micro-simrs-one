@@ -688,6 +688,39 @@ func (q *Queries) GetEncounterDiagnoses(ctx context.Context, encounterNo string)
 	return items, nil
 }
 
+const getEncounterDiagnosisByID = `-- name: GetEncounterDiagnosisByID :one
+SELECT id, encounter_no, icd10_code, diagnosis_type, sequence, clinical_notes, severity_level, severity_set_by, severity_set_role, auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, is_verified_by_rm, verified_by, verified_at, created_by, created_at, updated_at, deleted_dt, snomed_concept_id FROM encounter_diagnoses
+WHERE id = $1
+`
+
+func (q *Queries) GetEncounterDiagnosisByID(ctx context.Context, id uuid.UUID) (EncounterDiagnosis, error) {
+	row := q.db.QueryRowContext(ctx, getEncounterDiagnosisByID, id)
+	var i EncounterDiagnosis
+	err := row.Scan(
+		&i.ID,
+		&i.EncounterNo,
+		&i.Icd10Code,
+		&i.DiagnosisType,
+		&i.Sequence,
+		&i.ClinicalNotes,
+		&i.SeverityLevel,
+		&i.SeveritySetBy,
+		&i.SeveritySetRole,
+		&i.AutoKbmCode,
+		&i.AutoKbmName,
+		&i.KbmMappingConfidence,
+		&i.IsVerifiedByRm,
+		&i.VerifiedBy,
+		&i.VerifiedAt,
+		&i.CreatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedDt,
+		&i.SnomedConceptID,
+	)
+	return i, err
+}
+
 const getEncounterResep = `-- name: GetEncounterResep :many
 SELECT id, encounter_no, obat_id, obat_name, qty, dosis, instruksi, status, created_by, created_at, updated_at, deleted_dt
 FROM encounter_resep
@@ -2175,6 +2208,24 @@ WHERE id = $1
 
 func (q *Queries) RemoveEncounterDiagnosis(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, removeEncounterDiagnosis, id)
+	return err
+}
+
+const resetEncounterSeverityIfNoDiagnoses = `-- name: ResetEncounterSeverityIfNoDiagnoses :exec
+UPDATE medical_records
+SET encounter_severity_level = NULL,
+    severity_finalized_by = NULL,
+    severity_finalized_at = NULL,
+    updated_at = CURRENT_TIMESTAMP
+WHERE medical_records.encounter_no = $1
+  AND NOT EXISTS (
+      SELECT 1 FROM encounter_diagnoses ed
+      WHERE ed.encounter_no = medical_records.encounter_no AND ed.deleted_dt IS NULL
+  )
+`
+
+func (q *Queries) ResetEncounterSeverityIfNoDiagnoses(ctx context.Context, encounterNo string) error {
+	_, err := q.db.ExecContext(ctx, resetEncounterSeverityIfNoDiagnoses, encounterNo)
 	return err
 }
 

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { completeEncounter } from "../api/rawatJalanApi";
+import { completeEncounter, finalizeSeverity } from "../api/rawatJalanApi";
 import type { GetMedicalRecordResponse } from "../types";
+import { toast } from "sonner";
 import {
   FileCheck,
   CheckCircle2,
@@ -15,6 +16,7 @@ import {
   HeartPulse,
   Receipt,
   Pill,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -34,6 +36,21 @@ const DISPOSITIONS = [
   { value: "RAWAT_INAP", label: "Rujuk Rawat Inap", icon: Building, desc: "Pasien memerlukan observasi / opname" },
 ];
 
+const computeSuggestedSeverity = (diagnoses?: any[]): string => {
+  if (!diagnoses || diagnoses.length === 0) return "";
+  let highest = "I";
+  for (const d of diagnoses) {
+    const sev = (d.severity_level || "").toUpperCase();
+    if (sev === "III" || sev === "BERAT") {
+      return "III";
+    }
+    if (sev === "II" || sev === "SEDANG") {
+      highest = "II";
+    }
+  }
+  return highest;
+};
+
 export function ResumeDispositionForm({
   encounterNo,
   record,
@@ -49,15 +66,37 @@ export function ResumeDispositionForm({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Auto-calculated encounter severity from active diagnoses
+  const suggestedSeverity = computeSuggestedSeverity(record?.diagnoses);
+  const [encounterSeverity, setEncounterSeverity] = useState<string>(
+    record?.encounter_severity_level || suggestedSeverity || (record?.diagnoses?.length ? "I" : "")
+  );
+  const [isManualOverride, setIsManualOverride] = useState(false);
+
+  // Auto-sync when diagnoses or record changes
+  useEffect(() => {
+    if (record?.encounter_severity_level) {
+      setEncounterSeverity(record.encounter_severity_level);
+    } else if (!isManualOverride) {
+      setEncounterSeverity(suggestedSeverity || (record?.diagnoses?.length ? "I" : ""));
+    }
+  }, [record?.encounter_severity_level, suggestedSeverity, record?.diagnoses?.length, isManualOverride]);
+
   const handleFinalize = async () => {
     setLoading(true);
     setError(null);
     try {
+      if (encounterSeverity && encounterSeverity !== record?.encounter_severity_level) {
+        await finalizeSeverity(encounterNo, encounterSeverity);
+      }
       await completeEncounter(encounterNo);
       setSuccess(true);
-      if (onSuccess) onSuccess();
+      toast.success("Pemeriksaan pasien berhasil diselesaikan!");
+      if (onSuccess) await onSuccess();
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Gagal menyelesaikan encounter");
+      const msg = err?.response?.data?.message || "Gagal menyelesaikan encounter";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -148,13 +187,24 @@ export function ResumeDispositionForm({
           <div className="bg-white p-3.5 rounded-lg border border-slate-200 space-y-1.5">
             <p className="font-semibold text-slate-700 flex items-center gap-1.5 text-slate-800">
               <Stethoscope className="h-3.5 w-3.5 text-indigo-600" />
-              Diagnosa Utama
+              Diagnosa ({record?.diagnoses?.length || 0})
             </p>
             {(record?.diagnoses && record.diagnoses.length > 0) ? (
               <div className="space-y-1">
-                {record.diagnoses.filter(d => d.diagnosis_type === "PRIMARY").map(d => (
-                  <p key={d.id} className="text-slate-800 font-medium text-sm">
-                    [{d.icd10_code}] {d.icd10_name} {d.auto_kbm_code && `(Auto-KBM: ${d.auto_kbm_code})`}
+                {record.diagnoses.map(d => (
+                  <p key={d.id} className="text-slate-800 font-medium text-xs flex items-center justify-between">
+                    <span>
+                      <span className={cn(
+                        "text-[10px] font-bold px-1.5 py-0.5 rounded mr-1.5",
+                        d.diagnosis_type === "PRIMARY" ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"
+                      )}>
+                        {d.diagnosis_type === "PRIMARY" ? "UTAMA" : "SEKUNDER"}
+                      </span>
+                      [{d.icd10_code}] {d.icd10_name}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-1.5 py-0.5 rounded">
+                      Sev: {d.severity_level || "I"}
+                    </span>
                   </p>
                 ))}
               </div>
@@ -186,6 +236,95 @@ export function ResumeDispositionForm({
               {record?.notes || "Tidak ada catatan"}
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* ─── ENCOUNTER SEVERITY SECTION (INA-CBGs) ─── */}
+      <div className="bg-gradient-to-br from-indigo-50/60 via-white to-slate-50 border border-indigo-100 rounded-2xl p-5 shadow-2xs space-y-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-indigo-100 text-indigo-700 rounded-xl">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                Tingkat Keparahan Pertemuan (Encounter Severity)
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-indigo-100 text-indigo-800">
+                  INA-CBGs
+                </span>
+              </h4>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Menentukan level kompleksitas perawatan untuk paket klaim INA-CBGs BPJS Kesehatan.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {suggestedSeverity ? (
+              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-2xs">
+                <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+                {isManualOverride ? "✏️ Disesuaikan Dokter" : `🤖 Auto-Saran: Level ${suggestedSeverity}`}
+              </span>
+            ) : (
+              <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-2xs">
+                <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
+                Belum ada diagnosa aktif
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          {[
+            {
+              level: "I",
+              title: "Level I - Ringan",
+              desc: "Kasus standar tanpa komplikasi berat atau penyulit klinis.",
+              activeClass: "border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-500/20 shadow-xs",
+            },
+            {
+              level: "II",
+              title: "Level II - Sedang",
+              desc: "Kasus dengan komorbiditas penyerta atau penyulit klinis sedang.",
+              activeClass: "border-amber-500 bg-amber-50 text-amber-950 ring-2 ring-amber-500/20 shadow-xs",
+            },
+            {
+              level: "III",
+              title: "Level III - Berat",
+              desc: "Kasus kompleksitas tinggi / komplikasi mayor (Major CC / MCC).",
+              activeClass: "border-rose-500 bg-rose-50 text-rose-950 ring-2 ring-rose-500/20 shadow-xs",
+            },
+          ].map((item) => {
+            const isSelected = encounterSeverity === item.level;
+            return (
+              <button
+                key={item.level}
+                type="button"
+                disabled={readOnly || success || !record?.diagnoses?.length}
+                onClick={() => {
+                  setEncounterSeverity(item.level);
+                  setIsManualOverride(item.level !== suggestedSeverity);
+                }}
+                className={cn(
+                  "p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between gap-1.5 cursor-pointer",
+                  isSelected
+                    ? item.activeClass
+                    : "bg-white border-slate-200 hover:border-slate-300 text-slate-700",
+                  (readOnly || success || !record?.diagnoses?.length) && "cursor-not-allowed opacity-60"
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs">{item.title}</span>
+                  {isSelected && (
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-600 text-white">
+                      Terpilih
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 leading-relaxed">{item.desc}</p>
+              </button>
+            );
+          })}
         </div>
       </div>
 

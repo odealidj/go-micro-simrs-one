@@ -6,7 +6,6 @@ import {
   updateEncounterDiagnosis,
   removeEncounterDiagnosis,
   promoteDiagnosisToPrimary,
-  finalizeSeverity,
   type ICD10SearchResult,
 } from "../api/rawatJalanApi";
 import { getICD10Mappings, type ICD10MappingDetailsResponse } from "@/lib/masterDataApi";
@@ -27,7 +26,6 @@ import {
   Plus,
   Layers,
   Edit2,
-  Lock,
   ArrowUpCircle,
   Sparkles,
   Globe,
@@ -55,7 +53,6 @@ export function DiagnosisForm({
   encounterNo,
   deptCode,
   diagnoses = [],
-  encounterSeverityLevel,
   readOnly = false,
   onSuccess,
   hasTriage = true,
@@ -107,9 +104,7 @@ export function DiagnosisForm({
   const [searching, setSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Overall encounter severity finalization
-  const [finalSeverity, setFinalSeverity] = useState(encounterSeverityLevel || "I");
-  const [finalizing, setFinalizing] = useState(false);
+
 
   // Auto-switch default diagnosis type when primary is added or removed
   useEffect(() => {
@@ -291,24 +286,7 @@ export function DiagnosisForm({
     }
   };
 
-  const handleFinalizeSeverity = async () => {
-    if (!confirm(`Finalisasi tingkat keparahan pertemuan ini menjadi Level ${finalSeverity}?`))
-      return;
-    setFinalizing(true);
-    setError(null);
-    try {
-      await finalizeSeverity(encounterNo, finalSeverity);
-      toast.success("Tingkat keparahan pertemuan berhasil difinalisasi.");
-      setSuccessMsg("Tingkat keparahan pertemuan berhasil difinalisasi.");
-      if (onSuccess) await onSuccess();
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || err.message || "Gagal memfinalisasi keparahan";
-      setError(msg);
-      toast.error(msg);
-    } finally {
-      setFinalizing(false);
-    }
-  };
+
 
   const getSubtypeBadge = (type: string) => {
     switch (type) {
@@ -1022,47 +1000,7 @@ export function DiagnosisForm({
         </form>
       )}
 
-      {/* ─── SECTION 4: ENCOUNTER SEVERITY FINALIZATION (DOKTER) ─── */}
-      {!readOnly && diagnoses.length > 0 && (
-        <div className="mt-6 pt-5 border-t border-slate-200 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <Lock className="h-4 w-4 text-emerald-600" />
-                Finalisasi Tingkat Keparahan Pertemuan Rawat Jalan
-              </h4>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Digunakan untuk klaim INA-CBGs dan pemetaan beban kerja klinis pasien.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <select
-                value={finalSeverity}
-                onChange={(e) => setFinalSeverity(e.target.value)}
-                disabled={!!encounterSeverityLevel}
-                className="h-10 px-3 bg-white border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 focus:outline-none disabled:bg-slate-100"
-              >
-                <option value="I">Level I (Ringan)</option>
-                <option value="II">Level II (Sedang)</option>
-                <option value="III">Level III (Berat)</option>
-              </select>
-              <Button
-                type="button"
-                onClick={handleFinalizeSeverity}
-                disabled={finalizing || !!encounterSeverityLevel}
-                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-xs h-10 px-4 cursor-pointer"
-              >
-                <CheckCircle className="h-4 w-4" />
-                {finalizing
-                  ? "Memproses..."
-                  : encounterSeverityLevel
-                  ? "Sudah Final"
-                  : "Finalisasi Severity"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* ─── MODAL CONFIRMATION: DELETE DIAGNOSIS ─── */}
       {deleteTarget && (
