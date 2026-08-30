@@ -3871,6 +3871,7 @@ func main() {
 
 				r.Get("/billing/queue", func(w http.ResponseWriter, req *http.Request) {
 					dateStr := req.URL.Query().Get("date")
+					includeAll := req.URL.Query().Get("all") == "true" || req.URL.Query().Get("include_paid") == "true"
 					reqDate := dateStr
 					if reqDate == "TODAY" || reqDate == time.Now().Format("2006-01-02") {
 						reqDate = ""
@@ -3994,6 +3995,13 @@ func main() {
 							paymentStatus = "CANCELLED"
 						} else if hasUnpaid {
 							paymentStatus = "UNPAID"
+						}
+
+						// Only keep patients who actually need to make a payment
+						if !includeAll {
+							if enc.Status == "CANCELLED" || enc.Status == "BATAL" || !hasUnpaid || unpaidAmount <= 0 {
+								continue
+							}
 						}
 
 						queueList = append(queueList, BillingQueueItem{
