@@ -127,8 +127,8 @@ func HandleGRPCError(w http.ResponseWriter, err error) {
 		userMsg = ErrorMessages[codes.Internal]
 	}
 
-	// For FailedPrecondition, use the specific business validation message
-	if st.Code() == codes.FailedPrecondition {
+	// For FailedPrecondition or AlreadyExists, use the specific business validation message if provided
+	if (st.Code() == codes.FailedPrecondition || st.Code() == codes.AlreadyExists) && st.Message() != "" {
 		userMsg = st.Message()
 	}
 
