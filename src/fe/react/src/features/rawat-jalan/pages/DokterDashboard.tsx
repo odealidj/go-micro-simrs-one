@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { getTodayEncounters } from "../api/rawatJalanApi";
 import type { EncounterDetail } from "../types";
+import { isReadyForExam, isInProgress, isCompleted } from "../types";
 import {
   Activity,
   Users,
@@ -62,11 +63,9 @@ export function DokterDashboard() {
     fetchData();
   }, [poliCode]);
 
-  const waiting = encounters.filter((e) =>
-    ["REGISTERED", "QUEUED", "QUEUED_FOR_POLI", "WAITING_FOR_TRIAGE"].includes(e.status)
-  ).length;
-  const inProgress = encounters.filter((e) => e.status === "IN_PROGRESS").length;
-  const completed = encounters.filter((e) => e.status === "COMPLETED").length;
+  const waiting = encounters.filter((e) => isReadyForExam(e.status)).length;
+  const inProgress = encounters.filter((e) => isInProgress(e.status)).length;
+  const completed = encounters.filter((e) => isCompleted(e.status)).length;
 
   return (
     <div className="space-y-6">
