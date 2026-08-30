@@ -22,6 +22,7 @@ service RawatJalanService {
   rpc AddEncounterDiagnosis (AddEncounterDiagnosisRequest) returns (AddEncounterDiagnosisResponse);
   rpc UpdateEncounterDiagnosis (UpdateEncounterDiagnosisRequest) returns (UpdateEncounterDiagnosisResponse);
   rpc RemoveEncounterDiagnosis (RemoveEncounterDiagnosisRequest) returns (RemoveEncounterDiagnosisResponse);
+  rpc PromoteDiagnosisToPrimary (PromoteDiagnosisToPrimaryRequest) returns (PromoteDiagnosisToPrimaryResponse);
   rpc FinalizeSeverity (FinalizeSeverityRequest) returns (FinalizeSeverityResponse);
   rpc GetKBMSuggestionsForICD10 (GetKBMSuggestionsForICD10Request) returns (GetKBMSuggestionsForICD10Response);
 
@@ -127,6 +128,8 @@ message AddEncounterDiagnosisRequest {
   string department_code = 8;
   string gender = 9;
   string age_bracket = 10;
+  string snomed_concept_id = 11;
+  string auto_kbm_code = 12;
 }
 
 message AddEncounterDiagnosisResponse {
@@ -153,6 +156,16 @@ message RemoveEncounterDiagnosisRequest {
 }
 
 message RemoveEncounterDiagnosisResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message PromoteDiagnosisToPrimaryRequest {
+  string encounter_no = 1;
+  string diagnosis_id = 2;
+}
+
+message PromoteDiagnosisToPrimaryResponse {
   bool success = 1;
   string message = 2;
 }
@@ -223,6 +236,8 @@ message EncounterDiagnosis {
   string kbm_mapping_confidence = 11;
   bool is_verified_by_rm = 12;
   string verified_by = 13;
+  string snomed_concept_id = 14;
+  string snomed_name = 15;
 }
 
 message ClinicalChecklist {

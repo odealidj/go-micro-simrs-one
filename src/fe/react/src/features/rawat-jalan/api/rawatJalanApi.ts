@@ -74,16 +74,29 @@ export const submitTriage = async (
 
 // ─── Diagnosis (ICD-10 First) ──────────────────────────────────────────────────
 
-export const searchICD10 = async (search: string, poliCode?: string): Promise<{ code: string; name: string }[]> => {
+export interface ICD10SearchResult {
+  code: string;
+  name: string;
+  name_en?: string;
+  polyclinics?: string[];
+  kbm_count?: number;
+  snomed_count?: number;
+}
+
+export const searchICD10 = async (search: string, poliCode?: string): Promise<ICD10SearchResult[]> => {
   try {
     const endpoint = poliCode ? `/master/icd10/poli/${poliCode}` : "/master/icd10";
     const { data } = await api.get(endpoint, {
-      params: { search_name: search, page_size: 20 },
+      params: { search_name: search, page_size: 25 },
     });
     const items = data?.data || [];
     return items.map((item: any) => ({
       code: item.icd10_code || item.code,
       name: item.name_id || item.name_en || item.icd10_code,
+      name_en: item.name_en || "",
+      polyclinics: item.polyclinics || [],
+      kbm_count: item.kbm_count || 0,
+      snomed_count: item.snomed_count || 0,
     }));
   } catch {
     return [];
@@ -95,7 +108,9 @@ export const addEncounterDiagnosis = async (
   icd10Code: string,
   diagnosisType: string,
   severityLevel: string,
-  clinicalNotes: string
+  clinicalNotes: string,
+  snomedConceptId?: string,
+  autoKbmCode?: string
 ): Promise<void> => {
   await api.post("/rawat-jalan/diagnosis", {
     encounter_no: encounterNo,
@@ -103,6 +118,8 @@ export const addEncounterDiagnosis = async (
     diagnosis_type: diagnosisType,
     severity_level: severityLevel,
     clinical_notes: clinicalNotes,
+    snomed_concept_id: snomedConceptId,
+    auto_kbm_code: autoKbmCode,
   });
 };
 
@@ -121,6 +138,15 @@ export const updateEncounterDiagnosis = async (
 
 export const removeEncounterDiagnosis = async (id: string): Promise<void> => {
   await api.delete(`/rawat-jalan/diagnosis/${id}`);
+};
+
+export const promoteDiagnosisToPrimary = async (
+  encounterNo: string,
+  diagnosisId: string
+): Promise<void> => {
+  await api.post(`/rawat-jalan/diagnosis/${diagnosisId}/promote`, {
+    encounter_no: encounterNo,
+  });
 };
 
 export const finalizeSeverity = async (

@@ -18,9 +18,9 @@ const addEncounterDiagnosis = `-- name: AddEncounterDiagnosis :one
 INSERT INTO encounter_diagnoses (
     id, encounter_no, icd10_code, diagnosis_type, sequence, clinical_notes,
     severity_level, severity_set_by, severity_set_role,
-    auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, created_by
+    auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, snomed_concept_id, created_by
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
 ) RETURNING id, encounter_no, icd10_code, diagnosis_type, sequence, clinical_notes, severity_level, severity_set_by, severity_set_role, auto_kbm_code, auto_kbm_name, kbm_mapping_confidence, is_verified_by_rm, verified_by, verified_at, created_by, created_at, updated_at, deleted_dt, snomed_concept_id
 `
 
@@ -37,6 +37,7 @@ type AddEncounterDiagnosisParams struct {
 	AutoKbmCode          sql.NullString
 	AutoKbmName          sql.NullString
 	KbmMappingConfidence sql.NullString
+	SnomedConceptID      sql.NullString
 	CreatedBy            sql.NullString
 }
 
@@ -54,6 +55,7 @@ func (q *Queries) AddEncounterDiagnosis(ctx context.Context, arg AddEncounterDia
 		arg.AutoKbmCode,
 		arg.AutoKbmName,
 		arg.KbmMappingConfidence,
+		arg.SnomedConceptID,
 		arg.CreatedBy,
 	)
 	var i EncounterDiagnosis
@@ -516,6 +518,37 @@ func (q *Queries) CreateOutboxEvent(ctx context.Context, arg CreateOutboxEventPa
 	return i, err
 }
 
+const demotePrimaryDiagnoses = `-- name: DemotePrimaryDiagnoses :exec
+UPDATE encounter_diagnoses
+SET diagnosis_type = 'SECONDARY', sequence = 2, updated_at = CURRENT_TIMESTAMP
+WHERE encounter_no = $1 AND diagnosis_type = 'PRIMARY' AND deleted_dt IS NULL
+`
+
+func (q *Queries) DemotePrimaryDiagnoses(ctx context.Context, encounterNo string) error {
+	_, err := q.db.ExecContext(ctx, demotePrimaryDiagnoses, encounterNo)
+	return err
+}
+
+const finalizeSeverity = `-- name: FinalizeSeverity :exec
+UPDATE medical_records
+SET encounter_severity_level = $2,
+    severity_finalized_by = $3,
+    severity_finalized_at = CURRENT_TIMESTAMP,
+    updated_at = CURRENT_TIMESTAMP
+WHERE encounter_no = $1
+`
+
+type FinalizeSeverityParams struct {
+	EncounterNo            string
+	EncounterSeverityLevel sql.NullString
+	SeverityFinalizedBy    sql.NullString
+}
+
+func (q *Queries) FinalizeSeverity(ctx context.Context, arg FinalizeSeverityParams) error {
+	_, err := q.db.ExecContext(ctx, finalizeSeverity, arg.EncounterNo, arg.EncounterSeverityLevel, arg.SeverityFinalizedBy)
+	return err
+}
+
 const getClinicWaitAggregate = `-- name: GetClinicWaitAggregate :one
 SELECT average_wait_minutes, sample_count
 FROM clinic_wait_time_aggregates
@@ -574,11 +607,12 @@ func (q *Queries) GetClinicWaitAggregateWithoutDiagnosis(ctx context.Context, ar
 }
 
 const getEncounterDiagnoses = `-- name: GetEncounterDiagnoses :many
-SELECT d.id, d.encounter_no, d.icd10_code, d.diagnosis_type, d.sequence, d.clinical_notes, d.severity_level, d.severity_set_by, d.severity_set_role, d.auto_kbm_code, d.auto_kbm_name, d.kbm_mapping_confidence, d.is_verified_by_rm, d.verified_by, d.verified_at, d.created_by, d.created_at, d.updated_at, d.deleted_dt, d.snomed_concept_id, i.name_id as icd10_name
+SELECT d.id, d.encounter_no, d.icd10_code, d.diagnosis_type, d.sequence, d.clinical_notes, d.severity_level, d.severity_set_by, d.severity_set_role, d.auto_kbm_code, d.auto_kbm_name, d.kbm_mapping_confidence, d.is_verified_by_rm, d.verified_by, d.verified_at, d.created_by, d.created_at, d.updated_at, d.deleted_dt, d.snomed_concept_id, i.name_id as icd10_name, s.term_id as snomed_name, s.fsn as snomed_fsn
 FROM encounter_diagnoses d
 JOIN icd10_catalog i ON d.icd10_code = i.icd10_code
+LEFT JOIN snomed_concepts s ON d.snomed_concept_id = s.concept_id
 WHERE d.encounter_no = $1 AND d.deleted_dt IS NULL
-ORDER BY d.sequence ASC, d.created_at ASC
+ORDER BY CASE WHEN d.diagnosis_type = 'PRIMARY' THEN 0 ELSE 1 END, d.sequence ASC, d.created_at ASC
 `
 
 type GetEncounterDiagnosesRow struct {
@@ -603,6 +637,8 @@ type GetEncounterDiagnosesRow struct {
 	DeletedDt            sql.NullTime
 	SnomedConceptID      sql.NullString
 	Icd10Name            string
+	SnomedName           sql.NullString
+	SnomedFsn            sql.NullString
 }
 
 func (q *Queries) GetEncounterDiagnoses(ctx context.Context, encounterNo string) ([]GetEncounterDiagnosesRow, error) {
@@ -636,6 +672,8 @@ func (q *Queries) GetEncounterDiagnoses(ctx context.Context, encounterNo string)
 			&i.DeletedDt,
 			&i.SnomedConceptID,
 			&i.Icd10Name,
+			&i.SnomedName,
+			&i.SnomedFsn,
 		); err != nil {
 			return nil, err
 		}
@@ -2118,6 +2156,28 @@ func (q *Queries) GetTindakanForICD9(ctx context.Context, icd9Code string) ([]Ge
 	return items, nil
 }
 
+const promoteDiagnosisToPrimary = `-- name: PromoteDiagnosisToPrimary :exec
+UPDATE encounter_diagnoses
+SET diagnosis_type = 'PRIMARY', sequence = 1, updated_at = CURRENT_TIMESTAMP
+WHERE id = $1 AND deleted_dt IS NULL
+`
+
+func (q *Queries) PromoteDiagnosisToPrimary(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, promoteDiagnosisToPrimary, id)
+	return err
+}
+
+const removeEncounterDiagnosis = `-- name: RemoveEncounterDiagnosis :exec
+UPDATE encounter_diagnoses
+SET deleted_dt = CURRENT_TIMESTAMP
+WHERE id = $1
+`
+
+func (q *Queries) RemoveEncounterDiagnosis(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, removeEncounterDiagnosis, id)
+	return err
+}
+
 const searchICD10 = `-- name: SearchICD10 :many
 SELECT i.icd10_code, i.name_en, i.name_id, i.chapter_code, i.block_code, i.is_active, i.created_at, i.updated_at, i.deleted_dt, i.coding_rule, COALESCE(array_agg(m.polyclinic_code) FILTER (WHERE m.polyclinic_code IS NOT NULL), '{}')::varchar[] AS polyclinics
 FROM icd10_catalog i
@@ -2327,6 +2387,35 @@ WHERE encounter_no = $1
 
 func (q *Queries) StartEncounter(ctx context.Context, encounterNo string) error {
 	_, err := q.db.ExecContext(ctx, startEncounter, encounterNo)
+	return err
+}
+
+const updateEncounterDiagnosis = `-- name: UpdateEncounterDiagnosis :exec
+UPDATE encounter_diagnoses
+SET diagnosis_type = $2,
+    sequence = $3,
+    clinical_notes = $4,
+    severity_level = $5,
+    updated_at = CURRENT_TIMESTAMP
+WHERE id = $1 AND deleted_dt IS NULL
+`
+
+type UpdateEncounterDiagnosisParams struct {
+	ID            uuid.UUID
+	DiagnosisType string
+	Sequence      int32
+	ClinicalNotes sql.NullString
+	SeverityLevel string
+}
+
+func (q *Queries) UpdateEncounterDiagnosis(ctx context.Context, arg UpdateEncounterDiagnosisParams) error {
+	_, err := q.db.ExecContext(ctx, updateEncounterDiagnosis,
+		arg.ID,
+		arg.DiagnosisType,
+		arg.Sequence,
+		arg.ClinicalNotes,
+		arg.SeverityLevel,
+	)
 	return err
 }
 
