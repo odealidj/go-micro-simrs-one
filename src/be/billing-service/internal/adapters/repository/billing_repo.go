@@ -36,6 +36,47 @@ func (r *billingRepoSqlc) GetInvoiceByEncounterNo(ctx context.Context, encounter
 	return r.buildDomainInvoice(ctx, inv)
 }
 
+func (r *billingRepoSqlc) GetInvoicesByEncounterNo(ctx context.Context, encounterNo string) ([]*domain.Invoice, error) {
+	invoicesDb, err := r.q.GetInvoicesByEncounterNo(ctx, encounterNo)
+	if err != nil {
+		return nil, err
+	}
+	var res []*domain.Invoice
+	for _, inv := range invoicesDb {
+		dInv, err := r.buildDomainInvoice(ctx, inv)
+		if err != nil {
+			continue
+		}
+		res = append(res, dInv)
+	}
+	return res, nil
+}
+
+func (r *billingRepoSqlc) GetActiveUnpaidInvoiceByEncounterNo(ctx context.Context, encounterNo string) (*domain.Invoice, error) {
+	inv, err := r.q.GetActiveUnpaidInvoiceByEncounterNo(ctx, encounterNo)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return r.buildDomainInvoice(ctx, inv)
+}
+
+func (r *billingRepoSqlc) GetInvoiceItemByPattern(ctx context.Context, encounterNo, pattern string) (string, string, error) {
+	item, err := r.q.GetInvoiceItemByPattern(ctx, db.GetInvoiceItemByPatternParams{
+		EncounterNo: encounterNo,
+		Description: pattern,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", "", errors.New("invoice item not found")
+		}
+		return "", "", err
+	}
+	return item.InvoiceID, item.InvoiceStatus, nil
+}
+
 func (r *billingRepoSqlc) GetInvoice(ctx context.Context, id string) (*domain.Invoice, error) {
 	inv, err := r.q.GetInvoice(ctx, id)
 	if err != nil {

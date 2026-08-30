@@ -19,10 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	BillingService_GenerateInvoice_FullMethodName    = "/billing.v1.BillingService/GenerateInvoice"
-	BillingService_PayInvoice_FullMethodName         = "/billing.v1.BillingService/PayInvoice"
-	BillingService_AddRegistrationFee_FullMethodName = "/billing.v1.BillingService/AddRegistrationFee"
-	BillingService_CancelInvoice_FullMethodName      = "/billing.v1.BillingService/CancelInvoice"
+	BillingService_GenerateInvoice_FullMethodName        = "/billing.v1.BillingService/GenerateInvoice"
+	BillingService_GetInvoicesByEncounter_FullMethodName = "/billing.v1.BillingService/GetInvoicesByEncounter"
+	BillingService_GetActionPaymentStatus_FullMethodName = "/billing.v1.BillingService/GetActionPaymentStatus"
+	BillingService_PayInvoice_FullMethodName             = "/billing.v1.BillingService/PayInvoice"
+	BillingService_AddRegistrationFee_FullMethodName     = "/billing.v1.BillingService/AddRegistrationFee"
+	BillingService_CancelInvoice_FullMethodName          = "/billing.v1.BillingService/CancelInvoice"
 )
 
 // BillingServiceClient is the client API for BillingService service.
@@ -30,6 +32,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BillingServiceClient interface {
 	GenerateInvoice(ctx context.Context, in *GenerateInvoiceRequest, opts ...grpc.CallOption) (*GenerateInvoiceResponse, error)
+	GetInvoicesByEncounter(ctx context.Context, in *GetInvoicesByEncounterRequest, opts ...grpc.CallOption) (*GetInvoicesByEncounterResponse, error)
+	GetActionPaymentStatus(ctx context.Context, in *GetActionPaymentStatusRequest, opts ...grpc.CallOption) (*GetActionPaymentStatusResponse, error)
 	PayInvoice(ctx context.Context, in *PayInvoiceRequest, opts ...grpc.CallOption) (*PayInvoiceResponse, error)
 	AddRegistrationFee(ctx context.Context, in *AddRegistrationFeeRequest, opts ...grpc.CallOption) (*AddRegistrationFeeResponse, error)
 	CancelInvoice(ctx context.Context, in *CancelInvoiceRequest, opts ...grpc.CallOption) (*CancelInvoiceResponse, error)
@@ -47,6 +51,26 @@ func (c *billingServiceClient) GenerateInvoice(ctx context.Context, in *Generate
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GenerateInvoiceResponse)
 	err := c.cc.Invoke(ctx, BillingService_GenerateInvoice_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) GetInvoicesByEncounter(ctx context.Context, in *GetInvoicesByEncounterRequest, opts ...grpc.CallOption) (*GetInvoicesByEncounterResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetInvoicesByEncounterResponse)
+	err := c.cc.Invoke(ctx, BillingService_GetInvoicesByEncounter_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *billingServiceClient) GetActionPaymentStatus(ctx context.Context, in *GetActionPaymentStatusRequest, opts ...grpc.CallOption) (*GetActionPaymentStatusResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetActionPaymentStatusResponse)
+	err := c.cc.Invoke(ctx, BillingService_GetActionPaymentStatus_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +112,8 @@ func (c *billingServiceClient) CancelInvoice(ctx context.Context, in *CancelInvo
 // for forward compatibility.
 type BillingServiceServer interface {
 	GenerateInvoice(context.Context, *GenerateInvoiceRequest) (*GenerateInvoiceResponse, error)
+	GetInvoicesByEncounter(context.Context, *GetInvoicesByEncounterRequest) (*GetInvoicesByEncounterResponse, error)
+	GetActionPaymentStatus(context.Context, *GetActionPaymentStatusRequest) (*GetActionPaymentStatusResponse, error)
 	PayInvoice(context.Context, *PayInvoiceRequest) (*PayInvoiceResponse, error)
 	AddRegistrationFee(context.Context, *AddRegistrationFeeRequest) (*AddRegistrationFeeResponse, error)
 	CancelInvoice(context.Context, *CancelInvoiceRequest) (*CancelInvoiceResponse, error)
@@ -103,6 +129,12 @@ type UnimplementedBillingServiceServer struct{}
 
 func (UnimplementedBillingServiceServer) GenerateInvoice(context.Context, *GenerateInvoiceRequest) (*GenerateInvoiceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GenerateInvoice not implemented")
+}
+func (UnimplementedBillingServiceServer) GetInvoicesByEncounter(context.Context, *GetInvoicesByEncounterRequest) (*GetInvoicesByEncounterResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetInvoicesByEncounter not implemented")
+}
+func (UnimplementedBillingServiceServer) GetActionPaymentStatus(context.Context, *GetActionPaymentStatusRequest) (*GetActionPaymentStatusResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetActionPaymentStatus not implemented")
 }
 func (UnimplementedBillingServiceServer) PayInvoice(context.Context, *PayInvoiceRequest) (*PayInvoiceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method PayInvoice not implemented")
@@ -148,6 +180,42 @@ func _BillingService_GenerateInvoice_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BillingServiceServer).GenerateInvoice(ctx, req.(*GenerateInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_GetInvoicesByEncounter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInvoicesByEncounterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).GetInvoicesByEncounter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_GetInvoicesByEncounter_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).GetInvoicesByEncounter(ctx, req.(*GetInvoicesByEncounterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _BillingService_GetActionPaymentStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetActionPaymentStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BillingServiceServer).GetActionPaymentStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: BillingService_GetActionPaymentStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BillingServiceServer).GetActionPaymentStatus(ctx, req.(*GetActionPaymentStatusRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -216,6 +284,14 @@ var BillingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GenerateInvoice",
 			Handler:    _BillingService_GenerateInvoice_Handler,
+		},
+		{
+			MethodName: "GetInvoicesByEncounter",
+			Handler:    _BillingService_GetInvoicesByEncounter_Handler,
+		},
+		{
+			MethodName: "GetActionPaymentStatus",
+			Handler:    _BillingService_GetActionPaymentStatus_Handler,
 		},
 		{
 			MethodName: "PayInvoice",

@@ -48,6 +48,63 @@ func (s *BillingGrpcServer) GenerateInvoice(ctx context.Context, req *pb.Generat
 	}, nil
 }
 
+func (s *BillingGrpcServer) GetInvoicesByEncounter(ctx context.Context, req *pb.GetInvoicesByEncounterRequest) (*pb.GetInvoicesByEncounterResponse, error) {
+	if req.EncounterNo == "" {
+		return nil, status.Error(codes.InvalidArgument, "encounter_no is required")
+	}
+	invoices, err := s.billingService.GetInvoicesByEncounter(ctx, req.EncounterNo)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get invoices: %v", err)
+	}
+
+	var res []*pb.InvoiceDetail
+	for _, inv := range invoices {
+		var items []*pb.InvoiceItem
+		for _, it := range inv.Items {
+			items = append(items, &pb.InvoiceItem{
+				ItemType:    it.ItemType,
+				Description: it.Description,
+				Amount:      it.Amount,
+			})
+		}
+		res = append(res, &pb.InvoiceDetail{
+			InvoiceId:   inv.ID,
+			EncounterNo: inv.EncounterNo,
+			TotalAmount: inv.TotalAmount,
+			Status:      inv.Status,
+			IsPaid:      inv.Status == "PAID",
+			Items:       items,
+			CreatedAt:   inv.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return &pb.GetInvoicesByEncounterResponse{
+		Success:  true,
+		Invoices: res,
+	}, nil
+}
+
+func (s *BillingGrpcServer) GetActionPaymentStatus(ctx context.Context, req *pb.GetActionPaymentStatusRequest) (*pb.GetActionPaymentStatusResponse, error) {
+	if req.EncounterNo == "" || req.ActionCode == "" {
+		return nil, status.Error(codes.InvalidArgument, "encounter_no and action_code are required")
+	}
+
+	invoiceID, invoiceStatus, isPaid, err := s.billingService.GetActionPaymentStatus(ctx, req.EncounterNo, req.ActionCode)
+	if err != nil {
+		return &pb.GetActionPaymentStatusResponse{
+			IsFound: false,
+			IsPaid:  false,
+		}, nil
+	}
+
+	return &pb.GetActionPaymentStatusResponse{
+		IsFound:       true,
+		InvoiceId:     invoiceID,
+		InvoiceStatus: invoiceStatus,
+		IsPaid:        isPaid,
+	}, nil
+}
+
 func (s *BillingGrpcServer) PayInvoice(ctx context.Context, req *pb.PayInvoiceRequest) (*pb.PayInvoiceResponse, error) {
 	if req.InvoiceId == "" {
 		return nil, status.Error(codes.InvalidArgument, "invoice_id is required")

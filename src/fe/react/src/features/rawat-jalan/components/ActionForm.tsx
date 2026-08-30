@@ -126,7 +126,7 @@ export function ActionForm({
     if (!deleteTarget || !deleteTarget.id) return;
     setIsDeleting(true);
     try {
-      await removeMedicalAction(deleteTarget.id, encounterNo);
+      await removeMedicalAction(deleteTarget.id, encounterNo, deleteTarget.action_code);
       toast.success(`Tindakan [${deleteTarget.action_name}] berhasil dihapus.`);
       setDeleteTarget(null);
       if (onSuccess) onSuccess();
