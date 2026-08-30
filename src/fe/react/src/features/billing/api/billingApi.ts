@@ -150,9 +150,12 @@ export const getBillingQueue = async (dateStr?: string): Promise<BillingPatientQ
   }
 };
 
-export const getInvoice = async (encounterNo: string): Promise<Invoice | null> => {
+export const getInvoice = async (encounterNo: string, invoiceId?: string): Promise<Invoice | null> => {
   try {
-    const { data } = await api.get<any>(`/billing/invoice/${encounterNo}`);
+    const url = invoiceId
+      ? `/billing/invoice/${encounterNo}?invoice_id=${encodeURIComponent(invoiceId)}`
+      : `/billing/invoice/${encounterNo}`;
+    const { data } = await api.get<any>(url);
     const res = data?.data;
     if (!res) return null;
 

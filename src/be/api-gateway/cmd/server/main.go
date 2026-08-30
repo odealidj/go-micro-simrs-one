@@ -4102,6 +4102,31 @@ func main() {
 						allInvoices = resAll.Invoices
 					}
 
+					invoiceID := res.InvoiceId
+					totalAmount := res.TotalAmount
+					status := res.Status
+					isPaid := res.IsPaid || res.Status == "PAID"
+					items := res.Items
+
+					reqInvoiceID := req.URL.Query().Get("invoice_id")
+					if reqInvoiceID == "" {
+						reqInvoiceID = req.URL.Query().Get("receipt_no")
+					}
+					if reqInvoiceID != "" {
+						cleanID := strings.TrimPrefix(reqInvoiceID, "KW-")
+						cleanID = strings.TrimPrefix(cleanID, "#")
+						for _, inv := range allInvoices {
+							if inv.InvoiceId == reqInvoiceID || inv.InvoiceId == cleanID || strings.TrimPrefix(inv.InvoiceId, "INV-") == cleanID {
+								invoiceID = inv.InvoiceId
+								totalAmount = inv.TotalAmount
+								status = inv.Status
+								isPaid = inv.IsPaid || inv.Status == "PAID"
+								items = inv.Items
+								break
+							}
+						}
+					}
+
 					type EnrichedInvoiceResponse struct {
 						Success     bool                       `json:"success"`
 						InvoiceId   string                     `json:"invoice_id"`
@@ -4123,16 +4148,16 @@ func main() {
 						Message: "Success",
 						Data: EnrichedInvoiceResponse{
 							Success:     res.Success,
-							InvoiceId:   res.InvoiceId,
+							InvoiceId:   invoiceID,
 							EncounterNo: encounterNo,
 							PatientName: patientName,
 							MRN:         mrn,
 							PoliName:    poliName,
 							DoctorName:  doctorName,
-							Items:       res.Items,
-							TotalAmount: res.TotalAmount,
-							Status:      res.Status,
-							IsPaid:      res.IsPaid || res.Status == "PAID",
+							Items:       items,
+							TotalAmount: totalAmount,
+							Status:      status,
+							IsPaid:      isPaid,
 							Invoices:    allInvoices,
 							Message:     res.Message,
 						},
