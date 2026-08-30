@@ -33,7 +33,22 @@ func (r *emrRepoSqlc) CreateDraft(ctx context.Context, encounterNo, mrn string) 
 		EncounterNo: encounterNo,
 		Mrn:         mrn,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Auto-populate pemeriksaan & konsultasi dokter awal dari pendaftaran
+	actionID := uuid.New().String()
+	_, _ = r.q.AddMedicalAction(ctx, db.AddMedicalActionParams{
+		ID:              actionID,
+		MedicalRecordID: id,
+		ActionCode:      "TND-001",
+		ActionName:      "Pemeriksaan & Konsultasi Dokter",
+		Price:           "50000.00",
+		Notes:           sql.NullString{String: "[Pelaksana: DOKTER] Paket Karcis / Pendaftaran Rawat Jalan", Valid: true},
+	})
+
+	return nil
 }
 
 func (r *emrRepoSqlc) StartEncounter(ctx context.Context, encounterNo string) error {
@@ -292,6 +307,22 @@ func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) 
 	dbActions, err := r.q.GetMedicalActionsByRecordID(ctx, mr.ID)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
+	}
+
+	// Auto-populate tindakan pemeriksaan & konsultasi awal jika data tindakan masih kosong
+	if len(dbActions) == 0 {
+		actionID := uuid.New().String()
+		newAct, errAdd := r.q.AddMedicalAction(ctx, db.AddMedicalActionParams{
+			ID:              actionID,
+			MedicalRecordID: mr.ID,
+			ActionCode:      "TND-001",
+			ActionName:      "Pemeriksaan & Konsultasi Dokter",
+			Price:           "50000.00",
+			Notes:           sql.NullString{String: "[Pelaksana: DOKTER] Paket Karcis / Pendaftaran Rawat Jalan", Valid: true},
+		})
+		if errAdd == nil {
+			dbActions = append(dbActions, newAct)
+		}
 	}
 
 	var actions []domain.MedicalAction

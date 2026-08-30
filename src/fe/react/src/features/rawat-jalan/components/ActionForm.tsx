@@ -304,16 +304,32 @@ export function ActionForm({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {existingActions.map((act, i) => (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-5 py-3 font-semibold text-slate-900 text-xs">{act.action_code}</td>
-                    <td className="px-5 py-3 font-medium">{act.action_name}</td>
-                    <td className="px-5 py-3 text-xs text-slate-500">{act.notes || "—"}</td>
-                    <td className="px-5 py-3 text-right font-semibold text-emerald-700">
-                      Rp {Number(act.price || 0).toLocaleString('id-ID')}
-                    </td>
-                  </tr>
-                ))}
+                {existingActions.map((act, i) => {
+                  const isRegistrationFee = 
+                    act.action_code === "TND-001" || 
+                    act.action_code === "TND-002" || 
+                    (act.notes && (act.notes.includes("Pendaftaran") || act.notes.includes("Karcis")));
+
+                  return (
+                    <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-5 py-3 font-semibold text-slate-900 text-xs">
+                        <div className="flex items-center gap-1.5">
+                          <span>{act.action_code}</span>
+                          {isRegistrationFee && (
+                            <span className="text-[10px] bg-blue-100 text-blue-800 border border-blue-200 px-1.5 py-0.5 rounded font-bold">
+                              Karcis Registrasi
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 font-medium text-slate-800">{act.action_name}</td>
+                      <td className="px-5 py-3 text-xs text-slate-500">{act.notes || "—"}</td>
+                      <td className="px-5 py-3 text-right font-semibold text-emerald-700">
+                        Rp {Number(act.price || 0).toLocaleString('id-ID')}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
