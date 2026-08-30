@@ -85,6 +85,13 @@ message SubmitTriageRequest {
   double temperature = 4;
   int32 heart_rate = 5;
   string notes = 6;
+  int32 respiratory_rate = 7;
+  int32 oxygen_saturation = 8;
+  double height = 9;
+  double weight = 10;
+  double bmi = 11;
+  string allergies = 12;
+  string mrn = 13;
 }
 
 message SubmitTriageResponse {
@@ -194,6 +201,12 @@ message TriageData {
   double temperature = 3;
   int32 heart_rate = 4;
   string notes = 5;
+  int32 respiratory_rate = 6;
+  int32 oxygen_saturation = 7;
+  double height = 8;
+  double weight = 9;
+  double bmi = 10;
+  string allergies = 11;
 }
 
 message EncounterDiagnosis {

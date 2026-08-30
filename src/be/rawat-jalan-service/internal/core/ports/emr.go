@@ -8,7 +8,7 @@ import (
 type EMRRepository interface {
 	CreateDraft(ctx context.Context, encounterNo, mrn string) error
 	StartEncounter(ctx context.Context, encounterNo string) error
-	UpdateTriage(ctx context.Context, encounterNo string, systolic, diastolic *int32, temp *float64, heartRate *int32, notes string) error
+	UpsertTriage(ctx context.Context, encounterNo, mrn string, triage domain.TriageData) error
 	AddMedicalAction(ctx context.Context, encounterNo, recordID, actionCode, actionName string, price float64, notes string) error
 	GetMedicalRecord(ctx context.Context, encounterNo string) (*domain.MedicalRecord, error)
 	EstimateWaitTime(ctx context.Context, doctorID, deptCode, gender, ageBracket string) (int64, error)
@@ -39,7 +39,7 @@ type EMRRepository interface {
 type EMRService interface {
 	CreateDraftMR(ctx context.Context, encounterNo, mrn string) error
 	StartEncounter(ctx context.Context, encounterNo string) error
-	SubmitTriage(ctx context.Context, encounterNo string, systolic, diastolic *int32, temp *float64, heartRate *int32, notes string) error
+	SubmitTriage(ctx context.Context, encounterNo, mrn string, triage domain.TriageData) error
 	AddMedicalAction(ctx context.Context, encounterNo, actionCode, actionName string, price float64, notes string) error
 	GetMedicalRecord(ctx context.Context, encounterNo string) (*domain.MedicalRecord, error)
 	EstimateWaitTime(ctx context.Context, doctorID, deptCode, gender, ageBracket string) (int64, error)

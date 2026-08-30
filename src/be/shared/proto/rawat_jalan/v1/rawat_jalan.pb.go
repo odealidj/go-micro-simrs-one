@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        v5.26.1
-// source: proto/rawat_jalan/v1/rawat_jalan.proto
+// source: src/be/shared/proto/rawat_jalan/v1/rawat_jalan.proto
 
 package rawatjalanv1
 
@@ -30,7 +30,7 @@ type StartEncounterRequest struct {
 
 func (x *StartEncounterRequest) Reset() {
 	*x = StartEncounterRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[0]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -42,7 +42,7 @@ func (x *StartEncounterRequest) String() string {
 func (*StartEncounterRequest) ProtoMessage() {}
 
 func (x *StartEncounterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[0]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +55,7 @@ func (x *StartEncounterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartEncounterRequest.ProtoReflect.Descriptor instead.
 func (*StartEncounterRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{0}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *StartEncounterRequest) GetEncounterNo() string {
@@ -75,7 +75,7 @@ type StartEncounterResponse struct {
 
 func (x *StartEncounterResponse) Reset() {
 	*x = StartEncounterResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[1]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -87,7 +87,7 @@ func (x *StartEncounterResponse) String() string {
 func (*StartEncounterResponse) ProtoMessage() {}
 
 func (x *StartEncounterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[1]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -100,7 +100,7 @@ func (x *StartEncounterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartEncounterResponse.ProtoReflect.Descriptor instead.
 func (*StartEncounterResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{1}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *StartEncounterResponse) GetSuccess() bool {
@@ -126,7 +126,7 @@ type CompleteEncounterRequest struct {
 
 func (x *CompleteEncounterRequest) Reset() {
 	*x = CompleteEncounterRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[2]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -138,7 +138,7 @@ func (x *CompleteEncounterRequest) String() string {
 func (*CompleteEncounterRequest) ProtoMessage() {}
 
 func (x *CompleteEncounterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[2]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -151,7 +151,7 @@ func (x *CompleteEncounterRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteEncounterRequest.ProtoReflect.Descriptor instead.
 func (*CompleteEncounterRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{2}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CompleteEncounterRequest) GetEncounterNo() string {
@@ -172,7 +172,7 @@ type CompleteEncounterResponse struct {
 
 func (x *CompleteEncounterResponse) Reset() {
 	*x = CompleteEncounterResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[3]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -184,7 +184,7 @@ func (x *CompleteEncounterResponse) String() string {
 func (*CompleteEncounterResponse) ProtoMessage() {}
 
 func (x *CompleteEncounterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[3]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -197,7 +197,7 @@ func (x *CompleteEncounterResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteEncounterResponse.ProtoReflect.Descriptor instead.
 func (*CompleteEncounterResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{3}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CompleteEncounterResponse) GetSuccess() bool {
@@ -233,7 +233,7 @@ type GetEstimatedWaitTimeRequest struct {
 
 func (x *GetEstimatedWaitTimeRequest) Reset() {
 	*x = GetEstimatedWaitTimeRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[4]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -245,7 +245,7 @@ func (x *GetEstimatedWaitTimeRequest) String() string {
 func (*GetEstimatedWaitTimeRequest) ProtoMessage() {}
 
 func (x *GetEstimatedWaitTimeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[4]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -258,7 +258,7 @@ func (x *GetEstimatedWaitTimeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEstimatedWaitTimeRequest.ProtoReflect.Descriptor instead.
 func (*GetEstimatedWaitTimeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{4}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetEstimatedWaitTimeRequest) GetDoctorId() string {
@@ -298,7 +298,7 @@ type GetEstimatedWaitTimeResponse struct {
 
 func (x *GetEstimatedWaitTimeResponse) Reset() {
 	*x = GetEstimatedWaitTimeResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[5]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -310,7 +310,7 @@ func (x *GetEstimatedWaitTimeResponse) String() string {
 func (*GetEstimatedWaitTimeResponse) ProtoMessage() {}
 
 func (x *GetEstimatedWaitTimeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[5]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -323,7 +323,7 @@ func (x *GetEstimatedWaitTimeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetEstimatedWaitTimeResponse.ProtoReflect.Descriptor instead.
 func (*GetEstimatedWaitTimeResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{5}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GetEstimatedWaitTimeResponse) GetEstimatedMinutes() int64 {
@@ -343,7 +343,7 @@ type FinalizeMedicalRecordRequest struct {
 
 func (x *FinalizeMedicalRecordRequest) Reset() {
 	*x = FinalizeMedicalRecordRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[6]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -355,7 +355,7 @@ func (x *FinalizeMedicalRecordRequest) String() string {
 func (*FinalizeMedicalRecordRequest) ProtoMessage() {}
 
 func (x *FinalizeMedicalRecordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[6]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -368,7 +368,7 @@ func (x *FinalizeMedicalRecordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeMedicalRecordRequest.ProtoReflect.Descriptor instead.
 func (*FinalizeMedicalRecordRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{6}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *FinalizeMedicalRecordRequest) GetEncounterNo() string {
@@ -396,7 +396,7 @@ type FinalizeMedicalRecordResponse struct {
 
 func (x *FinalizeMedicalRecordResponse) Reset() {
 	*x = FinalizeMedicalRecordResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[7]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -408,7 +408,7 @@ func (x *FinalizeMedicalRecordResponse) String() string {
 func (*FinalizeMedicalRecordResponse) ProtoMessage() {}
 
 func (x *FinalizeMedicalRecordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[7]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -421,7 +421,7 @@ func (x *FinalizeMedicalRecordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeMedicalRecordResponse.ProtoReflect.Descriptor instead.
 func (*FinalizeMedicalRecordResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{7}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *FinalizeMedicalRecordResponse) GetSuccess() bool {
@@ -453,13 +453,20 @@ type SubmitTriageRequest struct {
 	Temperature            float64                `protobuf:"fixed64,4,opt,name=temperature,proto3" json:"temperature,omitempty"`
 	HeartRate              int32                  `protobuf:"varint,5,opt,name=heart_rate,json=heartRate,proto3" json:"heart_rate,omitempty"`
 	Notes                  string                 `protobuf:"bytes,6,opt,name=notes,proto3" json:"notes,omitempty"`
+	RespiratoryRate        int32                  `protobuf:"varint,7,opt,name=respiratory_rate,json=respiratoryRate,proto3" json:"respiratory_rate,omitempty"`
+	OxygenSaturation       int32                  `protobuf:"varint,8,opt,name=oxygen_saturation,json=oxygenSaturation,proto3" json:"oxygen_saturation,omitempty"`
+	Height                 float64                `protobuf:"fixed64,9,opt,name=height,proto3" json:"height,omitempty"`
+	Weight                 float64                `protobuf:"fixed64,10,opt,name=weight,proto3" json:"weight,omitempty"`
+	Bmi                    float64                `protobuf:"fixed64,11,opt,name=bmi,proto3" json:"bmi,omitempty"`
+	Allergies              string                 `protobuf:"bytes,12,opt,name=allergies,proto3" json:"allergies,omitempty"`
+	Mrn                    string                 `protobuf:"bytes,13,opt,name=mrn,proto3" json:"mrn,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
 
 func (x *SubmitTriageRequest) Reset() {
 	*x = SubmitTriageRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[8]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -471,7 +478,7 @@ func (x *SubmitTriageRequest) String() string {
 func (*SubmitTriageRequest) ProtoMessage() {}
 
 func (x *SubmitTriageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[8]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -484,7 +491,7 @@ func (x *SubmitTriageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitTriageRequest.ProtoReflect.Descriptor instead.
 func (*SubmitTriageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{8}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *SubmitTriageRequest) GetEncounterNo() string {
@@ -529,6 +536,55 @@ func (x *SubmitTriageRequest) GetNotes() string {
 	return ""
 }
 
+func (x *SubmitTriageRequest) GetRespiratoryRate() int32 {
+	if x != nil {
+		return x.RespiratoryRate
+	}
+	return 0
+}
+
+func (x *SubmitTriageRequest) GetOxygenSaturation() int32 {
+	if x != nil {
+		return x.OxygenSaturation
+	}
+	return 0
+}
+
+func (x *SubmitTriageRequest) GetHeight() float64 {
+	if x != nil {
+		return x.Height
+	}
+	return 0
+}
+
+func (x *SubmitTriageRequest) GetWeight() float64 {
+	if x != nil {
+		return x.Weight
+	}
+	return 0
+}
+
+func (x *SubmitTriageRequest) GetBmi() float64 {
+	if x != nil {
+		return x.Bmi
+	}
+	return 0
+}
+
+func (x *SubmitTriageRequest) GetAllergies() string {
+	if x != nil {
+		return x.Allergies
+	}
+	return ""
+}
+
+func (x *SubmitTriageRequest) GetMrn() string {
+	if x != nil {
+		return x.Mrn
+	}
+	return ""
+}
+
 type SubmitTriageResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Success       bool                   `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -539,7 +595,7 @@ type SubmitTriageResponse struct {
 
 func (x *SubmitTriageResponse) Reset() {
 	*x = SubmitTriageResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[9]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -551,7 +607,7 @@ func (x *SubmitTriageResponse) String() string {
 func (*SubmitTriageResponse) ProtoMessage() {}
 
 func (x *SubmitTriageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[9]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -564,7 +620,7 @@ func (x *SubmitTriageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitTriageResponse.ProtoReflect.Descriptor instead.
 func (*SubmitTriageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{9}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *SubmitTriageResponse) GetSuccess() bool {
@@ -594,7 +650,7 @@ type AddMedicalActionRequest struct {
 
 func (x *AddMedicalActionRequest) Reset() {
 	*x = AddMedicalActionRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[10]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -606,7 +662,7 @@ func (x *AddMedicalActionRequest) String() string {
 func (*AddMedicalActionRequest) ProtoMessage() {}
 
 func (x *AddMedicalActionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[10]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -619,7 +675,7 @@ func (x *AddMedicalActionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddMedicalActionRequest.ProtoReflect.Descriptor instead.
 func (*AddMedicalActionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{10}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *AddMedicalActionRequest) GetEncounterNo() string {
@@ -667,7 +723,7 @@ type AddMedicalActionResponse struct {
 
 func (x *AddMedicalActionResponse) Reset() {
 	*x = AddMedicalActionResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[11]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -679,7 +735,7 @@ func (x *AddMedicalActionResponse) String() string {
 func (*AddMedicalActionResponse) ProtoMessage() {}
 
 func (x *AddMedicalActionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[11]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -692,7 +748,7 @@ func (x *AddMedicalActionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddMedicalActionResponse.ProtoReflect.Descriptor instead.
 func (*AddMedicalActionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{11}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *AddMedicalActionResponse) GetSuccess() bool {
@@ -727,7 +783,7 @@ type AddEncounterDiagnosisRequest struct {
 
 func (x *AddEncounterDiagnosisRequest) Reset() {
 	*x = AddEncounterDiagnosisRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[12]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -739,7 +795,7 @@ func (x *AddEncounterDiagnosisRequest) String() string {
 func (*AddEncounterDiagnosisRequest) ProtoMessage() {}
 
 func (x *AddEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[12]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -752,7 +808,7 @@ func (x *AddEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddEncounterDiagnosisRequest.ProtoReflect.Descriptor instead.
 func (*AddEncounterDiagnosisRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{12}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *AddEncounterDiagnosisRequest) GetEncounterNo() string {
@@ -836,7 +892,7 @@ type AddEncounterDiagnosisResponse struct {
 
 func (x *AddEncounterDiagnosisResponse) Reset() {
 	*x = AddEncounterDiagnosisResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[13]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -848,7 +904,7 @@ func (x *AddEncounterDiagnosisResponse) String() string {
 func (*AddEncounterDiagnosisResponse) ProtoMessage() {}
 
 func (x *AddEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[13]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -861,7 +917,7 @@ func (x *AddEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AddEncounterDiagnosisResponse.ProtoReflect.Descriptor instead.
 func (*AddEncounterDiagnosisResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{13}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *AddEncounterDiagnosisResponse) GetSuccess() bool {
@@ -898,7 +954,7 @@ type UpdateEncounterDiagnosisRequest struct {
 
 func (x *UpdateEncounterDiagnosisRequest) Reset() {
 	*x = UpdateEncounterDiagnosisRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[14]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -910,7 +966,7 @@ func (x *UpdateEncounterDiagnosisRequest) String() string {
 func (*UpdateEncounterDiagnosisRequest) ProtoMessage() {}
 
 func (x *UpdateEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[14]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -923,7 +979,7 @@ func (x *UpdateEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEncounterDiagnosisRequest.ProtoReflect.Descriptor instead.
 func (*UpdateEncounterDiagnosisRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{14}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *UpdateEncounterDiagnosisRequest) GetId() string {
@@ -971,7 +1027,7 @@ type UpdateEncounterDiagnosisResponse struct {
 
 func (x *UpdateEncounterDiagnosisResponse) Reset() {
 	*x = UpdateEncounterDiagnosisResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[15]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -983,7 +1039,7 @@ func (x *UpdateEncounterDiagnosisResponse) String() string {
 func (*UpdateEncounterDiagnosisResponse) ProtoMessage() {}
 
 func (x *UpdateEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[15]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -996,7 +1052,7 @@ func (x *UpdateEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateEncounterDiagnosisResponse.ProtoReflect.Descriptor instead.
 func (*UpdateEncounterDiagnosisResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{15}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *UpdateEncounterDiagnosisResponse) GetSuccess() bool {
@@ -1022,7 +1078,7 @@ type RemoveEncounterDiagnosisRequest struct {
 
 func (x *RemoveEncounterDiagnosisRequest) Reset() {
 	*x = RemoveEncounterDiagnosisRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[16]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1034,7 +1090,7 @@ func (x *RemoveEncounterDiagnosisRequest) String() string {
 func (*RemoveEncounterDiagnosisRequest) ProtoMessage() {}
 
 func (x *RemoveEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[16]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1047,7 +1103,7 @@ func (x *RemoveEncounterDiagnosisRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveEncounterDiagnosisRequest.ProtoReflect.Descriptor instead.
 func (*RemoveEncounterDiagnosisRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{16}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *RemoveEncounterDiagnosisRequest) GetId() string {
@@ -1067,7 +1123,7 @@ type RemoveEncounterDiagnosisResponse struct {
 
 func (x *RemoveEncounterDiagnosisResponse) Reset() {
 	*x = RemoveEncounterDiagnosisResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[17]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1079,7 +1135,7 @@ func (x *RemoveEncounterDiagnosisResponse) String() string {
 func (*RemoveEncounterDiagnosisResponse) ProtoMessage() {}
 
 func (x *RemoveEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[17]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1092,7 +1148,7 @@ func (x *RemoveEncounterDiagnosisResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RemoveEncounterDiagnosisResponse.ProtoReflect.Descriptor instead.
 func (*RemoveEncounterDiagnosisResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{17}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *RemoveEncounterDiagnosisResponse) GetSuccess() bool {
@@ -1120,7 +1176,7 @@ type FinalizeSeverityRequest struct {
 
 func (x *FinalizeSeverityRequest) Reset() {
 	*x = FinalizeSeverityRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[18]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1132,7 +1188,7 @@ func (x *FinalizeSeverityRequest) String() string {
 func (*FinalizeSeverityRequest) ProtoMessage() {}
 
 func (x *FinalizeSeverityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[18]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1145,7 +1201,7 @@ func (x *FinalizeSeverityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeSeverityRequest.ProtoReflect.Descriptor instead.
 func (*FinalizeSeverityRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{18}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *FinalizeSeverityRequest) GetEncounterNo() string {
@@ -1179,7 +1235,7 @@ type FinalizeSeverityResponse struct {
 
 func (x *FinalizeSeverityResponse) Reset() {
 	*x = FinalizeSeverityResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[19]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1191,7 +1247,7 @@ func (x *FinalizeSeverityResponse) String() string {
 func (*FinalizeSeverityResponse) ProtoMessage() {}
 
 func (x *FinalizeSeverityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[19]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1204,7 +1260,7 @@ func (x *FinalizeSeverityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FinalizeSeverityResponse.ProtoReflect.Descriptor instead.
 func (*FinalizeSeverityResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{19}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *FinalizeSeverityResponse) GetSuccess() bool {
@@ -1230,7 +1286,7 @@ type GetKBMSuggestionsForICD10Request struct {
 
 func (x *GetKBMSuggestionsForICD10Request) Reset() {
 	*x = GetKBMSuggestionsForICD10Request{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[20]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1242,7 +1298,7 @@ func (x *GetKBMSuggestionsForICD10Request) String() string {
 func (*GetKBMSuggestionsForICD10Request) ProtoMessage() {}
 
 func (x *GetKBMSuggestionsForICD10Request) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[20]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1255,7 +1311,7 @@ func (x *GetKBMSuggestionsForICD10Request) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKBMSuggestionsForICD10Request.ProtoReflect.Descriptor instead.
 func (*GetKBMSuggestionsForICD10Request) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{20}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetKBMSuggestionsForICD10Request) GetIcd10Code() string {
@@ -1277,7 +1333,7 @@ type KBMSuggestion struct {
 
 func (x *KBMSuggestion) Reset() {
 	*x = KBMSuggestion{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[21]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1289,7 +1345,7 @@ func (x *KBMSuggestion) String() string {
 func (*KBMSuggestion) ProtoMessage() {}
 
 func (x *KBMSuggestion) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[21]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1302,7 +1358,7 @@ func (x *KBMSuggestion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KBMSuggestion.ProtoReflect.Descriptor instead.
 func (*KBMSuggestion) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{21}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *KBMSuggestion) GetKbmCode() string {
@@ -1342,7 +1398,7 @@ type GetKBMSuggestionsForICD10Response struct {
 
 func (x *GetKBMSuggestionsForICD10Response) Reset() {
 	*x = GetKBMSuggestionsForICD10Response{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[22]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1354,7 +1410,7 @@ func (x *GetKBMSuggestionsForICD10Response) String() string {
 func (*GetKBMSuggestionsForICD10Response) ProtoMessage() {}
 
 func (x *GetKBMSuggestionsForICD10Response) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[22]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1367,7 +1423,7 @@ func (x *GetKBMSuggestionsForICD10Response) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetKBMSuggestionsForICD10Response.ProtoReflect.Descriptor instead.
 func (*GetKBMSuggestionsForICD10Response) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{22}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetKBMSuggestionsForICD10Response) GetSuggestions() []*KBMSuggestion {
@@ -1386,7 +1442,7 @@ type GetMedicalRecordRequest struct {
 
 func (x *GetMedicalRecordRequest) Reset() {
 	*x = GetMedicalRecordRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[23]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1398,7 +1454,7 @@ func (x *GetMedicalRecordRequest) String() string {
 func (*GetMedicalRecordRequest) ProtoMessage() {}
 
 func (x *GetMedicalRecordRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[23]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1411,7 +1467,7 @@ func (x *GetMedicalRecordRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMedicalRecordRequest.ProtoReflect.Descriptor instead.
 func (*GetMedicalRecordRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{23}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetMedicalRecordRequest) GetEncounterNo() string {
@@ -1432,7 +1488,7 @@ type MedicalAction struct {
 
 func (x *MedicalAction) Reset() {
 	*x = MedicalAction{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[24]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1444,7 +1500,7 @@ func (x *MedicalAction) String() string {
 func (*MedicalAction) ProtoMessage() {}
 
 func (x *MedicalAction) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[24]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1457,7 +1513,7 @@ func (x *MedicalAction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MedicalAction.ProtoReflect.Descriptor instead.
 func (*MedicalAction) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{24}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *MedicalAction) GetActionCode() string {
@@ -1488,13 +1544,19 @@ type TriageData struct {
 	Temperature            float64                `protobuf:"fixed64,3,opt,name=temperature,proto3" json:"temperature,omitempty"`
 	HeartRate              int32                  `protobuf:"varint,4,opt,name=heart_rate,json=heartRate,proto3" json:"heart_rate,omitempty"`
 	Notes                  string                 `protobuf:"bytes,5,opt,name=notes,proto3" json:"notes,omitempty"`
+	RespiratoryRate        int32                  `protobuf:"varint,6,opt,name=respiratory_rate,json=respiratoryRate,proto3" json:"respiratory_rate,omitempty"`
+	OxygenSaturation       int32                  `protobuf:"varint,7,opt,name=oxygen_saturation,json=oxygenSaturation,proto3" json:"oxygen_saturation,omitempty"`
+	Height                 float64                `protobuf:"fixed64,8,opt,name=height,proto3" json:"height,omitempty"`
+	Weight                 float64                `protobuf:"fixed64,9,opt,name=weight,proto3" json:"weight,omitempty"`
+	Bmi                    float64                `protobuf:"fixed64,10,opt,name=bmi,proto3" json:"bmi,omitempty"`
+	Allergies              string                 `protobuf:"bytes,11,opt,name=allergies,proto3" json:"allergies,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
 
 func (x *TriageData) Reset() {
 	*x = TriageData{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[25]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1506,7 +1568,7 @@ func (x *TriageData) String() string {
 func (*TriageData) ProtoMessage() {}
 
 func (x *TriageData) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[25]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1519,7 +1581,7 @@ func (x *TriageData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TriageData.ProtoReflect.Descriptor instead.
 func (*TriageData) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{25}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *TriageData) GetBloodPressureSystolic() int32 {
@@ -1557,6 +1619,48 @@ func (x *TriageData) GetNotes() string {
 	return ""
 }
 
+func (x *TriageData) GetRespiratoryRate() int32 {
+	if x != nil {
+		return x.RespiratoryRate
+	}
+	return 0
+}
+
+func (x *TriageData) GetOxygenSaturation() int32 {
+	if x != nil {
+		return x.OxygenSaturation
+	}
+	return 0
+}
+
+func (x *TriageData) GetHeight() float64 {
+	if x != nil {
+		return x.Height
+	}
+	return 0
+}
+
+func (x *TriageData) GetWeight() float64 {
+	if x != nil {
+		return x.Weight
+	}
+	return 0
+}
+
+func (x *TriageData) GetBmi() float64 {
+	if x != nil {
+		return x.Bmi
+	}
+	return 0
+}
+
+func (x *TriageData) GetAllergies() string {
+	if x != nil {
+		return x.Allergies
+	}
+	return ""
+}
+
 type EncounterDiagnosis struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	Id                   string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1578,7 +1682,7 @@ type EncounterDiagnosis struct {
 
 func (x *EncounterDiagnosis) Reset() {
 	*x = EncounterDiagnosis{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[26]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1590,7 +1694,7 @@ func (x *EncounterDiagnosis) String() string {
 func (*EncounterDiagnosis) ProtoMessage() {}
 
 func (x *EncounterDiagnosis) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[26]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1603,7 +1707,7 @@ func (x *EncounterDiagnosis) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EncounterDiagnosis.ProtoReflect.Descriptor instead.
 func (*EncounterDiagnosis) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{26}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *EncounterDiagnosis) GetId() string {
@@ -1714,7 +1818,7 @@ type ClinicalChecklist struct {
 
 func (x *ClinicalChecklist) Reset() {
 	*x = ClinicalChecklist{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[27]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1726,7 +1830,7 @@ func (x *ClinicalChecklist) String() string {
 func (*ClinicalChecklist) ProtoMessage() {}
 
 func (x *ClinicalChecklist) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[27]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1739,7 +1843,7 @@ func (x *ClinicalChecklist) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClinicalChecklist.ProtoReflect.Descriptor instead.
 func (*ClinicalChecklist) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{27}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ClinicalChecklist) GetTriageCompleted() bool {
@@ -1822,7 +1926,7 @@ type GetMedicalRecordResponse struct {
 
 func (x *GetMedicalRecordResponse) Reset() {
 	*x = GetMedicalRecordResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[28]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1834,7 +1938,7 @@ func (x *GetMedicalRecordResponse) String() string {
 func (*GetMedicalRecordResponse) ProtoMessage() {}
 
 func (x *GetMedicalRecordResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[28]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1847,7 +1951,7 @@ func (x *GetMedicalRecordResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMedicalRecordResponse.ProtoReflect.Descriptor instead.
 func (*GetMedicalRecordResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{28}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetMedicalRecordResponse) GetEncounterNo() string {
@@ -1926,7 +2030,7 @@ type MasterTindakan struct {
 
 func (x *MasterTindakan) Reset() {
 	*x = MasterTindakan{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[29]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1938,7 +2042,7 @@ func (x *MasterTindakan) String() string {
 func (*MasterTindakan) ProtoMessage() {}
 
 func (x *MasterTindakan) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[29]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1951,7 +2055,7 @@ func (x *MasterTindakan) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MasterTindakan.ProtoReflect.Descriptor instead.
 func (*MasterTindakan) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{29}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *MasterTindakan) GetKodeTindakan() string {
@@ -2002,7 +2106,7 @@ type GetMasterTindakanByPoliRequest struct {
 
 func (x *GetMasterTindakanByPoliRequest) Reset() {
 	*x = GetMasterTindakanByPoliRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[30]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2014,7 +2118,7 @@ func (x *GetMasterTindakanByPoliRequest) String() string {
 func (*GetMasterTindakanByPoliRequest) ProtoMessage() {}
 
 func (x *GetMasterTindakanByPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[30]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2027,7 +2131,7 @@ func (x *GetMasterTindakanByPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterTindakanByPoliRequest.ProtoReflect.Descriptor instead.
 func (*GetMasterTindakanByPoliRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{30}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *GetMasterTindakanByPoliRequest) GetPage() int32 {
@@ -2075,7 +2179,7 @@ type GetMasterTindakanByPoliResponse struct {
 
 func (x *GetMasterTindakanByPoliResponse) Reset() {
 	*x = GetMasterTindakanByPoliResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[31]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2087,7 +2191,7 @@ func (x *GetMasterTindakanByPoliResponse) String() string {
 func (*GetMasterTindakanByPoliResponse) ProtoMessage() {}
 
 func (x *GetMasterTindakanByPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[31]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2100,7 +2204,7 @@ func (x *GetMasterTindakanByPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterTindakanByPoliResponse.ProtoReflect.Descriptor instead.
 func (*GetMasterTindakanByPoliResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{31}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *GetMasterTindakanByPoliResponse) GetData() []*MasterTindakan {
@@ -2134,7 +2238,7 @@ type MasterICD10 struct {
 
 func (x *MasterICD10) Reset() {
 	*x = MasterICD10{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[32]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2146,7 +2250,7 @@ func (x *MasterICD10) String() string {
 func (*MasterICD10) ProtoMessage() {}
 
 func (x *MasterICD10) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[32]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2159,7 +2263,7 @@ func (x *MasterICD10) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MasterICD10.ProtoReflect.Descriptor instead.
 func (*MasterICD10) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{32}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *MasterICD10) GetIcd10Code() string {
@@ -2238,7 +2342,7 @@ type GetMasterICD10ByPoliRequest struct {
 
 func (x *GetMasterICD10ByPoliRequest) Reset() {
 	*x = GetMasterICD10ByPoliRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[33]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2250,7 +2354,7 @@ func (x *GetMasterICD10ByPoliRequest) String() string {
 func (*GetMasterICD10ByPoliRequest) ProtoMessage() {}
 
 func (x *GetMasterICD10ByPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[33]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2263,7 +2367,7 @@ func (x *GetMasterICD10ByPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterICD10ByPoliRequest.ProtoReflect.Descriptor instead.
 func (*GetMasterICD10ByPoliRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{33}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *GetMasterICD10ByPoliRequest) GetPage() int32 {
@@ -2311,7 +2415,7 @@ type GetMasterICD10ByPoliResponse struct {
 
 func (x *GetMasterICD10ByPoliResponse) Reset() {
 	*x = GetMasterICD10ByPoliResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[34]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2323,7 +2427,7 @@ func (x *GetMasterICD10ByPoliResponse) String() string {
 func (*GetMasterICD10ByPoliResponse) ProtoMessage() {}
 
 func (x *GetMasterICD10ByPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[34]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2336,7 +2440,7 @@ func (x *GetMasterICD10ByPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterICD10ByPoliResponse.ProtoReflect.Descriptor instead.
 func (*GetMasterICD10ByPoliResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{34}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *GetMasterICD10ByPoliResponse) GetData() []*MasterICD10 {
@@ -2367,7 +2471,7 @@ type KBMItem struct {
 
 func (x *KBMItem) Reset() {
 	*x = KBMItem{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[35]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2379,7 +2483,7 @@ func (x *KBMItem) String() string {
 func (*KBMItem) ProtoMessage() {}
 
 func (x *KBMItem) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[35]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2392,7 +2496,7 @@ func (x *KBMItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KBMItem.ProtoReflect.Descriptor instead.
 func (*KBMItem) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{35}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *KBMItem) GetKbmCode() string {
@@ -2450,7 +2554,7 @@ type GetMasterKBMsByPoliRequest struct {
 
 func (x *GetMasterKBMsByPoliRequest) Reset() {
 	*x = GetMasterKBMsByPoliRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[36]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2462,7 +2566,7 @@ func (x *GetMasterKBMsByPoliRequest) String() string {
 func (*GetMasterKBMsByPoliRequest) ProtoMessage() {}
 
 func (x *GetMasterKBMsByPoliRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[36]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2475,7 +2579,7 @@ func (x *GetMasterKBMsByPoliRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterKBMsByPoliRequest.ProtoReflect.Descriptor instead.
 func (*GetMasterKBMsByPoliRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{36}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GetMasterKBMsByPoliRequest) GetPage() int32 {
@@ -2523,7 +2627,7 @@ type GetMasterKBMsByPoliResponse struct {
 
 func (x *GetMasterKBMsByPoliResponse) Reset() {
 	*x = GetMasterKBMsByPoliResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[37]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2535,7 +2639,7 @@ func (x *GetMasterKBMsByPoliResponse) String() string {
 func (*GetMasterKBMsByPoliResponse) ProtoMessage() {}
 
 func (x *GetMasterKBMsByPoliResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[37]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2548,7 +2652,7 @@ func (x *GetMasterKBMsByPoliResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMasterKBMsByPoliResponse.ProtoReflect.Descriptor instead.
 func (*GetMasterKBMsByPoliResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{37}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *GetMasterKBMsByPoliResponse) GetData() []*KBMItem {
@@ -2578,7 +2682,7 @@ type SearchKBMRequest struct {
 
 func (x *SearchKBMRequest) Reset() {
 	*x = SearchKBMRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[38]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2590,7 +2694,7 @@ func (x *SearchKBMRequest) String() string {
 func (*SearchKBMRequest) ProtoMessage() {}
 
 func (x *SearchKBMRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[38]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2603,7 +2707,7 @@ func (x *SearchKBMRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchKBMRequest.ProtoReflect.Descriptor instead.
 func (*SearchKBMRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{38}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *SearchKBMRequest) GetQuery() string {
@@ -2651,7 +2755,7 @@ type SearchKBMResponse struct {
 
 func (x *SearchKBMResponse) Reset() {
 	*x = SearchKBMResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[39]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2663,7 +2767,7 @@ func (x *SearchKBMResponse) String() string {
 func (*SearchKBMResponse) ProtoMessage() {}
 
 func (x *SearchKBMResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[39]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2676,7 +2780,7 @@ func (x *SearchKBMResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SearchKBMResponse.ProtoReflect.Descriptor instead.
 func (*SearchKBMResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{39}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *SearchKBMResponse) GetItems() []*KBMItem {
@@ -2702,7 +2806,7 @@ type GetKBMDetailRequest struct {
 
 func (x *GetKBMDetailRequest) Reset() {
 	*x = GetKBMDetailRequest{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[40]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2714,7 +2818,7 @@ func (x *GetKBMDetailRequest) String() string {
 func (*GetKBMDetailRequest) ProtoMessage() {}
 
 func (x *GetKBMDetailRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[40]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2727,7 +2831,7 @@ func (x *GetKBMDetailRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKBMDetailRequest.ProtoReflect.Descriptor instead.
 func (*GetKBMDetailRequest) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{40}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *GetKBMDetailRequest) GetKbmCode() string {
@@ -2746,7 +2850,7 @@ type GetKBMDetailResponse struct {
 
 func (x *GetKBMDetailResponse) Reset() {
 	*x = GetKBMDetailResponse{}
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[41]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2758,7 +2862,7 @@ func (x *GetKBMDetailResponse) String() string {
 func (*GetKBMDetailResponse) ProtoMessage() {}
 
 func (x *GetKBMDetailResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[41]
+	mi := &file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2771,7 +2875,7 @@ func (x *GetKBMDetailResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetKBMDetailResponse.ProtoReflect.Descriptor instead.
 func (*GetKBMDetailResponse) Descriptor() ([]byte, []int) {
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{41}
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *GetKBMDetailResponse) GetItem() *KBMItem {
@@ -2781,11 +2885,11 @@ func (x *GetKBMDetailResponse) GetItem() *KBMItem {
 	return nil
 }
 
-var File_proto_rawat_jalan_v1_rawat_jalan_proto protoreflect.FileDescriptor
+var File_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto protoreflect.FileDescriptor
 
-const file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc = "" +
+const file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc = "" +
 	"\n" +
-	"&proto/rawat_jalan/v1/rawat_jalan.proto\x12\x0erawat_jalan.v1\":\n" +
+	"4src/be/shared/proto/rawat_jalan/v1/rawat_jalan.proto\x12\x0erawat_jalan.v1\":\n" +
 	"\x15StartEncounterRequest\x12!\n" +
 	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\"L\n" +
 	"\x16StartEncounterResponse\x12\x18\n" +
@@ -2811,7 +2915,7 @@ const file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc = "" +
 	"\x1dFinalizeMedicalRecordResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12+\n" +
-	"\x11validation_errors\x18\x03 \x03(\tR\x10validationErrors\"\x81\x02\n" +
+	"\x11validation_errors\x18\x03 \x03(\tR\x10validationErrors\"\xcb\x03\n" +
 	"\x13SubmitTriageRequest\x12!\n" +
 	"\fencounter_no\x18\x01 \x01(\tR\vencounterNo\x126\n" +
 	"\x17blood_pressure_systolic\x18\x02 \x01(\x05R\x15bloodPressureSystolic\x128\n" +
@@ -2819,7 +2923,15 @@ const file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc = "" +
 	"\vtemperature\x18\x04 \x01(\x01R\vtemperature\x12\x1d\n" +
 	"\n" +
 	"heart_rate\x18\x05 \x01(\x05R\theartRate\x12\x14\n" +
-	"\x05notes\x18\x06 \x01(\tR\x05notes\"J\n" +
+	"\x05notes\x18\x06 \x01(\tR\x05notes\x12)\n" +
+	"\x10respiratory_rate\x18\a \x01(\x05R\x0frespiratoryRate\x12+\n" +
+	"\x11oxygen_saturation\x18\b \x01(\x05R\x10oxygenSaturation\x12\x16\n" +
+	"\x06height\x18\t \x01(\x01R\x06height\x12\x16\n" +
+	"\x06weight\x18\n" +
+	" \x01(\x01R\x06weight\x12\x10\n" +
+	"\x03bmi\x18\v \x01(\x01R\x03bmi\x12\x1c\n" +
+	"\tallergies\x18\f \x01(\tR\tallergies\x12\x10\n" +
+	"\x03mrn\x18\r \x01(\tR\x03mrn\"J\n" +
 	"\x14SubmitTriageResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\"\xaa\x01\n" +
@@ -2891,7 +3003,7 @@ const file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc = "" +
 	"actionCode\x12\x1f\n" +
 	"\vaction_name\x18\x02 \x01(\tR\n" +
 	"actionName\x12\x14\n" +
-	"\x05price\x18\x03 \x01(\x01R\x05price\"\xd5\x01\n" +
+	"\x05price\x18\x03 \x01(\x01R\x05price\"\x8d\x03\n" +
 	"\n" +
 	"TriageData\x126\n" +
 	"\x17blood_pressure_systolic\x18\x01 \x01(\x05R\x15bloodPressureSystolic\x128\n" +
@@ -2899,7 +3011,14 @@ const file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc = "" +
 	"\vtemperature\x18\x03 \x01(\x01R\vtemperature\x12\x1d\n" +
 	"\n" +
 	"heart_rate\x18\x04 \x01(\x05R\theartRate\x12\x14\n" +
-	"\x05notes\x18\x05 \x01(\tR\x05notes\"\xe9\x03\n" +
+	"\x05notes\x18\x05 \x01(\tR\x05notes\x12)\n" +
+	"\x10respiratory_rate\x18\x06 \x01(\x05R\x0frespiratoryRate\x12+\n" +
+	"\x11oxygen_saturation\x18\a \x01(\x05R\x10oxygenSaturation\x12\x16\n" +
+	"\x06height\x18\b \x01(\x01R\x06height\x12\x16\n" +
+	"\x06weight\x18\t \x01(\x01R\x06weight\x12\x10\n" +
+	"\x03bmi\x18\n" +
+	" \x01(\x01R\x03bmi\x12\x1c\n" +
+	"\tallergies\x18\v \x01(\tR\tallergies\"\xe9\x03\n" +
 	"\x12EncounterDiagnosis\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -3038,19 +3157,19 @@ const file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc = "" +
 	"\fGetKBMDetail\x12#.rawat_jalan.v1.GetKBMDetailRequest\x1a$.rawat_jalan.v1.GetKBMDetailResponseBOZMgithub.com/aliube/go-micro-simrs-one/shared/proto/rawat_jalan/v1;rawatjalanv1b\x06proto3"
 
 var (
-	file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescOnce sync.Once
-	file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescData []byte
+	file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescOnce sync.Once
+	file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescData []byte
 )
 
-func file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP() []byte {
-	file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescOnce.Do(func() {
-		file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc), len(file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc)))
+func file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP() []byte {
+	file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescOnce.Do(func() {
+		file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc), len(file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc)))
 	})
-	return file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescData
+	return file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDescData
 }
 
-var file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
-var file_proto_rawat_jalan_v1_rawat_jalan_proto_goTypes = []any{
+var file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes = make([]protoimpl.MessageInfo, 42)
+var file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_goTypes = []any{
 	(*StartEncounterRequest)(nil),             // 0: rawat_jalan.v1.StartEncounterRequest
 	(*StartEncounterResponse)(nil),            // 1: rawat_jalan.v1.StartEncounterResponse
 	(*CompleteEncounterRequest)(nil),          // 2: rawat_jalan.v1.CompleteEncounterRequest
@@ -3094,7 +3213,7 @@ var file_proto_rawat_jalan_v1_rawat_jalan_proto_goTypes = []any{
 	(*GetKBMDetailRequest)(nil),               // 40: rawat_jalan.v1.GetKBMDetailRequest
 	(*GetKBMDetailResponse)(nil),              // 41: rawat_jalan.v1.GetKBMDetailResponse
 }
-var file_proto_rawat_jalan_v1_rawat_jalan_proto_depIdxs = []int32{
+var file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_depIdxs = []int32{
 	27, // 0: rawat_jalan.v1.CompleteEncounterResponse.checklist:type_name -> rawat_jalan.v1.ClinicalChecklist
 	26, // 1: rawat_jalan.v1.AddEncounterDiagnosisResponse.data:type_name -> rawat_jalan.v1.EncounterDiagnosis
 	21, // 2: rawat_jalan.v1.GetKBMSuggestionsForICD10Response.suggestions:type_name -> rawat_jalan.v1.KBMSuggestion
@@ -3148,26 +3267,26 @@ var file_proto_rawat_jalan_v1_rawat_jalan_proto_depIdxs = []int32{
 	0,  // [0:12] is the sub-list for field type_name
 }
 
-func init() { file_proto_rawat_jalan_v1_rawat_jalan_proto_init() }
-func file_proto_rawat_jalan_v1_rawat_jalan_proto_init() {
-	if File_proto_rawat_jalan_v1_rawat_jalan_proto != nil {
+func init() { file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_init() }
+func file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_init() {
+	if File_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc), len(file_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc), len(file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   42,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_proto_rawat_jalan_v1_rawat_jalan_proto_goTypes,
-		DependencyIndexes: file_proto_rawat_jalan_v1_rawat_jalan_proto_depIdxs,
-		MessageInfos:      file_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes,
+		GoTypes:           file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_goTypes,
+		DependencyIndexes: file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_depIdxs,
+		MessageInfos:      file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_msgTypes,
 	}.Build()
-	File_proto_rawat_jalan_v1_rawat_jalan_proto = out.File
-	file_proto_rawat_jalan_v1_rawat_jalan_proto_goTypes = nil
-	file_proto_rawat_jalan_v1_rawat_jalan_proto_depIdxs = nil
+	File_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto = out.File
+	file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_goTypes = nil
+	file_src_be_shared_proto_rawat_jalan_v1_rawat_jalan_proto_depIdxs = nil
 }

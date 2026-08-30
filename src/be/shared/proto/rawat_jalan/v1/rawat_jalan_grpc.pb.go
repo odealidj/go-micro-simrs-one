@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             v5.26.1
-// source: proto/rawat_jalan/v1/rawat_jalan.proto
+// source: src/be/shared/proto/rawat_jalan/v1/rawat_jalan.proto
 
 package rawatjalanv1
 
@@ -735,5 +735,5 @@ var RawatJalanService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/rawat_jalan/v1/rawat_jalan.proto",
+	Metadata: "src/be/shared/proto/rawat_jalan/v1/rawat_jalan.proto",
 }

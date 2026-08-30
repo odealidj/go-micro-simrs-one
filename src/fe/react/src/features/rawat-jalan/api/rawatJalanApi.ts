@@ -62,6 +62,12 @@ export const submitTriage = async (
     blood_pressure_diastolic: triageData.blood_pressure_diastolic,
     temperature: triageData.temperature,
     heart_rate: triageData.heart_rate,
+    respiratory_rate: triageData.respiratory_rate,
+    oxygen_saturation: triageData.oxygen_saturation,
+    height: triageData.height,
+    weight: triageData.weight,
+    bmi: triageData.bmi,
+    allergies: triageData.allergies,
     notes: triageData.notes,
   });
 };

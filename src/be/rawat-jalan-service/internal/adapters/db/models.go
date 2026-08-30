@@ -138,6 +138,14 @@ type KbmPolyclinicMapping struct {
 	DeletedBy      uuid.NullUUID
 }
 
+type MasterEmrStatus struct {
+	Code        string
+	Name        string
+	Description sql.NullString
+	IsTerminal  sql.NullBool
+	CreatedAt   sql.NullTime
+}
+
 type MasterTindakan struct {
 	KodeTindakan     string
 	NamaTindakan     string
@@ -186,6 +194,12 @@ type MedicalRecord struct {
 	EncounterSeverityLevel sql.NullString
 	SeverityFinalizedBy    sql.NullString
 	SeverityFinalizedAt    sql.NullTime
+	RespiratoryRate        sql.NullInt32
+	OxygenSaturation       sql.NullInt32
+	Height                 sql.NullString
+	Weight                 sql.NullString
+	Bmi                    sql.NullString
+	Allergies              sql.NullString
 }
 
 type OutboxEvent struct {

@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/aliube/go-micro-simrs-one/rawat-jalan-service/internal/adapters/db"
+	"github.com/aliube/go-micro-simrs-one/rawat-jalan-service/internal/core/domain"
 	"github.com/aliube/go-micro-simrs-one/rawat-jalan-service/internal/core/ports"
 	pb "github.com/aliube/go-micro-simrs-one/shared/proto/rawat_jalan/v1"
 )
@@ -60,25 +61,44 @@ func (s *RawatJalanGrpcServer) GetMedicalRecord(ctx context.Context, req *pb.Get
 	}
 
 	var triage *pb.TriageData
-	if mr.Triage.BloodPressureSystolic != nil {
-		sys := *mr.Triage.BloodPressureSystolic
-		dia := int32(0)
-		if mr.Triage.BloodPressureDiastolic != nil {
-			dia = *mr.Triage.BloodPressureDiastolic
-		}
-		hr := int32(0)
-		if mr.Triage.HeartRate != nil {
-			hr = *mr.Triage.HeartRate
-		}
-		temp := float64(0)
-		if mr.Triage.Temperature != nil {
-			temp = *mr.Triage.Temperature
-		}
+	hasTriageData := mr.Triage.BloodPressureSystolic != nil ||
+		mr.Triage.BloodPressureDiastolic != nil ||
+		mr.Triage.HeartRate != nil ||
+		mr.Triage.Temperature != nil ||
+		mr.Triage.RespiratoryRate != nil ||
+		mr.Triage.OxygenSaturation != nil ||
+		mr.Triage.Height != nil ||
+		mr.Triage.Weight != nil ||
+		mr.Triage.BMI != nil ||
+		mr.Triage.Allergies != "" ||
+		mr.Triage.Notes != ""
+
+	if hasTriageData {
+		var sys, dia, hr, resp, spo2 int32
+		if mr.Triage.BloodPressureSystolic != nil { sys = *mr.Triage.BloodPressureSystolic }
+		if mr.Triage.BloodPressureDiastolic != nil { dia = *mr.Triage.BloodPressureDiastolic }
+		if mr.Triage.HeartRate != nil { hr = *mr.Triage.HeartRate }
+		if mr.Triage.RespiratoryRate != nil { resp = *mr.Triage.RespiratoryRate }
+		if mr.Triage.OxygenSaturation != nil { spo2 = *mr.Triage.OxygenSaturation }
+
+		var temp, h, w, bmi float64
+		if mr.Triage.Temperature != nil { temp = *mr.Triage.Temperature }
+		if mr.Triage.Height != nil { h = *mr.Triage.Height }
+		if mr.Triage.Weight != nil { w = *mr.Triage.Weight }
+		if mr.Triage.BMI != nil { bmi = *mr.Triage.BMI }
+
 		triage = &pb.TriageData{
 			BloodPressureSystolic:  sys,
 			BloodPressureDiastolic: dia,
 			Temperature:            temp,
 			HeartRate:              hr,
+			RespiratoryRate:        resp,
+			OxygenSaturation:       spo2,
+			Height:                 h,
+			Weight:                 w,
+			Bmi:                    bmi,
+			Allergies:              mr.Triage.Allergies,
+			Notes:                  mr.Triage.Notes,
 		}
 	}
 
@@ -168,7 +188,34 @@ func (s *RawatJalanGrpcServer) FinalizeMedicalRecord(ctx context.Context, req *p
 // ─── 2. Triage (Perawat) ───────────────────────────────────────────────────────
 
 func (s *RawatJalanGrpcServer) SubmitTriage(ctx context.Context, req *pb.SubmitTriageRequest) (*pb.SubmitTriageResponse, error) {
-	err := s.emrService.SubmitTriage(ctx, req.EncounterNo, &req.BloodPressureSystolic, &req.BloodPressureDiastolic, &req.Temperature, &req.HeartRate, req.Notes)
+	var sys, dia, hr, resp, spo2 *int32
+	if req.BloodPressureSystolic > 0 { sys = &req.BloodPressureSystolic }
+	if req.BloodPressureDiastolic > 0 { dia = &req.BloodPressureDiastolic }
+	if req.HeartRate > 0 { hr = &req.HeartRate }
+	if req.RespiratoryRate > 0 { resp = &req.RespiratoryRate }
+	if req.OxygenSaturation > 0 { spo2 = &req.OxygenSaturation }
+
+	var temp, h, w, bmi *float64
+	if req.Temperature > 0 { temp = &req.Temperature }
+	if req.Height > 0 { h = &req.Height }
+	if req.Weight > 0 { w = &req.Weight }
+	if req.Bmi > 0 { bmi = &req.Bmi }
+
+	triageData := domain.TriageData{
+		BloodPressureSystolic:  sys,
+		BloodPressureDiastolic: dia,
+		Temperature:            temp,
+		HeartRate:              hr,
+		RespiratoryRate:        resp,
+		OxygenSaturation:       spo2,
+		Height:                 h,
+		Weight:                 w,
+		BMI:                    bmi,
+		Allergies:              req.Allergies,
+		Notes:                  req.Notes,
+	}
+
+	err := s.emrService.SubmitTriage(ctx, req.EncounterNo, req.Mrn, triageData)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to submit triage: %v", err)
 	}

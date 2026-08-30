@@ -17,6 +17,13 @@ type TriageData struct {
 	BloodPressureDiastolic *int32
 	Temperature            *float64 // using float64 to map to numeric
 	HeartRate              *int32
+	RespiratoryRate        *int32
+	OxygenSaturation       *int32
+	Height                 *float64
+	Weight                 *float64
+	BMI                    *float64
+	Allergies              string
+	Notes                  string
 }
 
 type ClinicalChecklist struct {

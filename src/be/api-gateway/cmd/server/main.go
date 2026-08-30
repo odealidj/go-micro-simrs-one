@@ -3037,6 +3037,14 @@ func main() {
 						response.HandleGRPCError(w, err)
 						return
 					}
+
+					_, _ = circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.UpdateEncounterStatusResponse, error) {
+						return regClient.UpdateEncounterStatus(req.Context(), &regpb.UpdateEncounterStatusRequest{
+							EncounterNo: payload.EncounterNo,
+							Status:      "IN_PROGRESS",
+						})
+					})
+
 					response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
 				})
 
