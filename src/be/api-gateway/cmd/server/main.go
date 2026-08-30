@@ -4008,8 +4008,10 @@ func main() {
 							paymentStatus = "UNPAID"
 						}
 
-						// Only keep patients who actually need to make a payment
-						if !includeAll {
+						onlyUnpaid := req.URL.Query().Get("only_unpaid") == "true" || req.URL.Query().Get("unpaid_only") == "true"
+
+						// Only keep patients who actually need to make a payment unless includeAll is requested
+						if onlyUnpaid || !includeAll {
 							if enc.Status == "CANCELLED" || enc.Status == "BATAL" || !hasUnpaid || unpaidAmount <= 0 {
 								continue
 							}

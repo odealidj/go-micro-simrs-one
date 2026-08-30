@@ -152,7 +152,7 @@ export function KasirDashboard() {
     else setLoading(true);
     try {
       const [queueRes, reportRes] = await Promise.all([
-        getBillingQueue(),
+        getBillingQueue(undefined, true),
         getRevenueReport({ date: "TODAY" }),
       ]);
       setQueue(queueRes);
@@ -172,15 +172,40 @@ export function KasirDashboard() {
   }, []);
 
   const pendingList = useMemo(() => {
-    return queue.filter(
-      (item) => item.has_unpaid || item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED" || item.status === "MENUNGGU"
-    );
+    return queue.filter((item) => {
+      const isCancelled = item.status === "CANCELLED" || item.status === "BATAL" || item.payment_status === "CANCELLED";
+      if (isCancelled) return false;
+      const isUnpaid = Boolean(item.has_unpaid || item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED" || item.status === "MENUNGGU");
+      const hasUnpaidAmount = item.unpaid_amount === undefined || item.unpaid_amount > 0;
+      return isUnpaid && hasUnpaidAmount;
+    });
   }, [queue]);
 
   const paidList = useMemo(() => {
-    return queue.filter(
-      (item) => !item.has_unpaid && item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED" && item.status !== "BATAL" && item.payment_status !== "CANCELLED"
-    );
+    return queue.filter((item) => {
+      const isCancelled = item.status === "CANCELLED" || item.status === "BATAL" || item.payment_status === "CANCELLED";
+      if (isCancelled) return false;
+      return !item.has_unpaid && item.payment_status !== "UNPAID" && (item.unpaid_amount === undefined || item.unpaid_amount === 0);
+    });
+  }, [queue]);
+
+  // Total pelunasan / kwitansi lunas yang sudah diterbitkan kasir hari ini (bisa multiple invoice/kwitansi per encounter)
+  const paidCount = useMemo(() => {
+    if (revenueData?.metrics?.total_transactions !== undefined && revenueData.metrics.total_transactions > 0) {
+      return revenueData.metrics.total_transactions;
+    }
+    if (revenueData?.transactions && revenueData.transactions.length > 0) {
+      return revenueData.transactions.length;
+    }
+    return paidList.length;
+  }, [revenueData, paidList]);
+
+  // Total nomor registrasi / kunjungan rawat jalan aktif hari ini yang tidak batal
+  const totalRegisteredCount = useMemo(() => {
+    return queue.filter((item) => {
+      const isCancelled = item.status === "CANCELLED" || item.status === "BATAL" || item.payment_status === "CANCELLED";
+      return !isCancelled;
+    }).length;
   }, [queue]);
 
   const totalRevenue = useMemo(() => {
@@ -315,7 +340,7 @@ export function KasirDashboard() {
         <StatCard
           label="Menunggu Pembayaran"
           value={loading ? "..." : `${pendingList.length} Pasien`}
-          sub="Prioritas kasir untuk ditagihkan"
+          sub="Sesuai daftar Antrean Tagihan"
           badgeText="Prioritas Kasir"
           badgeColor="bg-amber-50 text-amber-800 border-amber-200 font-bold"
           icon={Clock}
@@ -326,8 +351,8 @@ export function KasirDashboard() {
         />
         <StatCard
           label="Lunas Hari Ini"
-          value={loading ? "..." : `${paidList.length} Pasien`}
-          sub="Telah diteruskan ke Poliklinik"
+          value={loading ? "..." : `${paidCount} Pelunasan`}
+          sub={`${paidCount} kwitansi lunas terverifikasi`}
           badgeText="Selesai Ditagih"
           badgeColor="bg-emerald-50 text-emerald-800 border-emerald-200 font-bold"
           icon={CheckCircle2}
@@ -337,8 +362,8 @@ export function KasirDashboard() {
         />
         <StatCard
           label="Total Pasien Terdaftar"
-          value={loading ? "..." : `${queue.length} Pasien`}
-          sub="Kunjungan rawat jalan hari ini"
+          value={loading ? "..." : `${totalRegisteredCount} Pasien`}
+          sub="Registrasi rawat jalan aktif hari ini"
           badgeText="Registrasi Hari Ini"
           badgeColor="bg-sky-50 text-sky-800 border-sky-200 font-bold"
           icon={TrendingUp}
@@ -352,7 +377,7 @@ export function KasirDashboard() {
           sub={
             revenueData?.metrics
               ? `${revenueData.metrics.total_transactions} transaksi lunas terverifikasi`
-              : `${paidList.length} transaksi selesai`
+              : `${paidCount} transaksi selesai`
           }
           badgeText="Kas Masuk Riil"
           badgeColor="bg-purple-50 text-purple-800 border-purple-200 font-bold"

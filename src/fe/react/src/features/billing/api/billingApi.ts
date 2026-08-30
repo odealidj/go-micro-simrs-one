@@ -75,9 +75,13 @@ export interface PayInvoiceRequest {
   amount_paid: number;
 }
 
-export const getBillingQueue = async (dateStr?: string): Promise<BillingPatientQueueItem[]> => {
+export const getBillingQueue = async (dateStr?: string, includeAll?: boolean): Promise<BillingPatientQueueItem[]> => {
   try {
-    const url = dateStr ? `/billing/queue?date=${dateStr}` : "/billing/queue";
+    const params = new URLSearchParams();
+    if (dateStr) params.append("date", dateStr);
+    if (includeAll) params.append("all", "true");
+    const qs = params.toString();
+    const url = qs ? `/billing/queue?${qs}` : "/billing/queue";
     const { data } = await api.get<any>(url);
     let rawList: any[] = [];
     if (Array.isArray(data?.data)) {
