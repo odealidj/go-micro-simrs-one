@@ -13,11 +13,14 @@ type BillingRepository interface {
 	CreateInvoiceItem(ctx context.Context, item *domain.InvoiceItem) error
 	UpdateInvoiceAmount(ctx context.Context, id string, amount float64) error
 	UpdateInvoiceStatus(ctx context.Context, id, status string) error
+	SoftDeleteInvoiceItemByPattern(ctx context.Context, invoiceID, pattern string) error
+	RecalculateInvoiceTotal(ctx context.Context, invoiceID string) error
 	CreateOutboxEvent(ctx context.Context, eventID, aggregateType, eventType, payload string) error
 }
 
 type BillingService interface {
 	AddActionItem(ctx context.Context, encounterNo, actionCode, description string, amount float64) error
+	RemoveActionItem(ctx context.Context, encounterNo, actionCode string) error
 	AddMedicineItem(ctx context.Context, encounterNo, prescriptionID string, amount float64) error
 	AddRegistrationFee(ctx context.Context, encounterNo, departmentCode string, amount float64) (string, error)
 	

@@ -51,3 +51,18 @@ ORDER BY created_at ASC LIMIT 100;
 UPDATE outbox_events
 SET status = $2
 WHERE id = $1;
+
+-- name: SoftDeleteInvoiceItemByPattern :exec
+UPDATE invoice_items
+SET deleted_dt = CURRENT_TIMESTAMP
+WHERE invoice_id = $1 AND description LIKE $2 AND deleted_dt IS NULL;
+
+-- name: RecalculateInvoiceTotal :one
+UPDATE invoices
+SET total_amount = (
+    SELECT COALESCE(SUM(amount), 0)
+    FROM invoice_items
+    WHERE invoice_id = $1 AND deleted_dt IS NULL
+)
+WHERE id = $1 AND deleted_dt IS NULL
+RETURNING *;

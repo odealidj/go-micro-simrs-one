@@ -126,6 +126,18 @@ func (r *billingRepoSqlc) UpdateInvoiceStatus(ctx context.Context, id, status st
 	return err
 }
 
+func (r *billingRepoSqlc) SoftDeleteInvoiceItemByPattern(ctx context.Context, invoiceID, pattern string) error {
+	return r.q.SoftDeleteInvoiceItemByPattern(ctx, db.SoftDeleteInvoiceItemByPatternParams{
+		InvoiceID:   invoiceID,
+		Description: pattern,
+	})
+}
+
+func (r *billingRepoSqlc) RecalculateInvoiceTotal(ctx context.Context, invoiceID string) error {
+	_, err := r.q.RecalculateInvoiceTotal(ctx, invoiceID)
+	return err
+}
+
 func (r *billingRepoSqlc) CreateOutboxEvent(ctx context.Context, eventID, aggregateType, eventType, payload string) error {
 	_, err := r.q.CreateOutboxEvent(ctx, db.CreateOutboxEventParams{
 		ID:            eventID,
