@@ -23,6 +23,7 @@ export interface Invoice {
   discount?: number;
   total_amount: number;
   status: string;
+  is_paid?: boolean;
   created_at?: string;
 }
 
@@ -103,6 +104,7 @@ export const getInvoice = async (encounterNo: string): Promise<Invoice | null> =
       items: items,
       total_amount: totalAmount,
       status: res.status || (totalAmount > 0 ? "UNPAID" : "UNPAID"),
+      is_paid: Boolean(res.is_paid || res.status === "PAID"),
       created_at: res.created_at || new Date().toISOString(),
     };
   } catch (error) {

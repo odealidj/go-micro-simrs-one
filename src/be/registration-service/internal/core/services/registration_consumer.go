@@ -49,11 +49,12 @@ func (c *RegistrationConsumer) HandleInvoiceEvent(ctx context.Context, msg redis
 		slog.Info("Handling InvoicePaid event", "encounter_no", encounterNo)
 		return c.registrationService.UpdatePaymentStatus(ctx, encounterNo, "PAID")
 	
+	case "InvoiceUnpaid":
+		slog.Info("Handling InvoiceUnpaid event", "encounter_no", encounterNo)
+		return c.registrationService.UpdatePaymentStatus(ctx, encounterNo, "UNPAID")
+
 	case "InvoiceCancelled":
 		slog.Info("Handling InvoiceCancelled event", "encounter_no", encounterNo)
-		// Usually handled internally or we cancel the registration as well. The rule:
-		// Pasien UMUM belum bayar jangan di hitung -> This means we can mark PaymentStatus as CANCELLED or just leave it.
-		// For now we can update payment status to CANCELLED.
 		return c.registrationService.UpdatePaymentStatus(ctx, encounterNo, "CANCELLED")
 
 	default:
