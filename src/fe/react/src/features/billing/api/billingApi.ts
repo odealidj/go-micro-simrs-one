@@ -59,6 +59,13 @@ export interface BillingPatientQueueItem {
   status: string;
   status_pasien?: string;
   registered_time: string;
+  payment_status?: string;
+  has_unpaid?: boolean;
+  total_amount?: number;
+  paid_amount?: number;
+  unpaid_amount?: number;
+  active_invoice_id?: string;
+  invoices?: InvoiceDetail[];
   estimated_amount?: number;
 }
 
@@ -70,13 +77,15 @@ export interface PayInvoiceRequest {
 
 export const getBillingQueue = async (dateStr?: string): Promise<BillingPatientQueueItem[]> => {
   try {
-    const url = dateStr ? `/registrations/today?date=${dateStr}` : "/registrations/today";
+    const url = dateStr ? `/billing/queue?date=${dateStr}` : "/billing/queue";
     const { data } = await api.get<any>(url);
     let rawList: any[] = [];
     if (Array.isArray(data?.data)) {
       rawList = data.data;
     } else if (Array.isArray(data?.data?.encounters)) {
       rawList = data.data.encounters;
+    } else if (Array.isArray(data?.data?.queue)) {
+      rawList = data.data.queue;
     }
 
     return rawList.map((e: any) => ({
@@ -90,10 +99,54 @@ export const getBillingQueue = async (dateStr?: string): Promise<BillingPatientQ
       status: e.status || "WAITING_FOR_PAYMENT",
       status_pasien: e.status_pasien || e.guarantor || "Umum",
       registered_time: e.registered_time || "",
+      payment_status: e.payment_status || (e.status === "WAITING_FOR_PAYMENT" ? "UNPAID" : "PAID"),
+      has_unpaid: Boolean(e.has_unpaid ?? (e.status === "WAITING_FOR_PAYMENT" || e.status === "REGISTERED")),
+      total_amount: Number(e.total_amount ?? 50000),
+      paid_amount: Number(e.paid_amount ?? 0),
+      unpaid_amount: Number(e.unpaid_amount ?? (e.has_unpaid ? 50000 : 0)),
+      active_invoice_id: e.active_invoice_id || "",
+      invoices: Array.isArray(e.invoices)
+        ? e.invoices.map((inv: any) => ({
+            invoice_id: inv.invoice_id || inv.InvoiceId,
+            encounter_no: inv.encounter_no || inv.EncounterNo || e.encounter_no,
+            total_amount: Number(inv.total_amount || inv.TotalAmount || 0),
+            status: inv.status || inv.Status || "UNPAID",
+            is_paid: Boolean(inv.is_paid || inv.IsPaid || inv.status === "PAID"),
+            items: (inv.items || inv.Items || []).map((it: any) => ({
+              item_type: it.item_type || it.ItemType || "ACTION",
+              description: it.description || it.Description || "Layanan",
+              amount: Number(it.amount || it.Amount || 0),
+              quantity: 1,
+              total: Number(it.amount || it.Amount || 0),
+              category: it.item_type || it.ItemType || "Layanan",
+            })),
+            created_at: inv.created_at || inv.CreatedAt || new Date().toISOString(),
+          }))
+        : [],
     }));
   } catch (error) {
-    console.error("Failed to load billing queue", error);
-    return [];
+    console.error("Failed to load billing queue from /billing/queue", error);
+    // Fallback to /registrations/today if error
+    try {
+      const regUrl = dateStr ? `/registrations/today?date=${dateStr}` : "/registrations/today";
+      const { data } = await api.get<any>(regUrl);
+      const list = Array.isArray(data?.data) ? data.data : data?.data?.encounters || [];
+      return list.map((e: any) => ({
+        encounter_no: e.encounter_no,
+        mrn: e.mrn || e.patient_mrn || "-",
+        patient_name: e.patient_name || e.name || e.mrn,
+        gender: e.gender || e.patient_gender || "-",
+        date_of_birth: e.date_of_birth || e.patient_birthdate || e.dob || "-",
+        department_code: e.department_code || "-",
+        doctor_id: e.doctor_id || "-",
+        status: e.status || "WAITING_FOR_PAYMENT",
+        status_pasien: e.status_pasien || e.guarantor || "Umum",
+        registered_time: e.registered_time || "",
+        has_unpaid: e.status === "WAITING_FOR_PAYMENT" || e.status === "REGISTERED",
+      }));
+    } catch {
+      return [];
+    }
   }
 };
 

@@ -37,7 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { KasirPageHeader } from "../components/KasirPageHeader";
-import { kasirTheme, getKasirStatusBadge, formatRupiah } from "../theme";
+import { kasirTheme, formatRupiah } from "../theme";
 import { cn } from "@/lib/utils";
 
 function formatGender(gender?: string) {
@@ -130,17 +130,17 @@ export function BillingQueuePage() {
   }, []);
 
   const countUnpaid = useMemo(() => {
-    return queue.filter((item) => item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED").length;
+    return queue.filter((item) => item.has_unpaid || item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED").length;
   }, [queue]);
 
   const countPaid = useMemo(() => {
     return queue.filter(
-      (item) => item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED" && item.status !== "BATAL"
+      (item) => !item.has_unpaid && item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED" && item.status !== "BATAL" && item.payment_status !== "CANCELLED"
     ).length;
   }, [queue]);
 
   const countCancelled = useMemo(() => {
-    return queue.filter((item) => item.status === "CANCELLED" || item.status === "BATAL").length;
+    return queue.filter((item) => item.status === "CANCELLED" || item.status === "BATAL" || item.payment_status === "CANCELLED").length;
   }, [queue]);
 
   const filteredQueue = useMemo(() => {
@@ -154,11 +154,11 @@ export function BillingQueuePage() {
         item.department_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
         deptName.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const isUnpaid = item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED";
-      const isCancelled = item.status === "CANCELLED" || item.status === "BATAL";
+      const isUnpaid = Boolean(item.has_unpaid || item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED");
+      const isCancelled = item.status === "CANCELLED" || item.status === "BATAL" || item.payment_status === "CANCELLED";
       const matchesStatus =
         statusFilter === "ALL" ||
-        (statusFilter === "UNPAID" && isUnpaid) ||
+        (statusFilter === "UNPAID" && isUnpaid && !isCancelled) ||
         (statusFilter === "PAID" && !isUnpaid && !isCancelled) ||
         (statusFilter === "CANCELLED" && isCancelled);
 
@@ -341,13 +341,18 @@ export function BillingQueuePage() {
                 </TableRow>
               ) : paginatedData.length > 0 ? (
                 paginatedData.map((item, idx) => {
-                  const statusInfo = getKasirStatusBadge(item.status);
-                  const isUnpaid = item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED";
-                  const isCancelled = item.status === "CANCELLED" || item.status === "BATAL";
+                  const isUnpaid = Boolean(item.has_unpaid || item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED");
+                  const isCancelled = item.status === "CANCELLED" || item.status === "BATAL" || item.payment_status === "CANCELLED";
                   const age = calculateAge(item.date_of_birth);
                   const gender = formatGender(item.gender);
                   const regTime = formatRegistrationTime(item.registered_time);
                   const dept = getDepartmentName(item.department_code);
+
+                  const displayAmount = isCancelled
+                    ? 0
+                    : isUnpaid
+                    ? (item.unpaid_amount || item.total_amount || 50000)
+                    : (item.total_amount || 50000);
 
                   return (
                     <TableRow key={idx} className="hover:bg-amber-50/30 transition-colors border-b border-slate-100/80">
@@ -391,24 +396,48 @@ export function BillingQueuePage() {
                         </div>
                       </TableCell>
 
-                      {/* Total Biaya */}
+                      {/* Total Biaya / Tagihan Belum Lunas */}
                       <TableCell className="py-3 px-4 font-bold text-xs text-slate-900">
                         {isCancelled ? (
                           <div className="flex flex-col">
-                            <span className="line-through text-slate-400 font-medium">{formatRupiah(50000)}</span>
+                            <span className="line-through text-slate-400 font-medium">{formatRupiah(item.total_amount || 50000)}</span>
                             <span className="text-[10px] text-rose-500 font-bold tracking-tight">Dibatalkan</span>
                           </div>
+                        ) : isUnpaid ? (
+                          <div className="flex flex-col">
+                            <span className="text-amber-700 font-extrabold">{formatRupiah(displayAmount)}</span>
+                            {item.paid_amount && item.paid_amount > 0 ? (
+                              <span className="text-[10px] text-slate-500 font-normal">Sudah bayar: {formatRupiah(item.paid_amount)}</span>
+                            ) : null}
+                          </div>
                         ) : (
-                          formatRupiah(50000)
+                          <div className="flex flex-col">
+                            <span className="text-emerald-700 font-bold">{formatRupiah(displayAmount)}</span>
+                            <span className="text-[10px] text-emerald-600 font-medium">Lunas</span>
+                          </div>
                         )}
                       </TableCell>
 
                       {/* Status Pembayaran */}
                       <TableCell className="py-3 px-4">
-                        <span className={cn(kasirTheme.typography.pill, statusInfo.className)}>
-                          <span className={cn("h-1.5 w-1.5 rounded-full", statusInfo.dotClass)} />
-                          {statusInfo.label}
-                        </span>
+                        {isCancelled ? (
+                          <span className={cn(kasirTheme.typography.pill, "bg-slate-100 text-slate-600 border-slate-200")}>
+                            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                            Dibatalkan
+                          </span>
+                        ) : isUnpaid ? (
+                          <span className={cn(kasirTheme.typography.pill, "bg-amber-50 text-amber-800 border-amber-200/80 shadow-2xs")}>
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            {item.status === "IN_PROGRESS" || item.status === "COMPLETED" || (item.invoices && item.invoices.length > 1)
+                              ? "Tindakan Belum Bayar"
+                              : "Menunggu Bayar"}
+                          </span>
+                        ) : (
+                          <span className={cn(kasirTheme.typography.pill, "bg-emerald-50 text-emerald-800 border-emerald-200/80")}>
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            Lunas
+                          </span>
+                        )}
                       </TableCell>
 
                       {/* Aksi */}
@@ -568,7 +597,7 @@ export function BillingQueuePage() {
 
       {/* Rincian Tagihan Modal */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className={kasirTheme.layout.modalContent}>
+        <DialogContent className={cn(kasirTheme.layout.modalContent, "max-w-3xl")}>
           <DialogHeader className="p-6 bg-gradient-to-r from-slate-900 to-slate-800 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -577,7 +606,7 @@ export function BillingQueuePage() {
                 </div>
                 <div>
                   <DialogTitle className="text-lg font-bold text-white tracking-tight">
-                    Rincian Tagihan Pasien
+                    Rincian & Status Tagihan Pasien
                   </DialogTitle>
                   <p className="text-xs text-slate-300 mt-0.5 font-mono">
                     Encounter: #{selectedItem?.encounter_no}
@@ -589,7 +618,7 @@ export function BillingQueuePage() {
 
           <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
             {/* Alert Banner if Cancelled */}
-            {selectedItem && (selectedItem.status === "CANCELLED" || selectedItem.status === "BATAL") && (
+            {selectedItem && (selectedItem.status === "CANCELLED" || selectedItem.status === "BATAL" || selectedItem.payment_status === "CANCELLED") && (
               <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-start gap-3 shadow-2xs">
                 <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
                 <div className="text-xs space-y-1">
@@ -625,60 +654,140 @@ export function BillingQueuePage() {
               </div>
             </div>
 
-            {/* Invoice Breakdown List */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Daftar Biaya Pelayanan
+            {/* Invoice Breakdown List - Supporting Multi-Invoices (e.g. Karcis + Tindakan Poli) */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                <span>Daftar Faktur & Rincian Layanan</span>
+                {invoiceDetail?.invoices && invoiceDetail.invoices.length > 1 && (
+                  <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                    {invoiceDetail.invoices.length} Faktur Tagihan
+                  </span>
+                )}
               </h3>
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
-                <Table>
-                  <TableHeader className="bg-slate-50">
-                    <TableRow>
-                      <TableHead className="text-xs font-bold py-2.5">Uraian / Layanan</TableHead>
-                      <TableHead className="text-xs font-bold py-2.5 w-[100px] text-center">Kategori</TableHead>
-                      <TableHead className="text-xs font-bold py-2.5 w-[140px] text-right">Tarif (Rp)</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loadingDetail ? (
+
+              {loadingDetail ? (
+                <div className="py-12 text-center text-slate-400 border border-slate-200 rounded-xl bg-slate-50/50">
+                  <RefreshCw className="h-6 w-6 animate-spin text-amber-600 mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-slate-600">Memuat seluruh rincian tagihan faktur...</p>
+                </div>
+              ) : invoiceDetail?.invoices && invoiceDetail.invoices.length > 0 ? (
+                <div className="space-y-3">
+                  {invoiceDetail.invoices.map((inv, invIdx) => {
+                    const isInvPaid = Boolean(inv.is_paid || inv.status === "PAID");
+                    const isRegInv = inv.invoice_id.startsWith("INV-REG") || invIdx === 0;
+
+                    return (
+                      <div key={invIdx} className="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                        {/* Invoice Header */}
+                        <div className="p-3 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between flex-wrap gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-bold text-slate-800 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                              #{inv.invoice_id}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-600">
+                              {isRegInv ? "Karcis Pendaftaran & Konsultasi" : "Tindakan Medis Rawat Jalan"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {isInvPaid ? (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                                Lunas
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1">
+                                <Clock className="h-3 w-3 text-amber-600" />
+                                Belum Dibayar
+                              </span>
+                            )}
+                            <span className="text-xs font-extrabold text-slate-900 ml-1">
+                              {formatRupiah(inv.total_amount)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Items Table */}
+                        <Table>
+                          <TableHeader className="bg-slate-50/50">
+                            <TableRow>
+                              <TableHead className="text-[11px] font-bold py-2">Uraian Layanan</TableHead>
+                              <TableHead className="text-[11px] font-bold py-2 w-[100px] text-center">Kategori</TableHead>
+                              <TableHead className="text-[11px] font-bold py-2 w-[130px] text-right">Tarif (Rp)</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {inv.items && inv.items.length > 0 ? (
+                              inv.items.map((it, i) => (
+                                <TableRow key={i} className="border-b border-slate-100 text-xs">
+                                  <TableCell className="font-medium text-slate-800 py-2.5">{it.description}</TableCell>
+                                  <TableCell className="text-center py-2.5">
+                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                                      {it.item_type || "Tindakan"}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell className="text-right font-bold text-slate-900 py-2.5">
+                                    {formatRupiah(it.amount)}
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            ) : (
+                              <TableRow>
+                                <TableCell colSpan={3} className="text-center text-slate-400 py-3 text-xs">
+                                  Tidak ada item tercatat
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-slate-50">
                       <TableRow>
-                        <TableCell colSpan={3} className="py-8 text-center text-xs text-slate-400">
-                          Memuat rincian tarif...
-                        </TableCell>
+                        <TableHead className="text-xs font-bold py-2.5">Uraian / Layanan</TableHead>
+                        <TableHead className="text-xs font-bold py-2.5 w-[100px] text-center">Kategori</TableHead>
+                        <TableHead className="text-xs font-bold py-2.5 w-[140px] text-right">Tarif (Rp)</TableHead>
                       </TableRow>
-                    ) : invoiceDetail?.items && invoiceDetail.items.length > 0 ? (
-                      invoiceDetail.items.map((it, i) => (
-                        <TableRow key={i} className="border-b border-slate-100 text-xs">
-                          <TableCell className="font-medium text-slate-800 py-3">{it.description}</TableCell>
+                    </TableHeader>
+                    <TableBody>
+                      {invoiceDetail?.items && invoiceDetail.items.length > 0 ? (
+                        invoiceDetail.items.map((it, i) => (
+                          <TableRow key={i} className="border-b border-slate-100 text-xs">
+                            <TableCell className="font-medium text-slate-800 py-3">{it.description}</TableCell>
+                            <TableCell className="text-center py-3">
+                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                                {it.item_type || "Tindakan"}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-slate-900 py-3">
+                              {formatRupiah(it.amount)}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell className="font-medium text-slate-800 py-3">Pemeriksaan Dokter & Pelayanan Poli</TableCell>
                           <TableCell className="text-center py-3">
                             <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                              {it.item_type || "Tindakan"}
+                              Tindakan
                             </span>
                           </TableCell>
                           <TableCell className="text-right font-bold text-slate-900 py-3">
-                            {formatRupiah(it.amount)}
+                            {formatRupiah(50000)}
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell className="font-medium text-slate-800 py-3">Pemeriksaan Dokter & Pelayanan Poli</TableCell>
-                        <TableCell className="text-center py-3">
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                            Tindakan
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-slate-900 py-3">
-                          {formatRupiah(50000)}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
 
               {/* Total Clean Strip */}
-              {selectedItem && (selectedItem.status === "CANCELLED" || selectedItem.status === "BATAL") ? (
+              {selectedItem && (selectedItem.status === "CANCELLED" || selectedItem.status === "BATAL" || selectedItem.payment_status === "CANCELLED") ? (
                 <div className="p-4 rounded-xl bg-rose-50/90 border border-rose-200 flex items-center justify-between">
                   <div>
                     <p className="text-xs font-bold text-rose-900">Status Tagihan: Dibatalkan</p>
@@ -686,7 +795,7 @@ export function BillingQueuePage() {
                   </div>
                   <div className="text-right">
                     <span className="text-xs line-through text-slate-400 block font-medium">
-                      {formatRupiah(invoiceDetail?.total_amount || 50000)}
+                      {formatRupiah(selectedItem?.total_amount || invoiceDetail?.total_amount || 50000)}
                     </span>
                     <span className="text-xl font-extrabold text-rose-700 tracking-tight">
                       Rp 0 (Batal)
@@ -694,15 +803,31 @@ export function BillingQueuePage() {
                   </div>
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200/80 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-bold text-amber-900">Total Tagihan Bersih</p>
-                    <p className="text-[11px] text-amber-700 mt-0.5">Biaya yang harus dilunasi pasien di loket kasir</p>
-                  </div>
-                  <p className="text-xl font-extrabold text-amber-900 tracking-tight">
-                    {formatRupiah(invoiceDetail?.total_amount || 50000)}
-                  </p>
-                </div>
+                (() => {
+                  const multiInvs = invoiceDetail?.invoices && invoiceDetail.invoices.length > 0 ? invoiceDetail.invoices : null;
+                  const total = multiInvs ? multiInvs.reduce((acc, inv) => acc + inv.total_amount, 0) : (invoiceDetail?.total_amount || selectedItem?.total_amount || 50000);
+                  const paid = multiInvs ? multiInvs.filter((inv) => inv.is_paid || inv.status === "PAID").reduce((acc, inv) => acc + inv.total_amount, 0) : (selectedItem?.paid_amount || (selectedItem?.has_unpaid ? 0 : total));
+                  const unpaid = multiInvs ? multiInvs.filter((inv) => !inv.is_paid && inv.status !== "PAID").reduce((acc, inv) => acc + inv.total_amount, 0) : (selectedItem?.unpaid_amount || (selectedItem?.has_unpaid ? total : 0));
+
+                  return (
+                    <div className="p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold text-amber-950">Ringkasan Kewajiban Pembayaran</p>
+                        <p className="text-[11px] text-slate-600">
+                          Total Layanan: <strong>{formatRupiah(total)}</strong> • Sudah Lunas: <strong className="text-emerald-700">{formatRupiah(paid)}</strong>
+                        </p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <span className="text-[10px] uppercase font-bold text-amber-800 tracking-wider block">
+                          Sisa Tagihan Belum Dibayar
+                        </span>
+                        <p className="text-xl font-extrabold text-amber-900 tracking-tight">
+                          {formatRupiah(unpaid)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()
               )}
             </div>
           </div>
@@ -717,17 +842,40 @@ export function BillingQueuePage() {
             >
               Tutup
             </Button>
-            {selectedItem && (selectedItem.status === "WAITING_FOR_PAYMENT" || selectedItem.status === "REGISTERED") && (
-              <Button
-                onClick={() => {
-                  setIsDetailOpen(false);
-                  navigate(`/kasir/bayar/${selectedItem.encounter_no}`);
-                }}
-                className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-9 px-5 rounded-xl shadow-sm gap-2"
-              >
-                <CreditCard className="h-4 w-4" />
-                Lanjutkan ke Pembayaran
-              </Button>
+            {selectedItem && (selectedItem.status !== "CANCELLED" && selectedItem.status !== "BATAL" && selectedItem.payment_status !== "CANCELLED") && (
+              (() => {
+                const multiInvs = invoiceDetail?.invoices && invoiceDetail.invoices.length > 0 ? invoiceDetail.invoices : null;
+                const unpaid = multiInvs ? multiInvs.filter((inv) => !inv.is_paid && inv.status !== "PAID").reduce((acc, inv) => acc + inv.total_amount, 0) : (selectedItem?.unpaid_amount || (selectedItem?.has_unpaid ? 50000 : 0));
+                const canPay = unpaid > 0 || Boolean(selectedItem.has_unpaid) || selectedItem.status === "WAITING_FOR_PAYMENT" || selectedItem.status === "REGISTERED";
+
+                if (!canPay) {
+                  return (
+                    <Button
+                      onClick={() => {
+                        setIsDetailOpen(false);
+                        navigate("/kasir/riwayat-pembayaran");
+                      }}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 px-5 rounded-xl shadow-sm gap-2"
+                    >
+                      <Printer className="h-4 w-4" />
+                      Cetak Struk / Riwayat
+                    </Button>
+                  );
+                }
+
+                return (
+                  <Button
+                    onClick={() => {
+                      setIsDetailOpen(false);
+                      navigate(`/kasir/bayar/${selectedItem.encounter_no}`);
+                    }}
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs h-9 px-5 rounded-xl shadow-sm shadow-amber-500/20 gap-2"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    Lanjutkan ke Pembayaran ({formatRupiah(unpaid > 0 ? unpaid : 50000)})
+                  </Button>
+                );
+              })()
             )}
           </div>
         </DialogContent>
