@@ -653,45 +653,55 @@ export function DiagnosisForm({
         </div>
       )}
 
-      {/* ─── SECTION 3: ADD / EDIT DIAGNOSIS FORM WITH MULTI-MODE FILTER ─── */}
+      {/* ─── MODAL DIALOG: ENTRI / EDIT DIAGNOSIS ─── */}
       {!readOnly && hasTriage && isFormOpen && (
-        <form
-          onSubmit={handleSubmit}
-          className="p-5 border border-indigo-100 bg-gradient-to-b from-indigo-50/40 via-white to-slate-50/50 rounded-2xl space-y-5 shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200"
-        >
-          <div className="flex items-center justify-between pb-3 border-b border-indigo-100/70">
-            <h4 className="text-sm font-bold text-indigo-950 flex items-center gap-2">
-              {isEditing ? <Edit2 className="h-4 w-4 text-indigo-600" /> : <Plus className="h-4 w-4 text-indigo-600" />}
-              {isEditing
-                ? `Edit Diagnosa [${selectedIcd10?.code || ""}]`
-                : diagnosisType === "PRIMARY"
-                ? "Entri Diagnosa Utama (Primary Diagnosis)"
-                : "Entri Diagnosa Sekunder / Komorbiditas"}
-            </h4>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200"
+          >
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-indigo-50/50 via-white to-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-100 text-indigo-700 rounded-2xl shadow-2xs">
+                  {isEditing ? <Edit2 className="h-5 w-5" /> : <Stethoscope className="h-5 w-5" />}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-slate-900 text-base">
+                      {isEditing
+                        ? `Edit Diagnosa [${selectedIcd10?.code || ""}]`
+                        : diagnosisType === "PRIMARY"
+                        ? "Entri Diagnosa Utama (Primary Diagnosis)"
+                        : "Entri Diagnosa Sekunder / Komorbiditas"}
+                    </h3>
+                    {isEditing && (
+                      <span className="text-[10px] bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full font-bold">
+                        Mode Edit
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Pencarian multi-mode: ICD-10, SNOMED-CT SATUSEHAT & KBM INA-CBGs
+                  </p>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-2">
-              {isEditing && (
-                <span className="text-xs bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full font-semibold">
-                  Sedang Mode Edit
-                </span>
-              )}
-              {diagnoses.length > 0 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    resetForm();
-                    setIsFormOpen(false);
-                  }}
-                  className="h-8 px-2.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100 gap-1 rounded-lg cursor-pointer"
-                >
-                  <X className="h-4 w-4" />
-                  Tutup Form
-                </Button>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  resetForm();
+                  setIsFormOpen(false);
+                }}
+                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+                title="Tutup Modal"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          </div>
+
+            {/* Modal Body (Scrollable) */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
           {/* Search Filter Tabs */}
           {!isEditing && (
@@ -1032,48 +1042,45 @@ export function DiagnosisForm({
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
-            {isEditing ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  resetForm();
-                  setIsFormOpen(false);
-                }}
-                className="bg-white"
-              >
-                Batal Edit
-              </Button>
-            ) : diagnoses.length > 0 ? (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  resetForm();
-                  setIsFormOpen(false);
-                }}
-                className="bg-white"
-              >
-                Batal
-              </Button>
-            ) : null}
-            <Button
-              type="submit"
-              disabled={loading || !selectedIcd10}
-              className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 h-11 rounded-xl shadow-xs cursor-pointer"
-            >
-              <Save className="h-4 w-4" />
-              {loading
-                ? "Menyimpan..."
-                : isEditing
-                ? "Simpan Perubahan"
-                : diagnosisType === "PRIMARY"
-                ? "Simpan Sebagai Diagnosa Utama"
-                : "Tambahkan Diagnosa Sekunder"}
-            </Button>
-          </div>
-        </form>
+            </div>
+
+            {/* Modal Footer (Sticky Bottom) */}
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+              <div className="text-xs text-slate-500 hidden sm:flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Auto-Mapping SATUSEHAT & INA-CBGs Aktif</span>
+              </div>
+
+              <div className="flex items-center gap-2.5 ml-auto sm:ml-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    resetForm();
+                    setIsFormOpen(false);
+                  }}
+                  className="bg-white rounded-xl h-10 px-4 text-xs font-semibold cursor-pointer"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={loading || !selectedIcd10}
+                  className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 h-10 rounded-xl shadow-xs cursor-pointer text-xs"
+                >
+                  <Save className="h-4 w-4" />
+                  {loading
+                    ? "Menyimpan..."
+                    : isEditing
+                    ? "Simpan Perubahan"
+                    : diagnosisType === "PRIMARY"
+                    ? "Simpan Sebagai Diagnosa Utama"
+                    : "Tambahkan Diagnosa Sekunder"}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </div>
       )}
 
 
