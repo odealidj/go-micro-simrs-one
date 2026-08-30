@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { submitTriage } from "../api/rawatJalanApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import type { TriageData } from "../types";
 import {
   HeartPulse,
@@ -142,10 +143,13 @@ export function TriageForm({
         bmi: bmiCalc?.score,
       });
       setSuccess(true);
+      toast.success("Asesmen Triage berhasil disimpan");
       if (onSuccess) onSuccess();
       return true;
     } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || "Gagal menyimpan data triage");
+      const msg = err?.response?.data?.message || err.message || "Gagal menyimpan data triage";
+      setError(msg);
+      toast.error(msg);
       return false;
     } finally {
       setLoading(false);

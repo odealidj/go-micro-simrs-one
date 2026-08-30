@@ -70,10 +70,16 @@ export function EncounterPage() {
 
   const hasTriage = !!(
     record?.triage &&
-    record.triage.blood_pressure_systolic &&
-    record.triage.blood_pressure_diastolic &&
-    record.triage.temperature &&
-    record.triage.heart_rate
+    (record.triage.blood_pressure_systolic ||
+     record.triage.blood_pressure_diastolic ||
+     record.triage.temperature ||
+     record.triage.heart_rate ||
+     record.triage.respiratory_rate ||
+     record.triage.oxygen_saturation ||
+     record.triage.height ||
+     record.triage.weight ||
+     record.triage.allergies ||
+     record.triage.notes)
   );
 
   // If Asesmen Triage is still empty in DB and user hasn't clicked "Mulai Sesi" in this session,
@@ -92,7 +98,13 @@ export function EncounterPage() {
       data.blood_pressure_systolic?.trim() ||
       data.blood_pressure_diastolic?.trim() ||
       data.temperature?.trim() ||
-      data.heart_rate?.trim()
+      data.heart_rate?.trim() ||
+      data.respiratory_rate?.trim() ||
+      data.oxygen_saturation?.trim() ||
+      data.height?.trim() ||
+      data.weight?.trim() ||
+      data.allergies?.trim() ||
+      data.notes?.trim()
     );
   };
 

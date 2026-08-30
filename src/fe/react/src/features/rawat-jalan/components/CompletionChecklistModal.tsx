@@ -43,10 +43,12 @@ export function CompletionChecklistModal({
   // Validation rules
   const hasTriage = !!(
     record?.triage &&
-    record.triage.blood_pressure_systolic &&
-    record.triage.blood_pressure_diastolic &&
-    record.triage.temperature &&
-    record.triage.heart_rate
+    (record.triage.blood_pressure_systolic ||
+     record.triage.blood_pressure_diastolic ||
+     record.triage.temperature ||
+     record.triage.heart_rate ||
+     record.triage.respiratory_rate ||
+     record.triage.notes)
   );
 
   const hasDiagnosis = !!(record?.diagnoses && record.diagnoses.length > 0);

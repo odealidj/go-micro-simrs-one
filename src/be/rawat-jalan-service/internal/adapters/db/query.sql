@@ -71,11 +71,38 @@ SELECT *
 FROM medical_records
 WHERE encounter_no = $1 AND deleted_dt IS NULL LIMIT 1;
 
--- name: UpdateTriage :one
-UPDATE medical_records
-SET blood_pressure_systolic = $2, blood_pressure_diastolic = $3, temperature = $4, heart_rate = $5, notes = $6, updated_at = CURRENT_TIMESTAMP
-WHERE encounter_no = $1
+-- name: UpsertTriage :one
+INSERT INTO medical_records (
+    id, encounter_no, mrn,
+    blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate,
+    respiratory_rate, oxygen_saturation, height, weight, bmi, allergies, notes,
+    status, started_at, updated_at
+) VALUES (
+    $1, $2, $3,
+    $4, $5, $6, $7,
+    $8, $9, $10, $11, $12, $13, $14,
+    'IN_PROGRESS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+)
+ON CONFLICT (encounter_no) DO UPDATE SET
+    blood_pressure_systolic = COALESCE(EXCLUDED.blood_pressure_systolic, medical_records.blood_pressure_systolic),
+    blood_pressure_diastolic = COALESCE(EXCLUDED.blood_pressure_diastolic, medical_records.blood_pressure_diastolic),
+    temperature = COALESCE(EXCLUDED.temperature, medical_records.temperature),
+    heart_rate = COALESCE(EXCLUDED.heart_rate, medical_records.heart_rate),
+    respiratory_rate = COALESCE(EXCLUDED.respiratory_rate, medical_records.respiratory_rate),
+    oxygen_saturation = COALESCE(EXCLUDED.oxygen_saturation, medical_records.oxygen_saturation),
+    height = COALESCE(EXCLUDED.height, medical_records.height),
+    weight = COALESCE(EXCLUDED.weight, medical_records.weight),
+    bmi = COALESCE(EXCLUDED.bmi, medical_records.bmi),
+    allergies = COALESCE(EXCLUDED.allergies, medical_records.allergies),
+    notes = COALESCE(EXCLUDED.notes, medical_records.notes),
+    status = CASE 
+        WHEN medical_records.status IN ('COMPLETED', 'BATAL', 'CANCELLED') THEN medical_records.status 
+        ELSE 'IN_PROGRESS' 
+    END,
+    started_at = COALESCE(medical_records.started_at, CURRENT_TIMESTAMP),
+    updated_at = CURRENT_TIMESTAMP
 RETURNING *;
+
 
 -- name: AddMedicalAction :one
 INSERT INTO medical_actions (id, medical_record_id, action_code, action_name, price, notes)

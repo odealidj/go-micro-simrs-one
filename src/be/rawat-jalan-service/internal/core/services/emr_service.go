@@ -49,9 +49,18 @@ func (s *emrServiceImpl) StartEncounter(ctx context.Context, encounterNo string)
 	return nil
 }
 
-func (s *emrServiceImpl) SubmitTriage(ctx context.Context, encounterNo string, systolic, diastolic *int32, temp *float64, heartRate *int32, notes string) error {
+func (s *emrServiceImpl) SubmitTriage(ctx context.Context, encounterNo, mrn string, triage domain.TriageData) error {
 	if s.repo != nil {
-		return s.repo.UpdateTriage(ctx, encounterNo, systolic, diastolic, temp, heartRate, notes)
+		err := s.repo.UpsertTriage(ctx, encounterNo, mrn, triage)
+		if err != nil {
+			return err
+		}
+
+		if s.redisClient != nil {
+			payload := `{"encounter_no":"` + encounterNo + `", "status":"IN_PROGRESS", "type":"CLINIC"}`
+			s.redisClient.Publish(ctx, "queue:clinic:stream", payload)
+		}
+		return nil
 	}
 	return nil
 }

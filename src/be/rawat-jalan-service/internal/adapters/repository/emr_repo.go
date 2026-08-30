@@ -112,26 +112,42 @@ func (r *emrRepoSqlc) GetKBMDetail(ctx context.Context, kbmCode string) (*domain
 
 
 
-func (r *emrRepoSqlc) UpdateTriage(ctx context.Context, encounterNo string, systolic, diastolic *int32, temp *float64, heartRate *int32, notes string) error {
+func (r *emrRepoSqlc) UpsertTriage(ctx context.Context, encounterNo, mrn string, triage domain.TriageData) error {
 	var n sql.NullString
-	if notes != "" {
-		n = sql.NullString{String: notes, Valid: true}
+	if triage.Notes != "" {
+		n = sql.NullString{String: triage.Notes, Valid: true}
 	}
 
-	var sys, dia, hr sql.NullInt32
-	var tm sql.NullString
-	
-	if systolic != nil { sys = sql.NullInt32{Int32: *systolic, Valid: true} }
-	if diastolic != nil { dia = sql.NullInt32{Int32: *diastolic, Valid: true} }
-	if heartRate != nil { hr = sql.NullInt32{Int32: *heartRate, Valid: true} }
-	if temp != nil { tm = sql.NullString{String: fmt.Sprintf("%.2f", *temp), Valid: true} }
+	var sys, dia, hr, resp, spo2 sql.NullInt32
+	var tm, h, w, bmi, alg sql.NullString
 
-	_, err := r.q.UpdateTriage(ctx, db.UpdateTriageParams{
+	if triage.BloodPressureSystolic != nil { sys = sql.NullInt32{Int32: *triage.BloodPressureSystolic, Valid: true} }
+	if triage.BloodPressureDiastolic != nil { dia = sql.NullInt32{Int32: *triage.BloodPressureDiastolic, Valid: true} }
+	if triage.HeartRate != nil { hr = sql.NullInt32{Int32: *triage.HeartRate, Valid: true} }
+	if triage.RespiratoryRate != nil { resp = sql.NullInt32{Int32: *triage.RespiratoryRate, Valid: true} }
+	if triage.OxygenSaturation != nil { spo2 = sql.NullInt32{Int32: *triage.OxygenSaturation, Valid: true} }
+
+	if triage.Temperature != nil { tm = sql.NullString{String: fmt.Sprintf("%.2f", *triage.Temperature), Valid: true} }
+	if triage.Height != nil { h = sql.NullString{String: fmt.Sprintf("%.2f", *triage.Height), Valid: true} }
+	if triage.Weight != nil { w = sql.NullString{String: fmt.Sprintf("%.2f", *triage.Weight), Valid: true} }
+	if triage.BMI != nil { bmi = sql.NullString{String: fmt.Sprintf("%.1f", *triage.BMI), Valid: true} }
+	if triage.Allergies != "" { alg = sql.NullString{String: triage.Allergies, Valid: true} }
+
+	id := uuid.New().String()
+	_, err := r.q.UpsertTriage(ctx, db.UpsertTriageParams{
+		ID:                     id,
 		EncounterNo:            encounterNo,
+		Mrn:                    mrn,
 		BloodPressureSystolic:  sys,
 		BloodPressureDiastolic: dia,
 		Temperature:            tm,
 		HeartRate:              hr,
+		RespiratoryRate:        resp,
+		OxygenSaturation:       spo2,
+		Height:                 h,
+		Weight:                 w,
+		Bmi:                    bmi,
+		Allergies:              alg,
 		Notes:                  n,
 	})
 	return err
@@ -190,15 +206,32 @@ func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) 
 		return nil, err
 	}
 
-	var sys, dia, hr *int32
+	var sys, dia, hr, resp, spo2 *int32
 	if mr.BloodPressureSystolic.Valid { sys = &mr.BloodPressureSystolic.Int32 }
 	if mr.BloodPressureDiastolic.Valid { dia = &mr.BloodPressureDiastolic.Int32 }
 	if mr.HeartRate.Valid { hr = &mr.HeartRate.Int32 }
+	if mr.RespiratoryRate.Valid { resp = &mr.RespiratoryRate.Int32 }
+	if mr.OxygenSaturation.Valid { spo2 = &mr.OxygenSaturation.Int32 }
 	
-	var tm *float64
+	var tm, h, w, bmi *float64
 	if mr.Temperature.Valid {
 		if val, err := strconv.ParseFloat(mr.Temperature.String, 64); err == nil {
 			tm = &val
+		}
+	}
+	if mr.Height.Valid {
+		if val, err := strconv.ParseFloat(mr.Height.String, 64); err == nil {
+			h = &val
+		}
+	}
+	if mr.Weight.Valid {
+		if val, err := strconv.ParseFloat(mr.Weight.String, 64); err == nil {
+			w = &val
+		}
+	}
+	if mr.Bmi.Valid {
+		if val, err := strconv.ParseFloat(mr.Bmi.String, 64); err == nil {
+			bmi = &val
 		}
 	}
 
@@ -214,6 +247,13 @@ func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) 
 			BloodPressureDiastolic: dia,
 			Temperature:            tm,
 			HeartRate:              hr,
+			RespiratoryRate:        resp,
+			OxygenSaturation:       spo2,
+			Height:                 h,
+			Weight:                 w,
+			BMI:                    bmi,
+			Allergies:              mr.Allergies.String,
+			Notes:                  mr.Notes.String,
 		},
 		CreatedAt: mr.CreatedAt.Time,
 		UpdatedAt: mr.UpdatedAt.Time,

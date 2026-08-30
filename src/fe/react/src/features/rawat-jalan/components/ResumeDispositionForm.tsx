@@ -119,11 +119,26 @@ export function ResumeDispositionForm({
               Tanda Vital & Triage
             </p>
             {record?.triage ? (
-              <p className="text-slate-600">
-                TD: <strong className="text-slate-800">{record.triage.blood_pressure_systolic}/{record.triage.blood_pressure_diastolic} mmHg</strong> · 
-                Suhu: <strong className="text-slate-800">{record.triage.temperature}°C</strong> · 
-                Nadi: <strong className="text-slate-800">{record.triage.heart_rate} bpm</strong>
-              </p>
+              <div className="text-slate-600 space-y-1">
+                <p>
+                  TD: <strong className="text-slate-800">{record.triage.blood_pressure_systolic}/{record.triage.blood_pressure_diastolic} mmHg</strong> · 
+                  Suhu: <strong className="text-slate-800">{record.triage.temperature}°C</strong> · 
+                  Nadi: <strong className="text-slate-800">{record.triage.heart_rate} bpm</strong>
+                  {record.triage.respiratory_rate ? <> · RR: <strong className="text-slate-800">{record.triage.respiratory_rate} x/m</strong></> : null}
+                  {record.triage.oxygen_saturation ? <> · SpO₂: <strong className="text-slate-800">{record.triage.oxygen_saturation}%</strong></> : null}
+                </p>
+                {(record.triage.height || record.triage.weight) && (
+                  <p className="text-xs text-slate-500">
+                    TB: <strong>{record.triage.height || "-"} cm</strong> · BB: <strong>{record.triage.weight || "-"} kg</strong>
+                    {record.triage.bmi ? <> · IMT: <strong>{record.triage.bmi} kg/m²</strong></> : null}
+                  </p>
+                )}
+                {record.triage.allergies && (
+                  <p className="text-xs text-red-600 font-medium">
+                    Alergi: {record.triage.allergies}
+                  </p>
+                )}
+              </div>
             ) : (
               <p className="text-slate-400 italic">Belum diinput</p>
             )}

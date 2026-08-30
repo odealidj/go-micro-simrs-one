@@ -436,7 +436,7 @@ func (q *Queries) CountTindakanByPolyclinic(ctx context.Context, arg CountTindak
 const createDraftMR = `-- name: CreateDraftMR :one
 INSERT INTO medical_records (id, encounter_no, mrn)
 VALUES ($1, $2, $3)
-RETURNING id, encounter_no, mrn, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, deleted_dt, deleted_by, encounter_severity_level, severity_finalized_by, severity_finalized_at
+RETURNING id, encounter_no, mrn, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, deleted_dt, deleted_by, encounter_severity_level, severity_finalized_by, severity_finalized_at, respiratory_rate, oxygen_saturation, height, weight, bmi, allergies
 `
 
 type CreateDraftMRParams struct {
@@ -472,6 +472,12 @@ func (q *Queries) CreateDraftMR(ctx context.Context, arg CreateDraftMRParams) (M
 		&i.EncounterSeverityLevel,
 		&i.SeverityFinalizedBy,
 		&i.SeverityFinalizedAt,
+		&i.RespiratoryRate,
+		&i.OxygenSaturation,
+		&i.Height,
+		&i.Weight,
+		&i.Bmi,
+		&i.Allergies,
 	)
 	return i, err
 }
@@ -1328,7 +1334,7 @@ func (q *Queries) GetKBMsByPolyclinic(ctx context.Context, arg GetKBMsByPolyclin
 }
 
 const getMRByEncounterNo = `-- name: GetMRByEncounterNo :one
-SELECT id, encounter_no, mrn, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, deleted_dt, deleted_by, encounter_severity_level, severity_finalized_by, severity_finalized_at
+SELECT id, encounter_no, mrn, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, deleted_dt, deleted_by, encounter_severity_level, severity_finalized_by, severity_finalized_at, respiratory_rate, oxygen_saturation, height, weight, bmi, allergies
 FROM medical_records
 WHERE encounter_no = $1 AND deleted_dt IS NULL LIMIT 1
 `
@@ -1360,6 +1366,12 @@ func (q *Queries) GetMRByEncounterNo(ctx context.Context, encounterNo string) (M
 		&i.EncounterSeverityLevel,
 		&i.SeverityFinalizedBy,
 		&i.SeverityFinalizedAt,
+		&i.RespiratoryRate,
+		&i.OxygenSaturation,
+		&i.Height,
+		&i.Weight,
+		&i.Bmi,
+		&i.Allergies,
 	)
 	return i, err
 }
@@ -2334,60 +2346,6 @@ func (q *Queries) UpdateOutboxEventStatus(ctx context.Context, arg UpdateOutboxE
 	return err
 }
 
-const updateTriage = `-- name: UpdateTriage :one
-UPDATE medical_records
-SET blood_pressure_systolic = $2, blood_pressure_diastolic = $3, temperature = $4, heart_rate = $5, notes = $6, updated_at = CURRENT_TIMESTAMP
-WHERE encounter_no = $1
-RETURNING id, encounter_no, mrn, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, deleted_dt, deleted_by, encounter_severity_level, severity_finalized_by, severity_finalized_at
-`
-
-type UpdateTriageParams struct {
-	EncounterNo            string
-	BloodPressureSystolic  sql.NullInt32
-	BloodPressureDiastolic sql.NullInt32
-	Temperature            sql.NullString
-	HeartRate              sql.NullInt32
-	Notes                  sql.NullString
-}
-
-func (q *Queries) UpdateTriage(ctx context.Context, arg UpdateTriageParams) (MedicalRecord, error) {
-	row := q.db.QueryRowContext(ctx, updateTriage,
-		arg.EncounterNo,
-		arg.BloodPressureSystolic,
-		arg.BloodPressureDiastolic,
-		arg.Temperature,
-		arg.HeartRate,
-		arg.Notes,
-	)
-	var i MedicalRecord
-	err := row.Scan(
-		&i.ID,
-		&i.EncounterNo,
-		&i.Mrn,
-		&i.Notes,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.BloodPressureSystolic,
-		&i.BloodPressureDiastolic,
-		&i.Temperature,
-		&i.HeartRate,
-		&i.Status,
-		&i.StartedAt,
-		&i.CompletedAt,
-		&i.DoctorID,
-		&i.DepartmentCode,
-		&i.Diagnosis,
-		&i.Gender,
-		&i.AgeBracket,
-		&i.DeletedDt,
-		&i.DeletedBy,
-		&i.EncounterSeverityLevel,
-		&i.SeverityFinalizedBy,
-		&i.SeverityFinalizedAt,
-	)
-	return i, err
-}
-
 const upsertClinicWaitAggregate = `-- name: UpsertClinicWaitAggregate :exec
 INSERT INTO clinic_wait_time_aggregates (kbm_code, doctor_id, department_code, gender, age_bracket, average_wait_minutes, sample_count)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -2515,4 +2473,106 @@ func (q *Queries) UpsertTindakanReplica(ctx context.Context, arg UpsertTindakanR
 		arg.InternalCategory,
 	)
 	return err
+}
+
+const upsertTriage = `-- name: UpsertTriage :one
+INSERT INTO medical_records (
+    id, encounter_no, mrn,
+    blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate,
+    respiratory_rate, oxygen_saturation, height, weight, bmi, allergies, notes,
+    status, started_at, updated_at
+) VALUES (
+    $1, $2, $3,
+    $4, $5, $6, $7,
+    $8, $9, $10, $11, $12, $13, $14,
+    'IN_PROGRESS', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+)
+ON CONFLICT (encounter_no) DO UPDATE SET
+    blood_pressure_systolic = COALESCE(EXCLUDED.blood_pressure_systolic, medical_records.blood_pressure_systolic),
+    blood_pressure_diastolic = COALESCE(EXCLUDED.blood_pressure_diastolic, medical_records.blood_pressure_diastolic),
+    temperature = COALESCE(EXCLUDED.temperature, medical_records.temperature),
+    heart_rate = COALESCE(EXCLUDED.heart_rate, medical_records.heart_rate),
+    respiratory_rate = COALESCE(EXCLUDED.respiratory_rate, medical_records.respiratory_rate),
+    oxygen_saturation = COALESCE(EXCLUDED.oxygen_saturation, medical_records.oxygen_saturation),
+    height = COALESCE(EXCLUDED.height, medical_records.height),
+    weight = COALESCE(EXCLUDED.weight, medical_records.weight),
+    bmi = COALESCE(EXCLUDED.bmi, medical_records.bmi),
+    allergies = COALESCE(EXCLUDED.allergies, medical_records.allergies),
+    notes = COALESCE(EXCLUDED.notes, medical_records.notes),
+    status = CASE 
+        WHEN medical_records.status IN ('COMPLETED', 'BATAL', 'CANCELLED') THEN medical_records.status 
+        ELSE 'IN_PROGRESS' 
+    END,
+    started_at = COALESCE(medical_records.started_at, CURRENT_TIMESTAMP),
+    updated_at = CURRENT_TIMESTAMP
+RETURNING id, encounter_no, mrn, notes, created_at, updated_at, blood_pressure_systolic, blood_pressure_diastolic, temperature, heart_rate, status, started_at, completed_at, doctor_id, department_code, diagnosis, gender, age_bracket, deleted_dt, deleted_by, encounter_severity_level, severity_finalized_by, severity_finalized_at, respiratory_rate, oxygen_saturation, height, weight, bmi, allergies
+`
+
+type UpsertTriageParams struct {
+	ID                     string
+	EncounterNo            string
+	Mrn                    string
+	BloodPressureSystolic  sql.NullInt32
+	BloodPressureDiastolic sql.NullInt32
+	Temperature            sql.NullString
+	HeartRate              sql.NullInt32
+	RespiratoryRate        sql.NullInt32
+	OxygenSaturation       sql.NullInt32
+	Height                 sql.NullString
+	Weight                 sql.NullString
+	Bmi                    sql.NullString
+	Allergies              sql.NullString
+	Notes                  sql.NullString
+}
+
+func (q *Queries) UpsertTriage(ctx context.Context, arg UpsertTriageParams) (MedicalRecord, error) {
+	row := q.db.QueryRowContext(ctx, upsertTriage,
+		arg.ID,
+		arg.EncounterNo,
+		arg.Mrn,
+		arg.BloodPressureSystolic,
+		arg.BloodPressureDiastolic,
+		arg.Temperature,
+		arg.HeartRate,
+		arg.RespiratoryRate,
+		arg.OxygenSaturation,
+		arg.Height,
+		arg.Weight,
+		arg.Bmi,
+		arg.Allergies,
+		arg.Notes,
+	)
+	var i MedicalRecord
+	err := row.Scan(
+		&i.ID,
+		&i.EncounterNo,
+		&i.Mrn,
+		&i.Notes,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.BloodPressureSystolic,
+		&i.BloodPressureDiastolic,
+		&i.Temperature,
+		&i.HeartRate,
+		&i.Status,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.DoctorID,
+		&i.DepartmentCode,
+		&i.Diagnosis,
+		&i.Gender,
+		&i.AgeBracket,
+		&i.DeletedDt,
+		&i.DeletedBy,
+		&i.EncounterSeverityLevel,
+		&i.SeverityFinalizedBy,
+		&i.SeverityFinalizedAt,
+		&i.RespiratoryRate,
+		&i.OxygenSaturation,
+		&i.Height,
+		&i.Weight,
+		&i.Bmi,
+		&i.Allergies,
+	)
+	return i, err
 }

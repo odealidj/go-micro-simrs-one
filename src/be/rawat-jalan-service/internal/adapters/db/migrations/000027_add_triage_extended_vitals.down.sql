@@ -1,0 +1,7 @@
+ALTER TABLE medical_records
+DROP COLUMN IF EXISTS respiratory_rate,
+DROP COLUMN IF EXISTS oxygen_saturation,
+DROP COLUMN IF EXISTS height,
+DROP COLUMN IF EXISTS weight,
+DROP COLUMN IF EXISTS bmi,
+DROP COLUMN IF EXISTS allergies;
