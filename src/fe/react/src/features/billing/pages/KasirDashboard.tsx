@@ -1,6 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getBillingQueue, getInvoice, type BillingPatientQueueItem, type Invoice } from "../api/billingApi";
+import {
+  getBillingQueue,
+  getInvoice,
+  getRevenueReport,
+  type BillingPatientQueueItem,
+  type Invoice,
+  type RevenueReportData,
+} from "../api/billingApi";
+import { useAuth } from "@/lib/AuthContext";
 import {
   Wallet,
   Receipt,
@@ -15,6 +23,9 @@ import {
   Eye,
   UserCheck,
   BadgeDollarSign,
+  Banknote,
+  QrCode,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -101,10 +112,23 @@ function getDepartmentName(code?: string) {
   return `Poli ${code}`;
 }
 
+function getShiftInfo() {
+  const hour = new Date().getHours();
+  if (hour >= 7 && hour < 14) {
+    return { name: "Pagi", time: "07:00 - 14:00 WIB", badge: "Shift Pagi" };
+  } else if (hour >= 14 && hour < 21) {
+    return { name: "Siang / Sore", time: "14:00 - 21:00 WIB", badge: "Shift Siang" };
+  } else {
+    return { name: "Malam", time: "21:00 - 07:00 WIB", badge: "Shift Malam" };
+  }
+}
+
 export function KasirDashboard() {
   const navigate = useNavigate();
+  const { userId } = useAuth();
   const [encounterSearch, setEncounterSearch] = useState("");
   const [queue, setQueue] = useState<BillingPatientQueueItem[]>([]);
+  const [revenueData, setRevenueData] = useState<RevenueReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -113,15 +137,21 @@ export function KasirDashboard() {
   const [invoiceDetail, setInvoiceDetail] = useState<Invoice | null>(null);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
 
+  const shiftInfo = useMemo(() => getShiftInfo(), []);
+
   const fetchDashboardData = async (showToast = false) => {
     if (showToast) setIsRefreshing(true);
     else setLoading(true);
     try {
-      const data = await getBillingQueue();
-      setQueue(data);
-      if (showToast) toast.success("Data antrean kasir berhasil diperbarui.");
+      const [queueRes, reportRes] = await Promise.all([
+        getBillingQueue(),
+        getRevenueReport({ date: "TODAY" }),
+      ]);
+      setQueue(queueRes);
+      setRevenueData(reportRes);
+      if (showToast) toast.success("Data antrean dan penerimaan kasir berhasil diperbarui.");
     } catch (err) {
-      console.error("Failed to load queue", err);
+      console.error("Failed to load dashboard data", err);
       if (showToast) toast.error("Gagal memperbarui data antrean kasir.");
     } finally {
       setLoading(false);
@@ -145,9 +175,12 @@ export function KasirDashboard() {
     );
   }, [queue]);
 
-  const totalRevenueEst = useMemo(() => {
-    return paidList.reduce((acc, curr) => acc + (curr.estimated_amount || 50000), 0);
-  }, [paidList]);
+  const totalRevenue = useMemo(() => {
+    if (revenueData?.metrics?.total_revenue !== undefined) {
+      return revenueData.metrics.total_revenue;
+    }
+    return 0;
+  }, [revenueData]);
 
   const todayStr = new Date().toLocaleDateString("id-ID", {
     weekday: "long",
@@ -259,9 +292,13 @@ export function KasirDashboard() {
         />
         <StatCard
           label="Penerimaan Hari Ini"
-          value={loading ? "..." : formatRupiah(totalRevenueEst)}
-          sub={`${paidList.length} transaksi selesai terverifikasi`}
-          badgeText="Kas Masuk"
+          value={loading ? "..." : formatRupiah(totalRevenue)}
+          sub={
+            revenueData?.metrics
+              ? `${revenueData.metrics.total_transactions} transaksi lunas terverifikasi`
+              : `${paidList.length} transaksi selesai`
+          }
+          badgeText="Kas Masuk Riil"
           badgeColor="bg-purple-50 text-purple-800 border-purple-200 font-bold"
           icon={Receipt}
           color="text-purple-600"
@@ -269,6 +306,83 @@ export function KasirDashboard() {
           borderColor="border-purple-200"
         />
       </div>
+
+      {/* Rekonsiliasi Kasir & Metode Pembayaran Riil Hari Ini */}
+      {revenueData?.metrics && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs flex items-center justify-between">
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 truncate">
+                <Banknote className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                Tunai (Laci Kasir)
+              </span>
+              <p className="text-base font-black text-slate-900">
+                {formatRupiah(revenueData.metrics.tunai_amount)}
+              </p>
+              <span className="text-[10px] text-slate-400 font-medium block truncate">
+                {revenueData.metrics.tunai_count} transaksi fisik
+              </span>
+            </div>
+            <div className="p-2 rounded-lg bg-emerald-50 text-emerald-700 font-extrabold text-[10px] shrink-0">
+              Uang Fisik
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs flex items-center justify-between">
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 truncate">
+                <QrCode className="h-3.5 w-3.5 text-sky-600 shrink-0" />
+                QRIS / Digital
+              </span>
+              <p className="text-base font-black text-slate-900">
+                {formatRupiah(revenueData.metrics.qris_amount)}
+              </p>
+              <span className="text-[10px] text-slate-400 font-medium block truncate">
+                {revenueData.metrics.qris_count} transaksi QRIS
+              </span>
+            </div>
+            <div className="p-2 rounded-lg bg-sky-50 text-sky-700 font-extrabold text-[10px] shrink-0">
+              Non-Tunai
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs flex items-center justify-between">
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 truncate">
+                <CreditCard className="h-3.5 w-3.5 text-indigo-600 shrink-0" />
+                Debit / EDC
+              </span>
+              <p className="text-base font-black text-slate-900">
+                {formatRupiah(revenueData.metrics.debit_amount)}
+              </p>
+              <span className="text-[10px] text-slate-400 font-medium block truncate">
+                {revenueData.metrics.debit_count} gesek kartu
+              </span>
+            </div>
+            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-700 font-extrabold text-[10px] shrink-0">
+              EDC Bank
+            </div>
+          </div>
+
+          <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 shadow-2xs flex items-center justify-between">
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 truncate">
+                <ShieldCheck className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                Klaim BPJS / JKN
+              </span>
+              <p className="text-base font-black text-slate-900">
+                {formatRupiah(revenueData.metrics.bpjs_amount)}
+              </p>
+              <span className="text-[10px] text-slate-400 font-medium block truncate">
+                {revenueData.metrics.bpjs_count} klaim penjamin
+              </span>
+            </div>
+            <div className="p-2 rounded-lg bg-blue-50 text-blue-700 font-extrabold text-[10px] shrink-0">
+              Piutang
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Pencarian Invoice & Command Bar Cepat */}
       <Card className="card-premium border-slate-200/90 shadow-2xs">
@@ -387,8 +501,8 @@ export function KasirDashboard() {
                                 <strong className="text-slate-700 font-semibold">{item.status_pasien || "Umum"}</strong>
                               </span>
                               <span className="text-slate-300">•</span>
-                              <span className="font-bold text-slate-900">
-                                Estimasi: {formatRupiah(item.estimated_amount || 50000)}
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200/70 px-2 py-0.5 rounded-md">
+                                Siap Ditagih Kasir
                               </span>
                             </div>
                           </div>
@@ -467,7 +581,9 @@ export function KasirDashboard() {
             <CardContent className="p-5 space-y-3.5 text-xs">
               <div className="flex justify-between items-center py-1 border-b border-slate-100">
                 <span className="text-slate-500 font-medium">Petugas Kasir</span>
-                <span className="font-bold text-slate-900">Staf Kasir 1</span>
+                <span className="font-bold text-slate-900">
+                  {userId ? userId.charAt(0).toUpperCase() + userId.slice(1) : "Kasir Utama"}
+                </span>
               </div>
               <div className="flex justify-between items-center py-1 border-b border-slate-100">
                 <span className="text-slate-500 font-medium">Lokasi Loket</span>
@@ -475,12 +591,12 @@ export function KasirDashboard() {
               </div>
               <div className="flex justify-between items-center py-1 border-b border-slate-100">
                 <span className="text-slate-500 font-medium">Shift Kerja</span>
-                <span className="font-semibold text-slate-800">Pagi (07:00 - 14:00 WIB)</span>
+                <span className="font-semibold text-slate-800">{shiftInfo.time} ({shiftInfo.name})</span>
               </div>
               <div className="flex justify-between items-center py-1">
                 <span className="text-slate-500 font-medium">Total Transaksi Shift</span>
                 <span className="font-extrabold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md">
-                  {paidList.length} Transaksi Lunas
+                  {revenueData?.metrics?.total_transactions ?? paidList.length} Transaksi Lunas
                 </span>
               </div>
 
@@ -621,18 +737,11 @@ export function KasirDashboard() {
                   </div>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-xl overflow-hidden bg-white">
-                  <div className="p-3 flex justify-between items-center text-xs">
-                    <div>
-                      <p className="font-bold text-slate-800">Biaya Administrasi & Pelayanan Poli</p>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-wider">Registrasi & Konsultasi</p>
-                    </div>
-                    <span className="font-bold text-slate-900">{formatRupiah(selectedEncounter?.estimated_amount || 50000)}</span>
-                  </div>
-                  <div className="p-3 bg-amber-50/60 flex justify-between items-center font-bold text-slate-900">
-                    <span>Total Tagihan</span>
-                    <span className="text-amber-700 text-sm">{formatRupiah(selectedEncounter?.estimated_amount || 50000)}</span>
-                  </div>
+                <div className="p-4 border border-slate-200/80 rounded-xl bg-slate-50 text-center space-y-1.5">
+                  <p className="font-bold text-slate-800 text-xs">Komponen Tagihan Standar</p>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Rincian komponen tindakan medis dan tarif konsultasi poliklinik dikalkulasi otomatis saat membuka formulir pembayaran.
+                  </p>
                 </div>
               )}
             </div>
