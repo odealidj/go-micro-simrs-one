@@ -22,6 +22,11 @@ import {
   CreditCard,
   Layers,
   X,
+  Stethoscope,
+  Activity,
+  User,
+  ShieldCheck,
+  Tag,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -75,6 +80,47 @@ function getDepartmentName(code?: string) {
   return `Poli ${code}`;
 }
 
+function parseActionItem(desc: string, itemType?: string) {
+  let code = "-";
+  let title = desc;
+  let category = "Tindakan Medis Poli";
+
+  const codeMatch = desc.match(/^\[(.*?)\]\s*(.*)$/);
+  if (codeMatch) {
+    code = codeMatch[1];
+    title = codeMatch[2];
+  }
+
+  if (
+    itemType === "MEDICINE" ||
+    desc.toLowerCase().includes("prescription") ||
+    desc.toLowerCase().includes("obat") ||
+    desc.toLowerCase().includes("resep")
+  ) {
+    category = "Farmasi & Resep Obat";
+  } else if (
+    desc.toLowerCase().includes("registrasi") ||
+    desc.toLowerCase().includes("pendaftaran") ||
+    desc.toLowerCase().includes("konsultasi") ||
+    desc.toLowerCase().includes("pemeriksaan dokter")
+  ) {
+    category = "Pemeriksaan & Konsultasi";
+  } else if (
+    desc.toLowerCase().includes("lab") ||
+    desc.toLowerCase().includes("darah") ||
+    desc.toLowerCase().includes("urin") ||
+    desc.toLowerCase().includes("gula") ||
+    desc.toLowerCase().includes("rontgen") ||
+    desc.toLowerCase().includes("radiologi")
+  ) {
+    category = "Laboratorium & Penunjang";
+  } else if (itemType === "ACTION") {
+    category = "Tindakan Medis Poli";
+  }
+
+  return { code, title, category };
+}
+
 export function InvoicePage() {
   const [selectedDate, setSelectedDate] = useState<string>(getTodayString());
   const [invoices, setInvoices] = useState<SettlementTransactionItem[]>([]);
@@ -85,12 +131,18 @@ export function InvoicePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Modal Detail & Print State
+  // Modal Detail Kwitansi & Print State
   const [activeInvoice, setActiveInvoice] = useState<Invoice | null>(null);
   const [activePatient, setActivePatient] = useState<SettlementTransactionItem | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const receiptPrintRef = useRef<HTMLDivElement>(null);
+
+  // Modal Rincian Tindakan & Tarif State (Query berdasarkan No. Registrasi & No. Kwitansi)
+  const [activeActionRecord, setActiveActionRecord] = useState<SettlementTransactionItem | null>(null);
+  const [actionInvoice, setActionInvoice] = useState<Invoice | null>(null);
+  const [loadingActionDetail, setLoadingActionDetail] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
   const fetchInvoiceList = async (date: string) => {
     setLoading(true);
@@ -169,12 +221,31 @@ export function InvoicePage() {
     return filteredInvoices.slice(start, start + pageSize);
   }, [filteredInvoices, currentPage, pageSize]);
 
+  // Handler: Buka Modal Rincian Tindakan & Tarif (Query berdasarkan No. Registrasi & Kwitansi)
+  const handleOpenActionDetail = async (item: SettlementTransactionItem) => {
+    setActiveActionRecord(item);
+    setIsActionModalOpen(true);
+    setLoadingActionDetail(true);
+    try {
+      const invId = item.invoice_id || (item.receipt_no ? item.receipt_no.replace(/^KW-/, "INV-") : undefined);
+      const inv = await getInvoice(item.encounter_no, invId);
+      setActionInvoice(inv);
+    } catch (err) {
+      console.error("Failed to load action details and tariff", err);
+      setActionInvoice(null);
+    } finally {
+      setLoadingActionDetail(false);
+    }
+  };
+
+  // Handler: Buka Modal Kwitansi Resmi SIMRS
   const handleOpenReceipt = async (item: SettlementTransactionItem) => {
     setActivePatient(item);
     setIsModalOpen(true);
     setLoadingDetail(true);
     try {
-      const inv = await getInvoice(item.encounter_no);
+      const invId = item.invoice_id || (item.receipt_no ? item.receipt_no.replace(/^KW-/, "INV-") : undefined);
+      const inv = await getInvoice(item.encounter_no, invId);
       setActiveInvoice(inv);
     } catch (err) {
       console.error("Failed to load invoice for receipt", err);
@@ -433,13 +504,23 @@ export function InvoicePage() {
                       <TableCell className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
+                            onClick={() => handleOpenActionDetail(item)}
+                            size="sm"
+                            variant="outline"
+                            className="h-8 px-2.5 text-xs font-bold text-sky-700 border-sky-200 bg-sky-50/80 hover:bg-sky-100 rounded-lg gap-1.5 shadow-2xs transition-all cursor-pointer"
+                            title="Lihat Rincian Tindakan & Tarif Pasien"
+                          >
+                            <FileText className="h-3.5 w-3.5 text-sky-600" />
+                            <span>Tindakan & Tarif</span>
+                          </Button>
+                          <Button
                             onClick={() => handleOpenReceipt(item)}
                             size="sm"
                             variant="outline"
-                            className="h-8 px-2.5 text-xs font-semibold text-amber-700 border-amber-200 bg-amber-50/50 hover:bg-amber-100 rounded-lg gap-1.5 shadow-2xs transition-all"
+                            className="h-8 px-2.5 text-xs font-semibold text-amber-700 border-amber-200 bg-amber-50/50 hover:bg-amber-100 rounded-lg gap-1.5 shadow-2xs transition-all cursor-pointer"
                             title="Cetak Kwitansi & Struk"
                           >
-                            <Printer className="h-3.5 w-3.5" />
+                            <Printer className="h-3.5 w-3.5 text-amber-600" />
                             <span>Kwitansi</span>
                           </Button>
                         </div>
@@ -551,6 +632,303 @@ export function InvoicePage() {
           </div>
         </div>
       </Card>
+
+      {/* Modal Detail Rincian Tindakan & Tarif (Query Berdasarkan No. Registrasi & Kwitansi) */}
+      <Dialog open={isActionModalOpen} onOpenChange={setIsActionModalOpen}>
+        <DialogContent showCloseButton={false} className="sm:max-w-2xl md:max-w-3xl p-0 overflow-hidden border-0 shadow-2xl rounded-2xl">
+          <DialogHeader className="p-5 bg-gradient-to-r from-sky-700 via-blue-700 to-indigo-800 text-white flex flex-row items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-white/15 text-white backdrop-blur-xs border border-white/20">
+                <Stethoscope className="h-5 w-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-base font-bold text-white flex items-center gap-2">
+                  <span>Rincian Tindakan & Tarif Pelayanan</span>
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                    LUNAS
+                  </span>
+                </DialogTitle>
+                <p className="text-xs text-sky-100 mt-0.5 font-mono">
+                  Encounter #{activeActionRecord?.encounter_no} • Kwitansi #{activeActionRecord?.receipt_no || (activeActionRecord?.invoice_id ? `KW-${activeActionRecord.invoice_id.replace(/^INV-/, "")}` : `KW-${activeActionRecord?.encounter_no}`)}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsActionModalOpen(false)}
+                className="h-9 w-9 text-white/80 hover:text-white hover:bg-white/20 rounded-xl transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="p-5 sm:p-6 bg-slate-50/50 space-y-5 max-h-[75vh] overflow-y-auto custom-scrollbar">
+            {/* Meta Information Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {/* Card Identitas Pasien & Registrasi */}
+              <div className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs space-y-2.5">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <User className="h-4 w-4 text-sky-600" />
+                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">Data Pasien & Registrasi</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Nama Pasien</span>
+                    <span className="font-bold text-slate-900">{activeActionRecord?.patient_name || "-"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">No. Rekam Medis (MRN)</span>
+                    <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded text-[11px] border border-slate-200 inline-block">
+                      {activeActionRecord?.mrn || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">No. Registrasi (Encounter)</span>
+                    <span className="font-mono font-bold text-sky-700">
+                      #{activeActionRecord?.encounter_no || "-"}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Unit Pelayanan / Poli</span>
+                    <span className="font-semibold text-slate-800">
+                      {activeActionRecord?.department_name || getDepartmentName(activeActionRecord?.department_code)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Data Kwitansi & Kasir */}
+              <div className="p-4 bg-white border border-slate-200/80 rounded-xl shadow-2xs space-y-2.5">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
+                  <Receipt className="h-4 w-4 text-amber-600" />
+                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wide">Data Kwitansi & Transaksi</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">No. Kwitansi</span>
+                    <span className="font-mono font-bold text-amber-700">
+                      #{activeActionRecord?.receipt_no || (activeActionRecord?.invoice_id ? `KW-${activeActionRecord.invoice_id.replace(/^INV-/, "")}` : `KW-${activeActionRecord?.encounter_no}`)}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Waktu Pembayaran</span>
+                    <span className="font-medium text-slate-800">
+                      {activeActionRecord?.paid_at ? new Date(activeActionRecord.paid_at).toLocaleString("id-ID") : selectedDate}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Metode Pembayaran</span>
+                    <div className="mt-0.5">
+                      {activeActionRecord?.payment_method ? renderPaymentBadge(activeActionRecord.payment_method) : (
+                        <span className="text-xs font-semibold text-slate-700">CASH (Tunai)</span>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[11px]">Petugas Kasir</span>
+                    <span className="font-semibold text-slate-800">
+                      {activeActionRecord?.cashier_name || "Staf Kasir SIMRS"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Table Detail Tindakan & Tarif */}
+            <div className="bg-white border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs">
+              <div className="px-4 py-3 bg-slate-50/80 border-b border-slate-200/80 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-sky-600" />
+                  <span className="text-xs font-bold text-slate-800">Daftar Tindakan, Layanan & Tarif Medis</span>
+                </div>
+                <span className="text-[11px] font-semibold text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-full">
+                  Query: No. Registrasi & Kwitansi
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <Table className="w-full text-xs">
+                  <TableHeader className="bg-slate-50/50">
+                    <TableRow className="border-b border-slate-100">
+                      <TableHead className="w-10 text-center font-bold text-slate-500 py-3">#</TableHead>
+                      <TableHead className="font-bold text-slate-500 py-3">Uraian Tindakan / Layanan</TableHead>
+                      <TableHead className="w-[170px] font-bold text-slate-500 py-3">Kategori</TableHead>
+                      <TableHead className="w-[60px] text-center font-bold text-slate-500 py-3">Qty</TableHead>
+                      <TableHead className="w-[120px] text-right font-bold text-slate-500 py-3">Tarif Satuan</TableHead>
+                      <TableHead className="w-[130px] text-right font-bold text-slate-500 py-3">Subtotal</TableHead>
+                      <TableHead className="w-[90px] text-center font-bold text-slate-500 py-3">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loadingActionDetail ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="py-12 text-center text-slate-400">
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <RefreshCw className="h-5 w-5 animate-spin text-sky-600" />
+                            <span className="text-xs font-semibold text-slate-600">
+                              Mengambil rincian tindakan dan tarif dari modul billing...
+                            </span>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : actionInvoice?.items && actionInvoice.items.length > 0 ? (
+                      actionInvoice.items.map((it, idx) => {
+                        const parsed = parseActionItem(it.description, it.item_type);
+                        const qty = it.quantity || 1;
+                        const subtotal = it.amount * qty;
+
+                        return (
+                          <TableRow key={idx} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100/70">
+                            <TableCell className="text-center font-bold text-slate-400 py-3">{idx + 1}</TableCell>
+                            <TableCell className="py-3">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {parsed.code !== "-" && (
+                                    <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">
+                                      {parsed.code}
+                                    </span>
+                                  )}
+                                  <span className="font-bold text-slate-900 text-xs">{parsed.title}</span>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-3">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                <Tag className="h-3 w-3 text-slate-500" />
+                                {parsed.category}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center font-bold text-slate-700 py-3">{qty}x</TableCell>
+                            <TableCell className="text-right font-medium text-slate-700 py-3">{formatRupiah(it.amount)}</TableCell>
+                            <TableCell className="text-right font-bold text-slate-900 py-3">{formatRupiah(subtotal)}</TableCell>
+                            <TableCell className="text-center py-3">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                                Lunas
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : activeActionRecord?.items && activeActionRecord.items.length > 0 ? (
+                      activeActionRecord.items.map((it, idx) => {
+                        const parsed = parseActionItem(it.description, it.item_type);
+                        const qty = it.qty || 1;
+                        const subtotal = it.amount * qty;
+
+                        return (
+                          <TableRow key={idx} className="hover:bg-slate-50/80 transition-colors border-b border-slate-100/70">
+                            <TableCell className="text-center font-bold text-slate-400 py-3">{idx + 1}</TableCell>
+                            <TableCell className="py-3">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {parsed.code !== "-" && (
+                                    <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">
+                                      {parsed.code}
+                                    </span>
+                                  )}
+                                  <span className="font-bold text-slate-900 text-xs">{parsed.title}</span>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="py-3">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                <Tag className="h-3 w-3 text-slate-500" />
+                                {parsed.category}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-center font-bold text-slate-700 py-3">{qty}x</TableCell>
+                            <TableCell className="text-right font-medium text-slate-700 py-3">{formatRupiah(it.amount)}</TableCell>
+                            <TableCell className="text-right font-bold text-slate-900 py-3">{formatRupiah(subtotal)}</TableCell>
+                            <TableCell className="text-center py-3">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                                Lunas
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    ) : (
+                      <TableRow>
+                        <TableCell className="text-center font-bold text-slate-400 py-3">1</TableCell>
+                        <TableCell className="py-3">
+                          <span className="font-bold text-slate-900 text-xs">
+                            Biaya Pemeriksaan & Pelayanan {activeActionRecord?.department_name || getDepartmentName(activeActionRecord?.department_code)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                            <Tag className="h-3 w-3 text-slate-500" />
+                            Pemeriksaan & Konsultasi
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center font-bold text-slate-700 py-3">1x</TableCell>
+                        <TableCell className="text-right font-medium text-slate-700 py-3">
+                          {formatRupiah(activeActionRecord?.total_amount || 50000)}
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-slate-900 py-3">
+                          {formatRupiah(activeActionRecord?.total_amount || 50000)}
+                        </TableCell>
+                        <TableCell className="text-center py-3">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                            Lunas
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Total Summary Footer */}
+              <div className="bg-slate-50 border-t border-slate-200/90 p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                  <span className="text-xs font-semibold text-slate-600">
+                    Status Tagihan: <strong className="text-emerald-700">Lunas & Terverifikasi Kasir</strong>
+                  </span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className="text-xs text-slate-500 font-medium">Total Tarif Layanan:</span>
+                  <span className="text-base font-black text-slate-900">
+                    {formatRupiah(activeActionRecord?.total_amount || actionInvoice?.total_amount || 50000)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsActionModalOpen(false)}
+              className="text-xs font-semibold text-slate-600"
+            >
+              Tutup
+            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => {
+                  if (activeActionRecord) {
+                    setIsActionModalOpen(false);
+                    handleOpenReceipt(activeActionRecord);
+                  }
+                }}
+                className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-9 px-4 rounded-xl shadow-xs gap-2"
+              >
+                <Printer className="h-4 w-4" />
+                <span>Lihat / Cetak Kwitansi</span>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Kwitansi Resmi SIMRS Print Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
