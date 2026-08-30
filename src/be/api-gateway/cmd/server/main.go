@@ -3869,6 +3869,161 @@ func main() {
 					})
 				})
 
+				r.Get("/billing/queue", func(w http.ResponseWriter, req *http.Request) {
+					dateStr := req.URL.Query().Get("date")
+					reqDate := dateStr
+					if reqDate == "TODAY" || reqDate == time.Now().Format("2006-01-02") {
+						reqDate = ""
+					}
+
+					resReg, err := circuitbreaker.CallGRPC(cbRegistration, func() (*regpb.GetTodayEncountersResponse, error) {
+						return regClient.GetTodayEncounters(req.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 5000, Date: reqDate})
+					})
+					if err != nil {
+						response.HandleGRPCError(w, err)
+						return
+					}
+
+					type BillingQueueItem struct {
+						EncounterNo     string                     `json:"encounter_no"`
+						MRN             string                     `json:"mrn"`
+						PatientName     string                     `json:"patient_name"`
+						Gender          string                     `json:"gender"`
+						DateOfBirth     string                     `json:"date_of_birth"`
+						DepartmentCode  string                     `json:"department_code"`
+						DoctorID        string                     `json:"doctor_id"`
+						Status          string                     `json:"status"`
+						StatusPasien    string                     `json:"status_pasien"`
+						RegisteredTime  string                     `json:"registered_time"`
+						PaymentStatus   string                     `json:"payment_status"`
+						HasUnpaid       bool                       `json:"has_unpaid"`
+						TotalAmount     float64                    `json:"total_amount"`
+						PaidAmount      float64                    `json:"paid_amount"`
+						UnpaidAmount    float64                    `json:"unpaid_amount"`
+						ActiveInvoiceID string                     `json:"active_invoice_id"`
+						Invoices        []*billingpb.InvoiceDetail `json:"invoices"`
+					}
+
+					var queueList []BillingQueueItem
+
+					for _, enc := range resReg.Encounters {
+						var pName = "-"
+						var pGender = "-"
+						var pDob = "-"
+
+						mrnClean := strings.TrimSpace(enc.Mrn)
+						resPat, errPat := circuitbreaker.CallGRPC(cbPatient, func() (*patientpb.GetPatientByMRNResponse, error) {
+							return patientClient.GetPatientByMRN(req.Context(), &patientpb.GetPatientByMRNRequest{Mrn: mrnClean})
+						})
+						if errPat == nil && resPat != nil && resPat.Patient != nil {
+							pName = resPat.Patient.Name
+							pGender = resPat.Patient.Gender
+							pDob = resPat.Patient.Dob
+						}
+
+						parts := strings.Split(enc.RegisteredTime, "|")
+						regTime := parts[0]
+						isNew := "Lama RS"
+						if len(parts) > 1 && parts[1] == "true" {
+							isNew = "Baru RS"
+						}
+
+						// Fetch all invoices for this encounter
+						var invoices []*billingpb.InvoiceDetail
+						resInvs, _ := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GetInvoicesByEncounterResponse, error) {
+							return billingClient.GetInvoicesByEncounter(req.Context(), &billingpb.GetInvoicesByEncounterRequest{EncounterNo: enc.EncounterNo})
+						})
+						if resInvs != nil && len(resInvs.Invoices) > 0 {
+							invoices = resInvs.Invoices
+						} else {
+							// If no invoice in billing db yet, generate initial registration invoice
+							resGen, _ := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GenerateInvoiceResponse, error) {
+								return billingClient.GenerateInvoice(req.Context(), &billingpb.GenerateInvoiceRequest{EncounterNo: enc.EncounterNo})
+							})
+							if resGen != nil {
+								invoices = append(invoices, &billingpb.InvoiceDetail{
+									InvoiceId:   resGen.InvoiceId,
+									EncounterNo: enc.EncounterNo,
+									TotalAmount: resGen.TotalAmount,
+									Status:      resGen.Status,
+									IsPaid:      resGen.IsPaid,
+									Items:       resGen.Items,
+									CreatedAt:   time.Now().Format(time.RFC3339),
+								})
+							}
+						}
+
+						var totalAmount, paidAmount, unpaidAmount float64
+						var hasUnpaid bool
+						var activeInvID string
+
+						for _, inv := range invoices {
+							totalAmount += inv.TotalAmount
+							if inv.IsPaid || inv.Status == "PAID" {
+								paidAmount += inv.TotalAmount
+							} else {
+								unpaidAmount += inv.TotalAmount
+								hasUnpaid = true
+								if activeInvID == "" {
+									activeInvID = inv.InvoiceId
+								}
+							}
+						}
+
+						if len(invoices) == 0 {
+							fee := 50000.0
+							if enc.DepartmentCode != "01" && enc.DepartmentCode != "UMU" && enc.DepartmentCode != "Poli Umum" {
+								fee = 150000.0
+							}
+							totalAmount = fee
+							if enc.Status == "WAITING_FOR_PAYMENT" || enc.Status == "REGISTERED" {
+								unpaidAmount = fee
+								hasUnpaid = true
+							} else if enc.Status != "CANCELLED" && enc.Status != "BATAL" {
+								paidAmount = fee
+							}
+						} else if !hasUnpaid && (enc.Status == "WAITING_FOR_PAYMENT" || enc.Status == "REGISTERED") {
+							hasUnpaid = true
+							if unpaidAmount == 0 {
+								unpaidAmount = totalAmount
+							}
+						}
+
+						paymentStatus := "PAID"
+						if enc.Status == "CANCELLED" || enc.Status == "BATAL" {
+							paymentStatus = "CANCELLED"
+						} else if hasUnpaid {
+							paymentStatus = "UNPAID"
+						}
+
+						queueList = append(queueList, BillingQueueItem{
+							EncounterNo:     enc.EncounterNo,
+							MRN:             enc.Mrn,
+							PatientName:     pName,
+							Gender:          pGender,
+							DateOfBirth:     pDob,
+							DepartmentCode:  enc.DepartmentCode,
+							DoctorID:        enc.DoctorId,
+							Status:          enc.Status,
+							StatusPasien:    isNew,
+							RegisteredTime:  regTime,
+							PaymentStatus:   paymentStatus,
+							HasUnpaid:       hasUnpaid,
+							TotalAmount:     totalAmount,
+							PaidAmount:      paidAmount,
+							UnpaidAmount:    unpaidAmount,
+							ActiveInvoiceID: activeInvID,
+							Invoices:        invoices,
+						})
+					}
+
+					response.JSON(w, http.StatusOK, response.SuccessResponse{
+						Success: true,
+						Message: "Success",
+						Data:    queueList,
+					})
+				})
+
 				r.Get("/billing/invoices/{encounter_no}", func(w http.ResponseWriter, req *http.Request) {
 					encounterNo := chi.URLParam(req, "encounter_no")
 					res, err := circuitbreaker.CallGRPC(cbBilling, func() (*billingpb.GetInvoicesByEncounterResponse, error) {

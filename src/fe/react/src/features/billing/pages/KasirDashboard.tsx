@@ -173,13 +173,13 @@ export function KasirDashboard() {
 
   const pendingList = useMemo(() => {
     return queue.filter(
-      (item) => item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED" || item.status === "MENUNGGU"
+      (item) => item.has_unpaid || item.status === "WAITING_FOR_PAYMENT" || item.status === "REGISTERED" || item.status === "MENUNGGU"
     );
   }, [queue]);
 
   const paidList = useMemo(() => {
     return queue.filter(
-      (item) => item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED"
+      (item) => !item.has_unpaid && item.status !== "WAITING_FOR_PAYMENT" && item.status !== "REGISTERED" && item.status !== "CANCELLED" && item.status !== "BATAL" && item.payment_status !== "CANCELLED"
     );
   }, [queue]);
 
@@ -557,8 +557,8 @@ export function KasirDashboard() {
                                 <strong className="text-slate-700 font-semibold">{item.status_pasien || "Umum"}</strong>
                               </span>
                               <span className="text-slate-300">•</span>
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200/70 px-2 py-0.5 rounded-md">
-                                Siap Ditagih Kasir
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-100/90 border border-amber-300 px-2 py-0.5 rounded-md">
+                                Tagihan: {formatRupiah(item.unpaid_amount || item.total_amount || 50000)}
                               </span>
                             </div>
                           </div>
