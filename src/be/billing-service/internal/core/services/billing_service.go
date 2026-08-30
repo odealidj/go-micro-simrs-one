@@ -116,7 +116,22 @@ func (s *billingServiceImpl) AddActionItem(ctx context.Context, encounterNo, act
 		return err
 	}
 
-	return s.repo.UpdateInvoiceAmount(ctx, inv.ID, amount)
+	err = s.repo.UpdateInvoiceAmount(ctx, inv.ID, amount)
+	if err != nil {
+		return err
+	}
+
+	// If invoice was previously PAID, adding a new action incurs additional charges,
+	// so the invoice status must revert to UNPAID for cashier settlement.
+	if inv.Status == "PAID" {
+		errStatus := s.repo.UpdateInvoiceStatus(ctx, inv.ID, "UNPAID")
+		if errStatus == nil {
+			payload := fmt.Sprintf(`{"invoice_id":"%s","encounter_no":"%s"}`, inv.ID, inv.EncounterNo)
+			_ = s.repo.CreateOutboxEvent(ctx, uuid.New().String(), "Invoice", "InvoiceUnpaid", payload)
+		}
+	}
+
+	return nil
 }
 
 func (s *billingServiceImpl) RemoveActionItem(ctx context.Context, encounterNo, actionCode string) error {
@@ -154,7 +169,22 @@ func (s *billingServiceImpl) AddMedicineItem(ctx context.Context, encounterNo, p
 		return err
 	}
 
-	return s.repo.UpdateInvoiceAmount(ctx, inv.ID, amount)
+	err = s.repo.UpdateInvoiceAmount(ctx, inv.ID, amount)
+	if err != nil {
+		return err
+	}
+
+	// If invoice was previously PAID, adding new medicine incurs additional charges,
+	// so the invoice status must revert to UNPAID for cashier settlement.
+	if inv.Status == "PAID" {
+		errStatus := s.repo.UpdateInvoiceStatus(ctx, inv.ID, "UNPAID")
+		if errStatus == nil {
+			payload := fmt.Sprintf(`{"invoice_id":"%s","encounter_no":"%s"}`, inv.ID, inv.EncounterNo)
+			_ = s.repo.CreateOutboxEvent(ctx, uuid.New().String(), "Invoice", "InvoiceUnpaid", payload)
+		}
+	}
+
+	return nil
 }
 
 func (s *billingServiceImpl) GenerateInvoice(ctx context.Context, encounterNo string) (*domain.Invoice, error) {

@@ -180,9 +180,7 @@ export function PaymentPage() {
     !isCancelled &&
     (Boolean(paidReceipt) ||
       invoice?.status === "PAID" ||
-      (Boolean(patientInfo) &&
-        patientInfo?.status !== "WAITING_FOR_PAYMENT" &&
-        patientInfo?.status !== "REGISTERED"));
+      (invoice?.is_paid ?? false));
 
   const totalAmount = invoice?.total_amount || 50000;
   const numAmountPaid = Number(amountPaid) || 0;
