@@ -106,6 +106,23 @@ export function DiagnosisForm({
 
 
 
+  // Collapsible form visibility (auto-open if 0 diagnoses, auto-close if diagnoses exist)
+  const [isFormOpen, setIsFormOpen] = useState(diagnoses.length === 0);
+
+  // Auto-open when editing
+  useEffect(() => {
+    if (isEditing) {
+      setIsFormOpen(true);
+    }
+  }, [isEditing]);
+
+  // If all diagnoses deleted, auto-open form
+  useEffect(() => {
+    if (diagnoses.length === 0) {
+      setIsFormOpen(true);
+    }
+  }, [diagnoses.length]);
+
   // Auto-switch default diagnosis type when primary is added or removed
   useEffect(() => {
     if (!isEditing) {
@@ -200,6 +217,13 @@ export function DiagnosisForm({
     setClinicalNotes(d.clinical_notes);
     setEditId(d.id);
     setIsEditing(true);
+    setIsFormOpen(true);
+  };
+
+  const handleOpenAdd = (type: "PRIMARY" | "SECONDARY") => {
+    resetForm();
+    setDiagnosisType(type);
+    setIsFormOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -238,6 +262,7 @@ export function DiagnosisForm({
         setSuccessMsg("Diagnosa berhasil ditambahkan.");
       }
       resetForm();
+      setIsFormOpen(false);
       if (onSuccess) await onSuccess();
     } catch (err: any) {
       const msg = err?.response?.data?.message || err.message || "Gagal menyimpan diagnosa";
@@ -470,14 +495,24 @@ export function DiagnosisForm({
             </div>
           </div>
         ) : (
-          <div className="p-4 bg-amber-50/70 border border-dashed border-amber-300 rounded-2xl flex items-center justify-between gap-3 text-amber-900">
+          <div className="p-4 bg-amber-50/70 border border-dashed border-amber-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900">
             <div className="flex items-center gap-2.5 text-xs">
               <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
               <span>
-                <strong>Belum ada Diagnosa Utama.</strong> Tambahkan 1 diagnosa utama di bawah untuk
-                memenuhi kelengkapan rekam medis encounter.
+                <strong>Belum ada Diagnosa Utama.</strong> Tambahkan 1 diagnosa utama untuk memenuhi kelengkapan rekam medis encounter.
               </span>
             </div>
+            {!readOnly && hasTriage && !isFormOpen && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => handleOpenAdd("PRIMARY")}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold gap-1.5 shrink-0 shadow-2xs cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Tambah Diagnosa Utama
+              </Button>
+            )}
           </div>
         )}
       </div>
@@ -492,6 +527,18 @@ export function DiagnosisForm({
               {secondaryDiagnoses.length} Diagnosa
             </span>
           </h4>
+
+          {!readOnly && hasTriage && primaryDiagnosis && !isFormOpen && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => handleOpenAdd("SECONDARY")}
+              className="h-8 px-3 text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 rounded-xl gap-1.5 cursor-pointer font-semibold shadow-2xs transition-all"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Tambah Diagnosa
+            </Button>
+          )}
         </div>
 
         {secondaryDiagnoses.length > 0 ? (
@@ -590,6 +637,18 @@ export function DiagnosisForm({
             </p>
           </div>
         )}
+
+        {/* Dashed Add Action Button when Form is Closed */}
+        {!readOnly && hasTriage && !isFormOpen && (
+          <button
+            type="button"
+            onClick={() => handleOpenAdd(primaryDiagnosis ? "SECONDARY" : "PRIMARY")}
+            className="w-full py-3 border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-indigo-50/30 hover:bg-indigo-50/70 rounded-xl text-xs font-bold text-indigo-700 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs group mt-2"
+          >
+            <Plus className="h-4 w-4 text-indigo-600 group-hover:scale-110 transition-transform" />
+            + Tambah {primaryDiagnosis ? "Diagnosa Sekunder / Komorbiditas" : "Diagnosa Utama"}
+          </button>
+        )}
       </div>
 
       {/* ─── TRIAGE MANDATORY WARNING ─── */}
@@ -620,21 +679,43 @@ export function DiagnosisForm({
       )}
 
       {/* ─── SECTION 3: ADD / EDIT DIAGNOSIS FORM WITH MULTI-MODE FILTER ─── */}
-      {!readOnly && hasTriage && (
+      {!readOnly && hasTriage && isFormOpen && (
         <form
           onSubmit={handleSubmit}
-          className="p-5 border border-indigo-100 bg-gradient-to-b from-indigo-50/40 via-white to-slate-50/50 rounded-2xl space-y-5 shadow-2xs"
+          className="p-5 border border-indigo-100 bg-gradient-to-b from-indigo-50/40 via-white to-slate-50/50 rounded-2xl space-y-5 shadow-2xs animate-in fade-in slide-in-from-top-2 duration-200"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pb-3 border-b border-indigo-100/70">
             <h4 className="text-sm font-bold text-indigo-950 flex items-center gap-2">
               {isEditing ? <Edit2 className="h-4 w-4 text-indigo-600" /> : <Plus className="h-4 w-4 text-indigo-600" />}
-              {isEditing ? "Edit Diagnosa" : "Entri Diagnosa Baru (Pencarian Multi-Mode)"}
+              {isEditing
+                ? `Edit Diagnosa [${selectedIcd10?.code || ""}]`
+                : diagnosisType === "PRIMARY"
+                ? "Entri Diagnosa Utama (Primary Diagnosis)"
+                : "Entri Diagnosa Sekunder / Komorbiditas"}
             </h4>
-            {isEditing && (
-              <span className="text-xs bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full font-semibold">
-                Sedang Mode Edit
-              </span>
-            )}
+
+            <div className="flex items-center gap-2">
+              {isEditing && (
+                <span className="text-xs bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full font-semibold">
+                  Sedang Mode Edit
+                </span>
+              )}
+              {diagnoses.length > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    resetForm();
+                    setIsFormOpen(false);
+                  }}
+                  className="h-8 px-2.5 text-xs text-slate-500 hover:text-slate-800 hover:bg-slate-100 gap-1 rounded-lg cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                  Tutup Form
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Search Filter Tabs */}
@@ -976,12 +1057,32 @@ export function DiagnosisForm({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2.5 pt-2 border-t border-slate-200">
-            {isEditing && (
-              <Button type="button" variant="outline" onClick={resetForm} className="bg-white">
+          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100">
+            {isEditing ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  resetForm();
+                  setIsFormOpen(false);
+                }}
+                className="bg-white"
+              >
                 Batal Edit
               </Button>
-            )}
+            ) : diagnoses.length > 0 ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  resetForm();
+                  setIsFormOpen(false);
+                }}
+                className="bg-white"
+              >
+                Batal
+              </Button>
+            ) : null}
             <Button
               type="submit"
               disabled={loading || !selectedIcd10}
