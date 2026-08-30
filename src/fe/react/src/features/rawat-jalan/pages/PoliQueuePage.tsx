@@ -2,6 +2,13 @@ import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getTodayEncounters } from "../api/rawatJalanApi";
 import type { EncounterDetail } from "../types";
+import {
+  isReadyForExam,
+  isWaitingForPayment,
+  isInProgress,
+  isCompleted,
+  isCancelled,
+} from "../types";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { ModernConfirmModal } from "@/components/ui/ModernConfirmModal";
@@ -87,48 +94,46 @@ interface StatusConfig {
 }
 
 function getPelayananStatusConfig(status: string): StatusConfig {
-  switch (status) {
-    case "WAITING_FOR_PAYMENT":
-      return {
-        label: "Belum Bayar",
-        badgeClass: "bg-amber-50 text-amber-800 border border-amber-200/80",
-        dotClass: "bg-amber-500 animate-pulse",
-      };
-    case "REGISTERED":
-    case "QUEUED":
-    case "QUEUED_FOR_POLI":
-    case "WAITING_FOR_TRIAGE":
-    case "WAITING_FOR_EXAM":
-      return {
-        label: "Siap Diperiksa",
-        badgeClass: "bg-emerald-50 text-emerald-800 border border-emerald-200/80",
-        dotClass: "bg-emerald-500",
-      };
-    case "IN_PROGRESS":
-      return {
-        label: "Sedang Diperiksa",
-        badgeClass: "bg-blue-50 text-blue-800 border border-blue-200/80",
-        dotClass: "bg-blue-500 animate-pulse",
-      };
-    case "COMPLETED":
-      return {
-        label: "Selesai Pelayanan",
-        badgeClass: "bg-slate-100 text-slate-700 border border-slate-200",
-        dotClass: "bg-slate-400",
-      };
-    case "CANCELLED":
-      return {
-        label: "Batal",
-        badgeClass: "bg-rose-50 text-rose-800 border border-rose-200/80",
-        dotClass: "bg-rose-500",
-      };
-    default:
-      return {
-        label: status,
-        badgeClass: "bg-slate-50 text-slate-700 border border-slate-200",
-        dotClass: "bg-slate-400",
-      };
+  if (isWaitingForPayment(status)) {
+    return {
+      label: "Belum Bayar",
+      badgeClass: "bg-amber-50 text-amber-800 border border-amber-200/80",
+      dotClass: "bg-amber-500 animate-pulse",
+    };
   }
+  if (isReadyForExam(status)) {
+    return {
+      label: "Siap Diperiksa",
+      badgeClass: "bg-emerald-50 text-emerald-800 border border-emerald-200/80",
+      dotClass: "bg-emerald-500",
+    };
+  }
+  if (isInProgress(status)) {
+    return {
+      label: "Sedang Diperiksa",
+      badgeClass: "bg-blue-50 text-blue-800 border border-blue-200/80",
+      dotClass: "bg-blue-500 animate-pulse",
+    };
+  }
+  if (isCompleted(status)) {
+    return {
+      label: "Selesai Pelayanan",
+      badgeClass: "bg-slate-100 text-slate-700 border border-slate-200",
+      dotClass: "bg-slate-400",
+    };
+  }
+  if (isCancelled(status)) {
+    return {
+      label: "Batal",
+      badgeClass: "bg-rose-50 text-rose-800 border border-rose-200/80",
+      dotClass: "bg-rose-500",
+    };
+  }
+  return {
+    label: status,
+    badgeClass: "bg-slate-50 text-slate-700 border border-slate-200",
+    dotClass: "bg-slate-400",
+  };
 }
 
 export function PoliQueuePage() {
@@ -161,25 +166,23 @@ export function PoliQueuePage() {
   }, [poliCode]);
 
   const countBelumBayar = useMemo(() => {
-    return encounters.filter((e) => e.status === "WAITING_FOR_PAYMENT").length;
+    return encounters.filter((e) => isWaitingForPayment(e.status)).length;
   }, [encounters]);
 
   const countSiapDiperiksa = useMemo(() => {
-    return encounters.filter((e) =>
-      ["REGISTERED", "QUEUED", "QUEUED_FOR_POLI", "WAITING_FOR_TRIAGE", "WAITING_FOR_EXAM"].includes(e.status)
-    ).length;
+    return encounters.filter((e) => isReadyForExam(e.status)).length;
   }, [encounters]);
 
   const countInProgress = useMemo(() => {
-    return encounters.filter((e) => e.status === "IN_PROGRESS").length;
+    return encounters.filter((e) => isInProgress(e.status)).length;
   }, [encounters]);
 
   const countCompleted = useMemo(() => {
-    return encounters.filter((e) => e.status === "COMPLETED").length;
+    return encounters.filter((e) => isCompleted(e.status)).length;
   }, [encounters]);
 
   const countBatal = useMemo(() => {
-    return encounters.filter((e) => e.status === "CANCELLED" || e.status === "BATAL").length;
+    return encounters.filter((e) => isCancelled(e.status)).length;
   }, [encounters]);
 
   const filteredEncounters = useMemo(() => {
@@ -192,12 +195,11 @@ export function PoliQueuePage() {
 
       const matchesStatus =
         statusFilter === "ALL" ||
-        (statusFilter === "SIAP" &&
-          ["REGISTERED", "QUEUED", "QUEUED_FOR_POLI", "WAITING_FOR_TRIAGE", "WAITING_FOR_EXAM"].includes(enc.status)) ||
-        (statusFilter === "BELUM_BAYAR" && enc.status === "WAITING_FOR_PAYMENT") ||
-        (statusFilter === "IN_PROGRESS" && enc.status === "IN_PROGRESS") ||
-        (statusFilter === "COMPLETED" && enc.status === "COMPLETED") ||
-        (statusFilter === "BATAL" && (enc.status === "CANCELLED" || enc.status === "BATAL"));
+        (statusFilter === "SIAP" && isReadyForExam(enc.status)) ||
+        (statusFilter === "BELUM_BAYAR" && isWaitingForPayment(enc.status)) ||
+        (statusFilter === "IN_PROGRESS" && isInProgress(enc.status)) ||
+        (statusFilter === "COMPLETED" && isCompleted(enc.status)) ||
+        (statusFilter === "BATAL" && isCancelled(enc.status));
 
       return matchesSearch && matchesStatus;
     });
@@ -211,7 +213,7 @@ export function PoliQueuePage() {
   };
 
   const handleOpenEncounter = (enc: EncounterDetail) => {
-    if (enc.status === "WAITING_FOR_PAYMENT") {
+    if (isWaitingForPayment(enc.status)) {
       setPaymentAlertPatient(enc);
       toast.warning(
         `Pasien ${enc.patient_name || enc.mrn} belum melunasi pembayaran di kasir!`,
@@ -522,11 +524,11 @@ export function PoliQueuePage() {
                       onClick={() => handleOpenEncounter(enc)}
                       className={cn(
                         "flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all shadow-xs cursor-pointer active:scale-95",
-                        enc.status === "WAITING_FOR_PAYMENT"
+                        isWaitingForPayment(enc.status)
                           ? "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200"
-                          : enc.status === "IN_PROGRESS"
+                          : isInProgress(enc.status)
                           ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200"
-                          : enc.status === "CANCELLED" || enc.status === "BATAL"
+                          : isCancelled(enc.status)
                           ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
                           : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200"
                       )}

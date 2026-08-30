@@ -3,6 +3,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { api } from "@/lib/api";
 import { TriageForm } from "../components/TriageForm";
 import type { EncounterDetail } from "../types";
+import { isReadyForExam } from "../types";
 import {
   HeartPulse,
   Search,
@@ -25,11 +26,9 @@ export function TriagePage() {
     try {
       const res = await api.get(`/registrations/today?poli_code=${poliCode || ""}`);
       const data = res.data?.data || [];
-      // Tampilkan hanya yang belum ditriage atau perlu pembaruan
+      // Tampilkan hanya yang siap diperiksa/ditriage
       setEncounters(
-        data.filter((e: EncounterDetail) =>
-          ["REGISTERED", "QUEUED", "QUEUED_FOR_POLI", "WAITING_FOR_TRIAGE"].includes(e.status)
-        )
+        data.filter((e: EncounterDetail) => isReadyForExam(e.status))
       );
     } catch (err) {
       console.error("Failed to fetch encounters", err);

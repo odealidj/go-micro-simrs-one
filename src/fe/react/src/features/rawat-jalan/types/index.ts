@@ -1,3 +1,5 @@
+export * from "./status";
+
 export interface TriageData {
   blood_pressure_systolic: number;
   blood_pressure_diastolic: number;
