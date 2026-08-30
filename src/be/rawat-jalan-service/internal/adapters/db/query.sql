@@ -21,10 +21,26 @@ SET diagnosis_type = $2,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = $1 AND deleted_dt IS NULL;
 
+-- name: GetEncounterDiagnosisByID :one
+SELECT * FROM encounter_diagnoses
+WHERE id = $1;
+
 -- name: RemoveEncounterDiagnosis :exec
 UPDATE encounter_diagnoses
 SET deleted_dt = CURRENT_TIMESTAMP
 WHERE id = $1;
+
+-- name: ResetEncounterSeverityIfNoDiagnoses :exec
+UPDATE medical_records
+SET encounter_severity_level = NULL,
+    severity_finalized_by = NULL,
+    severity_finalized_at = NULL,
+    updated_at = CURRENT_TIMESTAMP
+WHERE medical_records.encounter_no = $1
+  AND NOT EXISTS (
+      SELECT 1 FROM encounter_diagnoses ed
+      WHERE ed.encounter_no = medical_records.encounter_no AND ed.deleted_dt IS NULL
+  );
 
 -- name: DemotePrimaryDiagnoses :exec
 UPDATE encounter_diagnoses

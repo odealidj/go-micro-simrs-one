@@ -121,7 +121,20 @@ func (r *emrRepoSqlc) RemoveEncounterDiagnosis(ctx context.Context, id string) e
 	if err != nil {
 		return err
 	}
-	return r.q.RemoveEncounterDiagnosis(ctx, uid)
+
+	// Fetch diagnosis to get encounter_no
+	dbDiag, err := r.q.GetEncounterDiagnosisByID(ctx, uid)
+	if err != nil {
+		return r.q.RemoveEncounterDiagnosis(ctx, uid)
+	}
+
+	if err := r.q.RemoveEncounterDiagnosis(ctx, uid); err != nil {
+		return err
+	}
+
+	// Automatically reset encounter severity if all active diagnoses for this encounter are now deleted
+	_ = r.q.ResetEncounterSeverityIfNoDiagnoses(ctx, dbDiag.EncounterNo)
+	return nil
 }
 
 func (r *emrRepoSqlc) PromoteDiagnosisToPrimary(ctx context.Context, encounterNo, diagnosisId string) error {
