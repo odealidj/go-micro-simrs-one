@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   getBillingQueue,
@@ -7,6 +7,7 @@ import {
   type BillingPatientQueueItem,
   type Invoice,
   type RevenueReportData,
+  type SettlementTransactionItem,
 } from "../api/billingApi";
 import { useAuth } from "@/lib/AuthContext";
 import {
@@ -21,11 +22,11 @@ import {
   CreditCard,
   RefreshCw,
   Eye,
-  UserCheck,
   BadgeDollarSign,
   Banknote,
   QrCode,
   ShieldCheck,
+  Printer,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -137,6 +138,13 @@ export function KasirDashboard() {
   const [invoiceDetail, setInvoiceDetail] = useState<Invoice | null>(null);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
 
+  // Quick Receipt Modal state
+  const [selectedReceiptTx, setSelectedReceiptTx] = useState<SettlementTransactionItem | null>(null);
+  const [receiptInvoice, setReceiptInvoice] = useState<Invoice | null>(null);
+  const [receiptLoading, setReceiptLoading] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const receiptPrintRef = useRef<HTMLDivElement>(null);
+
   const shiftInfo = useMemo(() => getShiftInfo(), []);
 
   const fetchDashboardData = async (showToast = false) => {
@@ -223,13 +231,61 @@ export function KasirDashboard() {
     }
   };
 
+  const renderPaymentBadge = (method: string) => {
+    switch (method?.toUpperCase()) {
+      case "QRIS":
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-md">
+            <QrCode className="h-3 w-3 text-sky-600" />
+            QRIS
+          </span>
+        );
+      case "DEBIT":
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
+            <CreditCard className="h-3 w-3 text-indigo-600" />
+            DEBIT
+          </span>
+        );
+      case "BPJS":
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
+            <ShieldCheck className="h-3 w-3 text-blue-600" />
+            BPJS
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+            <Banknote className="h-3 w-3 text-emerald-600" />
+            TUNAI
+          </span>
+        );
+    }
+  };
+
+  const handleOpenReceiptModal = async (tx: SettlementTransactionItem) => {
+    setSelectedReceiptTx(tx);
+    setIsReceiptModalOpen(true);
+    setReceiptLoading(true);
+    try {
+      const inv = await getInvoice(tx.encounter_no);
+      setReceiptInvoice(inv);
+    } catch (err) {
+      console.error("Failed to fetch invoice for receipt", err);
+      setReceiptInvoice(null);
+    } finally {
+      setReceiptLoading(false);
+    }
+  };
+
   return (
     <div className={kasirTheme.layout.container}>
       {/* Kasir Page Header */}
       <KasirPageHeader
         title="Dashboard Kasir & Pembayaran"
-        description={`Pusat kendali transaksi kasir, antrean pembayaran, dan laporan penerimaan harian • ${todayStr}`}
-        badge="Loket Kasir Aktif"
+        description={`Pusat kendali transaksi kasir • ${shiftInfo.badge} (${shiftInfo.time}) • ${todayStr}`}
+        badge="Loket 01 Aktif"
         icon={Wallet}
         actions={
           <div className="flex items-center gap-2">
@@ -562,52 +618,81 @@ export function KasirDashboard() {
 
         {/* Right Column: Shift & Shortcut Navigasi (4 cols) */}
         <div className="xl:col-span-4 flex flex-col space-y-6">
-          {/* Card 1: Informasi Shift Kasir & Loket Aktif */}
+          {/* Card 1: Transaksi Terakhir & Cetak Cepat Kwitansi */}
           <Card className="card-premium overflow-hidden border-slate-200/90 shadow-2xs">
-            <CardHeader className="bg-slate-50/60 border-b border-slate-100 p-5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-amber-50 rounded-lg border border-amber-200 text-amber-700">
-                    <UserCheck className="h-4 w-4" />
-                  </div>
-                  <CardTitle className="text-sm font-bold text-slate-900">Shift Kasir Aktif</CardTitle>
+            <CardHeader className="bg-slate-50/60 border-b border-slate-100 p-4 sm:p-5 flex flex-row items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-amber-50 rounded-xl border border-amber-200 text-amber-700 shadow-2xs">
+                  <Printer className="h-4 w-4" />
                 </div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Loket Buka
-                </span>
+                <div>
+                  <CardTitle className="text-sm font-bold text-slate-900">Transaksi Terakhir</CardTitle>
+                  <CardDescription className="text-[11px] text-slate-500">
+                    Cetak cepat nota & kwitansi kasir
+                  </CardDescription>
+                </div>
               </div>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                {revenueData?.transactions?.length ?? 0} Lunas
+              </span>
             </CardHeader>
-            <CardContent className="p-5 space-y-3.5 text-xs">
-              <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Petugas Kasir</span>
-                <span className="font-bold text-slate-900">
-                  {userId ? userId.charAt(0).toUpperCase() + userId.slice(1) : "Kasir Utama"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Lokasi Loket</span>
-                <span className="font-semibold text-slate-800">Loket Kasir 01 (Rawat Jalan)</span>
-              </div>
-              <div className="flex justify-between items-center py-1 border-b border-slate-100">
-                <span className="text-slate-500 font-medium">Shift Kerja</span>
-                <span className="font-semibold text-slate-800">{shiftInfo.time} ({shiftInfo.name})</span>
-              </div>
-              <div className="flex justify-between items-center py-1">
-                <span className="text-slate-500 font-medium">Total Transaksi Shift</span>
-                <span className="font-extrabold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-md">
-                  {revenueData?.metrics?.total_transactions ?? paidList.length} Transaksi Lunas
-                </span>
-              </div>
+            <CardContent className="p-0 text-xs">
+              {revenueData?.transactions && revenueData.transactions.length > 0 ? (
+                <div className="divide-y divide-slate-100">
+                  {revenueData.transactions.slice(0, 4).map((tx, idx) => (
+                    <div
+                      key={tx.encounter_no || idx}
+                      className="p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:bg-amber-50/20 transition-colors"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-slate-900 text-xs truncate max-w-[140px] sm:max-w-[170px]">
+                            {tx.patient_name}
+                          </span>
+                          <span className="font-mono text-[10px] text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
+                            {tx.mrn}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-slate-900">{formatRupiah(tx.total_amount)}</span>
+                          <span className="text-slate-300">•</span>
+                          {renderPaymentBadge(tx.payment_method)}
+                        </div>
+                      </div>
 
-              <div className="pt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleOpenReceiptModal(tx)}
+                        className="h-8 px-2.5 text-xs font-semibold text-slate-700 bg-white border-slate-200 hover:bg-amber-50 hover:text-amber-800 hover:border-amber-300 rounded-lg gap-1.5 shrink-0 shadow-2xs cursor-pointer"
+                        title="Cetak Ulang Kwitansi Resmi"
+                      >
+                        <Printer className="h-3.5 w-3.5 text-amber-600" />
+                        <span className="hidden sm:inline">Cetak</span>
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-6 text-center text-slate-400 space-y-1.5">
+                  <div className="p-2.5 bg-slate-100 rounded-xl w-fit mx-auto text-slate-400">
+                    <Receipt className="h-5 w-5" />
+                  </div>
+                  <p className="text-xs font-bold text-slate-700">Belum Ada Transaksi Lunas</p>
+                  <p className="text-[11px] text-slate-400">Transaksi lunas hari ini akan tampil di sini untuk cetak kwitansi.</p>
+                </div>
+              )}
+
+              <div className="p-3 border-t border-slate-100 bg-slate-50/50">
                 <Button
-                  onClick={() => navigate("/kasir/laporan")}
-                  variant="outline"
-                  className="w-full h-10 border-amber-200 hover:bg-amber-50 text-amber-800 font-bold text-xs rounded-xl gap-2 cursor-pointer shadow-2xs"
+                  onClick={() => navigate("/kasir/riwayat-pembayaran")}
+                  variant="ghost"
+                  className="w-full h-8 text-xs font-bold text-slate-700 hover:text-amber-800 hover:bg-amber-50 rounded-lg gap-1.5 cursor-pointer justify-center"
                 >
                   <FileText className="h-3.5 w-3.5 text-amber-600" />
-                  <span>Rekapitulasi Penerimaan Shift</span>
+                  <span>Buka Semua Riwayat Kwitansi ({revenueData?.transactions?.length ?? 0})</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-slate-400" />
                 </Button>
               </div>
             </CardContent>
@@ -768,6 +853,126 @@ export function KasirDashboard() {
                 <CreditCard className="h-4 w-4" />
                 <span>Lanjut ke Pembayaran</span>
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Modal Cetak Kwitansi Resmi Cepat */}
+      <Dialog open={isReceiptModalOpen} onOpenChange={setIsReceiptModalOpen}>
+        <DialogContent showCloseButton={false} className="sm:max-w-xl md:max-w-2xl p-0 overflow-hidden border-0 shadow-2xl rounded-2xl">
+          <DialogHeader className="p-5 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white flex flex-row items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-white/20 text-white">
+                <Printer className="h-5 w-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-base font-bold text-white">
+                  Kwitansi Pembayaran Rawat Jalan
+                </DialogTitle>
+                <p className="text-xs text-amber-100 mt-0.5 font-mono">
+                  No. Kwitansi: #KW-{selectedReceiptTx?.encounter_no}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => window.print()}
+                className="bg-white hover:bg-amber-50 text-amber-900 font-bold text-xs h-9 px-4 rounded-xl shadow-sm gap-1.5 cursor-pointer"
+              >
+                <Printer className="h-4 w-4" />
+                <span>Cetak Nota</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsReceiptModalOpen(false)}
+                className="h-9 w-9 text-white/80 hover:text-white hover:bg-white/20 rounded-xl transition-colors cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+          </DialogHeader>
+
+          {/* Printable Receipt Paper Container */}
+          <div ref={receiptPrintRef} className="p-6 sm:p-8 bg-white text-slate-800 space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar font-sans">
+            {/* Header RS */}
+            <div className="text-center pb-4 border-b-2 border-dashed border-slate-300">
+              <h2 className="text-lg font-black tracking-tight text-slate-900 uppercase">CODINA SIMRS ONE - RSUD KOTA</h2>
+              <p className="text-xs text-slate-500 font-medium">Layanan Rawat Jalan & Kasir Terpadu</p>
+              <p className="text-[11px] text-slate-400">Jl. Kesehatan No. 1 • Telp: (021) 555-1234 • Loket Kasir Utama</p>
+            </div>
+
+            {/* Kwitansi Meta */}
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div className="space-y-1">
+                <p><span className="text-slate-400">No. Kwitansi:</span> <strong className="font-mono text-slate-900">#KW-{selectedReceiptTx?.encounter_no}</strong></p>
+                <p><span className="text-slate-400">No. Rekam Medis:</span> <strong className="font-mono text-slate-900">{selectedReceiptTx?.mrn}</strong></p>
+                <p><span className="text-slate-400">Nama Pasien:</span> <strong className="text-slate-900">{selectedReceiptTx?.patient_name}</strong></p>
+              </div>
+              <div className="space-y-1 text-right sm:text-left">
+                <p><span className="text-slate-400">Tanggal Bayar:</span> <strong className="text-slate-900">{selectedReceiptTx?.paid_at ? new Date(selectedReceiptTx.paid_at).toLocaleDateString("id-ID", { dateStyle: "long" }) : todayStr}</strong></p>
+                <p><span className="text-slate-400">Poliklinik:</span> <strong className="text-slate-900">{selectedReceiptTx?.department_name || getDepartmentName(selectedReceiptTx?.department_code)}</strong></p>
+                <p><span className="text-slate-400">Metode Bayar:</span> <strong className="text-slate-900">{selectedReceiptTx?.payment_method || "CASH"}</strong></p>
+              </div>
+            </div>
+
+            {/* Itemized Table */}
+            <div className="border-t border-b border-slate-200 py-3">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="text-slate-400 font-bold border-b border-slate-100">
+                    <th className="text-left pb-2">Uraian Pelayanan / Tindakan</th>
+                    <th className="text-center pb-2">Qty</th>
+                    <th className="text-right pb-2">Tarif</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {receiptLoading ? (
+                    <tr>
+                      <td colSpan={3} className="py-4 text-center text-slate-400">Memuat rincian tindakan...</td>
+                    </tr>
+                  ) : receiptInvoice?.items && receiptInvoice.items.length > 0 ? (
+                    receiptInvoice.items.map((it, i) => (
+                      <tr key={i}>
+                        <td className="py-2.5 font-medium text-slate-800">{it.description}</td>
+                        <td className="py-2.5 text-center text-slate-600">{it.quantity || 1}</td>
+                        <td className="py-2.5 text-right font-bold text-slate-900">{formatRupiah(it.amount)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td className="py-2.5 font-medium text-slate-800">Pelayanan & Tindakan Rawat Jalan</td>
+                      <td className="py-2.5 text-center text-slate-600">1</td>
+                      <td className="py-2.5 text-right font-bold text-slate-900">{formatRupiah(selectedReceiptTx?.total_amount || 0)}</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Total Block */}
+            <div className="space-y-2 text-xs">
+              <div className="flex justify-between items-center text-sm font-black border-t-2 border-slate-900 pt-3">
+                <span className="uppercase">Total Pelunasan</span>
+                <span className="text-amber-700 text-base">{formatRupiah(selectedReceiptTx?.total_amount || 0)}</span>
+              </div>
+            </div>
+
+            {/* Stempel & Signature Footer */}
+            <div className="pt-6 border-t border-dashed border-slate-300 flex justify-between items-end text-[11px]">
+              <div className="space-y-1 text-slate-400">
+                <p>Kwitansi ini merupakan bukti pembayaran yang sah.</p>
+                <p>Dicetak pada: {new Date().toLocaleString("id-ID")}</p>
+                <div className="inline-block border-2 border-emerald-600 text-emerald-700 font-extrabold px-3 py-1 rounded text-xs tracking-wider uppercase rotate-[-3deg] mt-1">
+                  LUNAS / VERIFIED
+                </div>
+              </div>
+              <div className="text-center space-y-12">
+                <p className="text-slate-500 font-medium">Petugas Loket Kasir,</p>
+                <p className="font-bold text-slate-900 underline underline-offset-4">
+                  {userId ? userId.charAt(0).toUpperCase() + userId.slice(1) : "Kasir Utama"}
+                </p>
+              </div>
             </div>
           </div>
         </DialogContent>
