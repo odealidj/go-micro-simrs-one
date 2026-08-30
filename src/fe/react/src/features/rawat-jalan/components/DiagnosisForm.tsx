@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { EncounterDiagnosis } from "../types";
 import { useDebounce } from "@/hooks/useDebounce";
+import { toast } from "sonner";
 import {
   Search,
   Save,
@@ -34,6 +35,7 @@ import {
   Activity,
   ShieldCheck,
   X,
+  Loader2,
 } from "lucide-react";
 
 interface DiagnosisFormProps {
@@ -60,9 +62,14 @@ export function DiagnosisForm({
   onNavigateTriage,
 }: DiagnosisFormProps) {
   const [loading, setLoading] = useState(false);
-  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // Modal confirmation states
+  const [deleteTarget, setDeleteTarget] = useState<EncounterDiagnosis | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [promoteTarget, setPromoteTarget] = useState<EncounterDiagnosis | null>(null);
+  const [isPromoting, setIsPromoting] = useState(false);
 
   // Form states for adding/editing
   const [isEditing, setIsEditing] = useState(false);
@@ -204,6 +211,7 @@ export function DiagnosisForm({
     e.preventDefault();
     if (!selectedIcd10) {
       setError("Silakan pilih Diagnosa (ICD-10) terlebih dahulu.");
+      toast.error("Silakan pilih Diagnosa (ICD-10) terlebih dahulu.");
       return;
     }
 
@@ -219,6 +227,7 @@ export function DiagnosisForm({
           severityLevel,
           clinicalNotes
         );
+        toast.success("Diagnosa berhasil diperbarui.");
         setSuccessMsg("Diagnosa berhasil diperbarui.");
       } else {
         await addEncounterDiagnosis(
@@ -230,50 +239,55 @@ export function DiagnosisForm({
           selectedSnomedId || undefined,
           selectedKbmCode || undefined
         );
+        toast.success("Diagnosa berhasil ditambahkan.");
         setSuccessMsg("Diagnosa berhasil ditambahkan.");
       }
       resetForm();
-      if (onSuccess) onSuccess();
+      if (onSuccess) await onSuccess();
     } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || "Gagal menyimpan diagnosa");
+      const msg = err?.response?.data?.message || err.message || "Gagal menyimpan diagnosa";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRemove = async (id: string) => {
-    if (!confirm("Hapus diagnosa ini dari rekam medis pertemuan?")) return;
-    setActionLoadingId(id);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
     setError(null);
     try {
-      await removeEncounterDiagnosis(id);
-      setSuccessMsg("Diagnosa berhasil dihapus.");
-      if (onSuccess) onSuccess();
+      await removeEncounterDiagnosis(deleteTarget.id);
+      toast.success(`Diagnosa [${deleteTarget.icd10_code}] berhasil dihapus.`);
+      setSuccessMsg(`Diagnosa [${deleteTarget.icd10_code}] berhasil dihapus.`);
+      setDeleteTarget(null);
+      if (onSuccess) await onSuccess();
     } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || "Gagal menghapus diagnosa");
+      const msg = err?.response?.data?.message || err.message || "Gagal menghapus diagnosa";
+      setError(msg);
+      toast.error(msg);
     } finally {
-      setActionLoadingId(null);
+      setIsDeleting(false);
     }
   };
 
-  const handlePromoteToPrimary = async (d: EncounterDiagnosis) => {
-    if (
-      !confirm(
-        `Jadikan "${d.icd10_code} - ${d.icd10_name}" sebagai Diagnosa Utama?\n\nDiagnosa utama saat ini akan otomatis dipindahkan menjadi Diagnosa Sekunder.`
-      )
-    )
-      return;
-
-    setActionLoadingId(d.id);
+  const confirmPromote = async () => {
+    if (!promoteTarget) return;
+    setIsPromoting(true);
     setError(null);
     try {
-      await promoteDiagnosisToPrimary(encounterNo, d.id);
-      setSuccessMsg(`Berhasil menjadikan [${d.icd10_code}] sebagai Diagnosa Utama.`);
-      if (onSuccess) onSuccess();
+      await promoteDiagnosisToPrimary(encounterNo, promoteTarget.id);
+      toast.success(`[${promoteTarget.icd10_code}] berhasil dijadikan sebagai Diagnosa Utama.`);
+      setSuccessMsg(`Berhasil menjadikan [${promoteTarget.icd10_code}] sebagai Diagnosa Utama.`);
+      setPromoteTarget(null);
+      if (onSuccess) await onSuccess();
     } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || "Gagal menukar diagnosa utama");
+      const msg = err?.response?.data?.message || err.message || "Gagal menukar diagnosa utama";
+      setError(msg);
+      toast.error(msg);
     } finally {
-      setActionLoadingId(null);
+      setIsPromoting(false);
     }
   };
 
@@ -284,10 +298,13 @@ export function DiagnosisForm({
     setError(null);
     try {
       await finalizeSeverity(encounterNo, finalSeverity);
+      toast.success("Tingkat keparahan pertemuan berhasil difinalisasi.");
       setSuccessMsg("Tingkat keparahan pertemuan berhasil difinalisasi.");
-      if (onSuccess) onSuccess();
+      if (onSuccess) await onSuccess();
     } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || "Gagal memfinalisasi keparahan");
+      const msg = err?.response?.data?.message || err.message || "Gagal memfinalisasi keparahan";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setFinalizing(false);
     }
@@ -455,7 +472,7 @@ export function DiagnosisForm({
                     variant="outline"
                     size="sm"
                     onClick={() => handleEditClick(primaryDiagnosis)}
-                    className="h-8 px-2.5 text-xs border-slate-200 hover:bg-slate-50 gap-1.5"
+                    className="h-8 px-2.5 text-xs border-slate-200 hover:bg-slate-50 gap-1.5 cursor-pointer shadow-2xs font-medium"
                   >
                     <Edit2 className="h-3.5 w-3.5 text-slate-500" />
                     Edit
@@ -464,9 +481,8 @@ export function DiagnosisForm({
                     type="button"
                     variant="outline"
                     size="sm"
-                    disabled={actionLoadingId === primaryDiagnosis.id}
-                    onClick={() => handleRemove(primaryDiagnosis.id)}
-                    className="h-8 px-2.5 text-xs text-red-600 hover:bg-red-50 border-red-100 hover:border-red-200 gap-1.5"
+                    onClick={() => setDeleteTarget(primaryDiagnosis)}
+                    className="h-8 px-2.5 text-xs text-red-600 hover:bg-red-50 border-red-200 hover:border-red-300 gap-1.5 cursor-pointer shadow-2xs font-medium"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     Hapus
@@ -554,31 +570,35 @@ export function DiagnosisForm({
                         type="button"
                         size="sm"
                         variant="outline"
-                        disabled={actionLoadingId === d.id}
-                        onClick={() => handlePromoteToPrimary(d)}
-                        className="h-8 px-2.5 text-xs text-emerald-700 bg-emerald-50/60 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 gap-1.5 shadow-2xs cursor-pointer"
+                        onClick={() => setPromoteTarget(d)}
+                        className="h-8 px-2.5 text-xs text-emerald-700 bg-emerald-50/60 border-emerald-200 hover:bg-emerald-100 hover:text-emerald-800 gap-1.5 shadow-2xs cursor-pointer font-medium"
                         title="Tukar diagnosa ini menjadi Diagnosa Utama"
                       >
                         <ArrowUpCircle className="h-3.5 w-3.5 text-emerald-600" />
                         Jadikan Utama
                       </Button>
-                      <button
+                      <Button
                         type="button"
+                        size="sm"
+                        variant="outline"
                         onClick={() => handleEditClick(d)}
-                        className="text-slate-400 hover:text-indigo-600 transition-colors p-1.5 rounded-md hover:bg-indigo-50"
-                        title="Edit"
+                        className="h-8 px-2.5 text-xs text-slate-600 border-slate-200 hover:bg-slate-50 gap-1.5 cursor-pointer shadow-2xs font-medium"
+                        title="Edit Diagnosa"
                       >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
+                        <Edit2 className="h-3.5 w-3.5 text-slate-500" />
+                        Edit
+                      </Button>
+                      <Button
                         type="button"
-                        disabled={actionLoadingId === d.id}
-                        onClick={() => handleRemove(d.id)}
-                        className="text-slate-400 hover:text-red-600 transition-colors p-1.5 rounded-md hover:bg-red-50"
-                        title="Hapus"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setDeleteTarget(d)}
+                        className="h-8 px-2.5 text-xs text-red-600 hover:bg-red-50 border-red-200 hover:border-red-300 gap-1.5 cursor-pointer shadow-2xs font-medium"
+                        title="Hapus Diagnosa"
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Hapus
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -1038,6 +1058,112 @@ export function DiagnosisForm({
                   : encounterSeverityLevel
                   ? "Sudah Final"
                   : "Finalisasi Severity"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL CONFIRMATION: DELETE DIAGNOSIS ─── */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div className="flex items-center gap-3 text-red-600">
+              <div className="p-3 bg-red-50 rounded-xl">
+                <Trash2 className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-base">Hapus Diagnosa Medis?</h4>
+                <p className="text-xs text-slate-500">Tindakan ini akan menghapus diagnosa dari rekam medis pertemuan.</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-bold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded">
+                  {deleteTarget.icd10_code}
+                </span>
+                <span className="font-bold text-slate-800 text-sm">
+                  {deleteTarget.icd10_name}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-500 pt-1">
+                <span>Tipe: <strong>{deleteTarget.diagnosis_type}</strong></span>
+                <span>•</span>
+                <span>Severity: Level {deleteTarget.severity_level}</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2.5 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isDeleting}
+                onClick={() => setDeleteTarget(null)}
+                className="cursor-pointer"
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                disabled={isDeleting}
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold gap-2 cursor-pointer shadow-xs"
+              >
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                {isDeleting ? "Menghapus..." : "Ya, Hapus Diagnosa"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL CONFIRMATION: PROMOTE DIAGNOSIS TO PRIMARY ─── */}
+      {promoteTarget && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+            <div className="flex items-center gap-3 text-emerald-600">
+              <div className="p-3 bg-emerald-50 rounded-xl">
+                <ArrowUpCircle className="h-6 w-6 text-emerald-600" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-base">Jadikan Diagnosa Utama?</h4>
+                <p className="text-xs text-slate-500">Diagnosa utama saat ini akan otomatis dipindahkan menjadi sekunder.</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-1.5 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-bold bg-emerald-600 text-white px-2 py-0.5 rounded">
+                  {promoteTarget.icd10_code}
+                </span>
+                <span className="font-bold text-slate-900 text-sm">
+                  {promoteTarget.icd10_name}
+                </span>
+              </div>
+              <p className="text-slate-500 pt-1">
+                Diagnosa ini akan memiliki urutan prioritas pertama (Sequence 1) untuk resume medis dan klaim.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2.5 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isPromoting}
+                onClick={() => setPromoteTarget(null)}
+                className="cursor-pointer"
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                disabled={isPromoting}
+                onClick={confirmPromote}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 cursor-pointer shadow-xs"
+              >
+                {isPromoting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUpCircle className="h-4 w-4" />}
+                {isPromoting ? "Memproses..." : "Ya, Jadikan Utama"}
               </Button>
             </div>
           </div>

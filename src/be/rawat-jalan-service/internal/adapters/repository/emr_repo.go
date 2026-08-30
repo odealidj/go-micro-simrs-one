@@ -279,6 +279,8 @@ func (r *emrRepoSqlc) GetMedicalRecord(ctx context.Context, encounterNo string) 
 			AutoKBMCode:          d.AutoKbmCode.String,
 			AutoKBMName:          d.AutoKbmName.String,
 			KBMMappingConfidence: d.KbmMappingConfidence.String,
+			SNOMEDConceptID:      d.SnomedConceptID.String,
+			SNOMEDName:           d.SnomedName.String,
 			IsVerifiedByRM:       d.IsVerifiedByRm,
 			VerifiedBy:           d.VerifiedBy.String,
 		})
