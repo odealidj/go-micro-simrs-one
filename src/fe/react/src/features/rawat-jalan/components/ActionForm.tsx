@@ -50,7 +50,6 @@ export function ActionForm({
 
   const [notes, setNotes] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [performer, setPerformer] = useState("DOKTER");
   const [selectedAction, setSelectedAction] = useState<{ code: string; name: string; price: number } | null>(null);
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -124,7 +123,6 @@ export function ActionForm({
     setNotes("");
     setSearchQuery("");
     setQuantity(1);
-    setPerformer("DOKTER");
     setError(null);
     setShowDropdown(false);
   };
@@ -151,7 +149,8 @@ export function ActionForm({
     setSuccess(false);
 
     try {
-      const fullNotes = `[Pelaksana: ${performer}] [Qty: ${quantity}] ${notes}`.trim();
+      const quantityPrefix = quantity > 1 ? `[Qty: ${quantity}] ` : "";
+      const fullNotes = notes.trim() ? `${quantityPrefix}${notes.trim()}` : (quantity > 1 ? `[Qty: ${quantity}]` : "");
       const unitPrice = selectedAction.price * quantity;
 
       await addMedicalAction(
@@ -427,23 +426,8 @@ export function ActionForm({
             </div>
           )}
 
-          {/* Grid: Pelaksana, Qty, Total Biaya */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Pelaksana Tindakan
-              </label>
-              <select
-                value={performer}
-                onChange={(e) => setPerformer(e.target.value)}
-                className="w-full h-9.5 px-3 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 cursor-pointer"
-              >
-                <option value="DOKTER">Dokter Pemeriksa</option>
-                <option value="PERAWAT">Perawat Poli</option>
-                <option value="BERSAMA">Dokter & Perawat (Tim)</option>
-              </select>
-            </div>
-
+          {/* Grid: Qty & Total Biaya Tindakan */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
                 Jumlah (Qty)
@@ -460,10 +444,13 @@ export function ActionForm({
 
             <div>
               <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                Total Biaya Pos
+                Total Biaya Pos Tindakan
               </label>
-              <div className="h-9.5 px-3 rounded-xl border border-slate-200 bg-slate-100/90 flex items-center font-bold text-slate-900 text-xs">
-                Rp {((selectedAction?.price || 0) * quantity).toLocaleString("id-ID")}
+              <div className="h-9.5 px-3.5 rounded-xl border border-emerald-200/90 bg-emerald-50/70 flex items-center justify-between font-bold text-emerald-950 text-xs">
+                <span className="text-[11px] text-emerald-700 font-semibold">{quantity}x Layanan</span>
+                <span className="font-extrabold text-sm text-emerald-800">
+                  Rp {((selectedAction?.price || 0) * quantity).toLocaleString("id-ID")}
+                </span>
               </div>
             </div>
           </div>
@@ -552,7 +539,7 @@ export function ActionForm({
                 <tr>
                   <th className="px-5 py-3">Kode</th>
                   <th className="px-5 py-3">Nama Tindakan</th>
-                  <th className="px-5 py-3">Catatan / Pelaksana</th>
+                  <th className="px-5 py-3">Catatan / Keterangan</th>
                   <th className="px-5 py-3 text-right">Tarif</th>
                   <th className="px-4 py-3 text-center w-20">Aksi</th>
                 </tr>
