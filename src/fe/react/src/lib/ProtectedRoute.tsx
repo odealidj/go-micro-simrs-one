@@ -12,8 +12,8 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && role && !allowedRoles.includes(role)) {
-    // Redirect to unauthorized page or default dashboard if role doesn't match
+  if (allowedRoles && (!role || !allowedRoles.includes(role))) {
+    // Redirect to unauthorized if role is null/undefined or not in allowedRoles
     return <Navigate to="/unauthorized" replace />;
   }
 
