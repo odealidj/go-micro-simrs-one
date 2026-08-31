@@ -1,18 +1,18 @@
-package main
+package handlers
 
 import (
-	"context"
 	"io"
 	"log"
 	"net/http"
 	"regexp"
 
-	"google.golang.org/genai"
-	"github.com/aliube/go-micro-simrs-one/shared/pkg/response"
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/db"
+	"github.com/aliube/go-micro-simrs-one/shared/pkg/response"
+	"google.golang.org/genai"
 )
 
-func handleOCRKTP(w http.ResponseWriter, req *http.Request) {
+// HandleOCRKTP processes multipart KTP image and extracts data using Gemini API.
+func HandleOCRKTP(w http.ResponseWriter, req *http.Request) {
 	err := req.ParseMultipartForm(10 << 20)
 	if err != nil {
 		response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "Failed to parse form: " + err.Error()})
@@ -44,7 +44,7 @@ func handleOCRKTP(w http.ResponseWriter, req *http.Request) {
 	}
 	log.Printf("OCR-KTP: received file '%s', size=%d bytes, mimeType=%s", fileHeader.Filename, len(imgData), mimeType)
 
-	ctx := context.Background()
+	ctx := req.Context()
 	client, err := genai.NewClient(ctx, nil)
 	if err != nil {
 		log.Printf("ERROR OCR-KTP: failed to create GenAI client: %v", err)
@@ -69,7 +69,7 @@ func handleOCRKTP(w http.ResponseWriter, req *http.Request) {
 	} else {
 		err = dbErr
 	}
-	if err != nil {
+	if err != nil || modelName == "" {
 		log.Printf("OCR-KTP: failed to get model from DB, falling back to gemini-3.6-flash: %v", err)
 		modelName = "gemini-3.6-flash"
 	}
@@ -127,7 +127,6 @@ func handleOCRKTP(w http.ResponseWriter, req *http.Request) {
 	}
 	log.Printf("OCR-KTP: Extracted %d fields: %+v", len(extractedData), extractedData)
 
-	log.Printf("OCR-KTP: Successfully extracted data: %+v", extractedData)
 	response.JSON(w, http.StatusOK, response.SuccessResponse{
 		Success: true,
 		Message: "Success",
