@@ -148,6 +148,12 @@ func (a *AuthAdapter) GetActivePersonnelMetrics(ctx context.Context, req *authpb
 	})
 }
 
+func (a *AuthAdapter) RegisterPatientUser(ctx context.Context, req *authpb.RegisterPatientUserRequest) (*authpb.RegisterPatientUserResponse, error) {
+	return circuitbreaker.CallGRPC(a.cb, func() (*authpb.RegisterPatientUserResponse, error) {
+		return a.client.RegisterPatientUser(ctx, req)
+	})
+}
+
 // ── Patient ───────────────────────────────────────────────────────────────────
 
 type PatientAdapter struct {
@@ -174,6 +180,12 @@ func (a *PatientAdapter) GetPatientByMRN(ctx context.Context, req *patientpb.Get
 func (a *PatientAdapter) SearchPatients(ctx context.Context, req *patientpb.SearchPatientsRequest) (*patientpb.SearchPatientsResponse, error) {
 	return circuitbreaker.CallGRPC(a.cb, func() (*patientpb.SearchPatientsResponse, error) {
 		return a.client.SearchPatients(ctx, req)
+	})
+}
+
+func (a *PatientAdapter) DeletePatient(ctx context.Context, req *patientpb.DeletePatientRequest) (*patientpb.DeletePatientResponse, error) {
+	return circuitbreaker.CallGRPC(a.cb, func() (*patientpb.DeletePatientResponse, error) {
+		return a.client.DeletePatient(ctx, req)
 	})
 }
 

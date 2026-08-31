@@ -218,6 +218,9 @@ func main() {
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.AuthMiddleware(tokenManager))
 
+			// Basic System Health for all authenticated users (Admission Dashboard, etc.)
+			r.Get("/system/health/basic", adminHandler.BasicHealth)
+
 			// Admin & super_admin only
 			r.Group(func(r chi.Router) {
 				r.Use(middleware.RequireRole("admin", "super_admin"))

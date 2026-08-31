@@ -75,6 +75,17 @@ func (h *AdminHandler) checkGRPC(conn *grpc.ClientConn) string {
 	return res.Status.String()
 }
 
+// BasicHealth returns simple service health for admission and dashboard widgets (all authenticated users).
+func (h *AdminHandler) BasicHealth(w http.ResponseWriter, r *http.Request) {
+	statusData := map[string]interface{}{
+		"api_gateway":          "SERVING",
+		"patient_service":      h.checkGRPC(h.conns.Patient),
+		"registration_service": h.checkGRPC(h.conns.Registration),
+		"billing_service":      h.checkGRPC(h.conns.Billing),
+	}
+	response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: statusData})
+}
+
 func (h *AdminHandler) queryProm(ctx context.Context, query string) string {
 	promURL := os.Getenv("PROMETHEUS_URL")
 	if promURL == "" {

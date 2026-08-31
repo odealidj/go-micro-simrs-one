@@ -37,6 +37,7 @@ type AuthPort interface {
 	UpdatePoliSchedule(ctx context.Context, req *authpb.UpdatePoliScheduleRequest) (*authpb.UpdatePoliScheduleResponse, error)
 	GetAssignedPoli(ctx context.Context, req *authpb.GetAssignedPoliRequest) (*authpb.GetAssignedPoliResponse, error)
 	GetActivePersonnelMetrics(ctx context.Context, req *authpb.GetActivePersonnelMetricsRequest) (*authpb.GetActivePersonnelMetricsResponse, error)
+	RegisterPatientUser(ctx context.Context, req *authpb.RegisterPatientUserRequest) (*authpb.RegisterPatientUserResponse, error)
 }
 
 // PatientPort abstracts the patient-service operations.
@@ -44,6 +45,7 @@ type PatientPort interface {
 	RegisterPatient(ctx context.Context, req *patientpb.RegisterPatientRequest) (*patientpb.RegisterPatientResponse, error)
 	GetPatientByMRN(ctx context.Context, req *patientpb.GetPatientByMRNRequest) (*patientpb.GetPatientByMRNResponse, error)
 	SearchPatients(ctx context.Context, req *patientpb.SearchPatientsRequest) (*patientpb.SearchPatientsResponse, error)
+	DeletePatient(ctx context.Context, req *patientpb.DeletePatientRequest) (*patientpb.DeletePatientResponse, error)
 }
 
 // RegistrationPort abstracts the registration-service operations.
