@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -35,6 +36,32 @@ import (
 	regpb "github.com/aliube/go-micro-simrs-one/shared/proto/registration/v1"
 )
 
+func loadEnv() {
+	paths := []string{".env", "../../.env", "../../../.env"}
+	for _, p := range paths {
+		data, err := os.ReadFile(p)
+		if err != nil {
+			continue
+		}
+		for _, line := range strings.Split(string(data), "\n") {
+			line = strings.TrimSpace(line)
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) == 2 {
+				k := strings.TrimSpace(parts[0])
+				v := strings.TrimSpace(parts[1])
+				v = strings.Trim(v, `"'`)
+				if os.Getenv(k) == "" {
+					os.Setenv(k, v)
+				}
+			}
+		}
+		break
+	}
+}
+
 func mustEnv(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
@@ -51,6 +78,8 @@ func mustGRPC(addr, service string) *grpc.ClientConn {
 }
 
 func main() {
+	loadEnv()
+
 	// ── gRPC Connections ──────────────────────────────────────────────────────
 	authConn := mustGRPC(mustEnv("AUTH_SERVICE_ADDR", "localhost:50051"), "auth")
 	defer authConn.Close()

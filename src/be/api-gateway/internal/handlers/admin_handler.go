@@ -3,10 +3,12 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aliube/go-micro-simrs-one/api-gateway/internal/ports"
@@ -15,6 +17,7 @@ import (
 	authpb "github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1"
 	"github.com/go-chi/chi/v5"
 	"github.com/redis/go-redis/v9"
+	"google.golang.org/genai"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 )
@@ -49,6 +52,11 @@ func (h *AdminHandler) Register(r chi.Router) {
 	r.Get("/admin/users", h.ListUsers)
 	r.Put("/admin/users/{user_id}/status", h.UpdateUserStatus)
 	r.Delete("/admin/users/{user_id}", h.DeleteUser)
+
+	// AI Settings
+	r.Get("/admin/ai/models", h.GetAIModels)
+	r.Get("/admin/ai/settings", h.GetAISettings)
+	r.Put("/admin/ai/settings", h.UpdateAISettings)
 }
 
 // ── Health ────────────────────────────────────────────────────────────────────
@@ -278,3 +286,94 @@ func (h *AdminHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: res})
 }
+
+// ── AI Settings ──────────────────────────────────────────────────────────────
+
+func (h *AdminHandler) GetAIModels(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	fallbackModels := []string{
+		"gemini-2.5-flash",
+		"gemini-2.5-pro",
+		"gemini-3.6-flash",
+		"gemini-3.7-flash",
+		"gemini-1.5-flash",
+		"gemini-1.5-pro",
+	}
+
+	client, err := genai.NewClient(ctx, nil)
+	if err != nil {
+		log.Printf("WARN: Failed to create GenAI client: %v. Returning fallback models.", err)
+		response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Fallback models returned", Data: fallbackModels})
+		return
+	}
+
+	page, err := client.Models.List(ctx, nil)
+	if err != nil {
+		log.Printf("WARN: Failed to list GenAI models: %v. Returning fallback models.", err)
+		response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Fallback models returned", Data: fallbackModels})
+		return
+	}
+
+	var models []string
+	for _, m := range page.Items {
+		name := strings.TrimPrefix(m.Name, "models/")
+		if strings.HasPrefix(name, "gemini") || strings.HasPrefix(name, "gemma") {
+			models = append(models, name)
+		}
+	}
+	if len(models) == 0 {
+		models = fallbackModels
+	}
+	response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: models})
+}
+
+func (h *AdminHandler) GetAISettings(w http.ResponseWriter, r *http.Request) {
+	dbConn, dbErr := db.ConnectPostgres("")
+	var modelName string
+	var err error
+	if dbErr == nil {
+		defer dbConn.Close()
+		err = dbConn.QueryRowContext(r.Context(), "SELECT value FROM auth.system_settings WHERE key = $1", "gemini_ocr_model").Scan(&modelName)
+	} else {
+		err = dbErr
+	}
+	if err != nil {
+		modelName = "gemini-3.6-flash" // default fallback
+	}
+	data := map[string]string{"gemini_ocr_model": modelName}
+	response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Success", Data: data})
+}
+
+func (h *AdminHandler) UpdateAISettings(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		ModelName string `json:"gemini_ocr_model"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "Invalid request body"})
+		return
+	}
+	if payload.ModelName == "" {
+		response.JSON(w, http.StatusBadRequest, response.ErrorResponse{Success: false, Message: "gemini_ocr_model is required"})
+		return
+	}
+	dbConn, dbErr := db.ConnectPostgres("")
+	if dbErr != nil {
+		response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Database connection failed"})
+		return
+	}
+	defer dbConn.Close()
+
+	_, err := dbConn.ExecContext(r.Context(), `
+		INSERT INTO auth.system_settings (key, value, updated_by)
+		VALUES ($1, $2, $3)
+		ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW(), updated_by = EXCLUDED.updated_by
+	`, "gemini_ocr_model", payload.ModelName, "admin")
+
+	if err != nil {
+		log.Printf("Failed to save settings: %v", err)
+		response.JSON(w, http.StatusInternalServerError, response.ErrorResponse{Success: false, Message: "Failed to update settings"})
+		return
+	}
+	response.JSON(w, http.StatusOK, response.SuccessResponse{Success: true, Message: "Settings updated"})
+}
+
