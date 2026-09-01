@@ -178,9 +178,9 @@ func main() {
 		RawatJalan:   rawatJalanConn,
 	}, rdb)
 	patientHandler := handlers.NewPatientHandler(svc)
-	registrationHandler := handlers.NewRegistrationHandler(svc)
-	billingHandler := handlers.NewBillingHandler(svc)
-	masterHandler := handlers.NewMasterHandler(svc)
+	registrationHandler := handlers.NewRegistrationHandler(svc, rdb)
+	billingHandler := handlers.NewBillingHandler(svc, rdb)
+	masterHandler := handlers.NewMasterHandler(svc, rdb)
 	rawatJalanHandler := handlers.NewRawatJalanHandler(svc)
 	pharmacyHandler := handlers.NewPharmacyHandler(svc)
 

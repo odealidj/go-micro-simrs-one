@@ -11,10 +11,12 @@ Proses pendaftaran terbagi menjadi dua konsep utama: **Pendaftaran Master Data P
 
 1. **Pasien Baru:** Pasien yang belum memiliki catatan rekam medis (Nomor RM).
    - **Mandiri (via Aplikasi):** Pasien mendaftar dengan membuat akun pengguna sekaligus mengisi data demografi (`POST /api/v1/auth/signup/patient`). Sistem akan men-generate Nomor Rekam Medis (RM / MRN) baru secara otomatis (Contoh Format: `10-00-00-01`). Setelah mendapatkan MRN, pasien dapat mendaftar antrean kunjungan poliklinik (`POST /api/v1/registrations`).
-   - **Offline (via Petugas):** Petugas (Admin) mendaftarkan data pasien di sistem pendaftaran tanpa harus membuat akun *login* untuk pasien (`POST /api/v1/patient/register`). Setelah mendapat MRN, petugas mendaftarkan pasien ke poliklinik tujuan.
+   - **Offline (via Petugas):** Petugas (Admin) mendaftarkan data pasien di sistem pendaftaran tanpa harus membuat akun *login* untuk pasien (`POST /api/v1/patient/register` atau `POST /api/v1/registrations/new-patient`). Setelah mendapat MRN, petugas mendaftarkan pasien ke poliklinik tujuan.
 
 2. **Pasien Lama:** Pasien yang sudah pernah mendaftar dan memiliki Nomor RM.
    - Karena master data sudah ada, pasien atau petugas hanya perlu memasukkan Nomor RM (MRN) dan memilih Poliklinik serta Dokter tujuan untuk berobat. Endpoint yang dipanggil langsung mengarah ke layanan pendaftaran kunjungan (`POST /api/v1/registrations`).
+
+> 🏥 **Standarisasi Master Poliklinik:** Pemilihan poliklinik wajib menggunakan kode resmi yang terdaftar di Master Poliklinik Rawat Jalan (contoh: `01` untuk Poli Umum, `02` untuk Poli Gigi, `03` untuk Poli Anak, `04` untuk Poli Kandungan, `05` untuk Poli Mata). Penggunaan singkatan atau kode tidak resmi akan ditolak sistem dengan validasi ketat.
 
 ### B. Pelayanan Rawat Jalan (Poliklinik)
 Pelayanan di poliklinik dikelola secara mandiri oleh domain **Rawat Jalan** (`rawat-jalan-service`):
@@ -43,10 +45,15 @@ Unit **Rekam Medis** (`medical-record-service`) bertindak sebagai pengelola arsi
 
 ### D. Pembayaran / Kasir (Billing)
 1. **Kalkulasi Tagihan Otomatis:**
-   - Sistem Billing mengonsumsi event tindakan medis dari Poliklinik (`rawat_jalan_stream`) dan event dispensing obat dari Farmasi (`pharmacy_stream`) untuk menyusun tagihan (*invoice*) pasien secara otomatis tanpa entri ulang.
-2. **Pelunasan Pembayaran:**
-   - Pasien melakukan pelunasan tagihan di Kasir (`POST /api/v1/billing/pay`).
-   - Setelah tagihan berstatus `PAID`, sistem memperbarui status pasien sehingga obat dapat disiapkan dan diserahkan di Apotek.
+   - Sistem Billing mengonsumsi event registrasi kunjungan, tindakan medis dari Poliklinik (`rawat_jalan_stream`), dan event penyerahan obat dari Farmasi (`pharmacy_stream`) untuk menyusun tagihan (*invoice*) pasien secara otomatis tanpa entri ulang.
+2. **Antrean & Rincian Tagihan Kasir:**
+   - Petugas kasir melihat daftar antrean pembayaran pasien pada menu kasir (`GET /api/v1/billing/queue`).
+   - Petugas kasir membuka rincian invoice dan melihat breakdown item tindakan poli, obat farmasi, dan jasa administrasi (`GET /api/v1/billing/invoice/{encounter_no}`).
+3. **Pelunasan Pembayaran:**
+   - Pasien melakukan pelunasan tagihan di Kasir menggunakan metode bayar yang dipilih (Tunai, QRIS, Kartu Debit, atau Jaminan BPJS) (`POST /api/v1/billing/pay`).
+   - Setelah tagihan berstatus `PAID`, sistem memperbarui status kunjungan pasien ke antrean poliklinik (`QUEUED_FOR_POLI`) dan menerbitkan event pelunasan ke sistem Farmasi.
+4. **Laporan Settlement & Rekapitulasi Kasir:**
+   - Kasir dan manajemen keuangan dapat mengakses laporan rekapitulasi harian transaksi dan total penerimaan kasir per metode pembayaran (`GET /api/v1/billing/reports/rekap`).
 
 ### E. Apotek (Pharmacy)
 1. **Penerimaan Resep:**

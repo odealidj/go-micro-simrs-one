@@ -117,9 +117,7 @@ graph LR
 
 ### Peran Redis
 
-Redis digunakan untuk **tiga fungsi berbeda**:
-
-> 🔗 **[Buka Diagram di Live Mermaid Editor](https://mermaid.live/edit#pako:eNptkdFLwzAQxv-VI08bWAYqin0QpilacHS2HRSWPWTtaaNtWttkWub-dy_bFEHzkIfvLt_v8t2W5U2BzAf23Mm2hJQLDXTigIfJciRYjIXqwb84u7wSbLwS-lcdPO_6U7C5XU8Su4bbUmqNlRD6zaJFP6-UVrnfmw5l_aO2pexqmQ_fOvuEJAmWgtEN91IXFXbUPIpRVp5RNcKjeweLtpAG-7Fgq78jZF6MZN8bL-TwigMZpOmDD6fn8HJghDyYESQssG4bgzofYKYKgr3LDh2P27ZSOSHgaAXzDjeojWr0_9BDNMn-Gz1ZZFPOYQJZHEz5XRwt5o4bLdKbKCNyZM26-SDzSrrxRtN-0DkEjgAcK7XBbnAcdgKsRopIFW4tW8cVzJRYoyBBsAKfpK2MYELvXLO0pknIi4qms0iK3UfFlaSd1kd59wVIzqEr)** *(Klik kanan → Buka di Tab Baru / Open Link in New Tab)*
+Redis digunakan untuk **empat fungsi berbeda**:
 
 ```mermaid
 graph TD
@@ -128,6 +126,7 @@ graph TD
     REDIS -->|"Pub/Sub Channel\nqueue:clinic:stream\nqueue:pharmacy:stream"| SSE["SSE Handler\n(Real-time Queue Updates)"]
     REDIS -->|"X-Request-ID key\nTTL: 24 jam"| IDEM["Idempotency Middleware\n(Duplicate Request Prevention)"]
     REDIS -->|"Redis Streams\nXADD / XREADGROUP"| OUTBOX["Outbox Relay\n(Async Event Delivery)"]
+    REDIS -->|"Hash & JSON Entity\nmaster:polyclinics\nmaster:polyclinics:all"| CACHE["Master Polyclinics Cache\n(O(1) Quick Lookup lintas service)"]
 ```
 
 ### Alur Request End-to-End
@@ -270,6 +269,8 @@ Port     : 50053 (Docker: 60053)
 Database : simrs_db (tables: encounters, outbox_events)
 ```
 
+> **Validasi Master Poliklinik KETAT:** Pada saat pendaftaran kunjungan (`RegisterEncounter`) maupun pasien baru, sistem API Gateway & Registration memvalidasi `department_code` terhadap master data resmi poliklinik melalui Redis Hash `master:polyclinics` (atau query ke `rawat-jalan-service`). Penggunaan singkatan lama (misal: `UMU`, `GIG`) atau kode tidak resmi akan ditolak dengan status **`400 Bad Request`**.
+
 **gRPC Methods:**
 
 | Method | Request | Response | Keterangan |
@@ -291,18 +292,18 @@ Module   : rawat-jalan-service
 Protocol : gRPC
 Port     : 50057 (Docker: 60057, Metrics: 9097)
 Database : simrs_db (Schema: rawat_jalan)
-           (tables: encounters, triage_records, medical_actions,
+           (tables: polyclinics [SSOT Pemilik Resmi], encounters, triage_records, medical_actions,
             encounter_diagnoses, clinic_wait_time_aggregates,
             icd10_catalog [replica], kbm_catalog [replica],
             master_tindakan [replica], outbox_events)
-Peran    : Operasional Pelayanan Poliklinik Dokter & Perawat
+Peran    : Operasional Pelayanan Poliklinik Dokter & Perawat, Pemilik Resmi Master Poliklinik
 Consumer : 
   1. registration.events (group: rawat-jalan-group)
   2. clinical_master_stream (group: rawat-jalan-master-sync)
 Workers  : aggregator_cron.go (update wait time aggregates)
 ```
 
-> Berfungsi sebagai **pusat operasional poliklinik (Point-of-Care)** bagi dokter dan perawat. Mencakup penerimaan pasien dari registrasi, pengisian triage/vital signs, pelaksanaan encounter, input tindakan medis berbayar, penentuan diagnosis klinis (KBM/ICD-10) beserta derajat keparahan (*Severity Level*), serta kalkulasi estimasi waktu tunggu antrean poliklinik berbasis moving average dan AI-ready.
+> Berfungsi sebagai **pusat operasional poliklinik (Point-of-Care)** bagi dokter dan perawat serta **pemilik resmi (*Single Source of Truth*) dari master data poliklinik RS** (`rawat_jalan.polyclinics`). Mencakup penerimaan pasien dari registrasi, pengisian triage/vital signs, pelaksanaan encounter, input tindakan medis berbayar, penentuan diagnosis klinis (KBM/ICD-10) beserta derajat keparahan (*Severity Level*), kalkulasi estimasi waktu tunggu antrean poliklinik, serta auto-caching data poliklinik ke Redis Hash `master:polyclinics` dan JSON String `master:polyclinics:all`.
 
 **gRPC Methods:**
 
@@ -319,6 +320,7 @@ Workers  : aggregator_cron.go (update wait time aggregates)
 | `GetEncounterDetails` | `encounter_no` | Detail encounter | Ambil data lengkap pemeriksaan poli |
 | `GetWaitingList` | `department_code`, `doctor_id` | List antrean | Daftar antrean aktif poliklinik |
 | `GetEstimatedWaitTime` | `doctor_id`, `dept_code`, `gender`, `age_bracket` | `estimated_minutes` | Estimasi waktu antrean dokter poli |
+| `GetPolyclinics` | `page`, `page_size`, `search` | `data[]`, `total_count` | Master poliklinik resmi + auto-populate Redis cache |
 
 **Outbox Events yang diterbitkan:**
 
@@ -414,6 +416,8 @@ Consumer : billing_consumer.go
   1. rawat_jalan_stream (group: billing_group, worker: billing_worker_rawat_jalan)
   2. pharmacy_stream (group: billing_group, worker: billing_worker_pharmacy)
 ```
+
+> **Operasional Kasir Terpadu:** Modul Kasir di API Gateway (`/api/v1/billing/*`) mengintegrasikan billing data dengan data registrasi pasien dan lookup nama poliklinik dinamis melalui Redis Hash `master:polyclinics` ($O(1)$). Setelah pembayaran dilunasi (`POST /billing/pay`), status kunjungan pasien diperbarui otomatis ke antrean poliklinik (`QUEUED_FOR_POLI`).
 
 **gRPC Methods:**
 
@@ -1479,6 +1483,6 @@ flowchart TD
 
 ---
 
-*Dokumen ini diperbarui sesuai implementasi: 2026-08-27*  
+*Dokumen ini diperbarui sesuai implementasi: 2026-09-01*  
 *Module: `github.com/aliube/go-micro-simrs-one`*
 

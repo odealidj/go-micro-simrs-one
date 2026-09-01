@@ -16,8 +16,10 @@ import (
 	authpb "github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1"
 	billingpb "github.com/aliube/go-micro-simrs-one/shared/proto/billing/v1"
 	patientpb "github.com/aliube/go-micro-simrs-one/shared/proto/patient/v1"
+	rawatjalanpb "github.com/aliube/go-micro-simrs-one/shared/proto/rawat_jalan/v1"
 	regpb "github.com/aliube/go-micro-simrs-one/shared/proto/registration/v1"
 	"github.com/go-chi/chi/v5"
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -25,10 +27,40 @@ import (
 // RegistrationHandler handles /registrations/* and /registration/* routes.
 type RegistrationHandler struct {
 	svc *ports.ServicePorts
+	rdb *redis.Client
 }
 
-func NewRegistrationHandler(svc *ports.ServicePorts) *RegistrationHandler {
-	return &RegistrationHandler{svc: svc}
+func (h *RegistrationHandler) validateDepartmentCode(ctx context.Context, deptCode string) bool {
+	if deptCode == "" {
+		return false
+	}
+	// 1. Check Redis Hash
+	if h.rdb != nil {
+		if exists, err := h.rdb.HExists(ctx, "master:polyclinics", deptCode).Result(); err == nil && exists {
+			return true
+		}
+	}
+	// 2. Fallback to RawatJalanService
+	res, err := h.svc.RawatJalan.GetPolyclinics(ctx, &rawatjalanpb.GetPolyclinicsRequest{
+		Page:     1,
+		PageSize: 100,
+	})
+	if err == nil && res != nil {
+		for _, p := range res.Data {
+			// Populate cache
+			if h.rdb != nil {
+				_ = h.rdb.HSet(ctx, "master:polyclinics", p.Code, p.Name).Err()
+			}
+			if p.Code == deptCode {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func NewRegistrationHandler(svc *ports.ServicePorts, rdb *redis.Client) *RegistrationHandler {
+	return &RegistrationHandler{svc: svc, rdb: rdb}
 }
 
 // Register mounts routes (caller must apply RequireRole middleware).
@@ -185,6 +217,14 @@ func (h *RegistrationHandler) RegisterEncounter(w http.ResponseWriter, r *http.R
 		"guarantor":       validator.NotEmpty(payload.Guarantor),
 	}); err != nil {
 		response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+		return
+	}
+
+	if !h.validateDepartmentCode(r.Context(), payload.DepartmentCode) {
+		response.JSON(w, http.StatusBadRequest, response.ErrorResponse{
+			Success: false,
+			Message: "Kode poliklinik tidak valid atau tidak terdaftar di master rawat jalan",
+		})
 		return
 	}
 
@@ -373,6 +413,14 @@ func (h *RegistrationHandler) NewPatient(w http.ResponseWriter, r *http.Request)
 		"guarantor":       validator.NotEmpty(payload.Guarantor),
 	}); err != nil {
 		response.JSON(w, http.StatusUnprocessableEntity, response.ErrorResponse{Success: false, Message: err.Error()})
+		return
+	}
+
+	if !h.validateDepartmentCode(r.Context(), payload.DepartmentCode) {
+		response.JSON(w, http.StatusBadRequest, response.ErrorResponse{
+			Success: false,
+			Message: "Kode poliklinik tidak valid atau tidak terdaftar di master rawat jalan",
+		})
 		return
 	}
 

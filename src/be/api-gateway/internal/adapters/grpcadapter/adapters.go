@@ -484,6 +484,11 @@ func (a *RawatJalanAdapter) GetMasterKBMsByPoli(ctx context.Context, req *rawatj
 		return a.client.GetMasterKBMsByPoli(ctx, req)
 	})
 }
+func (a *RawatJalanAdapter) GetPolyclinics(ctx context.Context, req *rawatjalanpb.GetPolyclinicsRequest) (*rawatjalanpb.GetPolyclinicsResponse, error) {
+	return circuitbreaker.CallGRPC(a.cb, func() (*rawatjalanpb.GetPolyclinicsResponse, error) {
+		return a.client.GetPolyclinics(ctx, req)
+	})
+}
 
 // ── Pharmacy ──────────────────────────────────────────────────────────────────
 

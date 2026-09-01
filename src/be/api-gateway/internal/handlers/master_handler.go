@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,16 +14,19 @@ import (
 	authpb "github.com/aliube/go-micro-simrs-one/shared/proto/auth/v1"
 	emrpb "github.com/aliube/go-micro-simrs-one/shared/proto/emr/v1"
 	pharmacypb "github.com/aliube/go-micro-simrs-one/shared/proto/pharmacy/v1"
+	rawatjalanpb "github.com/aliube/go-micro-simrs-one/shared/proto/rawat_jalan/v1"
 	"github.com/go-chi/chi/v5"
+	"github.com/redis/go-redis/v9"
 )
 
 // MasterHandler handles /master/* read-only routes (all authenticated users).
 type MasterHandler struct {
 	svc *ports.ServicePorts
+	rdb *redis.Client
 }
 
-func NewMasterHandler(svc *ports.ServicePorts) *MasterHandler {
-	return &MasterHandler{svc: svc}
+func NewMasterHandler(svc *ports.ServicePorts, rdb *redis.Client) *MasterHandler {
+	return &MasterHandler{svc: svc, rdb: rdb}
 }
 
 // Register mounts master data routes.
@@ -99,13 +103,64 @@ func calcTotalPages(total, pageSize int) int {
 
 func (h *MasterHandler) GetPolyclinics(w http.ResponseWriter, r *http.Request) {
 	page, pageSize := pageParam(r)
-	res, err := h.svc.EMR.GetPolyclinics(r.Context(), &emrpb.GetPolyclinicsRequest{
-		Page: int32(page), PageSize: int32(pageSize), Search: r.URL.Query().Get("search"),
+	search := r.URL.Query().Get("search")
+
+	// 1. Check Redis Cache if search is empty
+	if h.rdb != nil && search == "" {
+		if cached, err := h.rdb.Get(r.Context(), "master:polyclinics:all").Result(); err == nil && cached != "" {
+			var list []*rawatjalanpb.Polyclinic
+			if err := json.Unmarshal([]byte(cached), &list); err == nil && len(list) > 0 {
+				total := len(list)
+				start := (page - 1) * pageSize
+				if start < total {
+					end := start + pageSize
+					if end > total {
+						end = total
+					}
+					sliced := list[start:end]
+					meta := response.Meta{
+						Page:       page,
+						PageSize:   pageSize,
+						TotalData:  total,
+						TotalPages: calcTotalPages(total, pageSize),
+					}
+					response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{
+						Success: true,
+						Message: "Success",
+						Data:    sliced,
+						Meta:    meta,
+					})
+					return
+				}
+			}
+		}
+	}
+
+	// 2. Fetch from RawatJalanService (Official Owner)
+	res, err := h.svc.RawatJalan.GetPolyclinics(r.Context(), &rawatjalanpb.GetPolyclinicsRequest{
+		Page: int32(page), PageSize: int32(pageSize), Search: search,
 	})
 	if err != nil {
 		response.HandleGRPCError(w, err)
 		return
 	}
+
+	// 3. Cache to Redis asynchronously if search is empty
+	if h.rdb != nil && search == "" && len(res.Data) > 0 {
+		go func() {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			for _, p := range res.Data {
+				_ = h.rdb.HSet(bgCtx, "master:polyclinics", p.Code, p.Name).Err()
+			}
+			if page == 1 && (int(res.TotalCount) <= pageSize || pageSize >= 50) {
+				if b, err := json.Marshal(res.Data); err == nil {
+					_ = h.rdb.Set(bgCtx, "master:polyclinics:all", string(b), 24*time.Hour).Err()
+				}
+			}
+		}()
+	}
+
 	meta := response.Meta{Page: page, PageSize: pageSize, TotalData: int(res.TotalCount), TotalPages: calcTotalPages(int(res.TotalCount), pageSize)}
 	response.JSON(w, http.StatusOK, response.SuccessPaginatedResponse{Success: true, Message: "Success", Data: res.Data, Meta: meta})
 }
