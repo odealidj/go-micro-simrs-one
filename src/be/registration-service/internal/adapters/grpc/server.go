@@ -69,7 +69,7 @@ func (s *RegistrationGrpcServer) GetTodayEncounters(ctx context.Context, req *pb
 		pbEncounters = append(pbEncounters, &pb.EncounterDetail{
 			EncounterNo:    enc.EncounterNo,
 			Mrn:            enc.MRN,
-			DepartmentCode: enc.Department,
+			DepartmentCode: enc.DepartmentCode,
 			DoctorId:       enc.DoctorID,
 			PerawatId:      enc.PerawatID,
 			Status:         enc.Status,

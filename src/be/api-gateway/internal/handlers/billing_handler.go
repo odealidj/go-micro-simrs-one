@@ -104,6 +104,7 @@ func (h *BillingHandler) GetBillingQueue(w http.ResponseWriter, r *http.Request)
 		Gender          string                     `json:"gender"`
 		DateOfBirth     string                     `json:"date_of_birth"`
 		DepartmentCode  string                     `json:"department_code"`
+		DepartmentName  string                     `json:"department_name"`
 		DoctorID        string                     `json:"doctor_id"`
 		Status          string                     `json:"status"`
 		StatusPasien    string                     `json:"status_pasien"`
@@ -212,6 +213,8 @@ func (h *BillingHandler) GetBillingQueue(w http.ResponseWriter, r *http.Request)
 			}
 		}
 
+		deptName := h.getDepartmentName(r.Context(), enc.DepartmentCode)
+
 		queueList = append(queueList, BillingQueueItem{
 			EncounterNo:     enc.EncounterNo,
 			MRN:             enc.Mrn,
@@ -219,6 +222,7 @@ func (h *BillingHandler) GetBillingQueue(w http.ResponseWriter, r *http.Request)
 			Gender:          pGender,
 			DateOfBirth:     pDob,
 			DepartmentCode:  enc.DepartmentCode,
+			DepartmentName:  deptName,
 			DoctorID:        enc.DoctorId,
 			Status:          enc.Status,
 			StatusPasien:    isNew,
@@ -248,13 +252,14 @@ func (h *BillingHandler) GetInvoice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var patientName, mrn, poliName, doctorName string
+	var patientName, mrn, deptCode, deptName, doctorName string
 	resEnc, errEnc := h.svc.Registration.GetTodayEncounters(r.Context(), &regpb.GetTodayEncountersRequest{Page: 1, PageSize: 5000})
 	if errEnc == nil && resEnc != nil {
 		for _, enc := range resEnc.Encounters {
 			if enc.EncounterNo == encounterNo {
 				mrn = enc.Mrn
-				poliName = h.getDepartmentName(r.Context(), enc.DepartmentCode)
+				deptCode = enc.DepartmentCode
+				deptName = h.getDepartmentName(r.Context(), enc.DepartmentCode)
 				doctorName = enc.DoctorId
 				break
 			}
@@ -300,38 +305,42 @@ func (h *BillingHandler) GetInvoice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type EnrichedInvoiceResponse struct {
-		Success     bool                       `json:"success"`
-		InvoiceId   string                     `json:"invoice_id"`
-		EncounterNo string                     `json:"encounter_no"`
-		PatientName string                     `json:"patient_name"`
-		MRN         string                     `json:"mrn"`
-		PoliName    string                     `json:"poli_name"`
-		DoctorName  string                     `json:"doctor_name"`
-		Items       []*billingpb.InvoiceItem   `json:"items"`
-		TotalAmount float64                    `json:"total_amount"`
-		Status      string                     `json:"status"`
-		IsPaid      bool                       `json:"is_paid"`
-		Invoices    []*billingpb.InvoiceDetail `json:"invoices"`
-		Message     string                     `json:"message"`
+		Success        bool                       `json:"success"`
+		InvoiceId      string                     `json:"invoice_id"`
+		EncounterNo    string                     `json:"encounter_no"`
+		PatientName    string                     `json:"patient_name"`
+		MRN            string                     `json:"mrn"`
+		DepartmentCode string                     `json:"department_code"`
+		DepartmentName string                     `json:"department_name"`
+		PoliName       string                     `json:"poli_name"`
+		DoctorName     string                     `json:"doctor_name"`
+		Items          []*billingpb.InvoiceItem   `json:"items"`
+		TotalAmount    float64                    `json:"total_amount"`
+		Status         string                     `json:"status"`
+		IsPaid         bool                       `json:"is_paid"`
+		Invoices       []*billingpb.InvoiceDetail `json:"invoices"`
+		Message        string                     `json:"message"`
 	}
 
 	response.JSON(w, http.StatusOK, response.SuccessResponse{
 		Success: true,
 		Message: "Success",
 		Data: EnrichedInvoiceResponse{
-			Success:     res.Success,
-			InvoiceId:   invoiceID,
-			EncounterNo: encounterNo,
-			PatientName: patientName,
-			MRN:         mrn,
-			PoliName:    poliName,
-			DoctorName:  doctorName,
-			Items:       items,
-			TotalAmount: totalAmount,
-			Status:      status,
-			IsPaid:      isPaid,
-			Invoices:    allInvoices,
-			Message:     res.Message,
+			Success:        res.Success,
+			InvoiceId:      invoiceID,
+			EncounterNo:    encounterNo,
+			PatientName:    patientName,
+			MRN:            mrn,
+			DepartmentCode: deptCode,
+			DepartmentName: deptName,
+			PoliName:       deptName,
+			DoctorName:     doctorName,
+			Items:          items,
+			TotalAmount:    totalAmount,
+			Status:         status,
+			IsPaid:         isPaid,
+			Invoices:       allInvoices,
+			Message:        res.Message,
 		},
 	})
 }

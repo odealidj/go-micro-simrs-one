@@ -14,7 +14,7 @@ import (
 type Encounter struct {
 	EncounterNo           string
 	Mrn                   string
-	Department            string
+	DepartmentCode        string
 	DoctorID              string
 	Status                string
 	CreatedAt             sql.NullTime
@@ -24,6 +24,17 @@ type Encounter struct {
 	PaymentStatus         sql.NullString
 	Guarantor             sql.NullString
 	PerawatID             sql.NullString
+}
+
+type MasterEncounterStatus struct {
+	Code          string
+	Name          string
+	Description   sql.NullString
+	Category      string
+	IsTerminal    sql.NullBool
+	IsCancellable sql.NullBool
+	SortOrder     sql.NullInt32
+	CreatedAt     sql.NullTime
 }
 
 type OutboxEvent struct {

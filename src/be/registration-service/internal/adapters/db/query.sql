@@ -1,7 +1,7 @@
 -- name: CreateEncounter :one
-INSERT INTO encounters (encounter_no, mrn, department, doctor_id, perawat_id, guarantor, status)
+INSERT INTO encounters (encounter_no, mrn, department_code, doctor_id, perawat_id, guarantor, status)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING encounter_no, mrn, department, doctor_id, perawat_id, guarantor, payment_status, status, created_at;
+RETURNING encounter_no, mrn, department_code, doctor_id, perawat_id, guarantor, payment_status, status, created_at;
 
 -- name: CreateOutboxEvent :one
 INSERT INTO outbox_events (id, aggregate_type, event_type, payload, status)
@@ -21,13 +21,13 @@ WHERE id = $1;
 
 -- name: CountActiveEncountersByDept :one
 SELECT COUNT(*) FROM encounters
-WHERE department = $1
+WHERE department_code = $1
   AND status = 'REGISTERED'
   AND created_at >= $2 AND created_at < $3
   AND deleted_dt IS NULL;
 
 -- name: GetTodayEncounters :many
-SELECT encounter_no, mrn, department, doctor_id, perawat_id, guarantor, payment_status, status, created_at
+SELECT encounter_no, mrn, department_code, doctor_id, perawat_id, guarantor, payment_status, status, created_at
 FROM encounters
 WHERE created_at >= $1 AND created_at < $2
   AND deleted_dt IS NULL
@@ -73,7 +73,7 @@ SELECT
 FROM PatientStats;
 
 -- name: GetAverageWaitTimePerPoli :many
-SELECT department AS poli_code, 
+SELECT department_code, 
        COALESCE(AVG(EXTRACT(EPOCH FROM (consultation_start_time - created_at))/60), 0)::INT as avg_wait_minutes
 FROM encounters
 WHERE deleted_dt IS NULL
@@ -81,7 +81,7 @@ WHERE deleted_dt IS NULL
   AND status != 'CANCELLED'
   AND ((COALESCE(guarantor, '') = 'UMUM' AND COALESCE(payment_status, '') = 'PAID') OR COALESCE(guarantor, '') != 'UMUM')
   AND created_at >= sqlc.arg(start_time) AND created_at < sqlc.arg(end_time)
-GROUP BY department;
+GROUP BY department_code;
 
 -- name: GetWeeklyVisits :many
 SELECT TO_CHAR(created_at, 'YYYY-MM-DD') AS visit_date, COUNT(*)::INT as total_visits

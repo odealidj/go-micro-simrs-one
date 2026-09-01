@@ -25,6 +25,8 @@ export interface Invoice {
   encounter_no: string;
   patient_name?: string;
   mrn?: string;
+  department_code?: string;
+  department_name?: string;
   poli_name?: string;
   doctor_name?: string;
   visit_date?: string;
@@ -173,13 +175,16 @@ export const getInvoice = async (encounterNo: string, invoiceId?: string): Promi
     }));
 
     const totalAmount = Number(res.total_amount || res.TotalAmount || res.total || 0);
+    const deptName = res.department_name || res.poli_name || "";
 
     return {
       invoice_id: res.invoice_id || res.InvoiceId || `INV-${encounterNo}`,
       encounter_no: encounterNo,
       patient_name: res.patient_name || "",
       mrn: res.mrn || "",
-      poli_name: res.poli_name || "",
+      department_code: res.department_code || "",
+      department_name: deptName,
+      poli_name: deptName,
       doctor_name: res.doctor_name || "",
       visit_date: res.visit_date || new Date().toISOString(),
       items: items,

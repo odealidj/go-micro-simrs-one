@@ -26,12 +26,12 @@ func NewRegistrationRepository(d *sql.DB) ports.RegistrationRepository {
 
 func (r *registrationRepoSqlc) SaveEncounter(ctx context.Context, encounter *domain.Encounter) error {
 	_, err := r.q.CreateEncounter(ctx, db.CreateEncounterParams{
-		EncounterNo: encounter.EncounterNo,
-		Mrn:         encounter.MRN,
-		Department:  encounter.Department,
-		DoctorID:    encounter.DoctorID,
-		PerawatID:   sql.NullString{String: encounter.PerawatID, Valid: encounter.PerawatID != ""},
-		Status:      encounter.Status,
+		EncounterNo:    encounter.EncounterNo,
+		Mrn:            encounter.MRN,
+		DepartmentCode: encounter.DepartmentCode,
+		DoctorID:       encounter.DoctorID,
+		PerawatID:      sql.NullString{String: encounter.PerawatID, Valid: encounter.PerawatID != ""},
+		Status:         encounter.Status,
 	})
 	return err
 }
@@ -47,16 +47,16 @@ func (r *registrationRepoSqlc) SaveOutboxEvent(ctx context.Context, event *domai
 	return err
 }
 
-func (r *registrationRepoSqlc) CountActiveEncountersByDept(ctx context.Context, department string) (int64, error) {
+func (r *registrationRepoSqlc) CountActiveEncountersByDept(ctx context.Context, departmentCode string) (int64, error) {
 	now := time.Now()
 	y, m, d := now.Date()
 	startOfDay := time.Date(y, m, d, 0, 0, 0, 0, now.Location())
 	startOfNextDay := startOfDay.AddDate(0, 0, 1)
 
 	return r.q.CountActiveEncountersByDept(ctx, db.CountActiveEncountersByDeptParams{
-		Department:  department,
-		CreatedAt:   sql.NullTime{Time: startOfDay, Valid: true},
-		CreatedAt_2: sql.NullTime{Time: startOfNextDay, Valid: true},
+		DepartmentCode: departmentCode,
+		CreatedAt:      sql.NullTime{Time: startOfDay, Valid: true},
+		CreatedAt_2:    sql.NullTime{Time: startOfNextDay, Valid: true},
 	})
 }
 
@@ -113,13 +113,13 @@ func (r *registrationRepoSqlc) GetTodayEncounters(ctx context.Context, startDate
 
 	for _, row := range rows {
 		enc := &domain.Encounter{
-			EncounterNo: row.EncounterNo,
-			MRN:         row.Mrn,
-			Department:  row.Department,
-			DoctorID:    row.DoctorID,
-			PerawatID:   row.PerawatID.String,
-			Status:      row.Status,
-			CreatedAt:   row.CreatedAt.Time,
+			EncounterNo:    row.EncounterNo,
+			MRN:            row.Mrn,
+			DepartmentCode: row.DepartmentCode,
+			DoctorID:       row.DoctorID,
+			PerawatID:      row.PerawatID.String,
+			Status:         row.Status,
+			CreatedAt:      row.CreatedAt.Time,
 		}
 
 		// Determine if the patient is new (<= 1 valid encounter) with memoization to avoid N+1 queries
@@ -179,7 +179,7 @@ func (r *registrationRepoSqlc) GetDashboardMetrics(ctx context.Context, targetDa
 	}
 	waitTimes = make(map[string]int32)
 	for _, w := range waitTimesDB {
-		waitTimes[w.PoliCode] = int32(w.AvgWaitMinutes)
+		waitTimes[w.DepartmentCode] = int32(w.AvgWaitMinutes)
 	}
 
 	// 3. Last 5 Days Visits

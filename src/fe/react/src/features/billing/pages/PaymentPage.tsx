@@ -423,7 +423,7 @@ export function PaymentPage() {
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase">Poliklinik</p>
                 <p className="font-semibold text-slate-700 text-xs mt-0.5 truncate">
-                  {getDepartmentName(patientInfo?.department_code) || invoice?.poli_name || "Poli Rawat Jalan"}
+                  {invoice?.department_name || getDepartmentName(patientInfo?.department_code) || "Poli Rawat Jalan"}
                 </p>
               </div>
               <div>

@@ -315,7 +315,7 @@ func (h *RegistrationHandler) RegisterEncounter(w http.ResponseWriter, r *http.R
 
 	if payload.Guarantor == "Umum" {
 		fee := 150000.0
-		if payload.DepartmentCode == "UMU" || payload.DepartmentCode == "01" || payload.DepartmentCode == "Poli Umum" || payload.DepartmentCode == "POLI_UMUM" {
+		if payload.DepartmentCode == "01" {
 			fee = 50000.0
 		}
 		_, errBilling := h.svc.Billing.AddRegistrationFee(r.Context(), &billingpb.AddRegistrationFeeRequest{

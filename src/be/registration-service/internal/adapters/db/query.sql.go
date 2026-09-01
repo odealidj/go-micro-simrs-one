@@ -13,58 +13,58 @@ import (
 
 const countActiveEncountersByDept = `-- name: CountActiveEncountersByDept :one
 SELECT COUNT(*) FROM encounters
-WHERE department = $1
+WHERE department_code = $1
   AND status = 'REGISTERED'
   AND created_at >= $2 AND created_at < $3
   AND deleted_dt IS NULL
 `
 
 type CountActiveEncountersByDeptParams struct {
-	Department  string
-	CreatedAt   sql.NullTime
-	CreatedAt_2 sql.NullTime
+	DepartmentCode string
+	CreatedAt      sql.NullTime
+	CreatedAt_2    sql.NullTime
 }
 
 func (q *Queries) CountActiveEncountersByDept(ctx context.Context, arg CountActiveEncountersByDeptParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countActiveEncountersByDept, arg.Department, arg.CreatedAt, arg.CreatedAt_2)
+	row := q.db.QueryRowContext(ctx, countActiveEncountersByDept, arg.DepartmentCode, arg.CreatedAt, arg.CreatedAt_2)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
 const createEncounter = `-- name: CreateEncounter :one
-INSERT INTO encounters (encounter_no, mrn, department, doctor_id, perawat_id, guarantor, status)
+INSERT INTO encounters (encounter_no, mrn, department_code, doctor_id, perawat_id, guarantor, status)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING encounter_no, mrn, department, doctor_id, perawat_id, guarantor, payment_status, status, created_at
+RETURNING encounter_no, mrn, department_code, doctor_id, perawat_id, guarantor, payment_status, status, created_at
 `
 
 type CreateEncounterParams struct {
-	EncounterNo string
-	Mrn         string
-	Department  string
-	DoctorID    string
-	PerawatID   sql.NullString
-	Guarantor   sql.NullString
-	Status      string
+	EncounterNo    string
+	Mrn            string
+	DepartmentCode string
+	DoctorID       string
+	PerawatID      sql.NullString
+	Guarantor      sql.NullString
+	Status         string
 }
 
 type CreateEncounterRow struct {
-	EncounterNo   string
-	Mrn           string
-	Department    string
-	DoctorID      string
-	PerawatID     sql.NullString
-	Guarantor     sql.NullString
-	PaymentStatus sql.NullString
-	Status        string
-	CreatedAt     sql.NullTime
+	EncounterNo    string
+	Mrn            string
+	DepartmentCode string
+	DoctorID       string
+	PerawatID      sql.NullString
+	Guarantor      sql.NullString
+	PaymentStatus  sql.NullString
+	Status         string
+	CreatedAt      sql.NullTime
 }
 
 func (q *Queries) CreateEncounter(ctx context.Context, arg CreateEncounterParams) (CreateEncounterRow, error) {
 	row := q.db.QueryRowContext(ctx, createEncounter,
 		arg.EncounterNo,
 		arg.Mrn,
-		arg.Department,
+		arg.DepartmentCode,
 		arg.DoctorID,
 		arg.PerawatID,
 		arg.Guarantor,
@@ -74,7 +74,7 @@ func (q *Queries) CreateEncounter(ctx context.Context, arg CreateEncounterParams
 	err := row.Scan(
 		&i.EncounterNo,
 		&i.Mrn,
-		&i.Department,
+		&i.DepartmentCode,
 		&i.DoctorID,
 		&i.PerawatID,
 		&i.Guarantor,
@@ -120,7 +120,7 @@ func (q *Queries) CreateOutboxEvent(ctx context.Context, arg CreateOutboxEventPa
 }
 
 const getAverageWaitTimePerPoli = `-- name: GetAverageWaitTimePerPoli :many
-SELECT department AS poli_code, 
+SELECT department_code, 
        COALESCE(AVG(EXTRACT(EPOCH FROM (consultation_start_time - created_at))/60), 0)::INT as avg_wait_minutes
 FROM encounters
 WHERE deleted_dt IS NULL
@@ -128,7 +128,7 @@ WHERE deleted_dt IS NULL
   AND status != 'CANCELLED'
   AND ((COALESCE(guarantor, '') = 'UMUM' AND COALESCE(payment_status, '') = 'PAID') OR COALESCE(guarantor, '') != 'UMUM')
   AND created_at >= $1 AND created_at < $2
-GROUP BY department
+GROUP BY department_code
 `
 
 type GetAverageWaitTimePerPoliParams struct {
@@ -137,7 +137,7 @@ type GetAverageWaitTimePerPoliParams struct {
 }
 
 type GetAverageWaitTimePerPoliRow struct {
-	PoliCode       string
+	DepartmentCode string
 	AvgWaitMinutes int32
 }
 
@@ -150,7 +150,7 @@ func (q *Queries) GetAverageWaitTimePerPoli(ctx context.Context, arg GetAverageW
 	var items []GetAverageWaitTimePerPoliRow
 	for rows.Next() {
 		var i GetAverageWaitTimePerPoliRow
-		if err := rows.Scan(&i.PoliCode, &i.AvgWaitMinutes); err != nil {
+		if err := rows.Scan(&i.DepartmentCode, &i.AvgWaitMinutes); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -247,7 +247,7 @@ func (q *Queries) GetPendingOutboxEvents(ctx context.Context) ([]OutboxEvent, er
 }
 
 const getTodayEncounters = `-- name: GetTodayEncounters :many
-SELECT encounter_no, mrn, department, doctor_id, perawat_id, guarantor, payment_status, status, created_at
+SELECT encounter_no, mrn, department_code, doctor_id, perawat_id, guarantor, payment_status, status, created_at
 FROM encounters
 WHERE created_at >= $1 AND created_at < $2
   AND deleted_dt IS NULL
@@ -260,15 +260,15 @@ type GetTodayEncountersParams struct {
 }
 
 type GetTodayEncountersRow struct {
-	EncounterNo   string
-	Mrn           string
-	Department    string
-	DoctorID      string
-	PerawatID     sql.NullString
-	Guarantor     sql.NullString
-	PaymentStatus sql.NullString
-	Status        string
-	CreatedAt     sql.NullTime
+	EncounterNo    string
+	Mrn            string
+	DepartmentCode string
+	DoctorID       string
+	PerawatID      sql.NullString
+	Guarantor      sql.NullString
+	PaymentStatus  sql.NullString
+	Status         string
+	CreatedAt      sql.NullTime
 }
 
 func (q *Queries) GetTodayEncounters(ctx context.Context, arg GetTodayEncountersParams) ([]GetTodayEncountersRow, error) {
@@ -283,7 +283,7 @@ func (q *Queries) GetTodayEncounters(ctx context.Context, arg GetTodayEncounters
 		if err := rows.Scan(
 			&i.EncounterNo,
 			&i.Mrn,
-			&i.Department,
+			&i.DepartmentCode,
 			&i.DoctorID,
 			&i.PerawatID,
 			&i.Guarantor,
