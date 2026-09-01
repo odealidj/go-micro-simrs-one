@@ -94,7 +94,7 @@ func main() {
 			recovery.UnaryServerInterceptor(),
 		),
 	)
-	pb.RegisterRawatJalanServiceServer(grpcServer, grpcAdapter.NewRawatJalanGrpcServer(emrService, queriesRepo))
+	pb.RegisterRawatJalanServiceServer(grpcServer, grpcAdapter.NewRawatJalanGrpcServer(emrService, queriesRepo, rdb))
 
 	// 8. Register gRPC Health Check
 	healthSrv := health.NewServer()

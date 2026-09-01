@@ -38,6 +38,7 @@ const (
 	RawatJalanService_GetMasterKBMsByPoli_FullMethodName       = "/rawat_jalan.v1.RawatJalanService/GetMasterKBMsByPoli"
 	RawatJalanService_SearchKBM_FullMethodName                 = "/rawat_jalan.v1.RawatJalanService/SearchKBM"
 	RawatJalanService_GetKBMDetail_FullMethodName              = "/rawat_jalan.v1.RawatJalanService/GetKBMDetail"
+	RawatJalanService_GetPolyclinics_FullMethodName            = "/rawat_jalan.v1.RawatJalanService/GetPolyclinics"
 )
 
 // RawatJalanServiceClient is the client API for RawatJalanService service.
@@ -68,6 +69,8 @@ type RawatJalanServiceClient interface {
 	GetMasterKBMsByPoli(ctx context.Context, in *GetMasterKBMsByPoliRequest, opts ...grpc.CallOption) (*GetMasterKBMsByPoliResponse, error)
 	SearchKBM(ctx context.Context, in *SearchKBMRequest, opts ...grpc.CallOption) (*SearchKBMResponse, error)
 	GetKBMDetail(ctx context.Context, in *GetKBMDetailRequest, opts ...grpc.CallOption) (*GetKBMDetailResponse, error)
+	// 6. Master Polyclinics (Official Owner: Rawat Jalan)
+	GetPolyclinics(ctx context.Context, in *GetPolyclinicsRequest, opts ...grpc.CallOption) (*GetPolyclinicsResponse, error)
 }
 
 type rawatJalanServiceClient struct {
@@ -268,6 +271,16 @@ func (c *rawatJalanServiceClient) GetKBMDetail(ctx context.Context, in *GetKBMDe
 	return out, nil
 }
 
+func (c *rawatJalanServiceClient) GetPolyclinics(ctx context.Context, in *GetPolyclinicsRequest, opts ...grpc.CallOption) (*GetPolyclinicsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPolyclinicsResponse)
+	err := c.cc.Invoke(ctx, RawatJalanService_GetPolyclinics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RawatJalanServiceServer is the server API for RawatJalanService service.
 // All implementations must embed UnimplementedRawatJalanServiceServer
 // for forward compatibility.
@@ -296,6 +309,8 @@ type RawatJalanServiceServer interface {
 	GetMasterKBMsByPoli(context.Context, *GetMasterKBMsByPoliRequest) (*GetMasterKBMsByPoliResponse, error)
 	SearchKBM(context.Context, *SearchKBMRequest) (*SearchKBMResponse, error)
 	GetKBMDetail(context.Context, *GetKBMDetailRequest) (*GetKBMDetailResponse, error)
+	// 6. Master Polyclinics (Official Owner: Rawat Jalan)
+	GetPolyclinics(context.Context, *GetPolyclinicsRequest) (*GetPolyclinicsResponse, error)
 	mustEmbedUnimplementedRawatJalanServiceServer()
 }
 
@@ -362,6 +377,9 @@ func (UnimplementedRawatJalanServiceServer) SearchKBM(context.Context, *SearchKB
 }
 func (UnimplementedRawatJalanServiceServer) GetKBMDetail(context.Context, *GetKBMDetailRequest) (*GetKBMDetailResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetKBMDetail not implemented")
+}
+func (UnimplementedRawatJalanServiceServer) GetPolyclinics(context.Context, *GetPolyclinicsRequest) (*GetPolyclinicsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPolyclinics not implemented")
 }
 func (UnimplementedRawatJalanServiceServer) mustEmbedUnimplementedRawatJalanServiceServer() {}
 func (UnimplementedRawatJalanServiceServer) testEmbeddedByValue()                           {}
@@ -726,6 +744,24 @@ func _RawatJalanService_GetKBMDetail_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RawatJalanService_GetPolyclinics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPolyclinicsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RawatJalanServiceServer).GetPolyclinics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RawatJalanService_GetPolyclinics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RawatJalanServiceServer).GetPolyclinics(ctx, req.(*GetPolyclinicsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RawatJalanService_ServiceDesc is the grpc.ServiceDesc for RawatJalanService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -808,6 +844,10 @@ var RawatJalanService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetKBMDetail",
 			Handler:    _RawatJalanService_GetKBMDetail_Handler,
+		},
+		{
+			MethodName: "GetPolyclinics",
+			Handler:    _RawatJalanService_GetPolyclinics_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

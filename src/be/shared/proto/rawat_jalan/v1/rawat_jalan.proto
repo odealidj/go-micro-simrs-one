@@ -33,6 +33,9 @@ service RawatJalanService {
   rpc GetMasterKBMsByPoli (GetMasterKBMsByPoliRequest) returns (GetMasterKBMsByPoliResponse);
   rpc SearchKBM (SearchKBMRequest) returns (SearchKBMResponse);
   rpc GetKBMDetail (GetKBMDetailRequest) returns (GetKBMDetailResponse);
+
+  // 6. Master Polyclinics (Official Owner: Rawat Jalan)
+  rpc GetPolyclinics (GetPolyclinicsRequest) returns (GetPolyclinicsResponse);
 }
 
 // ─── Encounter Lifecycle Messages ─────────────────────────────────────────────
@@ -368,3 +371,23 @@ message GetKBMDetailRequest {
 message GetKBMDetailResponse {
   KBMItem item = 1;
 }
+
+// ─── Master Polyclinics Messages ──────────────────────────────────────────────
+
+message GetPolyclinicsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string search = 3;
+}
+
+message Polyclinic {
+  string code = 1;
+  string name = 2;
+  bool is_active = 3;
+}
+
+message GetPolyclinicsResponse {
+  repeated Polyclinic data = 1;
+  int32 total_count = 2;
+}
+

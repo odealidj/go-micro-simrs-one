@@ -71,7 +71,7 @@ down:
 
 be-infra-up:
 	@echo "Starting Podman API socket for container metrics..."
-	systemctl --user start podman.socket
+	@systemctl --user restart podman.socket 2>/dev/null || systemctl --user start podman.socket 2>/dev/null || true
 	podman compose up -d postgres redis jaeger postgres-exporter redis-exporter podman-exporter 2>&1 | grep -v "no container with" || true
 	@echo "Waiting for postgres to be ready..."
 	@for i in 1 2 3 4 5 6 7 8 9 10; do \
@@ -169,7 +169,7 @@ be-stop-prometheus:
 	podman compose stop prometheus
 
 be-run-podman-exporter:
-	systemctl --user start podman.socket
+	@systemctl --user restart podman.socket 2>/dev/null || systemctl --user start podman.socket 2>/dev/null || true
 	podman compose up -d podman-exporter
 
 be-stop-podman-exporter:

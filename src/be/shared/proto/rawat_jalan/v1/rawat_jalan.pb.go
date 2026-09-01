@@ -3149,6 +3149,178 @@ func (x *GetKBMDetailResponse) GetItem() *KBMItem {
 	return nil
 }
 
+type GetPolyclinicsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Page          int32                  `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
+	PageSize      int32                  `protobuf:"varint,2,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
+	Search        string                 `protobuf:"bytes,3,opt,name=search,proto3" json:"search,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPolyclinicsRequest) Reset() {
+	*x = GetPolyclinicsRequest{}
+	mi := &file_rawat_jalan_v1_rawat_jalan_proto_msgTypes[46]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPolyclinicsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPolyclinicsRequest) ProtoMessage() {}
+
+func (x *GetPolyclinicsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_rawat_jalan_v1_rawat_jalan_proto_msgTypes[46]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPolyclinicsRequest.ProtoReflect.Descriptor instead.
+func (*GetPolyclinicsRequest) Descriptor() ([]byte, []int) {
+	return file_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{46}
+}
+
+func (x *GetPolyclinicsRequest) GetPage() int32 {
+	if x != nil {
+		return x.Page
+	}
+	return 0
+}
+
+func (x *GetPolyclinicsRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return 0
+}
+
+func (x *GetPolyclinicsRequest) GetSearch() string {
+	if x != nil {
+		return x.Search
+	}
+	return ""
+}
+
+type Polyclinic struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	IsActive      bool                   `protobuf:"varint,3,opt,name=is_active,json=isActive,proto3" json:"is_active,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Polyclinic) Reset() {
+	*x = Polyclinic{}
+	mi := &file_rawat_jalan_v1_rawat_jalan_proto_msgTypes[47]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Polyclinic) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Polyclinic) ProtoMessage() {}
+
+func (x *Polyclinic) ProtoReflect() protoreflect.Message {
+	mi := &file_rawat_jalan_v1_rawat_jalan_proto_msgTypes[47]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Polyclinic.ProtoReflect.Descriptor instead.
+func (*Polyclinic) Descriptor() ([]byte, []int) {
+	return file_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{47}
+}
+
+func (x *Polyclinic) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *Polyclinic) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *Polyclinic) GetIsActive() bool {
+	if x != nil {
+		return x.IsActive
+	}
+	return false
+}
+
+type GetPolyclinicsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Data          []*Polyclinic          `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	TotalCount    int32                  `protobuf:"varint,2,opt,name=total_count,json=totalCount,proto3" json:"total_count,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPolyclinicsResponse) Reset() {
+	*x = GetPolyclinicsResponse{}
+	mi := &file_rawat_jalan_v1_rawat_jalan_proto_msgTypes[48]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPolyclinicsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPolyclinicsResponse) ProtoMessage() {}
+
+func (x *GetPolyclinicsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_rawat_jalan_v1_rawat_jalan_proto_msgTypes[48]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPolyclinicsResponse.ProtoReflect.Descriptor instead.
+func (*GetPolyclinicsResponse) Descriptor() ([]byte, []int) {
+	return file_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP(), []int{48}
+}
+
+func (x *GetPolyclinicsResponse) GetData() []*Polyclinic {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *GetPolyclinicsResponse) GetTotalCount() int32 {
+	if x != nil {
+		return x.TotalCount
+	}
+	return 0
+}
+
 var File_rawat_jalan_v1_rawat_jalan_proto protoreflect.FileDescriptor
 
 const file_rawat_jalan_v1_rawat_jalan_proto_rawDesc = "" +
@@ -3420,7 +3592,20 @@ const file_rawat_jalan_v1_rawat_jalan_proto_rawDesc = "" +
 	"\x13GetKBMDetailRequest\x12\x19\n" +
 	"\bkbm_code\x18\x01 \x01(\tR\akbmCode\"C\n" +
 	"\x14GetKBMDetailResponse\x12+\n" +
-	"\x04item\x18\x01 \x01(\v2\x17.rawat_jalan.v1.KBMItemR\x04item2\xcd\x10\n" +
+	"\x04item\x18\x01 \x01(\v2\x17.rawat_jalan.v1.KBMItemR\x04item\"`\n" +
+	"\x15GetPolyclinicsRequest\x12\x12\n" +
+	"\x04page\x18\x01 \x01(\x05R\x04page\x12\x1b\n" +
+	"\tpage_size\x18\x02 \x01(\x05R\bpageSize\x12\x16\n" +
+	"\x06search\x18\x03 \x01(\tR\x06search\"Q\n" +
+	"\n" +
+	"Polyclinic\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1b\n" +
+	"\tis_active\x18\x03 \x01(\bR\bisActive\"i\n" +
+	"\x16GetPolyclinicsResponse\x12.\n" +
+	"\x04data\x18\x01 \x03(\v2\x1a.rawat_jalan.v1.PolyclinicR\x04data\x12\x1f\n" +
+	"\vtotal_count\x18\x02 \x01(\x05R\n" +
+	"totalCount2\xae\x11\n" +
 	"\x11RawatJalanService\x12_\n" +
 	"\x0eStartEncounter\x12%.rawat_jalan.v1.StartEncounterRequest\x1a&.rawat_jalan.v1.StartEncounterResponse\x12h\n" +
 	"\x11CompleteEncounter\x12(.rawat_jalan.v1.CompleteEncounterRequest\x1a).rawat_jalan.v1.CompleteEncounterResponse\x12e\n" +
@@ -3440,7 +3625,8 @@ const file_rawat_jalan_v1_rawat_jalan_proto_rawDesc = "" +
 	"\x14GetMasterICD10ByPoli\x12+.rawat_jalan.v1.GetMasterICD10ByPoliRequest\x1a,.rawat_jalan.v1.GetMasterICD10ByPoliResponse\x12n\n" +
 	"\x13GetMasterKBMsByPoli\x12*.rawat_jalan.v1.GetMasterKBMsByPoliRequest\x1a+.rawat_jalan.v1.GetMasterKBMsByPoliResponse\x12P\n" +
 	"\tSearchKBM\x12 .rawat_jalan.v1.SearchKBMRequest\x1a!.rawat_jalan.v1.SearchKBMResponse\x12Y\n" +
-	"\fGetKBMDetail\x12#.rawat_jalan.v1.GetKBMDetailRequest\x1a$.rawat_jalan.v1.GetKBMDetailResponseBOZMgithub.com/aliube/go-micro-simrs-one/shared/proto/rawat_jalan/v1;rawatjalanv1b\x06proto3"
+	"\fGetKBMDetail\x12#.rawat_jalan.v1.GetKBMDetailRequest\x1a$.rawat_jalan.v1.GetKBMDetailResponse\x12_\n" +
+	"\x0eGetPolyclinics\x12%.rawat_jalan.v1.GetPolyclinicsRequest\x1a&.rawat_jalan.v1.GetPolyclinicsResponseBOZMgithub.com/aliube/go-micro-simrs-one/shared/proto/rawat_jalan/v1;rawatjalanv1b\x06proto3"
 
 var (
 	file_rawat_jalan_v1_rawat_jalan_proto_rawDescOnce sync.Once
@@ -3454,7 +3640,7 @@ func file_rawat_jalan_v1_rawat_jalan_proto_rawDescGZIP() []byte {
 	return file_rawat_jalan_v1_rawat_jalan_proto_rawDescData
 }
 
-var file_rawat_jalan_v1_rawat_jalan_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
+var file_rawat_jalan_v1_rawat_jalan_proto_msgTypes = make([]protoimpl.MessageInfo, 49)
 var file_rawat_jalan_v1_rawat_jalan_proto_goTypes = []any{
 	(*StartEncounterRequest)(nil),             // 0: rawat_jalan.v1.StartEncounterRequest
 	(*StartEncounterResponse)(nil),            // 1: rawat_jalan.v1.StartEncounterResponse
@@ -3502,6 +3688,9 @@ var file_rawat_jalan_v1_rawat_jalan_proto_goTypes = []any{
 	(*SearchKBMResponse)(nil),                 // 43: rawat_jalan.v1.SearchKBMResponse
 	(*GetKBMDetailRequest)(nil),               // 44: rawat_jalan.v1.GetKBMDetailRequest
 	(*GetKBMDetailResponse)(nil),              // 45: rawat_jalan.v1.GetKBMDetailResponse
+	(*GetPolyclinicsRequest)(nil),             // 46: rawat_jalan.v1.GetPolyclinicsRequest
+	(*Polyclinic)(nil),                        // 47: rawat_jalan.v1.Polyclinic
+	(*GetPolyclinicsResponse)(nil),            // 48: rawat_jalan.v1.GetPolyclinicsResponse
 }
 var file_rawat_jalan_v1_rawat_jalan_proto_depIdxs = []int32{
 	31, // 0: rawat_jalan.v1.CompleteEncounterResponse.checklist:type_name -> rawat_jalan.v1.ClinicalChecklist
@@ -3516,49 +3705,52 @@ var file_rawat_jalan_v1_rawat_jalan_proto_depIdxs = []int32{
 	39, // 9: rawat_jalan.v1.GetMasterKBMsByPoliResponse.data:type_name -> rawat_jalan.v1.KBMItem
 	39, // 10: rawat_jalan.v1.SearchKBMResponse.items:type_name -> rawat_jalan.v1.KBMItem
 	39, // 11: rawat_jalan.v1.GetKBMDetailResponse.item:type_name -> rawat_jalan.v1.KBMItem
-	0,  // 12: rawat_jalan.v1.RawatJalanService.StartEncounter:input_type -> rawat_jalan.v1.StartEncounterRequest
-	2,  // 13: rawat_jalan.v1.RawatJalanService.CompleteEncounter:input_type -> rawat_jalan.v1.CompleteEncounterRequest
-	27, // 14: rawat_jalan.v1.RawatJalanService.GetMedicalRecord:input_type -> rawat_jalan.v1.GetMedicalRecordRequest
-	4,  // 15: rawat_jalan.v1.RawatJalanService.GetEstimatedWaitTime:input_type -> rawat_jalan.v1.GetEstimatedWaitTimeRequest
-	6,  // 16: rawat_jalan.v1.RawatJalanService.FinalizeMedicalRecord:input_type -> rawat_jalan.v1.FinalizeMedicalRecordRequest
-	8,  // 17: rawat_jalan.v1.RawatJalanService.SubmitTriage:input_type -> rawat_jalan.v1.SubmitTriageRequest
-	10, // 18: rawat_jalan.v1.RawatJalanService.AddMedicalAction:input_type -> rawat_jalan.v1.AddMedicalActionRequest
-	12, // 19: rawat_jalan.v1.RawatJalanService.RemoveMedicalAction:input_type -> rawat_jalan.v1.RemoveMedicalActionRequest
-	14, // 20: rawat_jalan.v1.RawatJalanService.AddEncounterDiagnosis:input_type -> rawat_jalan.v1.AddEncounterDiagnosisRequest
-	16, // 21: rawat_jalan.v1.RawatJalanService.UpdateEncounterDiagnosis:input_type -> rawat_jalan.v1.UpdateEncounterDiagnosisRequest
-	18, // 22: rawat_jalan.v1.RawatJalanService.RemoveEncounterDiagnosis:input_type -> rawat_jalan.v1.RemoveEncounterDiagnosisRequest
-	20, // 23: rawat_jalan.v1.RawatJalanService.PromoteDiagnosisToPrimary:input_type -> rawat_jalan.v1.PromoteDiagnosisToPrimaryRequest
-	22, // 24: rawat_jalan.v1.RawatJalanService.FinalizeSeverity:input_type -> rawat_jalan.v1.FinalizeSeverityRequest
-	24, // 25: rawat_jalan.v1.RawatJalanService.GetKBMSuggestionsForICD10:input_type -> rawat_jalan.v1.GetKBMSuggestionsForICD10Request
-	34, // 26: rawat_jalan.v1.RawatJalanService.GetMasterTindakanByPoli:input_type -> rawat_jalan.v1.GetMasterTindakanByPoliRequest
-	37, // 27: rawat_jalan.v1.RawatJalanService.GetMasterICD10ByPoli:input_type -> rawat_jalan.v1.GetMasterICD10ByPoliRequest
-	40, // 28: rawat_jalan.v1.RawatJalanService.GetMasterKBMsByPoli:input_type -> rawat_jalan.v1.GetMasterKBMsByPoliRequest
-	42, // 29: rawat_jalan.v1.RawatJalanService.SearchKBM:input_type -> rawat_jalan.v1.SearchKBMRequest
-	44, // 30: rawat_jalan.v1.RawatJalanService.GetKBMDetail:input_type -> rawat_jalan.v1.GetKBMDetailRequest
-	1,  // 31: rawat_jalan.v1.RawatJalanService.StartEncounter:output_type -> rawat_jalan.v1.StartEncounterResponse
-	3,  // 32: rawat_jalan.v1.RawatJalanService.CompleteEncounter:output_type -> rawat_jalan.v1.CompleteEncounterResponse
-	32, // 33: rawat_jalan.v1.RawatJalanService.GetMedicalRecord:output_type -> rawat_jalan.v1.GetMedicalRecordResponse
-	5,  // 34: rawat_jalan.v1.RawatJalanService.GetEstimatedWaitTime:output_type -> rawat_jalan.v1.GetEstimatedWaitTimeResponse
-	7,  // 35: rawat_jalan.v1.RawatJalanService.FinalizeMedicalRecord:output_type -> rawat_jalan.v1.FinalizeMedicalRecordResponse
-	9,  // 36: rawat_jalan.v1.RawatJalanService.SubmitTriage:output_type -> rawat_jalan.v1.SubmitTriageResponse
-	11, // 37: rawat_jalan.v1.RawatJalanService.AddMedicalAction:output_type -> rawat_jalan.v1.AddMedicalActionResponse
-	13, // 38: rawat_jalan.v1.RawatJalanService.RemoveMedicalAction:output_type -> rawat_jalan.v1.RemoveMedicalActionResponse
-	15, // 39: rawat_jalan.v1.RawatJalanService.AddEncounterDiagnosis:output_type -> rawat_jalan.v1.AddEncounterDiagnosisResponse
-	17, // 40: rawat_jalan.v1.RawatJalanService.UpdateEncounterDiagnosis:output_type -> rawat_jalan.v1.UpdateEncounterDiagnosisResponse
-	19, // 41: rawat_jalan.v1.RawatJalanService.RemoveEncounterDiagnosis:output_type -> rawat_jalan.v1.RemoveEncounterDiagnosisResponse
-	21, // 42: rawat_jalan.v1.RawatJalanService.PromoteDiagnosisToPrimary:output_type -> rawat_jalan.v1.PromoteDiagnosisToPrimaryResponse
-	23, // 43: rawat_jalan.v1.RawatJalanService.FinalizeSeverity:output_type -> rawat_jalan.v1.FinalizeSeverityResponse
-	26, // 44: rawat_jalan.v1.RawatJalanService.GetKBMSuggestionsForICD10:output_type -> rawat_jalan.v1.GetKBMSuggestionsForICD10Response
-	35, // 45: rawat_jalan.v1.RawatJalanService.GetMasterTindakanByPoli:output_type -> rawat_jalan.v1.GetMasterTindakanByPoliResponse
-	38, // 46: rawat_jalan.v1.RawatJalanService.GetMasterICD10ByPoli:output_type -> rawat_jalan.v1.GetMasterICD10ByPoliResponse
-	41, // 47: rawat_jalan.v1.RawatJalanService.GetMasterKBMsByPoli:output_type -> rawat_jalan.v1.GetMasterKBMsByPoliResponse
-	43, // 48: rawat_jalan.v1.RawatJalanService.SearchKBM:output_type -> rawat_jalan.v1.SearchKBMResponse
-	45, // 49: rawat_jalan.v1.RawatJalanService.GetKBMDetail:output_type -> rawat_jalan.v1.GetKBMDetailResponse
-	31, // [31:50] is the sub-list for method output_type
-	12, // [12:31] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	47, // 12: rawat_jalan.v1.GetPolyclinicsResponse.data:type_name -> rawat_jalan.v1.Polyclinic
+	0,  // 13: rawat_jalan.v1.RawatJalanService.StartEncounter:input_type -> rawat_jalan.v1.StartEncounterRequest
+	2,  // 14: rawat_jalan.v1.RawatJalanService.CompleteEncounter:input_type -> rawat_jalan.v1.CompleteEncounterRequest
+	27, // 15: rawat_jalan.v1.RawatJalanService.GetMedicalRecord:input_type -> rawat_jalan.v1.GetMedicalRecordRequest
+	4,  // 16: rawat_jalan.v1.RawatJalanService.GetEstimatedWaitTime:input_type -> rawat_jalan.v1.GetEstimatedWaitTimeRequest
+	6,  // 17: rawat_jalan.v1.RawatJalanService.FinalizeMedicalRecord:input_type -> rawat_jalan.v1.FinalizeMedicalRecordRequest
+	8,  // 18: rawat_jalan.v1.RawatJalanService.SubmitTriage:input_type -> rawat_jalan.v1.SubmitTriageRequest
+	10, // 19: rawat_jalan.v1.RawatJalanService.AddMedicalAction:input_type -> rawat_jalan.v1.AddMedicalActionRequest
+	12, // 20: rawat_jalan.v1.RawatJalanService.RemoveMedicalAction:input_type -> rawat_jalan.v1.RemoveMedicalActionRequest
+	14, // 21: rawat_jalan.v1.RawatJalanService.AddEncounterDiagnosis:input_type -> rawat_jalan.v1.AddEncounterDiagnosisRequest
+	16, // 22: rawat_jalan.v1.RawatJalanService.UpdateEncounterDiagnosis:input_type -> rawat_jalan.v1.UpdateEncounterDiagnosisRequest
+	18, // 23: rawat_jalan.v1.RawatJalanService.RemoveEncounterDiagnosis:input_type -> rawat_jalan.v1.RemoveEncounterDiagnosisRequest
+	20, // 24: rawat_jalan.v1.RawatJalanService.PromoteDiagnosisToPrimary:input_type -> rawat_jalan.v1.PromoteDiagnosisToPrimaryRequest
+	22, // 25: rawat_jalan.v1.RawatJalanService.FinalizeSeverity:input_type -> rawat_jalan.v1.FinalizeSeverityRequest
+	24, // 26: rawat_jalan.v1.RawatJalanService.GetKBMSuggestionsForICD10:input_type -> rawat_jalan.v1.GetKBMSuggestionsForICD10Request
+	34, // 27: rawat_jalan.v1.RawatJalanService.GetMasterTindakanByPoli:input_type -> rawat_jalan.v1.GetMasterTindakanByPoliRequest
+	37, // 28: rawat_jalan.v1.RawatJalanService.GetMasterICD10ByPoli:input_type -> rawat_jalan.v1.GetMasterICD10ByPoliRequest
+	40, // 29: rawat_jalan.v1.RawatJalanService.GetMasterKBMsByPoli:input_type -> rawat_jalan.v1.GetMasterKBMsByPoliRequest
+	42, // 30: rawat_jalan.v1.RawatJalanService.SearchKBM:input_type -> rawat_jalan.v1.SearchKBMRequest
+	44, // 31: rawat_jalan.v1.RawatJalanService.GetKBMDetail:input_type -> rawat_jalan.v1.GetKBMDetailRequest
+	46, // 32: rawat_jalan.v1.RawatJalanService.GetPolyclinics:input_type -> rawat_jalan.v1.GetPolyclinicsRequest
+	1,  // 33: rawat_jalan.v1.RawatJalanService.StartEncounter:output_type -> rawat_jalan.v1.StartEncounterResponse
+	3,  // 34: rawat_jalan.v1.RawatJalanService.CompleteEncounter:output_type -> rawat_jalan.v1.CompleteEncounterResponse
+	32, // 35: rawat_jalan.v1.RawatJalanService.GetMedicalRecord:output_type -> rawat_jalan.v1.GetMedicalRecordResponse
+	5,  // 36: rawat_jalan.v1.RawatJalanService.GetEstimatedWaitTime:output_type -> rawat_jalan.v1.GetEstimatedWaitTimeResponse
+	7,  // 37: rawat_jalan.v1.RawatJalanService.FinalizeMedicalRecord:output_type -> rawat_jalan.v1.FinalizeMedicalRecordResponse
+	9,  // 38: rawat_jalan.v1.RawatJalanService.SubmitTriage:output_type -> rawat_jalan.v1.SubmitTriageResponse
+	11, // 39: rawat_jalan.v1.RawatJalanService.AddMedicalAction:output_type -> rawat_jalan.v1.AddMedicalActionResponse
+	13, // 40: rawat_jalan.v1.RawatJalanService.RemoveMedicalAction:output_type -> rawat_jalan.v1.RemoveMedicalActionResponse
+	15, // 41: rawat_jalan.v1.RawatJalanService.AddEncounterDiagnosis:output_type -> rawat_jalan.v1.AddEncounterDiagnosisResponse
+	17, // 42: rawat_jalan.v1.RawatJalanService.UpdateEncounterDiagnosis:output_type -> rawat_jalan.v1.UpdateEncounterDiagnosisResponse
+	19, // 43: rawat_jalan.v1.RawatJalanService.RemoveEncounterDiagnosis:output_type -> rawat_jalan.v1.RemoveEncounterDiagnosisResponse
+	21, // 44: rawat_jalan.v1.RawatJalanService.PromoteDiagnosisToPrimary:output_type -> rawat_jalan.v1.PromoteDiagnosisToPrimaryResponse
+	23, // 45: rawat_jalan.v1.RawatJalanService.FinalizeSeverity:output_type -> rawat_jalan.v1.FinalizeSeverityResponse
+	26, // 46: rawat_jalan.v1.RawatJalanService.GetKBMSuggestionsForICD10:output_type -> rawat_jalan.v1.GetKBMSuggestionsForICD10Response
+	35, // 47: rawat_jalan.v1.RawatJalanService.GetMasterTindakanByPoli:output_type -> rawat_jalan.v1.GetMasterTindakanByPoliResponse
+	38, // 48: rawat_jalan.v1.RawatJalanService.GetMasterICD10ByPoli:output_type -> rawat_jalan.v1.GetMasterICD10ByPoliResponse
+	41, // 49: rawat_jalan.v1.RawatJalanService.GetMasterKBMsByPoli:output_type -> rawat_jalan.v1.GetMasterKBMsByPoliResponse
+	43, // 50: rawat_jalan.v1.RawatJalanService.SearchKBM:output_type -> rawat_jalan.v1.SearchKBMResponse
+	45, // 51: rawat_jalan.v1.RawatJalanService.GetKBMDetail:output_type -> rawat_jalan.v1.GetKBMDetailResponse
+	48, // 52: rawat_jalan.v1.RawatJalanService.GetPolyclinics:output_type -> rawat_jalan.v1.GetPolyclinicsResponse
+	33, // [33:53] is the sub-list for method output_type
+	13, // [13:33] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_rawat_jalan_v1_rawat_jalan_proto_init() }
@@ -3572,7 +3764,7 @@ func file_rawat_jalan_v1_rawat_jalan_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_rawat_jalan_v1_rawat_jalan_proto_rawDesc), len(file_rawat_jalan_v1_rawat_jalan_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   46,
+			NumMessages:   49,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

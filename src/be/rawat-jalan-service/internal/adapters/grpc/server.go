@@ -2,10 +2,13 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -20,12 +23,14 @@ type RawatJalanGrpcServer struct {
 	pb.UnimplementedRawatJalanServiceServer
 	emrService ports.EMRService
 	queries    *db.Queries
+	rdb        *redis.Client
 }
 
-func NewRawatJalanGrpcServer(service ports.EMRService, queries *db.Queries) *RawatJalanGrpcServer {
+func NewRawatJalanGrpcServer(service ports.EMRService, queries *db.Queries, rdb *redis.Client) *RawatJalanGrpcServer {
 	return &RawatJalanGrpcServer{
 		emrService: service,
 		queries:    queries,
+		rdb:        rdb,
 	}
 }
 
@@ -549,3 +554,58 @@ func (s *RawatJalanGrpcServer) GetKBMDetail(ctx context.Context, req *pb.GetKBMD
 		},
 	}, nil
 }
+
+// ─── 6. Master Polyclinics ───────────────────────────────────────────────────
+
+func (s *RawatJalanGrpcServer) GetPolyclinics(ctx context.Context, req *pb.GetPolyclinicsRequest) (*pb.GetPolyclinicsResponse, error) {
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 10
+	}
+	offset := (page - 1) * pageSize
+
+	res, err := s.queries.GetPolyclinics(ctx, db.GetPolyclinicsParams{
+		Column1: req.Search,
+		Limit:   pageSize,
+		Offset:  offset,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get polyclinics: %v", err)
+	}
+	count, err := s.queries.CountPolyclinics(ctx, req.Search)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to count polyclinics: %v", err)
+	}
+
+	var data []*pb.Polyclinic
+	for _, p := range res {
+		data = append(data, &pb.Polyclinic{
+			Code:     p.Code,
+			Name:     p.Name,
+			IsActive: p.IsActive,
+		})
+	}
+
+	// Warm/refresh Redis cache asynchronously if Redis client is available and not filtered
+	if s.rdb != nil && req.Search == "" {
+		go func() {
+			bgCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			for _, p := range res {
+				_ = s.rdb.HSet(bgCtx, "master:polyclinics", p.Code, p.Name).Err()
+			}
+			if page == 1 && pageSize >= 50 {
+				if b, err := json.Marshal(data); err == nil {
+					_ = s.rdb.Set(bgCtx, "master:polyclinics:all", string(b), 24*time.Hour).Err()
+				}
+			}
+		}()
+	}
+
+	return &pb.GetPolyclinicsResponse{Data: data, TotalCount: int32(count)}, nil
+}
+

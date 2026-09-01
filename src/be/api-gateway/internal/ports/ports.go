@@ -113,6 +113,7 @@ type RawatJalanPort interface {
 	GetMasterTindakanByPoli(ctx context.Context, req *rawatjalanpb.GetMasterTindakanByPoliRequest) (*rawatjalanpb.GetMasterTindakanByPoliResponse, error)
 	GetMasterICD10ByPoli(ctx context.Context, req *rawatjalanpb.GetMasterICD10ByPoliRequest) (*rawatjalanpb.GetMasterICD10ByPoliResponse, error)
 	GetMasterKBMsByPoli(ctx context.Context, req *rawatjalanpb.GetMasterKBMsByPoliRequest) (*rawatjalanpb.GetMasterKBMsByPoliResponse, error)
+	GetPolyclinics(ctx context.Context, req *rawatjalanpb.GetPolyclinicsRequest) (*rawatjalanpb.GetPolyclinicsResponse, error)
 }
 
 // PharmacyPort abstracts the pharmacy-service operations.
