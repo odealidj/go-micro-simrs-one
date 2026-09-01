@@ -34,8 +34,14 @@ Berbeda dengan dokumen handover sebelumnya yang berisi daftar GAP, saat ini sist
 - **Domain Entity Caching ($O(1)$):** Data poliklinik di-cache ke Redis Hash `master:polyclinics` (`code -> name`) dan JSON `master:polyclinics:all`. Service lain (Registration, Kasir/Billing, Gateway) melakukan lookup instan tanpa query database berulang.
 - **Validasi Pendaftaran KETAT:** Endpoint `POST /registrations` dan `POST /registrations/new-patient` memvalidasi keabsahan `department_code` resmi dari Redis/RawatJalan, menolak penggunaan singkatan lama (e.g. `UMU`, `GIG`) atau kode invalid dengan `400 Bad Request`.
 
+### Standarisasi Penamaan Kolom & DTO (`department_code` & `department_name`)
+- **Penyeragaman Kolom Database:** Kolom `department` pada tabel `registration.encounters` telah dimigrasikan menjadi **`department_code`** (Migration `000008_rename_department_to_department_code`).
+- **Konsistensi End-to-End:** Seluruh layer (Database $\rightarrow$ SQLC $\rightarrow$ Domain Go $\rightarrow$ Protobuf gRPC $\rightarrow$ JSON API Gateway $\rightarrow$ Frontend React DTO) kini 100% konsisten menggunakan pasangan standar:
+  - **`department_code`**: Identitas kode poliklinik/departemen untuk relasi data (e.g. `"01"`).
+  - **`department_name`**: Representasi nama lengkap poliklinik untuk antarmuka pengguna (e.g. `"Poliklinik Umum"`).
+
 ### Modul Kasir & Billing Terpadu
-- **Antrean & Invoice Kasir:** Menyediakan `GET /billing/queue`, `GET /billing/invoice/{encounter_no}`, dan `GET /billing/invoices/{encounter_no}` yang menggabungkan tagihan registrasi, tindakan medis dokter, dan resep obat farmasi.
+- **Antrean & Invoice Kasir:** Menyediakan `GET /billing/queue`, `GET /billing/invoice/{encounter_no}`, dan `GET /billing/invoices/{encounter_no}` yang menggabungkan tagihan registrasi, tindakan medis dokter, dan resep obat farmasi secara konsisten dengan field `department_code` & `department_name`.
 - **Pelunasan & Workflow Kasir:** `POST /billing/pay` memproses pelunasan kasir dan secara otomatis memindahkan status kunjungan pasien ke antrean poliklinik (`QUEUED_FOR_POLI`).
 - **Laporan Rekapitulasi:** `GET /billing/reports/rekap` menyajikan rekap settlement transaksi kasir harian dan rincian metode bayar (Tunai, QRIS, Debit, BPJS).
 
