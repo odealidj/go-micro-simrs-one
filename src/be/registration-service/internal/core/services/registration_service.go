@@ -89,13 +89,13 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 	}
 
 	encounter := &domain.Encounter{
-		EncounterNo: encounterNo,
-		MRN:         mrn,
-		Department:  departmentCode,
-		DoctorID:    doctorID,
-		PerawatID:   perawatID,
-		Status:      status,
-		CreatedAt:   time.Now(),
+		EncounterNo:    encounterNo,
+		MRN:            mrn,
+		DepartmentCode: departmentCode,
+		DoctorID:       doctorID,
+		PerawatID:      perawatID,
+		Status:         status,
+		CreatedAt:      time.Now(),
 	}
 
 	// Create Outbox Event to be processed by a background Relay worker
@@ -103,7 +103,7 @@ func (s *registrationServiceImpl) RegisterEncounter(ctx context.Context, mrn, de
 		ID:        fmt.Sprintf("evt-%d", time.Now().UnixNano()),
 		Aggregate: "Encounter",
 		Type:      "EncounterRegistered",
-		Payload:   fmt.Sprintf(`{"encounter_no":"%s","mrn":"%s","doctor_id":"%s","perawat_id":"%s"}`, encounterNo, mrn, doctorID, perawatID),
+		Payload:   fmt.Sprintf(`{"encounter_no":"%s","mrn":"%s","department_code":"%s","doctor_id":"%s","perawat_id":"%s"}`, encounterNo, mrn, departmentCode, doctorID, perawatID),
 		Status:    "PENDING",
 		CreatedAt: time.Now(),
 	}

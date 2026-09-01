@@ -275,7 +275,7 @@ Database : simrs_db (tables: encounters, outbox_events)
 
 | Method | Request | Response | Keterangan |
 |---|---|---|---|
-| `RegisterEncounter` | `mrn`, `department`, `doctor_id` | `encounter_no`, `success` | Daftarkan kunjungan + emit event |
+| `RegisterEncounter` | `mrn`, `department_code`, `doctor_id` | `encounter_no`, `success` | Daftarkan kunjungan + emit event |
 
 **Outbox Events yang diterbitkan:**
 
@@ -617,7 +617,7 @@ erDiagram
     encounters {
         VARCHAR_255 encounter_no PK "e.g. ENC-1234"
         VARCHAR_255 mrn "FK to patients.mrn (logical)"
-        VARCHAR_100 department "e.g. POLI-UMUM"
+        VARCHAR_100 department_code "e.g. 01 (Poliklinik Umum)"
         VARCHAR_100 doctor_id "e.g. DR-001"
         VARCHAR_50 status "REGISTERED|ACTIVE|COMPLETED"
         TIMESTAMP created_at
@@ -1039,7 +1039,7 @@ erDiagram
     encounters_reg {
         VARCHAR encounter_no PK "registration.encounters"
         VARCHAR mrn FK "Logical ref to patients"
-        VARCHAR department "Logical ref to polyclinics"
+        VARCHAR department_code "Logical ref to polyclinics"
         VARCHAR doctor_id "Logical ref to profil_dokter"
         VARCHAR status
     }
