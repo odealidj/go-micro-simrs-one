@@ -14,6 +14,7 @@ import (
 	"github.com/aliube/go-micro-simrs-one/shared/pkg/validator"
 	billingpb "github.com/aliube/go-micro-simrs-one/shared/proto/billing/v1"
 	patientpb "github.com/aliube/go-micro-simrs-one/shared/proto/patient/v1"
+	rawatjalanpb "github.com/aliube/go-micro-simrs-one/shared/proto/rawat_jalan/v1"
 	regpb "github.com/aliube/go-micro-simrs-one/shared/proto/registration/v1"
 	"github.com/go-chi/chi/v5"
 	"github.com/redis/go-redis/v9"
@@ -25,36 +26,34 @@ type BillingHandler struct {
 	rdb *redis.Client
 }
 
-func deptNameHelper(code string) string {
-	switch code {
-	case "01", "UMU", "Poli Umum", "POLI_UMUM":
-		return "Poliklinik Umum"
-	case "02", "GIG", "Poli Gigi", "POLI_GIGI":
-		return "Poliklinik Gigi"
-	case "03", "ANA", "Poli Anak", "POLI_ANAK":
-		return "Poliklinik Anak"
-	case "04", "INT", "Poli Penyakit Dalam", "POLI_DALAM":
-		return "Poliklinik Penyakit Dalam"
-	case "05", "BED", "Poli Bedah", "POLI_BEDAH":
-		return "Poliklinik Bedah"
-	case "06", "MAT", "Poli Mata", "POLI_MATA":
-		return "Poliklinik Mata"
-	case "07", "THT", "Poli THT", "POLI_THT":
-		return "Poliklinik THT"
-	case "08", "OBG", "Poli Kandungan", "POLI_KANDUNGAN":
-		return "Poliklinik Kandungan (Obgyn)"
-	default:
-		return "Poli " + code
-	}
-}
-
 func (h *BillingHandler) getDepartmentName(ctx context.Context, code string) string {
-	if h.rdb != nil && code != "" {
+	if code == "" {
+		return ""
+	}
+	// 1. Cek Redis Hash master:polyclinics (O(1))
+	if h.rdb != nil {
 		if val, err := h.rdb.HGet(ctx, "master:polyclinics", code).Result(); err == nil && val != "" {
 			return val
 		}
 	}
-	return deptNameHelper(code)
+	// 2. Fallback query ke rawat-jalan-service jika cache kosong, lalu isi cache Redis
+	if h.svc != nil && h.svc.RawatJalan != nil {
+		res, err := h.svc.RawatJalan.GetPolyclinics(ctx, &rawatjalanpb.GetPolyclinicsRequest{
+			Page:     1,
+			PageSize: 100,
+		})
+		if err == nil && res != nil {
+			for _, p := range res.Data {
+				if h.rdb != nil {
+					_ = h.rdb.HSet(ctx, "master:polyclinics", p.Code, p.Name).Err()
+				}
+				if p.Code == code {
+					return p.Name
+				}
+			}
+		}
+	}
+	return "Poli " + code
 }
 
 func NewBillingHandler(svc *ports.ServicePorts, rdb *redis.Client) *BillingHandler {
