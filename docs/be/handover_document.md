@@ -116,3 +116,4 @@ make be-stop-local-all
 - Alur proses bisnis komprehensif: `/docs/be/business/process.md`
 - Dokumentasi API & ERD: `/docs/be/technical/technical_documentation.md`
 - Panduan Terminologi Klinis & Klaim: `/docs/PROSES_BISNIS_DAN_TEKNIS_TERMINOLOGI_MEDIS_DAN_KLAIM.md`
+- Analisis GAP Kode vs Spesifikasi: `/docs/GAP_ANALYSIS.md`
